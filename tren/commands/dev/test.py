@@ -882,7 +882,7 @@ class DevTestCommand(BaseCommand):
                         py_file.unlink()
 
             # Clear progress tracking
-            tito_dir = project_root / ".tito"
+            tito_dir = project_root / ".tren"
             if tito_dir.exists():
                 shutil.rmtree(tito_dir)
 

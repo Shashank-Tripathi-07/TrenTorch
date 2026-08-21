@@ -9,6 +9,28 @@ from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass
 
 
+def migrate_progress_dir(project_root: Path) -> None:
+    """One-time migration of the progress-tracking directory from .tito/ to .tren/.
+
+    .tito/ was the directory name from before the tito->tren CLI rename, and
+    holds real progress.json/milestones.json data that already exists on any
+    machine that's run this CLI before. Renaming it outright would silently
+    reset that progress, so this only renames .tito/ to .tren/ once, the
+    first time a .tren/ directory doesn't already exist, and never touches
+    .tren/ once it's there. A fresh install with no .tito/ just gets .tren/
+    created normally by whichever command needs it, with nothing to migrate.
+    """
+    tito_dir = project_root / '.tito'
+    tren_dir = project_root / '.tren'
+    if tito_dir.exists() and not tren_dir.exists():
+        try:
+            tito_dir.rename(tren_dir)
+        except OSError:
+            # Best effort; if the rename fails (e.g. cross-device on some
+            # CI runners), leave .tito/ in place rather than crash startup.
+            pass
+
+
 @dataclass
 class CLIConfig:
     """Configuration for TinyTorch CLI."""

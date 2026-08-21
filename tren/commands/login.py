@@ -107,7 +107,7 @@ class LoginCommand(BaseCommand):
         from tren.core.submission import auto_sync_after_completion
         from tren.core.modules import get_module_mapping
 
-        progress_file = self.config.project_root / ".tito" / "progress.json"
+        progress_file = self.config.project_root / ".tren" / "progress.json"
         try:
             data = json.loads(progress_file.read_text()) if progress_file.exists() else {}
             completed = data.get("completed_modules", [])

@@ -164,6 +164,7 @@ class TestCommandFiles:
             'setup.py', 'nbgrader.py',
             'milestone.py', 'benchmark.py',
             'community.py', 'olympics.py',
+            'convert.py',
             # Known internal/helper files (not top-level commands)
             'login.py',  # Subcommand of community
             'export_utils.py',  # Helper for export functionality

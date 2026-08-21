@@ -1342,8 +1342,8 @@ class ModuleWorkflowCommand(BaseCommand):
             return 1
 
     def get_progress_data(self) -> dict:
-        """Get current progress data from .tito/progress.json."""
-        tito_dir = self.config.project_root / ".tito"
+        """Get current progress data from .tren/progress.json."""
+        tito_dir = self.config.project_root / ".tren"
         progress_file = tito_dir / "progress.json"
 
         try:
@@ -1363,8 +1363,8 @@ class ModuleWorkflowCommand(BaseCommand):
         }
 
     def save_progress_data(self, progress: dict) -> None:
-        """Save progress data to .tito/progress.json."""
-        tito_dir = self.config.project_root / ".tito"
+        """Save progress data to .tren/progress.json."""
+        tito_dir = self.config.project_root / ".tren"
         tito_dir.mkdir(parents=True, exist_ok=True)
         progress_file = tito_dir / "progress.json"
 
@@ -1701,7 +1701,7 @@ class ModuleWorkflowCommand(BaseCommand):
         from ..milestone import MILESTONE_SCRIPTS, _module_progress_to_int, _required_modules_for
 
         # Check which milestones have been run successfully.
-        milestones_file = self.config.project_root / ".tito" / "milestones.json"
+        milestones_file = self.config.project_root / ".tren" / "milestones.json"
         completed_milestones = []
         if milestones_file.exists():
             try:
@@ -1823,7 +1823,7 @@ class ModuleWorkflowCommand(BaseCommand):
                 if module_num is not None
             }
 
-            milestones_file = self.config.project_root / ".tito" / "milestones.json"
+            milestones_file = self.config.project_root / ".tren" / "milestones.json"
             milestones_file.parent.mkdir(parents=True, exist_ok=True)
             if milestones_file.exists():
                 try:

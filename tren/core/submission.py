@@ -81,10 +81,10 @@ class SubmissionHandler:
         self.edge_function_url = "https://zrvmjrxhokwwmjacyhpq.supabase.co/functions/v1/upload-progress"
 
         # Derive paths from the project root in config
-        self.tito_dir = self.config.project_root / ".tito"
-        self.progress_file = self.tito_dir / "progress.json"
-        self.milestones_file = self.tito_dir / "milestones.json"
-        self.config_file = self.tito_dir / "config.json" # Though config is passed via CLIConfig
+        self.tren_dir = self.config.project_root / ".tren"
+        self.progress_file = self.tren_dir / "progress.json"
+        self.milestones_file = self.tren_dir / "milestones.json"
+        self.config_file = self.tren_dir / "config.json" # Though config is passed via CLIConfig
 
     def _read_json_safe(self, path: Path) -> Dict[str, Any]:
         """Helper to read JSON files safely."""

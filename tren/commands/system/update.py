@@ -7,7 +7,7 @@ Uses tinytorch-v* tags to determine latest version.
 IMPORTANT: This command preserves student work during updates:
 - modules/          (student notebooks in progress)
 - tinytorch/core/   (student implementations)
-- .tito/            (progress tracking)
+- .tren/            (progress tracking)
 - .venv/            (virtual environment)
 """
 
@@ -55,7 +55,7 @@ class UpdateCommand(BaseCommand):
     PRESERVE_DIRS = [
         "modules",       # Student work in progress
         ".venv",         # Virtual environment
-        ".tito",         # Progress tracking
+        ".tren",         # Progress tracking
     ]
     PRESERVE_FILES = [
         "progress.json",  # Legacy progress file
