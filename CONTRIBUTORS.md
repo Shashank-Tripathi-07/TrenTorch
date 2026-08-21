@@ -1,14 +1,41 @@
 # Contributors
 
-Thanks to everyone who's helped build TrenTorch. This table is kept up to date automatically — every new issue, PR, and merge updates the relevant row via [`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml).
+Thanks to everyone who's helped build TrenTorch. Kept up to date automatically — every new issue, PR, and merge updates the relevant entry via [`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml).
 
-| Contributor | Intro | Issues Raised | PRs Raised | PRs Merged |
-|---|---|---|---|---|
-| [Aadityansha](https://github.com/aadityansha06) | Reducing CPU stalls, one commit at a time. | 0 | 1 | 1 |
-| [app/github-actions](https://github.com/app/github-actions) | New to TrenTorch — say hi and add a real intro! | 0 | 1 | 1 |
-| [Rocky](https://github.com/Shashank-Tripathi-07) | IIT Guwahati, debugs autograd for fun, ships before sunrise. | 5 | 2 | 1 |
-| [Shivtej Gaikwad](https://github.com/ShivtejG236) | IIT Guwahati. Shows up, ships, moves on to the next thing. | 0 | 2 | 2 |
+<table width="100%" style="width:100%">
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="20.0%">
+        <a href="https://github.com/aadityansha06"><img src="https://avatars.githubusercontent.com/aadityansha06?v=4" width="80px;" alt="Aadityansha"/></a>
+        <br />
+        <b>Aadityansha</b>
+        <br />
+        <sub>Reducing CPU stalls, one commit at a time.</sub>
+        <br />
+        <sub>Issues: 0 &middot; PRs: 1 &middot; Merged: 1</sub>
+      </td>
+      <td align="center" valign="top" width="20.0%">
+        <a href="https://github.com/Shashank-Tripathi-07"><img src="https://avatars.githubusercontent.com/Shashank-Tripathi-07?v=4" width="80px;" alt="Rocky"/></a>
+        <br />
+        <b>Rocky</b>
+        <br />
+        <sub>IIT Guwahati, debugs autograd for fun, ships before sunrise.</sub>
+        <br />
+        <sub>Issues: 5 &middot; PRs: 2 &middot; Merged: 1</sub>
+      </td>
+      <td align="center" valign="top" width="20.0%">
+        <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="Shivtej Gaikwad"/></a>
+        <br />
+        <b>Shivtej Gaikwad</b>
+        <br />
+        <sub>IIT Guwahati. Shows up, ships, moves on to the next thing.</sub>
+        <br />
+        <sub>Issues: 0 &middot; PRs: 2 &middot; Merged: 2</sub>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
-Want to show up here? Open an issue or a PR — the first-contribution bot will say hello, and this table picks up the rest automatically once it merges.
+Want to show up here? Open an issue or a PR — the first-contribution bot will say hello, and this grid picks up the rest automatically once it merges.
