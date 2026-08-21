@@ -1896,7 +1896,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 13")
+    print("Run: tren module complete 13")
 
 # Call the comprehensive test
 # test_module()  # Only run in __main__ block below
@@ -2028,7 +2028,7 @@ Congratulations! You've built the complete transformer architecture that powers 
 
 ### Ready for Next Steps
 Your transformer implementation is the capstone of the language modeling pipeline.
-Export with: `tito module complete 13`
+Export with: `tren module complete 13`
 
 **Next**: Module 14 will add profiling and optimization techniques to make your transformers production-ready!
 """

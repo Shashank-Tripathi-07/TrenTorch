@@ -1900,7 +1900,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 11")
+    print("Run: tren module complete 11")
 
 # %% [markdown]
 """
@@ -2001,7 +2001,7 @@ Congratulations! You've built a complete embedding system that transforms discre
 
 ### Ready for Next Steps
 Your embeddings implementation enables attention mechanisms and transformer architectures.
-Export with: `tito module complete 11`
+Export with: `tren module complete 11`
 
 **Next**: Module 12 will add attention mechanisms for context-aware representations!
 """

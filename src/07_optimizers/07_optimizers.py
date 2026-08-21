@@ -1856,7 +1856,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 07")
+    print("Run: tren module complete 07")
 
 # %% [markdown]
 """
@@ -2018,7 +2018,7 @@ Congratulations! You've built sophisticated optimization algorithms that power m
 ### Ready for Next Steps
 Your optimizer implementations enable sophisticated neural network training! With gradients from Module 06 and optimizers from Module 07, you're ready to build complete training loops.
 
-Export with: `tito module complete 07`
+Export with: `tren module complete 07`
 
 **Next**: Module 08 will add training loops, learning rate scheduling, and checkpointing for complete end-to-end neural network training!
 """

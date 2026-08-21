@@ -1,6 +1,6 @@
 # TinyTorch: How It Actually Works, From First Principles
 
-*Every claim in this document is sourced from reading the actual code: `quarto/install.sh`, `bin/tito`, `tito/main.py`, `tito/core/*.py`, `tito/commands/**/*.py`, `pyproject.toml`, `requirements.txt`, and `tinytorch/__init__.py`, cross-checked against a real, install.sh-created TinyTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `install.sh` and `tito` source verbatim, so the mechanics below are still accurate to this fork's code, except that the install URL, the repo it clones, and the community backend it can optionally talk to (Part 6) are still hardcoded to upstream's own infrastructure, not this fork's.*
+*Every claim in this document is sourced from reading the actual code: `quarto/install.sh`, `bin/tren`, `tren/main.py`, `tren/core/*.py`, `tren/commands/**/*.py`, `pyproject.toml`, `requirements.txt`, and `tinytorch/__init__.py`, cross-checked against a real, install.sh-created TinyTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `install.sh` and `tren` source verbatim, so the mechanics below are still accurate to this fork's code, except that the install URL, the repo it clones, and the community backend it can optionally talk to (Part 6) are still hardcoded to upstream's own infrastructure, not this fork's.*
 
 ---
 
@@ -73,14 +73,14 @@ If a step never finishes and hits its ceiling, the script prints a specific, dia
       │  INSTRUCTOR.md, .pre-commit-config.yaml, and more (see the
       │  REMOVE list in install.sh, lines 664-693).
       │
-      │  modules/ is emptied (populated later by tito, not shipped
-      │  pre-built). progress.json and .tito/ are deleted (a student
+      │  modules/ is emptied (populated later by tren, not shipped
+      │  pre-built). progress.json and .tren/ are deleted (a student
       │  starts with zero progress, even if the branch being cloned
       │  happens to have stale tracking files in it). tinytorch/core/*.py
       │  is deleted except __init__.py. This is the critical one: the
       │  package a student receives has NO implementations in it yet.
       │  Every core/*.py file the package needs is something the student
-      │  will write themselves and export via tito.
+      │  will write themselves and export via tren.
       ▼
 [2/4] Creating Python environment...
       │
@@ -92,12 +92,12 @@ If a step never finishes and hits its ceiling, the script prints a specific, dia
       │
       │  pip install --upgrade pip
       │  pip install -r requirements.txt      (all packages below)
-      │  pip install -e .                      (tito itself, editable)
+      │  pip install -e .                      (tren itself, editable)
       │
       ▼
 [4/4] Verifying installation...
       │
-      │  command -v tito   (confirms the entry point resolved on PATH)
+      │  command -v tren   (confirms the entry point resolved on PATH)
       ▼
    done.
 ```
@@ -126,7 +126,7 @@ tinytorch/                                          ~339 MB total (after all
 ├── modules/                             ~0 MB       EMPTY at install time.
 │                                                     Populated one directory
 │                                                     per module, only when
-│                                                     `tito module start N`
+│                                                     `tren module start N`
 │                                                     runs (Part 3).
 ├── tinytorch/                           ~1 MB       the actual Python
 │   ├── core/                                        PACKAGE. At install
@@ -136,12 +136,12 @@ tinytorch/                                          ~339 MB total (after all
 │                                                     nothing. Every real
 │                                                     class here is written
 │                                                     by the student later.
-├── tito/                                1.2 MB      the CLI's own source
+├── tren/                                1.2 MB      the CLI's own source
 ├── tests/                               3.5 MB       test suites (20 module
 │                                                       dirs + shared conftest)
 ├── datasets/                            0.4 MB      tinydigits, tinytalks
 ├── milestones/                          0.6 MB      6 historical ML scripts
-├── bin/tito                                         a standalone entry
+├── bin/tren                                         a standalone entry
 │                                                      point (works without
 │                                                      `pip install -e .`,
 │                                                      see 1.4)
@@ -151,48 +151,48 @@ tinytorch/                                          ~339 MB total (after all
 
 The `.venv/` directory alone is roughly **87% of the total install size**. The actual curriculum content a student edits (`src/`) is under 2 MB. This is worth internalizing: almost the entire disk footprint is dependency packages (numpy's compiled math libraries, JupyterLab's web frontend, a debugger), not TinyTorch's own code.
 
-### 1.4 Two ways to invoke `tito` (this matters for understanding "how it runs")
+### 1.4 Two ways to invoke `tren` (this matters for understanding "how it runs")
 
 There are two entry points into the exact same code, and they resolve `sys.path` differently:
 
 ```text
 Path A: the installed console script (created by `pip install -e .`)
 ────────────────────────────────────────────────────────────────────
-  .venv/Scripts/tito.exe   (Windows)   or   .venv/bin/tito   (Unix)
+  .venv/Scripts/tren.exe   (Windows)   or   .venv/bin/tren   (Unix)
         │
         │  This is a tiny compiled/generated launcher that pip creates
-        │  from the `[project.scripts] tito = "tito.main:main"` entry in
+        │  from the `[project.scripts] tren = "tren.main:main"` entry in
         │  pyproject.toml. It only exists once `pip install -e .` has run,
         │  and only works once the venv is activated (or its Scripts/bin
         │  directory is on PATH).
         ▼
-  tito.main:main()
+  tren.main:main()
 
-Path B: bin/tito (a plain Python script, no pip install required)
+Path B: bin/tren (a plain Python script, no pip install required)
 ────────────────────────────────────────────────────────────────────
-  python bin/tito <command>
+  python bin/tren <command>
         │
         │  Explicitly computes tinytorch_root from its own file location
-        │  (two directories up from bin/tito), inserts it at the FRONT
+        │  (two directories up from bin/tren), inserts it at the FRONT
         │  of sys.path, and os.chdir()'s into it before importing
         │  anything, so `Path.cwd()`-based logic throughout the CLI
         │  behaves correctly regardless of where the script was invoked
         │  from. This exists for CI and for anyone who doesn't want an
         │  editable pip install at all.
         ▼
-  tito.main:main()      (same function, same code, either way)
+  tren.main:main()      (same function, same code, either way)
 ```
 
 Both paths converge on the exact same `main()`, the difference is only in how `sys.path` and the working directory get set up before that function runs.
 
 ---
 
-## Part 2: What Happens Every Single Time You Type `tito ...`
+## Part 2: What Happens Every Single Time You Type `tren ...`
 
-Before any subcommand's own logic runs, `tito/main.py`'s `TinyTorchCLI` does the same fixed sequence, every time, regardless of which command was typed.
+Before any subcommand's own logic runs, `tren/main.py`'s `TinyTorchCLI` does the same fixed sequence, every time, regardless of which command was typed.
 
 ```text
-                          $ tito module start 01
+                          $ tren module start 01
                                     │
                                     ▼
 ┌───────────────────────────────────────────────────────────────────────┐
@@ -223,7 +223,7 @@ Before any subcommand's own logic runs, `tito/main.py`'s `TinyTorchCLI` does the
 │    invocation, not just the one you're running. Every group's own      │
 │    add_arguments() executes regardless of which subcommand you typed.  │
 │    (Practical consequence: if one command group's argument-parsing     │
-│    code were ever slow or broken, it would affect every tito command,  │
+│    code were ever slow or broken, it would affect every tren command,  │
 │    not just its own.)                                                  │
 └───────────────────────────────────────────────────────────────────────┘
                                     │
@@ -250,8 +250,8 @@ Before any subcommand's own logic runs, `tito/main.py`'s `TinyTorchCLI` does the
 │ 5. Banner + first-run welcome                                           │
 │    print_banner() unless --no-color or the command is JSON-output-     │
 │    only (--json, or `module path`). First run ever (detected by        │
-│    .tito/ not existing yet) also shows a one-time "Solutions are        │
-│    included, this is intentional" welcome panel, then creates .tito/   │
+│    .tren/ not existing yet) also shows a one-time "Solutions are        │
+│    included, this is intentional" welcome panel, then creates .tren/   │
 │    just to mark that the welcome was shown, so it never shows again.  │
 └───────────────────────────────────────────────────────────────────────┘
                                     │
@@ -284,12 +284,12 @@ This is the loop a student repeats 20 times (once per module). Each module is in
 
 ### 3.1 Module identity: there is no hardcoded module list
 
-`tito/core/modules.py`'s `_discover_modules()` scans `src/` at runtime for directories matching the regex `^(\d{2})_(\w+)$` and builds the number→folder mapping from whatever it finds, cached with `@lru_cache`. **Nothing enumerates "there are 20 modules" as a constant anywhere in this discovery path.** If a 21st `src/21_whatever/` directory existed, it would simply appear. (Other parts of the codebase, like the milestone system's `PRIMARY_EXPORT_LABELS` dict, do hardcode 01-20 as display labels; that's a separate, static lookup table, not the module registry itself.)
+`tren/core/modules.py`'s `_discover_modules()` scans `src/` at runtime for directories matching the regex `^(\d{2})_(\w+)$` and builds the number→folder mapping from whatever it finds, cached with `@lru_cache`. **Nothing enumerates "there are 20 modules" as a constant anywhere in this discovery path.** If a 21st `src/21_whatever/` directory existed, it would simply appear. (Other parts of the codebase, like the milestone system's `PRIMARY_EXPORT_LABELS` dict, do hardcode 01-20 as display labels; that's a separate, static lookup table, not the module registry itself.)
 
-### 3.2 `tito module start 01`, full decision tree
+### 3.2 `tren module start 01`, full decision tree
 
 ```text
-                    tito module start 01
+                    tren module start 01
                             │
                             ▼
               normalize "01" -> "01"  (already 2-digit)
@@ -301,7 +301,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
                     │                           │
           ❌ "Module 01 not found"              ▼
           + list available range      is_module_started("01")?
-                                        (checks .tito/progress.json's
+                                        (checks .tren/progress.json's
                                          started_modules list, a JSON
                                          file, NOT a filesystem check,
                                          and this matters: see below)
@@ -355,7 +355,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
                                           │
                                           ▼
                             mark_module_started("01")
-                            -> writes .tito/progress.json
+                            -> writes .tren/progress.json
                             (disk write, a few hundred bytes)
                                           │
                                           ▼
@@ -383,21 +383,21 @@ This is the loop a student repeats 20 times (once per module). Each module is in
                                                        cleanly.
 ```
 
-**A currently-real dead end worth naming precisely.** `started_modules` in `.tito/progress.json` and the actual notebook on disk under `modules/` are two independently-maintained facts, and nothing keeps them in sync. `tito system reset --keep-progress` is a documented command that deliberately clears `modules/` while intentionally leaving `started_modules` untouched. Hit that combination (or lose `modules/` some other way, e.g. a partial restore from backup) and `tito module start N` will refuse forever with "already started," pointing at `tito module resume N`. Resume, in turn, accepts (tracking says started) and only discovers the notebook is missing deep inside `_open_jupyter`, failing with "Module directory not found" and no further guidance. Neither command's own error message mentions the actual fix, `tito module reset N --force`, which does work. A pull request fixing exactly this (both commands checking whether the notebook genuinely exists before trusting the tracking flag, and recreating it from `src/` when it doesn't) is open at the time of writing (harvard-edge/cs249r_book#2026), not yet merged.
+**A currently-real dead end worth naming precisely.** `started_modules` in `.tren/progress.json` and the actual notebook on disk under `modules/` are two independently-maintained facts, and nothing keeps them in sync. `tren system reset --keep-progress` is a documented command that deliberately clears `modules/` while intentionally leaving `started_modules` untouched. Hit that combination (or lose `modules/` some other way, e.g. a partial restore from backup) and `tren module start N` will refuse forever with "already started," pointing at `tren module resume N`. Resume, in turn, accepts (tracking says started) and only discovers the notebook is missing deep inside `_open_jupyter`, failing with "Module directory not found" and no further guidance. Neither command's own error message mentions the actual fix, `tren module reset N --force`, which does work. A pull request fixing exactly this (both commands checking whether the notebook genuinely exists before trusting the tracking flag, and recreating it from `src/` when it doesn't) is open at the time of writing (harvard-edge/cs249r_book#2026), not yet merged.
 
 ### 3.3 A currently-real gap worth naming precisely: untracked Jupyter processes
 
-As of the current `dev` branch, **`_open_jupyter()` does not track or reuse Jupyter Lab servers it launches.** Every `tito module start`, `tito module resume`, and `tito module view` call that reaches this code path spawns a brand-new `jupyter lab` subprocess via `subprocess.Popen`, with no PID file, no "is one already running" check, and no cleanup. Run `start`/`resume`/`view` five times in one working session and you get five separate Jupyter Lab servers, each holding its own port and consuming its own memory, none of which `tito` will ever stop for you. A fix for exactly this (`_jupyter_pid_file`, `_running_jupyter_pid`, reusing an existing server instead of spawning a new one) exists as an **open, unmerged pull request** (harvard-edge/cs249r_book#2011) at the time of writing. It is not yet part of the behavior described everywhere else in this document, which reflects what's actually on `dev` right now.
+As of the current `dev` branch, **`_open_jupyter()` does not track or reuse Jupyter Lab servers it launches.** Every `tren module start`, `tren module resume`, and `tren module view` call that reaches this code path spawns a brand-new `jupyter lab` subprocess via `subprocess.Popen`, with no PID file, no "is one already running" check, and no cleanup. Run `start`/`resume`/`view` five times in one working session and you get five separate Jupyter Lab servers, each holding its own port and consuming its own memory, none of which `tren` will ever stop for you. A fix for exactly this (`_jupyter_pid_file`, `_running_jupyter_pid`, reusing an existing server instead of spawning a new one) exists as an **open, unmerged pull request** (harvard-edge/cs249r_book#2011) at the time of writing. It is not yet part of the behavior described everywhere else in this document, which reflects what's actually on `dev` right now.
 
 ### 3.4 What Jupyter Lab actually costs, once it's running
 
-Once `jupyter lab` is up, it's a real local web server: it binds a TCP port (8888 by default, and every additional untracked instance from 3.3 binds the next free one), runs a Python kernel process per open notebook (a second Python process, separate from the `tito` process that launched it), and serves a JavaScript frontend over HTTP to whatever browser tab it opens. This is the only point in the entire student workflow where a long-lived network listener exists on the machine, every other `tito` command starts, does its work, and exits.
+Once `jupyter lab` is up, it's a real local web server: it binds a TCP port (8888 by default, and every additional untracked instance from 3.3 binds the next free one), runs a Python kernel process per open notebook (a second Python process, separate from the `tren` process that launched it), and serves a JavaScript frontend over HTTP to whatever browser tab it opens. This is the only point in the entire student workflow where a long-lived network listener exists on the machine, every other `tren` command starts, does its work, and exits.
 
 ---
 
-## Part 4: `tito module complete`, The Four-Step Pipeline
+## Part 4: `tren module complete`, The Four-Step Pipeline
 
-This is the command that actually turns a student's edited notebook into working, importable code. It is the single most consequential command in the whole system, and it is **not** the same thing as `tito module test` (that only runs Step 1 and never touches the package).
+This is the command that actually turns a student's edited notebook into working, importable code. It is the single most consequential command in the whole system, and it is **not** the same thing as `tren module test` (that only runs Step 1 and never touches the package).
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -491,7 +491,7 @@ This is the command that actually turns a student's edited notebook into working
 ┌────────────────────────────────────────────────────────────────────────┐
 │ STEP 4/4: Progress tracking      [disk write, JSON]                     │
 │                                                                          │
-│   update_progress("01", "01_tensor") -> .tito/progress.json gains       │
+│   update_progress("01", "01_tensor") -> .tren/progress.json gains       │
 │   "01" in completed_modules, plus a completion timestamp.               │
 └────────────────────────────────────────────────────────────────────────┘
                                     │
@@ -503,7 +503,7 @@ This is the command that actually turns a student's edited notebook into working
 │   its full set of required module numbers is now a subset of           │
 │   completed_modules. If a NEW milestone becomes runnable as a direct    │
 │   result of THIS module completing, prints a distinct panel: "Milestone│
-│   ready to run" with the exact `tito milestone run NN` command.         │
+│   ready to run" with the exact `tren milestone run NN` command.         │
 └────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -527,7 +527,7 @@ There are exactly two file-format conversions in this whole system, and they run
 ┌──────────────────────────────────────────────────────────────────┐
 │  CONVERSION A: jupytext (src/*.py  ->  modules/*.ipynb)            │
 │  ─────────────────────────────────────────────────────────────    │
-│  WHEN:    tito module start N   (only if the notebook doesn't      │
+│  WHEN:    tren module start N   (only if the notebook doesn't      │
 │           already exist)                                           │
 │  RUNS AS: an external subprocess (jupytext --to ipynb ...)         │
 │  READS:   the INSTRUCTOR's src/NN_name/NN_name.py                  │
@@ -541,7 +541,7 @@ There are exactly two file-format conversions in this whole system, and they run
 ┌──────────────────────────────────────────────────────────────────┐
 │  CONVERSION B: nbdev (modules/*.ipynb  ->  tinytorch/**/*.py)       │
 │  ─────────────────────────────────────────────────────────────    │
-│  WHEN:    tito module complete N   (every single time, not just    │
+│  WHEN:    tren module complete N   (every single time, not just    │
 │           once)                                                     │
 │  RUNS AS: an in-process Python function call (nb_export)           │
 │  READS:   the STUDENT's edited modules/NN_name/name.ipynb          │
@@ -554,9 +554,9 @@ There are exactly two file-format conversions in this whole system, and they run
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-Confusing these two is exactly the mistake the docs call out explicitly: `tito module test N` alone never runs Conversion B, only `tito module complete N` does. A student who tests repeatedly but never runs `complete` never actually gets their work into `tinytorch/`.
+Confusing these two is exactly the mistake the docs call out explicitly: `tren module test N` alone never runs Conversion B, only `tren module complete N` does. A student who tests repeatedly but never runs `complete` never actually gets their work into `tinytorch/`.
 
-There is a **third**, separate export path, `tito dev export`, that a developer/maintainer uses to rebuild the *entire curriculum* by running Conversion A for every module (overwriting student notebooks, which `module start`'s version deliberately never does) and then Conversion B for every module. This is explicitly a maintainer tool, not part of the student loop.
+There is a **third**, separate export path, `tren dev export`, that a developer/maintainer uses to rebuild the *entire curriculum* by running Conversion A for every module (overwriting student notebooks, which `module start`'s version deliberately never does) and then Conversion B for every module. This is explicitly a maintainer tool, not part of the student loop.
 
 ---
 
@@ -576,14 +576,14 @@ Every place in the codebase that makes an outbound network request, and exactly 
 │ install.sh do_install│ git clone (the actual        │ HARD FAILURE. Install cannot   │
 │                      │ download)                    │ proceed without this.          │
 ├────────────────────┼──────────────────────────────┼───────────────────────────────┤
-│ tito community login│ Opens a browser to a hosted   │ A local HTTP server            │
+│ tren community login│ Opens a browser to a hosted   │ A local HTTP server            │
 │                      │ login page, waits (up to      │ (AuthReceiver) listens on      │
 │                      │ 300s) for a redirect back     │ 0.0.0.0, port 54321+ (hunts up │
 │                      │ carrying access/refresh       │ to +100 if taken), for a       │
 │                      │ tokens                        │ callback carrying the tokens.  │
 │                      │                                │ Times out silently after 5min. │
 ├────────────────────┼──────────────────────────────┼───────────────────────────────┤
-│ tito system update   │ GitHub tags API + a second    │ Clear "could not check         │
+│ tren system update   │ GitHub tags API + a second    │ Clear "could not check         │
 │ --check / update     │ sparse git clone (same         │ updates" message; nothing on   │
 │                      │ mechanism as install.sh)       │ disk changes.                  │
 ├────────────────────┼──────────────────────────────┼───────────────────────────────┤
@@ -594,7 +594,7 @@ Every place in the codebase that makes an outbound network request, and exactly 
 └────────────────────┴──────────────────────────────┴───────────────────────────────┘
 ```
 
-**A student who never runs `tito community login` never makes a single network request during normal module work.** Everything in Parts 3-5 (starting, editing, testing, exporting, completing 20 modules) is 100% offline. The only thing that ever calls out is the progress-sync prompt, and that prompt only appears at all if `auth.is_logged_in()` is true (i.e. credentials already exist on disk).
+**A student who never runs `tren community login` never makes a single network request during normal module work.** Everything in Parts 3-5 (starting, editing, testing, exporting, completing 20 modules) is 100% offline. The only thing that ever calls out is the progress-sync prompt, and that prompt only appears at all if `auth.is_logged_in()` is true (i.e. credentials already exist on disk).
 
 ### 6.1 The sync decision tree (`auto_sync_after_completion`)
 
@@ -637,7 +637,7 @@ Every place in the codebase that makes an outbound network request, and exactly 
 
 ### 6.2 What the sync request actually contains, and how honesty is enforced
 
-The payload is a JSON POST to a hardcoded Supabase Edge Function URL, containing the user's email (from stored credentials), completed module list + count + percentage, and unlocked-milestone summary. Read `.tito/progress.json` and `.tito/milestones.json`, assemble, send, no telemetry beyond what's already tracked locally, nothing collected that isn't already visible to `tito module status`.
+The payload is a JSON POST to a hardcoded Supabase Edge Function URL, containing the user's email (from stored credentials), completed module list + count + percentage, and unlocked-milestone summary. Read `.tren/progress.json` and `.tren/milestones.json`, assemble, send, no telemetry beyond what's already tracked locally, nothing collected that isn't already visible to `tren module status`.
 
 The response handling is deliberately stricter than a normal "2xx = success" check, because of a previously-real, previously-invisible bug: a `SyncResult` has *two* separate booleans, `ok` and `accepted`. A 2xx HTTP response where the server's own `synced_modules` count is null or zero is reported as a **yellow warning** ("accepted, but not confirmed persisted"), not a green success, because that exact combination is what silently desynced dashboards before. A 401 triggers one automatic token-refresh-and-retry; if the refresh itself fails (400/401/403), stored credentials are deleted outright, forcing a genuine re-login rather than leaving a dead token sitting on disk indefinitely.
 
@@ -674,7 +674,7 @@ Every one of the 20 module imports in `tinytorch/__init__.py` follows this exact
 │                                                                     │
 │ Any single failure across all three checks -> pytest.UsageError,   │
 │ which aborts the ENTIRE pytest session immediately, before a       │
-│ single test runs, printing the exact `tito dev export --all` fix. │
+│ single test runs, printing the exact `tren dev export --all` fix. │
 └─────────────────────────────────────────────────────────────────┘
 ```text
 
@@ -694,37 +694,37 @@ A direct answer to "what actually uses CPU/memory/disk/network," per command fam
 ┌────────────────────────┬──────┬────────┬─────────┬──────────────────────────┐
 │ Command                │ CPU  │ Disk   │ Network │ Notes                     │
 ├────────────────────────┼──────┼────────┼─────────┼──────────────────────────┤
-│ tito system info/health│ low  │ read   │ none    │ pure introspection        │
-│ tito module status/list│ low  │ read   │ none    │ reads .tito/progress.json │
-│ tito module start N    │ low- │ write  │ none    │ jupytext subprocess only  │
+│ tren system info/health│ low  │ read   │ none    │ pure introspection        │
+│ tren module status/list│ low  │ read   │ none    │ reads .tren/progress.json │
+│ tren module start N    │ low- │ write  │ none    │ jupytext subprocess only  │
 │                         │ med  │ (few   │         │ if notebook doesn't exist │
 │                         │      │ KB-MB) │         │ yet; typically <1s        │
-│ tito module start      │ low  │ +port  │ none    │ spawns a real, LONG-LIVED │
+│ tren module start      │ low  │ +port  │ none    │ spawns a real, LONG-LIVED │
 │  (without --no-jupyter)│      │ bind   │         │ jupyter lab subprocess +  │
 │                         │      │        │         │ a browser tab; keeps      │
-│                         │      │        │         │ running after tito exits  │
-│ tito module test N     │ low- │ read   │ none    │ 2 subprocesses (python    │
+│                         │      │        │         │ running after tren exits  │
+│ tren module test N     │ low- │ read   │ none    │ 2 subprocesses (python    │
 │                         │ med  │        │         │ script, then pytest)      │
-│ tito module complete N │ med  │ read + │ 0 or 1  │ up to 3 subprocesses      │
+│ tren module complete N │ med  │ read + │ 0 or 1  │ up to 3 subprocesses      │
 │                         │      │ write  │ HTTP    │ (unit test script,        │
 │                         │      │ (new   │ POST    │ pytest) + 1 in-process    │
 │                         │      │ .py    │         │ nbdev export + an         │
 │                         │      │ file)  │         │ OPTIONAL sync POST        │
 │                         │      │        │         │ (only if logged in)       │
-│ tito dev test --all     │ high │ read + │ none    │ exports + tests EVERY     │
+│ tren dev test --all     │ high │ read + │ none    │ exports + tests EVERY     │
 │                         │      │ write  │         │ module in sequence;       │
 │                         │      │ (all   │         │ genuinely the heaviest    │
 │                         │      │ 20)    │         │ single local operation    │
-│ tito package nbdev      │ high │ read + │ none    │ re-EXECUTES every         │
+│ tren package nbdev      │ high │ read + │ none    │ re-EXECUTES every         │
 │  --test                 │      │ write  │         │ notebook's cells as real  │
 │                         │      │        │         │ Jupyter kernels, the    │
 │                         │      │        │         │ most CPU-intensive        │
 │                         │      │        │         │ single command in the     │
 │                         │      │        │         │ system                    │
-│ tito community login    │ low  │ write  │ HTTP    │ opens a local port,       │
+│ tren community login    │ low  │ write  │ HTTP    │ opens a local port,       │
 │                         │      │ (creds)│ (OAuth- │ waits up to 300s          │
 │                         │      │        │ style)  │                           │
-│ tito benchmark baseline │ med  │ write  │ none    │ real numpy tensor ops,    │
+│ tren benchmark baseline │ med  │ write  │ none    │ real numpy tensor ops,    │
 │                         │      │ (JSON  │         │ timed on the actual CPU,  │
 │                         │      │ result)│         │ not simulated             │
 └────────────────────────┴──────┴────────┴─────────┴──────────────────────────┘
@@ -757,16 +757,16 @@ Consolidating every conditional branch surfaced across Parts 1–8 that depends 
 │ (is_ci() / is_interactive())   │ never syncs; interactive asks first;       │
 │                                │ logged-in-but-non-TTY syncs WITHOUT asking │
 ├───────────────────────────────┼───────────────────────────────────────────┤
-│ jupyter/jupyterlab installed?  │ `tito system jupyter` and `_open_jupyter`  │
+│ jupyter/jupyterlab installed?  │ `tren system jupyter` and `_open_jupyter`  │
 │                                │ fail cleanly with an install hint if the   │
 │                                │ `jupyter` binary isn't resolvable on PATH  │
 │                                │ (this can happen even when the Python      │
 │                                │ PACKAGES are installed, if the venv's      │
 │                                │ Scripts/bin directory isn't on PATH for    │
-│                                │ whatever process is invoking tito)         │
+│                                │ whatever process is invoking tren)         │
 ├───────────────────────────────┼───────────────────────────────────────────┤
 │ nbgrader installed?            │ Entirely optional add-on (not in           │
-│                                │ requirements.txt). `tito nbgrader init`    │
+│                                │ requirements.txt). `tren nbgrader init`    │
 │                                │ checks explicitly and fails with an        │
 │                                │ install hint rather than a crash; other    │
 │                                │ nbgrader subcommands that shell out to     │
@@ -776,8 +776,8 @@ Consolidating every conditional branch surfaced across Parts 1–8 that depends 
 │                                │ converted, not left to crash raw)          │
 ├───────────────────────────────┼───────────────────────────────────────────┤
 │ Module tracking vs. disk       │ started_modules/completed_modules in       │
-│ desync                         │ .tito/progress.json can go out of sync     │
-│                                │ with modules/ on disk (e.g. `tito system   │
+│ desync                         │ .tren/progress.json can go out of sync     │
+│                                │ with modules/ on disk (e.g. `tren system   │
 │                                │ reset --keep-progress` intentionally       │
 │                                │ clears one but not the other). On `dev`    │
 │                                │ right now, `start` and `resume` both       │
@@ -832,12 +832,12 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │                               │  [~300 MB now on disk]           │
   │                               │                                 │
   │ cd tinytorch && activate       │                                 │
-  │ tito setup                    │                                 │
+  │ tren setup                    │                                 │
   ├──────────────────────────────>│  venv guard PASSES (activated)  │
   │                               │  create profile, verify env      │
   │                               │  offer community login ─────?──>│  (optional, OAuth)
   │                               │                                 │
-  │ tito module start 01          │                                 │
+  │ tren module start 01          │                                 │
   ├──────────────────────────────>│  01 not started, no prereqs      │
   │                               │  needed (module 1)               │
   │                               │  notebook doesn't exist →         │
@@ -849,7 +849,7 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │                               │                                 │  opens browser
   │ [edits notebook in browser]   │                                 │
   │                               │                                 │
-  │ tito module complete 01       │                                 │
+  │ tren module complete 01       │                                 │
   ├──────────────────────────────>│  Step 1: run src/01_tensor.py    │
   │                               │  as subprocess (tests instructor │
   │                               │  reference, not student code)    │
@@ -872,13 +872,13 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │  [... repeat for modules      │                                 │
   │      02 through 20 ...]       │                                 │
   │                               │                                 │
-  │ tito milestone run 01         │                                 │
+  │ tren milestone run 01         │                                 │
   ├──────────────────────────────>│  prereqs met (from completed set)│
   │                               │  subprocess.run() the actual      │
   │                               │  milestone Python script,         │
   │                               │  importing student's REAL, now-  │
   │                               │  exported tinytorch package       │
-  │                               │  update .tito/milestones.json    │
+  │                               │  update .tren/milestones.json    │
   │                               │                                 │
   │ [after module 20 completes]   │                                 │
   │                               │  20/20 completed, all 6           │
@@ -896,7 +896,7 @@ Tying every part above into one linear trace, from a user's very first keystroke
 ## Summary: The One-Sentence Version of Every Part
 
 1. **Install**: a single Bash script does a sparse, blob-filtered, shallow git clone of one subdirectory of a monorepo, then builds a venv and pip-installs into it, nothing else is downloaded, and every network/subprocess step has an explicit timeout after a real prior bug where one didn't.
-2. **Every `tito` invocation**: fixes Windows encoding, resolves the project root by walking up for `pyproject.toml`, builds argument parsers for all 10 command groups regardless of which one you're using, refuses to run outside a venv (except `setup`), then dispatches.
+2. **Every `tren` invocation**: fixes Windows encoding, resolves the project root by walking up for `pyproject.toml`, builds argument parsers for all 10 command groups regardless of which one you're using, refuses to run outside a venv (except `setup`), then dispatches.
 3. **`module start`**: checks tracking state, self-heals if that state has desynced from the actual files on disk, checks prerequisites, converts `src/*.py` to a notebook via a real `jupytext` subprocess if one doesn't exist, and optionally spawns a real, currently-untracked, long-lived `jupyter lab` server.
 4. **`module complete`**: a strict four-step pipeline (instructor-reference unit tests, notebook syntax check, real `nbdev` export of the student's own cells into a real Python file, then pytest against that just-exported package) where any failure stops everything before progress is ever recorded.
 5. **Two separate conversions** exist and are easy to confuse: `jupytext` runs once, source→notebook, at `start` time; `nbdev` runs every time, notebook→package, at `complete` time.

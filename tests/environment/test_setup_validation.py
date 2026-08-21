@@ -2,14 +2,14 @@
 Environment Setup Validation Tests
 
 These tests verify that the TinyTorch environment is correctly configured
-and all dependencies work as expected. Run these after `tito setup` to
+and all dependencies work as expected. Run these after `tren setup` to
 ensure students can actually use TinyTorch.
 
 Usage:
     pytest tests/environment/test_setup_validation.py -v
 
     Or via TITO:
-    tito system health --verify
+    tren system health --verify
 """
 
 import sys
@@ -275,12 +275,12 @@ class TestProjectStructure:
         assert tests_dir.is_dir(), "tests/ is not a directory"
         print(f"✅ Tests directory: {tests_dir.absolute()}")
 
-    def test_tito_cli_exists(self):
+    def test_tren_cli_exists(self):
         """TITO CLI must be available."""
-        # Try to import tito
+        # Try to import tren
         try:
-            import tito
-            print(f"✅ TITO CLI available: {tito.__file__}")
+            import tren
+            print(f"✅ TITO CLI available: {tren.__file__}")
         except ImportError:
             pytest.fail("TITO CLI not importable")
 
@@ -400,7 +400,7 @@ def run_all_validation_tests():
     """
     Run all validation tests and provide a summary.
 
-    This is called by `tito system health --verify` to ensure
+    This is called by `tren system health --verify` to ensure
     the environment is correctly configured.
     """
     import pytest
@@ -419,12 +419,12 @@ def run_all_validation_tests():
         print("\n" + "="*70)
         print("🎉 All validation tests passed!")
         print("✅ TinyTorch environment is correctly configured")
-        print("💡 Next: tito module 01")
+        print("💡 Next: tren module 01")
         print("="*70)
     else:
         print("\n" + "="*70)
         print("❌ Some validation tests failed")
-        print("🔧 Please fix the issues above and run: tito system health --verify")
+        print("🔧 Please fix the issues above and run: tren system health --verify")
         print("="*70)
 
     return exit_code

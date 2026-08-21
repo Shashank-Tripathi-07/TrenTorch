@@ -1751,7 +1751,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 20")
+    print("Run: tren module complete 20")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -2178,7 +2178,7 @@ You started Module 01 with a simple Tensor class. Now you have:
 
 **You didn't just learn ML systems - you BUILT one from scratch.**
 
-Export with: `tito module complete 20`
+Export with: `tren module complete 20`
 
 **Congratulations on completing TinyTorch!**
 """

@@ -14,12 +14,12 @@ import argparse
 from pathlib import Path
 import sys
 
-# Add tito to path
+# Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tito.main import TinyTorchCLI
-from tito.commands.base import BaseCommand
-from tito.core.config import CLIConfig
+from tren.main import TinyTorchCLI
+from tren.commands.base import BaseCommand
+from tren.core.config import CLIConfig
 
 
 class TestCLIRegistry:
@@ -125,7 +125,7 @@ class TestCommandFiles:
     def setup_method(self):
         """Set up test fixtures."""
         self.cli = TinyTorchCLI()
-        self.commands_dir = Path(__file__).parent.parent.parent / "tito" / "commands"
+        self.commands_dir = Path(__file__).parent.parent.parent / "tren" / "commands"
 
     def test_command_files_exist(self):
         """Verify all registered commands have corresponding files."""
@@ -213,7 +213,7 @@ class TestEpilogDocumentation:
         if missing:
             pytest.fail(
                 f"Commands registered but not in epilog: {missing}\n"
-                f"Update epilog in tito/main.py create_parser() method"
+                f"Update epilog in tren/main.py create_parser() method"
             )
 
 

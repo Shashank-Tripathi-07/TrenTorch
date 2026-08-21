@@ -1380,7 +1380,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 12")
+    print("Run: tren module complete 12")
 
 # %% [markdown]
 """
@@ -1544,7 +1544,7 @@ Congratulations! You've built the attention mechanism that revolutionized deep l
 
 ### Ready for Next Steps
 Your attention implementation is the core mechanism that enables modern language models!
-Export with: `tito module complete 12`
+Export with: `tren module complete 12`
 
 **Next**: Module 13 will combine attention with feed-forward layers to build complete transformer blocks!
 """

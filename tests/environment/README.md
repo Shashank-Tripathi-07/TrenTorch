@@ -6,14 +6,14 @@ Comprehensive tests to ensure TinyTorch environment is correctly configured.
 
 ```bash
 # Quick health check
-tito system health
+tren system health
 
 # Verbose output for debugging
-tito system health --verbose
+tren system health --verbose
 ```
 
 **Use when**:
-- After running `tito setup`
+- After running `tren setup`
 - Before starting a new module
 - When something isn't working
 - Sharing output with TAs for help
@@ -44,7 +44,7 @@ Auto-discovers and tests ALL packages from requirements files:
 
 ```bash
 # Via TITO (recommended)
-tito system health
+tren system health
 
 # Via pytest
 pytest tests/environment/ -v

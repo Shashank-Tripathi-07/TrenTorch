@@ -1831,7 +1831,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 16")
+    print("Run: tren module complete 16")
 
 # %% [markdown]
 """
@@ -1964,7 +1964,7 @@ Congratulations! You've built a comprehensive model compression system that can 
 
 ### Ready for Next Steps
 Your compression implementation enables efficient model deployment across diverse hardware constraints!
-Export with: `tito module complete 16`
+Export with: `tren module complete 16`
 
 **Next**: Module 17 will add acceleration techniques including vectorization and kernel fusion!
 """

@@ -110,7 +110,7 @@ class TestPriorModulesStillWork:
 
             🔧 HOW TO FIX:
             1. Implement Tensor class in modules/01_tensor/
-            2. Export module: tito module complete 01_tensor
+            2. Export module: tren module complete 01_tensor
             3. Check tinytorch.core.tensor exists
             4. Verify Tensor class is exported correctly
 
@@ -174,7 +174,7 @@ class TestPriorModulesStillWork:
 
             🔧 HOW TO FIX:
             1. Implement ReLU and Sigmoid in modules/02_activations/
-            2. Export module: tito module complete 02_activations
+            2. Export module: tren module complete 02_activations
             3. Check tinytorch.core.activations exists
             4. Verify activation classes are exported
 
@@ -255,7 +255,7 @@ class TestModule03LayersCore:
                     return self.forward(x)
 
             2. Export the module:
-               tito module complete 03_layers
+               tren module complete 03_layers
 
             📚 WHY THIS MATTERS:
             - All layers (Dense, Conv2D, etc.) will inherit from Layer
@@ -609,7 +609,7 @@ class TestProgressiveStackIntegration:
 
             🔧 FIX EACH MODULE:
             1. Run individual module tests to isolate the issue
-            2. Check exports: tito module complete XX_modulename
+            2. Check exports: tren module complete XX_modulename
             3. Verify imports work: from tinytorch.core.* import *
 
             💡 DEBUGGING STRATEGY:

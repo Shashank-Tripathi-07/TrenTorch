@@ -2066,7 +2066,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 05")
+    print("Run: tren module complete 05")
 
 # %% [markdown]
 """
@@ -2330,7 +2330,7 @@ Congratulations! You've built a complete data loading pipeline for ML training!
 
 ### Ready for Next Steps
 Your DataLoader implementation enables efficient training of CNNs and larger models with proper data pipeline management.
-Export with: `tito module complete 05`
+Export with: `tren module complete 05`
 
 **Apply your knowledge:**
 - Milestone 03: Train MLP on TinyDigits

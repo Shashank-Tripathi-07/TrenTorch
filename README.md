@@ -95,7 +95,7 @@ A **complete ML framework**, built from zero. No single finish line, a set of mi
       <td>📅 Binder/Colab support</td>
     </tr>
     <tr>
-      <td>✅ <code>tito</code> CLI for workflows</td>
+      <td>✅ <code>tren</code> CLI for workflows</td>
       <td>🔧 Performance tuning passes</td>
       <td>📅 More milestones beyond MLPerf</td>
     </tr>
@@ -262,7 +262,7 @@ TrenTorch/
 │   ├── 05_2017_transformer/
 │   └── 06_2018_mlperf/
 │
-├── tito/                       # 🎛️ CLI tool for streamlined workflows
+├── tren/                       # 🎛️ CLI tool for streamlined workflows
 │   ├── main.py                 # Entry point
 │   ├── commands/                # Command modules
 │   └── core/                   # Core utilities

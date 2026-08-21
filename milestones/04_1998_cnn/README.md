@@ -125,7 +125,7 @@ This is why CNNs remained state-of-the-art for vision until Vision Transformers 
 
 ```bash
 # Default milestone path from the TinyTorch project root
-tito milestone run 04
+tren milestone run 04
 
 # Or run the default script directly
 cd milestones/04_1998_cnn

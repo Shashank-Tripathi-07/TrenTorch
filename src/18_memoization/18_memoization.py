@@ -1881,7 +1881,7 @@ def test_module():
 
     print("=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 18")
+    print("Run: tren module complete 18")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -2057,5 +2057,5 @@ Your KV caching implementation demonstrates the principle: "spend memory to save
 
 **Next**: Module 19 (Benchmarking) will teach you how to measure and compare these optimizations quantitatively!
 
-Export with: `tito module complete 18`
+Export with: `tren module complete 18`
 """

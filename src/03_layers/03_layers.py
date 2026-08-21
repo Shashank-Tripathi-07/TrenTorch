@@ -1311,7 +1311,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 03")
+    print("Run: tren module complete 03")
 
 # %% [markdown]
 """
@@ -1461,7 +1461,7 @@ Congratulations! You've built the fundamental building blocks that make neural n
 ### Ready for Next Steps
 Your layer implementation enables building complete neural networks! The Linear layer provides learnable transformations, manual composition chains them together, and Dropout prevents overfitting.
 
-Export with: `tito module complete 03`
+Export with: `tren module complete 03`
 
 **Next**: Module 04 will add loss functions (CrossEntropyLoss, MSELoss) that measure how wrong your model is - the foundation for learning!
 """

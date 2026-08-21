@@ -12,7 +12,7 @@ Usage:
     pytest tests/environment/test_all_requirements.py -v
 
     Or via TITO:
-    tito system health --verify-all
+    tren system health --verify-all
 """
 
 import sys

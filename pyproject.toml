@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tito = "tito.main:main"
+tren = "tren.main:main"
 
 [project.optional-dependencies]
 dev = [
@@ -77,7 +77,7 @@ Issues = "https://github.com/harvard-edge/cs249r_book/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["tinytorch*", "tito*"]
+include = ["tinytorch*", "tren*"]
 exclude = ["tests*", "modules*", "site*", "docs*", "milestones*", "assignments*"]
 
 # TinyTorch-specific pytest configuration (overrides parent pyproject.toml)

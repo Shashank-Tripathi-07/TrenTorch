@@ -311,7 +311,7 @@ class NBGraderValidator:
                         'category': 'Schema Version',
                         'line': cell['line_start'],
                         'issue': f'NBGrader schema version is {schema_version}, expected 3',
-                        'detail': 'tito nbgrader generate adds schema_version=3 to staged notebooks'
+                        'detail': 'tren nbgrader generate adds schema_version=3 to staged notebooks'
                     })
 
         return all_valid

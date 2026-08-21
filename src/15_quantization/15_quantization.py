@@ -2233,7 +2233,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 15")
+    print("Run: tren module complete 15")
 
 # %% [markdown] nbgrader={"grade": false, "grade_id": "quantization-reflection", "solution": true}
 """
@@ -2392,7 +2392,7 @@ Congratulations! You've built a complete INT8 quantization system that can reduc
 - Hardware efficiency: Specialized INT8 instructions provide 2-4x speedup
 - Deployment benefits: Smaller models fit on mobile and edge devices
 
-Export with: `tito module complete 15`
+Export with: `tren module complete 15`
 
 Quantization is one of the most impactful optimization techniques — reducing precision to INT8 delivers 4x memory savings with minimal accuracy loss.
 """

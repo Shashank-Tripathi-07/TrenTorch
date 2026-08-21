@@ -13,11 +13,11 @@ from unittest.mock import MagicMock, patch
 from pathlib import Path
 import sys
 
-# Ensure tito is importable
+# Ensure tren is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tito.core.config import CLIConfig
-from tito.core.submission import SubmissionHandler
+from tren.core.config import CLIConfig
+from tren.core.submission import SubmissionHandler
 
 
 class TestCommunitySyncFlow:
@@ -25,11 +25,11 @@ class TestCommunitySyncFlow:
 
     @pytest.fixture
     def mock_env_paths(self, tmp_path):
-        """Creates a temporary .tito directory with progress and milestone mock data."""
-        tito_dir = tmp_path / ".tito"
-        tito_dir.mkdir(parents=True, exist_ok=True)
+        """Creates a temporary .tren directory with progress and milestone mock data."""
+        tren_dir = tmp_path / ".tren"
+        tren_dir.mkdir(parents=True, exist_ok=True)
 
-        progress_file = tito_dir / "progress.json"
+        progress_file = tren_dir / "progress.json"
         progress_data = {
             "started_modules": [],
             "completed_modules": ["01", "02"],
@@ -39,7 +39,7 @@ class TestCommunitySyncFlow:
         }
         progress_file.write_text(json.dumps(progress_data))
 
-        milestones_file = tito_dir / "milestones.json"
+        milestones_file = tren_dir / "milestones.json"
         milestone_data = {
             "unlocked_milestones": ["01"],
             "completed_milestones": ["01"],
@@ -64,7 +64,7 @@ class TestCommunitySyncFlow:
         console = MagicMock()
         handler = SubmissionHandler(config, console)
 
-        with patch("tito.core.auth.get_user_email", return_value="test_student@example.com"):
+        with patch("tren.core.auth.get_user_email", return_value="test_student@example.com"):
             payload = handler.assemble_payload(total_modules=20)
 
         # Assert correct schema mapping
@@ -81,8 +81,8 @@ class TestCommunitySyncFlow:
         assert milestones[0]["completed"] is True
 
     @patch("urllib.request.urlopen")
-    @patch("tito.core.auth.get_token")
-    @patch("tito.core.auth.get_user_email")
+    @patch("tren.core.auth.get_token")
+    @patch("tren.core.auth.get_user_email")
     def test_sync_progress_success(self, mock_email, mock_token, mock_urlopen, mock_env_paths):
         """Test successful progress synchronization (HTTP 200)."""
         config, _, _ = mock_env_paths
@@ -113,8 +113,8 @@ class TestCommunitySyncFlow:
         console.print.assert_any_call("✅ [bold green]Sync successful![/bold green]")
 
     @patch("urllib.request.urlopen")
-    @patch("tito.core.auth.get_token")
-    @patch("tito.core.auth.get_user_email")
+    @patch("tren.core.auth.get_token")
+    @patch("tren.core.auth.get_user_email")
     def test_sync_progress_unauthorized_token_refresh(self, mock_email, mock_token, mock_urlopen, mock_env_paths):
         """Verify that an expired token triggers token refresh logic."""
         config, _, _ = mock_env_paths
@@ -142,6 +142,6 @@ class TestCommunitySyncFlow:
         console = MagicMock()
         handler = SubmissionHandler(config, console)
 
-        with patch("tito.core.auth.refresh_token", return_value="new_fresh_token") as mock_refresh:
+        with patch("tren.core.auth.refresh_token", return_value="new_fresh_token") as mock_refresh:
             handler.sync_progress(total_modules=20)
             mock_refresh.assert_called_once_with(console)

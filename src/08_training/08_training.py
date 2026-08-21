@@ -1905,7 +1905,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 08")
+    print("Run: tren module complete 08")
 
 if __name__ == "__main__":
     test_module()
@@ -2042,7 +2042,7 @@ Congratulations! You've built the complete training infrastructure that orchestr
 - **Checkpoint overhead**: Pickle adds 10-30% overhead, optimizer state doubles size
 - **Scheduling behavior**: Cosine annealing balances aggressive initial learning with fine-tuning
 
-Export with: `tito module complete 08`
+Export with: `tren module complete 08`
 
 **Next**: Module 09 will add convolution operations for spatial neural network processing!
 """

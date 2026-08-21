@@ -25,8 +25,8 @@ class TestModule01Prerequisites:
 
         # Project structure - check directories that exist in student install
         project_root = Path(__file__).parent.parent.parent
-        # 'src' is the student working directory, 'tests' and 'tito' are CLI infrastructure
-        required_dirs = ['src', 'tests', 'tito']
+        # 'src' is the student working directory, 'tests' and 'tren' are CLI infrastructure
+        required_dirs = ['src', 'tests', 'tren']
         for dir_name in required_dirs:
             dir_path = project_root / dir_name
             assert dir_path.exists(), f"Setup failed: {dir_name} directory missing"

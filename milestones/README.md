@@ -72,17 +72,17 @@ After completing a set of modules, you unlock the ability to run a milestone. Ea
 
 ```bash
 # List available milestones and your progress
-tito milestone list
+tren milestone list
 
 # Run a specific milestone (all parts)
-tito milestone run 03
+tren milestone run 03
 
 # Run a specific part of a multi-part milestone
-tito milestone run 03 --part 1  # Part 1: XOR Solved
-tito milestone run 03 --part 2  # Part 2: TinyDigits
+tren milestone run 03 --part 1  # Part 1: XOR Solved
+tren milestone run 03 --part 2  # Part 2: TinyDigits
 
 # Get detailed info about a milestone
-tito milestone info 05
+tren milestone info 05
 ```
 
 ## Directory Structure
@@ -119,7 +119,7 @@ Each milestone has specific success criteria. Passing means your implementation 
 
 If a milestone fails:
 
-1. Check that all required modules are completed: `tito module status`
-2. Run the module tests: `tito module test <module_number>`
+1. Check that all required modules are completed: `tren module status`
+2. Run the module tests: `tren module test <module_number>`
 3. Look at the specific error message for debugging hints
 4. Review the milestone's docstring for implementation requirements

@@ -89,7 +89,7 @@ Module 01 (Tensor) → Module 02 (Activations) → Module 03 (Layers) → Module
 **Import Strategy**:
 This module imports directly from the TinyTorch package (`from tinytorch.core.*`).
 **Assumption**: Modules 01 (Tensor), 02 (Activations), and 03 (Layers) have been completed and exported to the package.
-If you see import errors, make sure you've run `tito module complete` for each previous module.
+If you see import errors, make sure you've run `tren module complete` for each previous module.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "setup", "solution": true}
@@ -1405,7 +1405,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 04")
+    print("Run: tren module complete 04")
 
 
 # %%
@@ -1722,7 +1722,7 @@ Congratulations! You've built the measurement system that enables all machine le
 - **Computational cost**: CE is C times more expensive than MSE due to softmax
 - **Production patterns**: Hierarchical softmax and sampled softmax for large vocabularies
 
-Export with: `tito module complete 04`
+Export with: `tren module complete 04`
 
 **Next**: Module 05 will add DataLoader for efficient data pipelines!
 """

@@ -60,15 +60,15 @@ make e2e-full
 ## What Gets Tested
 
 1. **Setup Flow**
-   - `tito setup --skip-profile` works non-interactively
+   - `tren setup --skip-profile` works non-interactively
    - Environment validation passes
    - Package is importable
 
 2. **Module Workflow**
-   - `tito module start 01` works
-   - `tito module complete 01` exports correctly
+   - `tren module start 01` works
+   - `tren module complete 01` exports correctly
    - Progress tracking updates
-   - `tito module status` shows correct state
+   - `tren module status` shows correct state
 
 3. **Prerequisite Enforcement**
    - Can't start module 02 without completing 01
@@ -76,7 +76,7 @@ make e2e-full
 
 4. **Milestone Flow**
    - Milestones list correctly
-   - `tito milestone run 01` executes
+   - `tren milestone run 01` executes
    - Completion is tracked
 
 5. **Error Handling**

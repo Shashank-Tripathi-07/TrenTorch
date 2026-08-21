@@ -13,7 +13,7 @@ Transformers didn't just improve NLP - they unified vision, language, and multim
 
 ## What You're Building
 
-**Primary milestone (what `tito milestone run 05` executes):** prove YOUR attention and transformer stack on **three synthetic sequence challenges** in a single script—reversal, copying, and prefix-controlled mixed tasks (see script docstring for details).
+**Primary milestone (what `tren milestone run 05` executes):** prove YOUR attention and transformer stack on **three synthetic sequence challenges** in a single script—reversal, copying, and prefix-controlled mixed tasks (see script docstring for details).
 
 **Shipped language data:** the **TinyTalks** conversational Q&A corpus lives under `datasets/tinytalks/` (see that README) for character-level / transformer experiments and teaching materials. The checked-in milestone script uses in-script synthetic data so you can validate attention without extra file dependencies.
 
@@ -55,7 +55,7 @@ Transformers didn't just improve NLP - they unified vision, language, and multim
 **Run via TITO (recommended):**
 
 ```bash
-tito milestone run 05
+tren milestone run 05
 ```
 
 **Or directly:**
@@ -69,7 +69,7 @@ python 01_vaswani_attention.py
 
 ### TinyTalks (`datasets/tinytalks/`)
 
-Conversational Q&A text for transformer teaching and extensions—**not** required for `tito milestone run 05` as configured today. Documentation: `datasets/tinytalks/README.md`.
+Conversational Q&A text for transformer teaching and extensions—**not** required for `tren milestone run 05` as configured today. Documentation: `datasets/tinytalks/README.md`.
 
 ## Expected Results
 
@@ -86,7 +86,7 @@ Transformers solve fundamental RNN limitations: sequential bottlenecks, vanishin
 ## Running the Milestone
 
 ```bash
-tito milestone run 05
+tren milestone run 05
 ```
 
 ## Further Reading

@@ -1399,7 +1399,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 17")
+    print("Run: tren module complete 17")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -1519,7 +1519,7 @@ Your acceleration techniques enable:
 Your acceleration implementations provide the foundation for advanced optimization modules.
 The performance analysis skills transfer directly to production optimization workflows.
 
-Export with: `tito module complete 17`
+Export with: `tren module complete 17`
 
 **Next**: Module 18 will add memoization techniques including KV caching for efficient transformer inference!
 """

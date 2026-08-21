@@ -2385,7 +2385,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 14")
+    print("Run: tren module complete 14")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -2499,7 +2499,7 @@ Congratulations! You've built a comprehensive profiling system for ML performanc
 
 ### Ready for Next Steps
 Your profiling implementation provides the measurement foundation for all optimization work.
-Export with: `tito module complete 14`
+Export with: `tren module complete 14`
 
 You can't optimize what you can't measure — and now you can measure everything.
 """

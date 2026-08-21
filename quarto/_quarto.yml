@@ -81,7 +81,7 @@ website:
             href: milestones/index.qmd
           - text: "---"
           - text: "TITO CLI"
-            href: tito/overview.qmd
+            href: tren/overview.qmd
           - text: "Datasets Guide"
             href: datasets.qmd
           - text: "---"
@@ -195,17 +195,17 @@ website:
 
         - section: "🛠️ TITO CLI"
           contents:
-            - href: tito/overview.qmd
+            - href: tren/overview.qmd
               text: "Command Overview"
-            - href: tito/modules.qmd
+            - href: tren/modules.qmd
               text: "Module Workflow"
-            - href: tito/milestones.qmd
+            - href: tren/milestones.qmd
               text: "Milestone System"
-            - href: tito/data.qmd
+            - href: tren/data.qmd
               text: "Progress & Data"
-            - href: tito/testing.qmd
+            - href: tren/testing.qmd
               text: "Developer Testing"
-            - href: tito/troubleshooting.qmd
+            - href: tren/troubleshooting.qmd
               text: "Troubleshooting"
 
         - section: "📚 Reference"

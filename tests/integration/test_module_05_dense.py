@@ -159,7 +159,7 @@ class TestXORCapability:
 
 def run_integration_tests():
     """Run all integration tests and return summary."""
-    # This would be called by tito module complete
+    # This would be called by tren module complete
     pytest.main([__file__, '-v', '--tb=short'])
 
 

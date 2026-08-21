@@ -47,11 +47,11 @@ help:
 
 # Quick preflight check - run this before starting work
 preflight:
-	$(PYTHON) -m tito.main dev preflight
+	$(PYTHON) -m tren.main dev preflight
 
 # Quick preflight (faster)
 preflight-quick:
-	$(PYTHON) -m tito.main dev preflight --quick
+	$(PYTHON) -m tren.main dev preflight --quick
 
 # Standard test suite
 test:
@@ -103,11 +103,11 @@ test-module-%:
 
 # Full release validation - run this before any release
 release:
-	$(PYTHON) -m tito.main dev preflight --release
+	$(PYTHON) -m tren.main dev preflight --release
 
 # Full release validation with all tests
 release-full:
-	$(PYTHON) -m tito.main dev preflight --release
+	$(PYTHON) -m tren.main dev preflight --release
 	$(PYTHON) -m pytest tests/ -v --tb=short
 
 # Pre-release checklist (manual verification)
@@ -143,7 +143,7 @@ setup:
 
 # Lint code
 lint:
-	$(PYTHON) -m py_compile tito/main.py
+	$(PYTHON) -m py_compile tren/main.py
 	@echo "✓ No syntax errors"
 
 # Clean generated files
@@ -160,22 +160,22 @@ clean:
 
 # CI smoke test (fast, for every commit)
 ci-smoke:
-	$(PYTHON) -m tito.main dev preflight --quick --ci
+	$(PYTHON) -m tren.main dev preflight --quick --ci
 
 # CI standard test (for PRs)
 ci-standard:
-	$(PYTHON) -m tito.main dev preflight --ci
+	$(PYTHON) -m tren.main dev preflight --ci
 	$(PYTHON) -m pytest tests/e2e/ -k quick --tb=short -q
 
 # CI full test (for releases)
 ci-full:
-	$(PYTHON) -m tito.main dev preflight --full --ci
+	$(PYTHON) -m tren.main dev preflight --full --ci
 	$(PYTHON) -m pytest tests/ -v --ignore=tests/milestones --tb=short
 
 # CI release validation (comprehensive)
 ci-release:
-	$(PYTHON) -m tito.main dev preflight --release --ci
+	$(PYTHON) -m tren.main dev preflight --release --ci
 
 # CI JSON output (for automation/parsing)
 ci-json:
-	$(PYTHON) -m tito.main dev preflight --json
+	$(PYTHON) -m tren.main dev preflight --json

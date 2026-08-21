@@ -20,12 +20,12 @@ import pytest
 from pathlib import Path
 import sys
 
-# Ensure tito is importable
+# Ensure tren is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tito.core.config import CLIConfig
-from tito.core.submission import SubmissionHandler
-from tito.core import auth
+from tren.core.config import CLIConfig
+from tren.core.submission import SubmissionHandler
+from tren.core import auth
 
 # Helper to load local.env if present
 def load_local_env():
@@ -65,12 +65,12 @@ class TestLiveCommunitySync:
 
     @pytest.fixture(autouse=True)
     def setup_sandbox_paths(self, tmp_path):
-        """Creates clean .tito folder and backs up / restores existing credentials."""
+        """Creates clean .tren folder and backs up / restores existing credentials."""
         # Seeding mock data in clean directory
-        self.tito_dir = tmp_path / ".tito"
-        self.tito_dir.mkdir(parents=True, exist_ok=True)
+        self.tren_dir = tmp_path / ".tren"
+        self.tren_dir.mkdir(parents=True, exist_ok=True)
         
-        self.progress_file = self.tito_dir / "progress.json"
+        self.progress_file = self.tren_dir / "progress.json"
         self.progress_file.write_text(json.dumps({
             "completed_modules": ["01"],
             "last_worked": "01",
@@ -78,7 +78,7 @@ class TestLiveCommunitySync:
             "last_updated": "2026-06-16T22:32:26"
         }))
         
-        self.milestones_file = self.tito_dir / "milestones.json"
+        self.milestones_file = self.tren_dir / "milestones.json"
         self.milestones_file.write_text(json.dumps({
             "unlocked_milestones": [],
             "completed_milestones": [],

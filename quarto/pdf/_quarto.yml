@@ -293,7 +293,7 @@ format:
         % a Mermaid-rendered PDF) is clamped to a sane page fraction.
         % Images already authored below the cap are untouched because
         % these are "max" keys, not fixed width/height. Stops oversized
-        % raster assets (tito.png at 2266×1432 rendering to a full page)
+        % raster assets (tren.png at 2266×1432 rendering to a full page)
         % without having to add `width=` to every source figure.
         \usepackage[export]{adjustbox}
         \let\TTOrigIncludeGraphics\includegraphics

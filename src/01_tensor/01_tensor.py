@@ -1850,7 +1850,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 01")
+    print("Run: tren module complete 01")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -1995,7 +1995,7 @@ Congratulations! You've built the foundational Tensor class that powers all mach
 
 ### Ready for Next Steps
 Your Tensor implementation enables all future ML operations.
-Export with: `tito module complete 01`
+Export with: `tren module complete 01`
 
 **Next**: Module 02 will add Activations that introduce nonlinearity to your tensors!
 """

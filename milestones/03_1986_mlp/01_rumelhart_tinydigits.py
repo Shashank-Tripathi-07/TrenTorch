@@ -635,7 +635,7 @@ def train_mlp():
         if run_experiment:
             compare_batch_sizes(train_images, train_labels, test_images, test_labels)
     except EOFError:
-        # Non-interactive mode (e.g., tito milestone run) - skip experiment
+        # Non-interactive mode (e.g., tren milestone run) - skip experiment
         pass
 
 

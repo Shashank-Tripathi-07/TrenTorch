@@ -1875,7 +1875,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 10")
+    print("Run: tren module complete 10")
 
 # Call the comprehensive test only when running directly
 if __name__ == "__main__":
@@ -2019,7 +2019,7 @@ Congratulations! You've built a complete tokenization system for converting text
 
 ### Ready for Next Steps
 Your tokenization implementation enables text processing for language models.
-Export with: `tito module complete 10`
+Export with: `tren module complete 10`
 
 **Next**: Module 11 will add learnable embeddings that convert your token IDs into rich vector representations!
 """

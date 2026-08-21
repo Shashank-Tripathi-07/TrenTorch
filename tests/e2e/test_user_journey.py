@@ -29,10 +29,10 @@ from typing import Optional, Tuple
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 
-def run_tito(args: list, cwd: Optional[Path] = None, timeout: int = 60) -> Tuple[int, str, str]:
-    """Run a tito command and return (exit_code, stdout, stderr)."""
+def run_tren(args: list, cwd: Optional[Path] = None, timeout: int = 60) -> Tuple[int, str, str]:
+    """Run a tren command and return (exit_code, stdout, stderr)."""
     import os
-    cmd = [sys.executable, "-m", "tito.main"] + args
+    cmd = [sys.executable, "-m", "tren.main"] + args
     env = os.environ.copy()
     env["TITO_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
     result = subprocess.run(
@@ -62,58 +62,58 @@ class TestQuickVerification:
     """Quick tests to verify CLI and structure (~30 seconds total)."""
 
     @pytest.mark.quick
-    def test_tito_bare_command_works(self):
-        """Bare 'tito' shows welcome screen."""
-        code, stdout, stderr = run_tito([])
-        assert code == 0, f"Bare tito failed: {stderr}"
+    def test_tren_bare_command_works(self):
+        """Bare 'tren' shows welcome screen."""
+        code, stdout, stderr = run_tren([])
+        assert code == 0, f"Bare tren failed: {stderr}"
         assert "Welcome" in stdout or "Quick Start" in stdout
 
     @pytest.mark.quick
-    def test_tito_help_works(self):
-        """'tito --help' shows help."""
-        code, stdout, stderr = run_tito(["--help"])
-        assert code == 0, f"tito --help failed: {stderr}"
+    def test_tren_help_works(self):
+        """'tren --help' shows help."""
+        code, stdout, stderr = run_tren(["--help"])
+        assert code == 0, f"tren --help failed: {stderr}"
         assert "usage" in stdout.lower() or "COMMAND" in stdout
 
     @pytest.mark.quick
-    def test_tito_version_works(self):
-        """'tito --version' shows version."""
-        code, stdout, stderr = run_tito(["--version"])
+    def test_tren_version_works(self):
+        """'tren --version' shows version."""
+        code, stdout, stderr = run_tren(["--version"])
         assert code == 0
         assert "Tiny" in stdout or "CLI" in stdout
 
     @pytest.mark.quick
     def test_module_command_help(self):
-        """'tito module' shows module help."""
-        code, stdout, stderr = run_tito(["module"])
+        """'tren module' shows module help."""
+        code, stdout, stderr = run_tren(["module"])
         assert code == 0
         # Should show module subcommands
         assert "start" in stdout or "complete" in stdout
 
     @pytest.mark.quick
     def test_milestone_command_help(self):
-        """'tito milestone' shows milestone help."""
-        code, stdout, stderr = run_tito(["milestone"])
+        """'tren milestone' shows milestone help."""
+        code, stdout, stderr = run_tren(["milestone"])
         assert code == 0
         # Should show milestone subcommands
         assert "list" in stdout or "run" in stdout or "status" in stdout
 
     @pytest.mark.quick
     def test_module_status_works(self):
-        """'tito module status' runs without error."""
-        code, stdout, stderr = run_tito(["module", "status"])
+        """'tren module status' runs without error."""
+        code, stdout, stderr = run_tren(["module", "status"])
         assert code == 0, f"module status failed: {stderr}"
 
     @pytest.mark.quick
     def test_system_info_works(self):
-        """'tito system info' runs without error."""
-        code, stdout, stderr = run_tito(["system", "info"])
+        """'tren system info' runs without error."""
+        code, stdout, stderr = run_tren(["system", "info"])
         assert code == 0, f"system info failed: {stderr}"
 
     @pytest.mark.quick
     def test_milestone_list_works(self):
-        """'tito milestone list' shows available milestones."""
-        code, stdout, stderr = run_tito(["milestone", "list", "--simple"])
+        """'tren milestone list' shows available milestones."""
+        code, stdout, stderr = run_tren(["milestone", "list", "--simple"])
         assert code == 0, f"milestone list failed: {stderr}"
         # Should show milestone names
         assert "Perceptron" in stdout or "1958" in stdout
@@ -163,10 +163,10 @@ class TestModuleFlow:
 
     @pytest.fixture(autouse=True)
     def backup_progress(self):
-        """Backup and restore .tito/progress.json around tests."""
-        tito_dir = PROJECT_ROOT / ".tito"
-        progress_file = tito_dir / "progress.json"
-        backup_file = tito_dir / "progress.json.e2e_backup"
+        """Backup and restore .tren/progress.json around tests."""
+        tren_dir = PROJECT_ROOT / ".tren"
+        progress_file = tren_dir / "progress.json"
+        backup_file = tren_dir / "progress.json.e2e_backup"
         had_progress = progress_file.exists()
 
         # Backup existing progress
@@ -184,19 +184,19 @@ class TestModuleFlow:
 
     @pytest.mark.module_flow
     def test_module_01_start_works(self):
-        """'tito module start 01' works (first module, no prerequisites)."""
+        """'tren module start 01' works (first module, no prerequisites)."""
         # Note: This opens Jupyter, but should not block
         # We test the command doesn't error on already-started modules
-        code, stdout, stderr = run_tito(["module", "status"])
+        code, stdout, stderr = run_tren(["module", "status"])
         assert code == 0
 
     @pytest.mark.module_flow
     def test_module_02_start_responds(self):
-        """'tito module start 02' gives a meaningful response about module state."""
+        """'tren module start 02' gives a meaningful response about module state."""
         # Note: This test checks that the command responds appropriately.
         # If module 01 is not completed, it should show "Locked" or prerequisites.
         # If module 01 is completed (from previous tests), it should show "Unlocked".
-        code, stdout, stderr = run_tito(["module", "start", "02"])
+        code, stdout, stderr = run_tren(["module", "start", "02"])
 
         combined = stdout + stderr
         # Should show either locked (needs prereqs) or unlocked (ready to start)
@@ -204,9 +204,9 @@ class TestModuleFlow:
 
     @pytest.mark.module_flow
     def test_module_complete_runs_tests(self):
-        """'tito module complete 01 --skip-export' runs tests."""
+        """'tren module complete 01 --skip-export' runs tests."""
         # This tests that the complete command works (skip export to be faster)
-        code, stdout, stderr = run_tito(
+        code, stdout, stderr = run_tren(
             ["module", "complete", "01", "--skip-export"],
             timeout=120  # Tests may take a while
         )
@@ -217,9 +217,9 @@ class TestModuleFlow:
     @pytest.mark.module_flow
     def test_progress_tracking_persists(self):
         """Progress is saved and persisted across commands."""
-        tito_dir = PROJECT_ROOT / ".tito"
-        tito_dir.mkdir(exist_ok=True)
-        progress_file = tito_dir / "progress.json"
+        tren_dir = PROJECT_ROOT / ".tren"
+        tren_dir.mkdir(exist_ok=True)
+        progress_file = tren_dir / "progress.json"
 
         # Set a known state
         progress_file.write_text(json.dumps({
@@ -229,7 +229,7 @@ class TestModuleFlow:
         }))
 
         # Run status command
-        code, stdout, stderr = run_tito(["module", "status"])
+        code, stdout, stderr = run_tren(["module", "status"])
         assert code == 0
 
         # Check progress file still exists and has data
@@ -239,8 +239,8 @@ class TestModuleFlow:
 
     @pytest.mark.module_flow
     def test_module_test_command_works(self):
-        """'tito module test 01' runs module tests."""
-        code, stdout, stderr = run_tito(
+        """'tren module test 01' runs module tests."""
+        code, stdout, stderr = run_tren(
             ["module", "test", "01"],
             timeout=120
         )
@@ -256,7 +256,7 @@ class TestMilestoneFlow:
     @pytest.mark.milestone_flow
     def test_milestone_list_shows_all(self):
         """Milestone list shows all available milestones."""
-        code, stdout, stderr = run_tito(["milestone", "list"])
+        code, stdout, stderr = run_tren(["milestone", "list"])
         assert code == 0
 
         # Check for expected milestones
@@ -266,15 +266,15 @@ class TestMilestoneFlow:
 
     @pytest.mark.milestone_flow
     def test_milestone_info_works(self):
-        """'tito milestone info 01' shows milestone details."""
-        code, stdout, stderr = run_tito(["milestone", "info", "01"])
+        """'tren milestone info 01' shows milestone details."""
+        code, stdout, stderr = run_tren(["milestone", "info", "01"])
         assert code == 0
         assert "Perceptron" in stdout or "1958" in stdout
 
     @pytest.mark.milestone_flow
     def test_milestone_status_works(self):
-        """'tito milestone status' shows progress."""
-        code, stdout, stderr = run_tito(["milestone", "status"])
+        """'tren milestone status' shows progress."""
+        code, stdout, stderr = run_tren(["milestone", "status"])
         assert code == 0
 
     @pytest.mark.milestone_flow
@@ -285,17 +285,17 @@ class TestMilestoneFlow:
 
     @pytest.mark.milestone_flow
     def test_milestone_run_checks_prerequisites(self):
-        """'tito milestone run' checks prerequisites before running."""
+        """'tren milestone run' checks prerequisites before running."""
         # Create clean state with no completed modules
-        tito_dir = PROJECT_ROOT / ".tito"
-        tito_dir.mkdir(exist_ok=True)
-        progress_file = tito_dir / "progress.json"
+        tren_dir = PROJECT_ROOT / ".tren"
+        tren_dir.mkdir(exist_ok=True)
+        progress_file = tren_dir / "progress.json"
         progress_file.write_text(json.dumps({
             "completed_modules": []
         }))
 
         # Try to run milestone 03 (requires many modules)
-        code, stdout, stderr = run_tito(["milestone", "run", "03", "--skip-checks"], timeout=5)
+        code, stdout, stderr = run_tren(["milestone", "run", "03", "--skip-checks"], timeout=5)
 
         # With --skip-checks it might try to run; without it should check prereqs
         # Either way, the command should not crash
@@ -316,11 +316,11 @@ class TestFullJourney:
         4. Verify export worked
         """
         # Step 1: Check initial state
-        code, stdout, stderr = run_tito(["module", "status"])
+        code, stdout, stderr = run_tren(["module", "status"])
         assert code == 0
 
         # Step 2: Test the module
-        code, stdout, stderr = run_tito(
+        code, stdout, stderr = run_tren(
             ["module", "test", "01"],
             timeout=180
         )
@@ -339,7 +339,7 @@ class TestFullJourney:
         # If Tensor is not exported, that's a test failure
         assert result.returncode == 0, (
             f"Tensor not exported from tinytorch. "
-            f"Run 'tito module complete 01' first. Error: {result.stderr}"
+            f"Run 'tren module complete 01' first. Error: {result.stderr}"
         )
 
     @pytest.mark.full_journey
@@ -382,7 +382,7 @@ class TestErrorHandling:
     @pytest.mark.quick
     def test_invalid_command_shows_error(self):
         """Invalid commands show helpful error messages."""
-        code, stdout, stderr = run_tito(["nonexistent_command"])
+        code, stdout, stderr = run_tren(["nonexistent_command"])
         assert code != 0
         combined = stdout + stderr
         # Check for "not found" or "not a valid" (the actual error message text)
@@ -391,7 +391,7 @@ class TestErrorHandling:
     @pytest.mark.quick
     def test_invalid_module_number_handled(self):
         """Invalid module numbers are handled gracefully."""
-        code, stdout, stderr = run_tito(["module", "start", "99"])
+        code, stdout, stderr = run_tren(["module", "start", "99"])
         assert code != 0
         combined = stdout + stderr
         assert "not found" in combined.lower() or "invalid" in combined.lower() or "99" in combined
@@ -399,7 +399,7 @@ class TestErrorHandling:
     @pytest.mark.quick
     def test_invalid_milestone_handled(self):
         """Invalid milestone IDs are handled gracefully."""
-        code, stdout, stderr = run_tito(["milestone", "info", "99"])
+        code, stdout, stderr = run_tren(["milestone", "info", "99"])
         assert code != 0
         combined = stdout + stderr
         assert "invalid" in combined.lower() or "not found" in combined.lower()

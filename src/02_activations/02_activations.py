@@ -82,7 +82,7 @@ Module 01 (Tensor) → Module 02 (Activations) → Module 03 (Layers)
 **Import Strategy**:
 This module imports directly from the TinyTorch package (`from tinytorch.core.*`).
 **Assumption**: Module 01 (Tensor) has been completed and exported to the package.
-If you see import errors, ensure you've run `tito module complete 01`.
+If you see import errors, ensure you've run `tren module complete 01`.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "setup", "solution": true}
@@ -930,7 +930,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 02")
+    print("Run: tren module complete 02")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -1177,7 +1177,7 @@ Congratulations! You've built the intelligence engine of neural networks!
 - **Sparsity benefits**: ReLU's zero outputs create sparse representations
 - **Activation selection**: Different layers need different activations (ReLU for hidden, Softmax for output)
 
-Export with: `tito module complete 02`
+Export with: `tren module complete 02`
 
 **Next**: Module 03 will combine your Tensors and Activations to build complete neural network Layers!
 """

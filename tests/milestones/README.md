@@ -1,9 +1,9 @@
 # TinyTorch Milestone Tests
 
 This directory validates the historical milestone scripts that students run with
-`tito milestone`.
+`tren milestone`.
 
-The canonical milestone definitions live in `tito.commands.milestone.MILESTONE_SCRIPTS`.
+The canonical milestone definitions live in `tren.commands.milestone.MILESTONE_SCRIPTS`.
 The compatibility tracker in `milestone_tracker.py` mirrors that table for older
 hooks and tests.
 
@@ -29,7 +29,7 @@ pytest tests/milestones/test_milestones_run.py -v
 ```
 
 Use these for release validation. They run milestone scripts through
-`tito milestone run --skip-checks`, including training where applicable, and can
+`tren milestone run --skip-checks`, including training where applicable, and can
 take several minutes.
 
 ## Current Milestones
@@ -48,7 +48,7 @@ take several minutes.
 The tests assume the generated package exists:
 
 ```bash
-tito dev export --all
+tren dev export --all
 ```
 
 If pytest reports that `tinytorch/core/*.py` files are missing, export the modules
@@ -58,8 +58,8 @@ first. Generated notebooks and exported package files are ignored by git.
 
 The CLI uses:
 
-- `.tito/progress.json` for completed modules
-- `.tito/milestones.json` for ready/completed milestones
+- `.tren/progress.json` for completed modules
+- `.tren/milestones.json` for ready/completed milestones
 
 Do not use a home-directory progress file in new code.
 
@@ -67,7 +67,7 @@ Do not use a home-directory progress file in new code.
 
 When adding or renaming a milestone:
 
-1. Update `MILESTONE_SCRIPTS` in `tito/commands/milestone.py`.
+1. Update `MILESTONE_SCRIPTS` in `tren/commands/milestone.py`.
 2. Update or add the milestone script under `milestones/`.
 3. Add smoke coverage in `test_milestones_smoke.py`.
 4. Add release-run coverage in `test_milestones_run.py` if the script should run end to end.

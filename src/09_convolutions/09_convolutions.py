@@ -3097,7 +3097,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 09")
+    print("Run: tren module complete 09")
 
 # Run module test when this cell is executed
 if __name__ == "__main__":
@@ -3238,5 +3238,5 @@ Your spatial operations enable building complete CNNs for computer vision tasks!
 
 **Next**: Milestone 03 will combine your spatial operations with training pipeline to build a CNN for CIFAR-10!
 
-Export with: `tito module complete 09`
+Export with: `tren module complete 09`
 """

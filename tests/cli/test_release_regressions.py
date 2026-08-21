@@ -13,15 +13,15 @@ from pathlib import Path
 import numpy as np
 from rich.console import Console
 
-from tito.commands.export_utils import find_source_file_for_export
-from tito.commands.milestone import (
+from tren.commands.export_utils import find_source_file_for_export
+from tren.commands.milestone import (
     MILESTONE_SCRIPTS,
     _required_modules_for,
     _validate_required_exports,
 )
-from tito.commands.module.workflow import ModuleWorkflowCommand
-from tito.commands.package.reset import ResetCommand
-from tito.core.config import CLIConfig
+from tren.commands.module.workflow import ModuleWorkflowCommand
+from tren.commands.package.reset import ResetCommand
+from tren.core.config import CLIConfig
 
 
 TINYTORCH_ROOT = Path(__file__).resolve().parents[2]
@@ -87,7 +87,7 @@ def test_module_next_steps_use_start_subcommand():
     command.show_next_steps("01")
 
     text = output.getvalue()
-    assert "tito module start 02" in text
+    assert "tren module start 02" in text
 
 
 def test_root_public_api_exports_completed_module_symbols():
@@ -159,7 +159,7 @@ def test_milestone_list_uses_actual_history_start_year():
     env = os.environ.copy()
     env["TITO_ALLOW_SYSTEM"] = "1"
     result = subprocess.run(
-        [sys.executable, "-m", "tito.main", "milestone", "list", "--simple"],
+        [sys.executable, "-m", "tren.main", "milestone", "list", "--simple"],
         cwd=TINYTORCH_ROOT,
         capture_output=True,
         text=True,
@@ -183,13 +183,13 @@ def test_package_reset_success_messages_render_real_newlines(monkeypatch, tmp_pa
     text = output.getvalue()
     assert "\\n" not in text
     assert "You can re-complete modules with:" in text
-    assert "tito module complete XX" in text
+    assert "tren module complete XX" in text
     assert "You can re-run milestones with:" in text
-    assert "tito milestone run XX" in text
+    assert "tren milestone run XX" in text
 
 
 def test_generated_warning_points_to_current_export_command():
-    text = (TINYTORCH_ROOT / "tito" / "commands" / "export_utils.py").read_text(encoding="utf-8")
+    text = (TINYTORCH_ROOT / "tren" / "commands" / "export_utils.py").read_text(encoding="utf-8")
 
-    assert "tito module complete XX" in text
-    assert "tito module complete <module_name>" not in text
+    assert "tren module complete XX" in text
+    assert "tren module complete <module_name>" not in text

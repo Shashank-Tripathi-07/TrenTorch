@@ -1,42 +1,42 @@
 # TinyTorch: System Design
 
-*This document describes how the `tito` CLI and the TinyTorch course pipeline actually work: what happens between a student editing a module and that module becoming a real, importable, gradable piece of the `tinytorch` package. It is written for a contributor who needs to change the export pipeline, the milestone system, or the progress-sync path, not for a student. Read [`design.md`](design.md) first for the pedagogical framing; this document only covers mechanics. Sourced from `tito/` and `pyproject.toml`; the upstream `.github/workflows/tinytorch-validate-dev.yml` this was originally cross-checked against doesn't exist in this fork (see [`design.md`](design.md#cicd-upstream-only-not-present-in-this-fork)). The progress-sync path it describes is real code that ships in this fork but talks to the upstream project's own hosted backend, not anything TrenTorch runs.*
+*This document describes how the `tren` CLI and the TinyTorch course pipeline actually work: what happens between a student editing a module and that module becoming a real, importable, gradable piece of the `tinytorch` package. It is written for a contributor who needs to change the export pipeline, the milestone system, or the progress-sync path, not for a student. Read [`design.md`](design.md) first for the pedagogical framing; this document only covers mechanics. Sourced from `tren/` and `pyproject.toml`; the upstream `.github/workflows/tinytorch-validate-dev.yml` this was originally cross-checked against doesn't exist in this fork (see [`design.md`](design.md#cicd-upstream-only-not-present-in-this-fork)). The progress-sync path it describes is real code that ships in this fork but talks to the upstream project's own hosted backend, not anything TrenTorch runs.*
 
 ## 1. Problem this system solves
 
-A student's work has to move through three representations before it counts as complete: a notebook they edit interactively, a plain Python module the test suite and export tooling can process programmatically, and finally a real symbol inside the installed `tinytorch` package that later modules and milestones can import. Each of those representations has to stay consistent with the other two, and a student needs a single command that handles the whole conversion without them ever touching `nbdev` or `jupytext` directly. `tito` is that command.
+A student's work has to move through three representations before it counts as complete: a notebook they edit interactively, a plain Python module the test suite and export tooling can process programmatically, and finally a real symbol inside the installed `tinytorch` package that later modules and milestones can import. Each of those representations has to stay consistent with the other two, and a student needs a single command that handles the whole conversion without them ever touching `nbdev` or `jupytext` directly. `tren` is that command.
 
 ## 2. Dependencies and what each one actually does here
 
 | Dependency | Role in this codebase |
 |---|---|
 | `numpy>=2.2.6,<3.0.0` | The tensor backend. `tinytorch/core/tensor.py` wraps numpy arrays directly, this is the actual math, not a convenience layer. |
-| `rich>=15.0.0` | All CLI console output. `tito/core/console.py` builds every panel, table, and progress indicator a student sees. |
-| `PyYAML>=6.0.3` | Parses milestone configuration. `tito/commands/milestone.py` loads `milestones/milestones.yml` and the per-era `milestone.yml` files with `yaml.safe_load`. |
-| `certifi>=2026.4.22` | Supplies the CA bundle for the HTTPS connection `tito` makes when syncing progress to the community backend. |
-| `pytest>=8.0.0` | Runs as a subprocess for module-level and integration tests, and is the underlying runner CI drives through `tito dev test`. |
+| `rich>=15.0.0` | All CLI console output. `tren/core/console.py` builds every panel, table, and progress indicator a student sees. |
+| `PyYAML>=6.0.3` | Parses milestone configuration. `tren/commands/milestone.py` loads `milestones/milestones.yml` and the per-era `milestone.yml` files with `yaml.safe_load`. |
+| `certifi>=2026.4.22` | Supplies the CA bundle for the HTTPS connection `tren` makes when syncing progress to the community backend. |
+| `pytest>=8.0.0` | Runs as a subprocess for module-level and integration tests, and is the underlying runner CI drives through `tren dev test`. |
 | `nbdev>=3.0.15,<3.0.16` (dev group) | Does the actual export: turns notebook cells into real files inside the `tinytorch/` package. Called in-process via `nbdev.export.nb_export`, not as a subprocess. |
 | `jupytext>=1.19.3` (dev group) | Converts a module's plain-Python dev file into the `.ipynb` a student opens in Jupyter, run as a subprocess. |
 
-One dependency direction is worth stating precisely: `tito` depends on the `tinytorch/` project tree (reads and writes `src/`, `modules/`, `milestones/*.yml`, `.tito/progress.json`) and, in exactly one place, imports the generated `tinytorch` package itself to confirm an export actually produced a real, working symbol rather than an empty file. The `tinytorch` package has no dependency on `tito` at all. It is a plain importable library once exported.
+One dependency direction is worth stating precisely: `tren` depends on the `tinytorch/` project tree (reads and writes `src/`, `modules/`, `milestones/*.yml`, `.tren/progress.json`) and, in exactly one place, imports the generated `tinytorch` package itself to confirm an export actually produced a real, working symbol rather than an empty file. The `tinytorch` package has no dependency on `tren` at all. It is a plain importable library once exported.
 
 ## 3. Full system diagram
 
 ```mermaid
 flowchart TD
     Student(["🎓 Student"])
-    CLI["tito CLI dispatcher<br/>tito/main.py"]
+    CLI["tren CLI dispatcher<br/>tren/main.py"]
     Workflow["Module Workflow<br/>start / test / complete"]
     Export["Export Pipeline<br/>export_utils.py + nbdev"]
     Pkg[("tinytorch package<br/>real importable code")]
     Tests["pytest<br/>unit + integration"]
     Milestone["Milestone System<br/>milestone.py"]
-    MFile[(".tito/milestones.json")]
-    PFile[(".tito/progress.json")]
+    MFile[(".tren/milestones.json")]
+    PFile[(".tren/progress.json")]
     Sync["auto_sync_after_completion<br/>submission.py"]
     Supabase[["Supabase edge function<br/>shared hardcoded URL"]]
     Dashboard["Community Dashboard<br/>quarto/community/*.html"]
-    CI["CI: tito dev test --ci<br/>--ci flag skips network sync"]
+    CI["CI: tren dev test --ci<br/>--ci flag skips network sync"]
 
     Student -->|edits src/*.py| CLI
     CLI --> Workflow
@@ -72,9 +72,9 @@ Orange boxes are code the CLI runs directly. Purple cylinders are things written
 ## 4. Component inventory
 
 ```
-                              tito (console script)
+                              tren (console script)
                                      |
-                        tito/main.py: TinyTorchCLI
+                        tren/main.py: TinyTorchCLI
                      dict-based command registry, one
                      BaseCommand subclass per subcommand
                                      |
@@ -91,11 +91,11 @@ Orange boxes are code the CLI runs directly. Purple cylinders are things written
 
 The five components that matter most for a system-design understanding:
 
-- **The `tito` dispatcher** (`tito/main.py`). A literal dict maps subcommand strings to command classes. There is no plugin discovery mechanism, adding a command means adding an entry to this dict.
-- **The module workflow subsystem** (`tito/commands/module/workflow.py`, close to 1900 lines). Owns the full lifecycle of one module: `start`, `view`, `resume`, `test`, `complete`, `reset`.
-- **The export pipeline** (`tito/commands/export_utils.py`), shared logic the module workflow calls into rather than owning itself.
-- **The milestone system** (`tito/commands/milestone.py`), which both gates on completed modules and independently triggers progress sync.
-- **The progress-sync and community dashboard pair** (`tito/core/submission.py` and `tinytorch/quarto/community/`), two separate codebases (Python CLI, static JS site) that agree on nothing except a shared, hardcoded backend URL.
+- **The `tren` dispatcher** (`tren/main.py`). A literal dict maps subcommand strings to command classes. There is no plugin discovery mechanism, adding a command means adding an entry to this dict.
+- **The module workflow subsystem** (`tren/commands/module/workflow.py`, close to 1900 lines). Owns the full lifecycle of one module: `start`, `view`, `resume`, `test`, `complete`, `reset`.
+- **The export pipeline** (`tren/commands/export_utils.py`), shared logic the module workflow calls into rather than owning itself.
+- **The milestone system** (`tren/commands/milestone.py`), which both gates on completed modules and independently triggers progress sync.
+- **The progress-sync and community dashboard pair** (`tren/core/submission.py` and `tinytorch/quarto/community/`), two separate codebases (Python CLI, static JS site) that agree on nothing except a shared, hardcoded backend URL.
 
 ## 5. Data flow: from a student's edit to a real symbol
 
@@ -103,7 +103,7 @@ The five components that matter most for a system-design understanding:
 1. Student edits src/XX_module/XX_module.py
    (percent-format Python, #| export / #| default_exp directives)
                     |
-2. tito module complete NN
+2. tren module complete NN
                     |
 3. _run_inline_unit_tests
    subprocess: python <dev_file>.py
@@ -121,10 +121,10 @@ The five components that matter most for a system-design understanding:
    importing from the tinytorch package just written
                     |
 7. update_progress(module_num, module_name)
-   writes .tito/progress.json
+   writes .tren/progress.json
                     |
 8. _check_milestone_unlocks
-   may write .tito/milestones.json
+   may write .tren/milestones.json
                     |
 9. _trigger_submission -> auto_sync_after_completion
    POSTs progress + milestones JSON to the Supabase backend
@@ -133,7 +133,7 @@ The five components that matter most for a system-design understanding:
     backend and shows the student's progress
 ```
 
-Two steps are easy to miss and worth calling out directly. First, `tito module test <NN>` alone does not run step 5, only `tito module complete <NN>` exports anything, a common point of confusion for a student who assumes testing and completing are the same action. Second, step 8's milestone check does not just look at whether the export step reported success, it separately imports the just-exported module and checks that specific required symbols actually exist, since a file existing and a file containing working code are not the same guarantee.
+Two steps are easy to miss and worth calling out directly. First, `tren module test <NN>` alone does not run step 5, only `tren module complete <NN>` exports anything, a common point of confusion for a student who assumes testing and completing are the same action. Second, step 8's milestone check does not just look at whether the export step reported success, it separately imports the just-exported module and checks that specific required symbols actually exist, since a file existing and a file containing working code are not the same guarantee.
 
 ## 6. Error handling
 
@@ -163,7 +163,7 @@ export + milestone completion
         |
         v
 Supabase edge function URL
-(hardcoded identically in tito/core/submission.py
+(hardcoded identically in tren/core/submission.py
  and tinytorch/quarto/community/modules/config.js)
         |
         v
@@ -173,14 +173,14 @@ JS codebase, no shared type or schema file with the CLI)
 
 The CLI and the dashboard are two independently maintained codebases that agree with each other only through a hardcoded URL string appearing in both places. There is no shared schema file, no generated client, nothing that would cause a compile-time or CI-time failure if one side changed its payload shape without the other side changing to match. This is worth knowing before touching either side: a change to what `assemble_payload` sends has to be verified against the dashboard's actual JS by hand, not by any automated check.
 
-Separately, CI does not go through the same code path a student's local `tito module complete` uses. CI calls `tito dev test` with an explicit `--ci` flag, and that flag is checked directly inside the sync logic to hard-skip any network call during a CI run. This means a bug in the sync path specifically can pass CI cleanly while still being broken for a real student, since CI never actually exercises that code.
+Separately, CI does not go through the same code path a student's local `tren module complete` uses. CI calls `tren dev test` with an explicit `--ci` flag, and that flag is checked directly inside the sync logic to hard-skip any network call during a CI run. This means a bug in the sync path specifically can pass CI cleanly while still being broken for a real student, since CI never actually exercises that code.
 
 ## 8. Known coupling worth understanding before you change anything
 
-The module registry (`tito/core/modules.py`) is the single place that maps a module number to a module name, and it is read by the export pipeline, the milestone system's required-modules check, and (per the module docstrings) grading tooling. A change to module numbering has to go through this one file, not be patched independently in each consumer.
+The module registry (`tren/core/modules.py`) is the single place that maps a module number to a module name, and it is read by the export pipeline, the milestone system's required-modules check, and (per the module docstrings) grading tooling. A change to module numbering has to go through this one file, not be patched independently in each consumer.
 
 The milestone unlock check is not a passive read of the progress file. It actively imports the freshly exported module and checks named attributes exist, which means a milestone can correctly report a module as "exported but not actually working" rather than trusting file existence alone. Any refactor of the export pipeline that changes where a symbol lands needs to be checked against this specific validation, not just against the export step's own success/failure return value.
 
 ## 9. Contributing
 
-If you are changing the export pipeline, run the full chain by hand at least once, edit a real module's dev file, run `tito module complete`, and confirm the resulting file in `tinytorch/` both exists and contains the symbols the milestone system expects. A passing `test_static.py`-equivalent check is not sufficient proof the export actually worked end to end. If you are touching the progress-sync path, remember CI never exercises it, you need to test it manually against a real (or staging) backend, not rely on a green CI run as evidence it still works.
+If you are changing the export pipeline, run the full chain by hand at least once, edit a real module's dev file, run `tren module complete`, and confirm the resulting file in `tinytorch/` both exists and contains the symbols the milestone system expects. A passing `test_static.py`-equivalent check is not sufficient proof the export actually worked end to end. If you are touching the progress-sync path, remember CI never exercises it, you need to test it manually against a real (or staging) backend, not rely on a green CI run as evidence it still works.

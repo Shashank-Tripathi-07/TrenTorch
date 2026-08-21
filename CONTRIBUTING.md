@@ -26,9 +26,9 @@ TinyTorch is an **educational framework** where every contribution should:
 
 2. **Verify installation**:
    ```bash
-   tito --version       # Check TinyTorch version
-   tito system health   # Verify environment
-   tito module status   # See module progress
+   tren --version       # Check TinyTorch version
+   tren system health   # Verify environment
+   tren module status   # See module progress
    ```
 
 3. **Read the development guidelines**:
@@ -78,7 +78,7 @@ git checkout -b feature/your-improvement
 # 3. Make changes following standards in CONTRIBUTING.md
 # 4. Test thoroughly
 pytest tests/
-tito module test 01
+tren module test 01
 
 # 5. Commit with descriptive messages
 git add <specific-files>    # Never use 'git add .' — stage files explicitly
@@ -106,7 +106,7 @@ All contributions must pass:
 1. **Module Tests** (run tests for a specific module):
    ```bash
    pytest tests/NN_name/             # e.g., pytest tests/01_tensor/
-   tito module test NN               # e.g., tito module test 01
+   tren module test NN               # e.g., tren module test 01
    ```
 
 2. **Integration Tests**:
@@ -128,11 +128,11 @@ All contributions must pass:
 - **File Format**: Work in `modules/NN_name/name.ipynb` notebooks in Jupyter Lab
 - **Location**: Notebooks are in `modules/NN_name/` directories (e.g., `modules/01_tensor/tensor.ipynb`)
 - **Testing**: Run tests inline as you build
-- **Export**: Use `tito module complete N` to export to package
+- **Export**: Use `tren module complete N` to export to package
 
 **For Contributors** (improving the framework):
 - **Source Files**: Edit `src/NN_name/NN_name.py` files (source of truth, e.g., `src/01_tensor/01_tensor.py`)
-- **Notebooks**: Generated from source files using `tito dev export`
+- **Notebooks**: Generated from source files using `tren dev export`
 - **Structure**: Follow the standardized module structure
 - **Testing**: Include immediate testing after each implementation
 - **Systems Analysis**: MANDATORY memory and performance analysis
@@ -172,7 +172,7 @@ Every contribution should emphasize:
 
 When reporting bugs, include:
 
-1. **Version**: Run `tito --version` to get TinyTorch version
+1. **Version**: Run `tren --version` to get TinyTorch version
 2. **Environment**: OS, Python version, virtual environment status
 3. **Module**: Which module/checkpoint is affected
 4. **Steps to Reproduce**: Exact commands and inputs
@@ -182,10 +182,10 @@ When reporting bugs, include:
 
 ```bash
 # Always include this information
-tito --version
+tren --version
 python3 --version
 echo $VIRTUAL_ENV
-tito system health
+tren system health
 ```
 
 ## 🌟 Feature Requests

@@ -28,7 +28,7 @@ TINYTORCH_ROOT = Path(__file__).parent.parent.parent
 
 def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tuple[int, str, str]:
     """
-    Run a milestone via tito CLI and capture output.
+    Run a milestone via tren CLI and capture output.
 
     Args:
         milestone_id: Milestone ID (01-06)
@@ -38,11 +38,11 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
     Returns:
         (return_code, stdout, stderr)
     """
-    # Use the bin/tito script directly
-    tito_script = TINYTORCH_ROOT / "bin" / "tito"
+    # Use the bin/tren script directly
+    tren_script = TINYTORCH_ROOT / "bin" / "tren"
 
     cmd = [
-        str(tito_script),
+        str(tren_script),
         "milestone", "run", milestone_id,
         "--skip-checks"  # Skip prerequisite checks since we're testing
     ]

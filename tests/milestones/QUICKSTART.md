@@ -3,7 +3,7 @@
 ## Fast Check
 
 ```bash
-tito dev export --all
+tren dev export --all
 pytest tests/milestones/test_milestones_smoke.py -v
 ```
 
@@ -13,11 +13,11 @@ long training jobs.
 ## Release Check
 
 ```bash
-tito dev export --all
+tren dev export --all
 pytest tests/milestones/test_milestones_run.py -v
 ```
 
-Expected: milestone scripts run through the `tito milestone run` command path.
+Expected: milestone scripts run through the `tren milestone run` command path.
 This is slower and is intended for release validation.
 
 ## Run One Milestone Test
@@ -30,17 +30,17 @@ pytest tests/milestones/test_milestones_run.py -v -k milestone_03
 ## Run Student Commands Directly
 
 ```bash
-tito milestone list
-tito milestone info 03
-tito milestone run 03
-tito milestone run 03 --part 1
-tito milestone run 03 --part 2
+tren milestone list
+tren milestone info 03
+tren milestone run 03
+tren milestone run 03 --part 1
+tren milestone run 03 --part 2
 ```
 
 Use `--skip-checks` only in release tests or controlled maintainer runs:
 
 ```bash
-tito milestone run 03 --skip-checks
+tren milestone run 03 --skip-checks
 ```
 
 ## Files

@@ -13,10 +13,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Add tito to path
+# Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tito.main import TinyTorchCLI
+from tren.main import TinyTorchCLI
 
 
 class TestHelpConsistency:
@@ -29,28 +29,28 @@ class TestHelpConsistency:
     def get_command_help(self, *args):
         """Get help output for a command."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'] + list(args) + ['-h'],
+            [sys.executable, '-m', 'tren.main'] + list(args) + ['-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
         )
         return result.stdout + result.stderr
 
-    def test_all_command_helps_mention_tito(self):
-        """Verify all help texts mention 'tito' command."""
+    def test_all_command_helps_mention_tren(self):
+        """Verify all help texts mention 'tren' command."""
         commands = ['setup', 'system', 'module', 'milestone']
 
         for cmd in commands:
             help_text = self.get_command_help(cmd)
-            assert 'tito' in help_text.lower(), (
-                f"Command '{cmd}' help doesn't mention 'tito'"
+            assert 'tren' in help_text.lower(), (
+                f"Command '{cmd}' help doesn't mention 'tren'"
             )
 
-    def test_bare_tito_and_help_are_different(self):
-        """Verify bare 'tito' and 'tito -h' show different but related content."""
-        # Get bare tito output
+    def test_bare_tren_and_help_are_different(self):
+        """Verify bare 'tren' and 'tren -h' show different but related content."""
+        # Get bare tren output
         bare_result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'],
+            [sys.executable, '-m', 'tren.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -58,7 +58,7 @@ class TestHelpConsistency:
 
         # Get help output
         help_result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', '-h'],
+            [sys.executable, '-m', 'tren.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -69,15 +69,15 @@ class TestHelpConsistency:
 
         # Should both mention key commands
         for cmd in ['module', 'milestone', 'setup']:
-            assert cmd in bare_output, f"'{cmd}' missing from bare tito"
-            assert cmd in help_output, f"'{cmd}' missing from tito -h"
+            assert cmd in bare_output, f"'{cmd}' missing from bare tren"
+            assert cmd in help_output, f"'{cmd}' missing from tren -h"
 
         # Bare should have welcome/logo
         assert any(word in bare_output for word in ['Welcome', 'TORCH', 'Quick Start']), \
-            "Bare tito should show welcome screen"
+            "Bare tren should show welcome screen"
 
         # Help should have usage
-        assert 'usage:' in help_output.lower(), "tito -h should show usage"
+        assert 'usage:' in help_output.lower(), "tren -h should show usage"
 
     def test_no_references_to_removed_commands(self):
         """Verify help doesn't reference commands that don't exist."""
@@ -121,7 +121,7 @@ class TestHelpConsistency:
 
 
 class TestWelcomeScreen:
-    """Test the welcome screen shown by bare 'tito' command."""
+    """Test the welcome screen shown by bare 'tren' command."""
 
     def setup_method(self):
         """Set up test fixtures."""
@@ -130,7 +130,7 @@ class TestWelcomeScreen:
     def test_welcome_screen_shows_quick_start(self):
         """Verify welcome screen has quick start section."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'],
+            [sys.executable, '-m', 'tren.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -143,7 +143,7 @@ class TestWelcomeScreen:
     def test_welcome_screen_shows_command_groups(self):
         """Verify welcome screen organizes commands into groups."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'],
+            [sys.executable, '-m', 'tren.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -156,7 +156,7 @@ class TestWelcomeScreen:
     def test_welcome_screen_has_examples(self):
         """Verify welcome screen shows example commands."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'],
+            [sys.executable, '-m', 'tren.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -165,7 +165,7 @@ class TestWelcomeScreen:
         output = result.stdout
 
         # Should have at least one example command
-        assert 'tito setup' in output or 'tito module' in output, \
+        assert 'tren setup' in output or 'tren module' in output, \
             "Welcome screen should show example commands"
 
 
@@ -181,7 +181,7 @@ class TestCommandDocumentation:
         """Verify all registered commands appear in welcome screen or help."""
         # Get welcome screen
         welcome_result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'],
+            [sys.executable, '-m', 'tren.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -189,7 +189,7 @@ class TestCommandDocumentation:
 
         # Get help
         help_result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', '-h'],
+            [sys.executable, '-m', 'tren.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -211,14 +211,14 @@ class TestCommandDocumentation:
         """Specifically test that milestone command is documented."""
         # This addresses the user's concern about progress tracking
         welcome_result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'],
+            [sys.executable, '-m', 'tren.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
         )
 
         help_result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', '-h'],
+            [sys.executable, '-m', 'tren.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -231,7 +231,7 @@ class TestCommandDocumentation:
 
         # Check it has a description
         milestone_help = subprocess.run(
-            [sys.executable, '-m', 'tito.main', 'milestone', '-h'],
+            [sys.executable, '-m', 'tren.main', 'milestone', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True

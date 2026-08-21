@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Validate that CLI commands referenced in documentation match actual tito CLI.
+Validate that CLI commands referenced in documentation match actual tren CLI.
 
-This script extracts all `tito X Y` commands from markdown files and validates
+This script extracts all `tren X Y` commands from markdown files and validates
 them against the actual CLI structure. Runs as a pre-commit hook to catch
 documentation drift before it reaches the repo.
 
@@ -26,7 +26,7 @@ DOCS_DIRS = ["site", "modules", "tests", "milestones"]
 # Files to skip (generated, vendored, etc.)
 SKIP_PATTERNS = [".venv", "node_modules", "_build", ".git"]
 
-# Known valid commands from tito --help
+# Known valid commands from tren --help
 # Format: {command_group: [subcommands]}
 VALID_COMMANDS: Dict[str, List[str]] = {
     "setup": [],  # No subcommands
@@ -49,31 +49,31 @@ VALID_COMMANDS: Dict[str, List[str]] = {
 
 # Known INVALID commands that should be flagged
 KNOWN_INVALID = {
-    "tito checkpoint": "Use 'tito module status' instead",
-    "tito milestones": "Use 'tito milestone' (singular) instead",
-    "tito system check": "Use 'tito system health' instead",
-    "tito system reset": "Command doesn't exist. Use 'tito module reset' for modules",
-    "tito community join": "Use 'tito community login' instead",
-    "tito community update": "Use 'tito community profile' instead",
-    "tito jupyter": "Use 'tito system jupyter' instead",
-    "tito notebooks": "Command doesn't exist",
+    "tren checkpoint": "Use 'tren module status' instead",
+    "tren milestones": "Use 'tren milestone' (singular) instead",
+    "tren system check": "Use 'tren system health' instead",
+    "tren system reset": "Command doesn't exist. Use 'tren module reset' for modules",
+    "tren community join": "Use 'tren community login' instead",
+    "tren community update": "Use 'tren community profile' instead",
+    "tren jupyter": "Use 'tren system jupyter' instead",
+    "tren notebooks": "Command doesn't exist",
 }
 
 
 def get_valid_command_set() -> Set[str]:
-    """Build set of all valid tito commands."""
+    """Build set of all valid tren commands."""
     valid = set()
 
     for group, subcommands in VALID_COMMANDS.items():
-        valid.add(f"tito {group}")
+        valid.add(f"tren {group}")
         for sub in subcommands:
-            valid.add(f"tito {group} {sub}")
+            valid.add(f"tren {group} {sub}")
 
     return valid
 
 
-def extract_tito_commands(filepath: Path) -> List[Tuple[int, str]]:
-    """Extract all tito commands from a markdown file.
+def extract_tren_commands(filepath: Path) -> List[Tuple[int, str]]:
+    """Extract all tren commands from a markdown file.
 
     Returns list of (line_number, command) tuples.
     Only extracts commands that look like actual CLI invocations.
@@ -85,11 +85,11 @@ def extract_tito_commands(filepath: Path) -> List[Tuple[int, str]]:
     except Exception:
         return commands
 
-    # Pattern matches tito commands in code blocks or inline code
+    # Pattern matches tren commands in code blocks or inline code
     # Must start with ` or be at line start (after optional whitespace/comment chars)
     # Excludes title-case words that are clearly prose (e.g., "TITO CLI Reference")
-    code_block_pattern = r'`tito\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)'
-    line_start_pattern = r'^(?:#\s*)?tito\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)'
+    code_block_pattern = r'`tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)'
+    line_start_pattern = r'^(?:#\s*)?tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)'
 
     # Words that indicate prose, not commands (case-insensitive check on following word)
     PROSE_INDICATORS = {'cli', 'command', 'commands', 'reference', 'overview', 'guide', 'tool', 'tools'}
@@ -100,25 +100,25 @@ def extract_tito_commands(filepath: Path) -> List[Tuple[int, str]]:
             continue
 
         # Skip header lines (prose)
-        if line.strip().startswith('#') and 'tito' in line.lower() and any(p in line.lower() for p in PROSE_INDICATORS):
+        if line.strip().startswith('#') and 'tren' in line.lower() and any(p in line.lower() for p in PROSE_INDICATORS):
             continue
 
         # Try code block pattern first (most reliable)
         for match in re.finditer(code_block_pattern, line):
             cmd_parts = match.group(1).lower().strip().split()
-            # Skip if first word after tito is a prose indicator
+            # Skip if first word after tren is a prose indicator
             if cmd_parts and cmd_parts[0] in PROSE_INDICATORS:
                 continue
-            cmd = f"tito {' '.join(cmd_parts)}"
+            cmd = f"tren {' '.join(cmd_parts)}"
             commands.append((i, cmd))
 
         # Try line-start pattern for bash code blocks
         for match in re.finditer(line_start_pattern, line.strip()):
             cmd_parts = match.group(1).lower().strip().split()
-            # Skip if first word after tito is a prose indicator
+            # Skip if first word after tren is a prose indicator
             if cmd_parts and cmd_parts[0] in PROSE_INDICATORS:
                 continue
-            cmd = f"tito {' '.join(cmd_parts)}"
+            cmd = f"tren {' '.join(cmd_parts)}"
             # Avoid duplicates from the code block pattern
             if (i, cmd) not in commands:
                 commands.append((i, cmd))
@@ -188,11 +188,11 @@ def main():
 
     # If tinytorch_root is not actually tinytorch (e.g., we're in a different structure),
     # try to find it from current working directory
-    if not (tinytorch_root / "bin" / "tito").exists():
+    if not (tinytorch_root / "bin" / "tren").exists():
         cwd = Path.cwd()
-        if (cwd / "tinytorch" / "bin" / "tito").exists():
+        if (cwd / "tinytorch" / "bin" / "tren").exists():
             tinytorch_root = cwd / "tinytorch"
-        elif (cwd / "bin" / "tito").exists():
+        elif (cwd / "bin" / "tren").exists():
             tinytorch_root = cwd
 
     if verbose:
@@ -207,7 +207,7 @@ def main():
     errors: List[Tuple[Path, int, str, str]] = []
 
     for md_file in md_files:
-        commands = extract_tito_commands(md_file)
+        commands = extract_tren_commands(md_file)
 
         for line_num, cmd in commands:
             is_valid, error_msg = validate_command(cmd, valid_commands)
@@ -229,7 +229,7 @@ def main():
             print()
 
         print("Fix these issues before committing.")
-        print("Run 'tito --help' to see valid commands.\n")
+        print("Run 'tren --help' to see valid commands.\n")
         return 1
 
     if verbose:

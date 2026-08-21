@@ -63,7 +63,7 @@ These 4 points CANNOT be separated by a single line!
 - Watch accuracy reach 100%
 - **Key Learning:** "Hidden layers unlock non-linear problems!"
 
-This script is run by `tito milestone run 03 --part 1`, not by `tito milestone run 02`.
+This script is run by `tren milestone run 03 --part 1`, not by `tren milestone run 02`.
 
 **The Solution:**
 ```
@@ -109,10 +109,10 @@ cd milestones/02_1969_xor
 python 01_xor_crisis.py
 
 # Or from the TinyTorch project root:
-tito milestone run 02
+tren milestone run 02
 
 # See the solution later, after Module 08:
-tito milestone run 03 --part 1
+tren milestone run 03 --part 1
 ```
 
 ## Further Reading

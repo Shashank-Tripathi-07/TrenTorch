@@ -75,7 +75,7 @@ cd milestones/01_1958_perceptron
 python 01_rosenblatt_forward.py
 
 # Or from the TinyTorch project root:
-tito milestone run 01
+tren milestone run 01
 ```
 
 ## Further Reading

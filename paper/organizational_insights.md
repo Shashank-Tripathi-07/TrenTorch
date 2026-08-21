@@ -10,7 +10,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 
 **Key Decision**:
 - **Source of Truth**: `modules/NN_name/name_dev.py` (Python files with Jupytext percent format)
-- **Generated Artifacts**: `.ipynb` files generated via `tito nbgrader generate` for student assignments
+- **Generated Artifacts**: `.ipynb` files generated via `tren nbgrader generate` for student assignments
 - **Never Commit**: `.ipynb` files excluded from version control during development
 
 **Rationale**:
@@ -89,7 +89,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 - Motivation: Students see concrete evidence of progress through expanding imports
 
 **Evidence from History**:
-- Commit: "Update tinytorch and tito with module exports"
+- Commit: "Update tinytorch and tren with module exports"
 - Commit: "feat: Add PyTorch-style __call__ methods and update milestone syntax"
 - Package structure enables milestone validation: "from tinytorch.nn import Transformer" after Module 13
 
@@ -152,7 +152,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 **Key Decision**:
 - **NBGrader Metadata**: Cells marked with `nbgrader` metadata for automated grading
 - **NBDev Export**: `#| export` directives enable package generation from notebooks
-- **Workflow**: `tito nbgrader generate` creates student assignments, `tito module complete` exports to package
+- **Workflow**: `tren nbgrader generate` creates student assignments, `tren module complete` exports to package
 - **Solution Hiding**: `### BEGIN SOLUTION` / `### END SOLUTION` blocks hide implementations from students
 
 **Rationale**:
@@ -164,7 +164,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 **Evidence from History**:
 - Commit: "Fix NBGrader metadata for Modules 15 and 16"
 - Documentation: `docs/development/module-rules.md` details NBGrader integration
-- Workflow: `tito` CLI integrates both tools seamlessly
+- Workflow: `tren` CLI integrates both tools seamlessly
 
 **Paper Relevance**: This workflow supports Section 4's "Automated Assessment Infrastructure" discussion and demonstrates how curriculum design integrates assessment with learning.
 

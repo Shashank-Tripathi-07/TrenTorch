@@ -110,11 +110,11 @@ cd milestones/03_1986_mlp
 python 01_rumelhart_tinydigits.py
 
 # Or run the full milestone from the TinyTorch project root:
-tito milestone run 03
+tren milestone run 03
 
 # Run individual parts:
-tito milestone run 03 --part 1  # XOR Solved
-tito milestone run 03 --part 2  # TinyDigits
+tren milestone run 03 --part 1  # XOR Solved
+tren milestone run 03 --part 2  # TinyDigits
 ```
 
 ## Further Reading

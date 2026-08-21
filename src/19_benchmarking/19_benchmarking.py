@@ -3993,7 +3993,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 19")
+    print("Run: tren module complete 19")
 
 # %% [markdown]
 """
@@ -4113,7 +4113,7 @@ Congratulations! You've built a professional benchmarking system that rivals ind
 ### Ready for Systems Capstone
 Your benchmarking implementation enables comprehensive systems evaluation, demonstrating your complete optimization toolkit. This is where all 19 modules come together!
 
-Export with: `tito module complete 19`
+Export with: `tren module complete 19`
 
 **Next**: Milestone 5 (Systems Capstone) will demonstrate the complete ML systems engineering workflow!
 """

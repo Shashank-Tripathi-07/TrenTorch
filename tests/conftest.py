@@ -118,7 +118,7 @@ def pytest_configure(config):
                 f"The tinytorch package is not properly built. Tests cannot run.\n\n"
                 f"Errors found:\n{error_msg}\n\n"
                 f"To fix this, run:\n\n"
-                f"    tito dev export --all\n\n"
+                f"    tren dev export --all\n\n"
                 f"This exports all module notebooks to the tinytorch package.\n"
                 f"{'='*70}\n"
             )
@@ -130,7 +130,7 @@ except ImportError:
     pass  # test_utils not yet created or has issues
 
 # Register the --tinytorch CLI flag (the pytest_tinytorch plugin was removed
-# during test cleanup, but tito module test still passes this flag)
+# during test cleanup, but tren module test still passes this flag)
 def pytest_addoption(parser):
     """Register --tinytorch flag for educational test output."""
     parser.addoption(
@@ -316,14 +316,14 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
 
 # =============================================================================
-# Custom Test Runner Command (for tito test)
+# Custom Test Runner Command (for tren test)
 # =============================================================================
 
 def run_tests_with_rich_output(test_path: str = None, verbose: bool = True):
     """
     Run tests with Rich educational output.
 
-    This can be called from tito CLI to provide a better student experience.
+    This can be called from tren CLI to provide a better student experience.
     """
     from rich.console import Console
     from rich.panel import Panel
