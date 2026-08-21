@@ -11,7 +11,7 @@ try:
 except ImportError:
     yaml = None
 
-from tools.export_sanitizer import (
+from trentorch.export_sanitizer import (
     to_qmd,
     to_ipynb,
     to_sandbox_code,

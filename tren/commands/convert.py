@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List
 
 from .base import BaseCommand
-from tools.export_sanitizer import (
+from trentorch.export_sanitizer import (
     to_qmd,
     to_ipynb,
     to_sandbox_code,
