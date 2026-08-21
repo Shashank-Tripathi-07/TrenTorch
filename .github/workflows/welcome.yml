@@ -1,0 +1,34 @@
+name: '👋 Welcome First-Time Contributors'
+
+# Posts a one-time "thanks for contributing" comment the first time someone
+# opens an issue or a PR against this repo. Uses GitHub's own first-interaction
+# action rather than a custom script, so it only fires once per person (it
+# checks the user's past issue/PR history itself) instead of commenting on
+# every single contribution.
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: >
+            Thanks for opening your first issue on TrenTorch! 🎉
+            Someone will take a look soon. In the meantime, check
+            [CONTRIBUTORS.md](../blob/main/CONTRIBUTORS.md) — once this gets
+            some activity, you'll show up there automatically.
+          pr-message: >
+            Thanks for contributing to TrenTorch! 🎉 A maintainer will review
+            this shortly. Once it merges, you'll be added to
+            [CONTRIBUTORS.md](../blob/main/CONTRIBUTORS.md) automatically.

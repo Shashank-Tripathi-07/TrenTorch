@@ -1,0 +1,60 @@
+name: '📋 Update Contributors Table'
+
+# Recomputes CONTRIBUTORS.md (issues raised, PRs raised, PRs merged per
+# person) from the real GitHub API whenever an issue or PR is opened, or a
+# PR closes. Opens a PR with the change and merges it immediately rather
+# than pushing to main directly, since main requires PRs for everyone except
+# repo admins (this workflow's token is not exempt, nor should it be).
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-contributors:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run update script
+        id: update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 .github/scripts/update_contributors.py
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet -- CONTRIBUTORS.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open and merge update PR
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="update-contributors-$(date +%s)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add CONTRIBUTORS.md
+          git commit -m "Update CONTRIBUTORS.md"
+          git push origin "$BRANCH"
+          gh pr create --title "Update CONTRIBUTORS.md" \
+            --body "Automated update from real issue/PR activity. See .github/workflows/update-contributors.yml." \
+            --base main --head "$BRANCH"
+          gh pr merge "$BRANCH" --squash --delete-branch || \
+            echo "::warning::Could not auto-merge, left open for manual merge."
