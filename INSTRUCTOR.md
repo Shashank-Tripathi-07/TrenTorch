@@ -1,10 +1,10 @@
-# 👩‍🏫 TinyTorch Instructor Guide
+# 👩‍🏫 TrenTorch Instructor Guide
 
-Complete guide for teaching ML Systems Engineering with TinyTorch.
+Complete guide for teaching ML Systems Engineering with TrenTorch.
 
 ## 🎯 Course Overview
 
-TinyTorch teaches ML systems engineering through building, not just using. Students construct a complete ML framework from tensors to transformers, understanding memory, performance, and scaling at each step.
+TrenTorch teaches ML systems engineering through building, not just using. Students construct a complete ML framework from tensors to transformers, understanding memory, performance, and scaling at each step.
 
 ## 🛠️ Instructor Setup
 
@@ -12,7 +12,7 @@ TinyTorch teaches ML systems engineering through building, not just using. Stude
 ```bash
 # Clone and setup
 git clone https://github.com/harvard-edge/cs249r_book.git
-cd cs249r_book/tinytorch
+cd cs249r_book/trentorch
 
 # Virtual environment (MANDATORY)
 python -m venv .venv
@@ -26,35 +26,35 @@ pip install -r requirements.txt
 python -m pip install nbgrader
 
 # Setup grading infrastructure (creates assignments/ and nbgrader_config.py)
-tito nbgrader init
+tren nbgrader init
 ```
 
 ### **2. Verify Installation**
 ```bash
-tito system health
+tren system health
 # Should show all green checkmarks
 
-tito nbgrader
+tren nbgrader
 # Should show available NBGrader commands
 ```
 
 ## 📝 Assignment Workflow
 
 ### **NBGrader Scope**
-NBGrader is instructor/developer tooling. TinyTorch stages notebooks into nbgrader's expected assignment layout; nbgrader itself handles release notebook generation, collection, autograding, feedback, and grade export.
+NBGrader is instructor/developer tooling. TrenTorch stages notebooks into nbgrader's expected assignment layout; nbgrader itself handles release notebook generation, collection, autograding, feedback, and grade export.
 
-Tito owns TinyTorch-specific staging. It keeps the existing grading policy from source metadata, and it only treats regions delimited by `### BEGIN SOLUTION` / `### END SOLUTION` as removable solution content. Setup, import, demo, and visible-check cells without those markers are kept in the student release and locked when staged.
+Tren owns TrenTorch-specific staging. It keeps the existing grading policy from source metadata, and it only treats regions delimited by `### BEGIN SOLUTION` / `### END SOLUTION` as removable solution content. Setup, import, demo, and visible-check cells without those markers are kept in the student release and locked when staged.
 
-### **Using NBGrader via Tito**
-We provide `tito nbgrader` commands for grading workflows.
+### **Using NBGrader via Tren**
+We provide `tren nbgrader` commands for grading workflows.
 
 ### **1. Prepare Assignments**
 ```bash
-# Stage instructor source assignment from the generated TinyTorch notebook
-tito nbgrader generate 01_tensor
+# Stage instructor source assignment from the generated TrenTorch notebook
+tren nbgrader generate 01_tensor
 
 # Create student release notebook with solutions removed
-tito nbgrader release 01_tensor
+tren nbgrader release 01_tensor
 
 # Student version will be in: assignments/release/01_tensor/
 ```
@@ -62,7 +62,7 @@ tito nbgrader release 01_tensor
 ### **2. Distribute to Students**
 ```bash
 # Option A: GitHub Classroom (recommended)
-# 1. Create assignment repository from TinyTorch
+# 1. Create assignment repository from TrenTorch
 # 2. Add the files generated under assignments/release/
 # 3. Students clone and work
 
@@ -73,19 +73,19 @@ tito nbgrader release 01_tensor
 ### **3. Collect Submissions**
 ```bash
 # Collect all students
-tito nbgrader collect 01_tensor
+tren nbgrader collect 01_tensor
 
 # Or specific student
-tito nbgrader collect 01_tensor --student student_id
+tren nbgrader collect 01_tensor --student student_id
 ```
 
 ### **4. Auto-Grade**
 ```bash
 # Grade all submissions
-tito nbgrader autograde 01_tensor
+tren nbgrader autograde 01_tensor
 
 # Grade specific student
-tito nbgrader autograde 01_tensor --student student_id
+tren nbgrader autograde 01_tensor --student student_id
 ```
 
 ### **5. Manual Review**
@@ -101,16 +101,16 @@ nbgrader formgrader
 ### **6. Generate Feedback**
 ```bash
 # Create feedback files for students
-tito nbgrader feedback 01_tensor
+tren nbgrader feedback 01_tensor
 ```
 
 ### **7. Export Grades**
 ```bash
 # Export grades report
-tito nbgrader report
+tren nbgrader report
 
 # Or specific assignment/module
-tito nbgrader report --assignment 01_tensor
+tren nbgrader report --assignment 01_tensor
 ```
 
 ## 📊 Grading Components
@@ -463,13 +463,13 @@ By course end, students should be able to:
 ### **Individual Progress**
 ```bash
 # Check specific student progress
-tito module status --student student_id
+tren module status --student student_id
 ```
 
 ### **Class Overview**
 ```bash
 # Export all module progress
-tito module status --export class_progress.csv
+tren module status --export class_progress.csv
 ```
 
 ### **Identify Struggling Students**
@@ -512,20 +512,20 @@ print(f"Memory: {get_memory_usage():.2f} MB")
 **Environment Problems**
 ```bash
 # Student fix:
-tito system health
-tito module reset XX  # Reset specific module if needed
+tren system health
+tren module reset XX  # Reset specific module if needed
 ```
 
 **Module Import Errors**
 ```bash
 # Rebuild package
-tito dev export --all
+tren dev export --all
 ```
 
 **Test Failures**
 ```bash
 # Detailed test output
-tito module test MODULE --verbose
+tren module test MODULE --verbose
 ```
 
 ### **NBGrader Issues**
@@ -534,7 +534,7 @@ tito module test MODULE --verbose
 ```bash
 # Clear NBGrader database
 rm gradebook.db
-tito nbgrader init
+tren nbgrader init
 ```
 
 **Missing Submissions**
@@ -582,4 +582,4 @@ ls submitted/*/MODULE/
 
 ---
 
-**Need help? Open an issue or contact the TinyTorch team!**
+**Need help? Open an issue or contact the TrenTorch team!**

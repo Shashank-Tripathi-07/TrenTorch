@@ -20,9 +20,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear, Sequential
-from tinytorch.perf.compression import (
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear, Sequential
+from trentorch.perf.compression import (
     Compressor,
     measure_sparsity,
     magnitude_prune,

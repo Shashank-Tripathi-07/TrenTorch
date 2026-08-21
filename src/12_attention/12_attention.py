@@ -45,11 +45,11 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/12_attention/attention_dev.py`
-**Building Side:** Code exports to `tinytorch.core.attention`
+**Building Side:** Code exports to `trentorch.core.attention`
 
 ```python
 # How to use this module:
-from tinytorch.core.attention import scaled_dot_product_attention, MultiHeadAttention
+from trentorch.core.attention import scaled_dot_product_attention, MultiHeadAttention
 ```
 
 **Why this matters:**
@@ -68,10 +68,10 @@ import math
 import time
 from typing import Optional, Tuple, List
 
-# Import dependencies from previous modules - following TinyTorch dependency chain
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.activations import Softmax
+# Import dependencies from previous modules - following TrenTorch dependency chain
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.activations import Softmax
 
 # Constants for attention computation
 MASK_VALUE = -1e9  # Large negative value used for attention masking (becomes ~0 after softmax)
@@ -91,10 +91,10 @@ MASK_VALUE = -1e9  # Large negative value used for attention masking (becomes ~0
 - `time` (for performance analysis)
 - `typing` (for type hints)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor.Tensor` - Core tensor operations
-- `tinytorch.core.layers.Linear` - For Q, K, V projections
-- `tinytorch.core.activations.Softmax` - For attention weight normalization
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor.Tensor` - Core tensor operations
+- `trentorch.core.layers.Linear` - For Q, K, V projections
+- `trentorch.core.activations.Softmax` - For attention weight normalization
 
 **Dependency Flow**:
 ```
@@ -1355,7 +1355,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1380,7 +1380,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 12")
+    print("Run: tren module complete 12")
 
 # %% [markdown]
 """
@@ -1544,7 +1544,7 @@ Congratulations! You've built the attention mechanism that revolutionized deep l
 
 ### Ready for Next Steps
 Your attention implementation is the core mechanism that enables modern language models!
-Export with: `tito module complete 12`
+Export with: `tren module complete 12`
 
 **Next**: Module 13 will combine attention with feed-forward layers to build complete transformer blocks!
 """

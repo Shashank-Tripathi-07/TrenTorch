@@ -16,7 +16,7 @@
 """
 # Module 20: Capstone - Benchmarking & Submission
 
-Welcome to the TinyTorch capstone! You've built an entire ML framework from scratch across 19 modules. Now it's time to demonstrate your work by benchmarking a model and generating a submission that showcases your framework's capabilities.
+Welcome to the TrenTorch capstone! You've built an entire ML framework from scratch across 19 modules. Now it's time to demonstrate your work by benchmarking a model and generating a submission that showcases your framework's capabilities.
 
 ## 🔗 Prerequisites & Progress
 **You've Built**: Complete ML framework with profiling (M14), quantization (M15), compression (M16), acceleration (M17), memoization (M18), and benchmarking (M19)
@@ -36,18 +36,18 @@ By the end of this capstone, you will:
 3. Generate standardized JSON submissions following industry best practices
 4. Validate submissions against a schema for reproducibility
 5. Compare baseline vs. optimized models with quantitative metrics
-6. Share your results with the TinyTorch community in a professional format
+6. Share your results with the TrenTorch community in a professional format
 
 Let's get started!
 
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `src/20_capstone/20_capstone.py`
-**Building Side:** Code exports to `tinytorch.olympics`
+**Building Side:** Code exports to `trentorch.olympics`
 
 ```python
 # Final package structure:
-from tinytorch.olympics import generate_submission, BenchmarkReport
+from trentorch.olympics import generate_submission, BenchmarkReport
 
 # Benchmark your model
 report = BenchmarkReport()
@@ -82,11 +82,11 @@ submission.save("my_submission.json")
 - `pathlib` (for file path handling)
 - `platform` (for system information)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` (Tensor class from Module 01)
-- `tinytorch.core.layers` (Linear layer from Module 03)
-- `tinytorch.core.activations` (ReLU from Module 02)
-- `tinytorch.core.losses` (CrossEntropyLoss from Module 04)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` (Tensor class from Module 01)
+- `trentorch.core.layers` (Linear layer from Module 03)
+- `trentorch.core.activations` (ReLU from Module 02)
+- `trentorch.core.losses` (CrossEntropyLoss from Module 04)
 - Optimization modules 14-18 (optional, for advanced workflows)
 
 **Dependency Flow**:
@@ -160,11 +160,11 @@ import platform
 import sys
 
 # %% nbgrader={"grade": false, "grade_id": "imports2", "solution": false}
-# Import TinyTorch modules (not exported - used for module development only)
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.activations import ReLU
-from tinytorch.core.losses import CrossEntropyLoss
+# Import TrenTorch modules (not exported - used for module development only)
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.activations import ReLU
+from trentorch.core.losses import CrossEntropyLoss
 
 if __name__ == "__main__":
     print("✅ Capstone modules imported!")
@@ -317,7 +317,7 @@ Our submission format follows a JSON schema that ensures:
 ```
 Submission JSON Schema:
 {
-  "tinytorch_version": "0.1.0",           ← Version tracking
+  "trentorch_version": "0.1.0",           ← Version tracking
   "submission_type": "capstone_benchmark", ← Classification
   "timestamp": "2025-01-15 14:30:00",     ← When run
   "system_info": {                         ← Environment
@@ -752,7 +752,7 @@ def generate_submission(
 
     Submission Structure:
         {
-          "tinytorch_version": "0.1.0",
+          "trentorch_version": "0.1.0",
           "submission_type": "capstone_benchmark",
           "timestamp": "...",
           "system_info": {...},
@@ -765,7 +765,7 @@ def generate_submission(
         }
     """
     submission = {
-        'tinytorch_version': '0.1.0',
+        'trentorch_version': '0.1.0',
         'submission_type': 'capstone_benchmark',
         'timestamp': baseline_report.timestamp,
         'system_info': baseline_report.system_info,
@@ -912,7 +912,7 @@ Our submission format is designed to be validated:
 ```python
 # Valid submission (passes validation):
 {
-  "tinytorch_version": "0.1.0",      # ✓ Required, string
+  "trentorch_version": "0.1.0",      # ✓ Required, string
   "timestamp": "2025-01-15 14:30",   # ✓ Required, string
   "baseline": {                       # ✓ Required, object
     "metrics": {                      # ✓ Required, object
@@ -923,7 +923,7 @@ Our submission format is designed to be validated:
 
 # Invalid submission (fails validation):
 {
-  "tinytorch_version": 0.1,          # ✗ Wrong type (number not string)
+  "trentorch_version": 0.1,          # ✗ Wrong type (number not string)
   # ✗ Missing timestamp
   "baseline": {
     "metrics": {
@@ -969,7 +969,7 @@ def run_example_benchmark():
     Students can modify this to benchmark their own models!
     """
     print("="*70)
-    print("TINYTORCH CAPSTONE: BENCHMARKING WORKFLOW EXAMPLE")
+    print("TRENTORCH CAPSTONE: BENCHMARKING WORKFLOW EXAMPLE")
     print("="*70)
 
     # Step 1: Create toy dataset
@@ -993,7 +993,7 @@ def run_example_benchmark():
     print("\n📝 Step 4: Generating submission...")
     submission = generate_submission(
         baseline_report=baseline_report,
-        student_name="TinyTorch Student"
+        student_name="TrenTorch Student"
     )
 
     # Step 5: Save submission
@@ -1007,7 +1007,7 @@ def run_example_benchmark():
     print("  1. Try optimizing the model (quantization, pruning, etc.)")
     print("  2. Benchmark the optimized version")
     print("  3. Generate a new submission with both baseline and optimized results")
-    print("  4. Share your submission.json with the TinyTorch community!")
+    print("  4. Share your submission.json with the TrenTorch community!")
 
     return submission
 
@@ -1080,10 +1080,10 @@ def run_optimization_workflow_example():
     3. Benchmarking with best practices (Module 19)
     4. Generating submission with before/after comparison
 
-    Students learn how to use TinyTorch as a complete framework!
+    Students learn how to use TrenTorch as a complete framework!
     """
     print("="*70)
-    print("TINYTORCH CAPSTONE: OPTIMIZATION WORKFLOW")
+    print("TRENTORCH CAPSTONE: OPTIMIZATION WORKFLOW")
     print("="*70)
     print("\nThis workflow demonstrates using Modules 14-19 together:")
     print("  📊 Module 14: Profiling")
@@ -1097,21 +1097,21 @@ def run_optimization_workflow_example():
     # Demonstrate API imports (students can use these for their own optimizations)
     print("\n🔧 Importing optimization APIs...")
     try:
-        from tinytorch.perf.profiling import Profiler, quick_profile
+        from trentorch.perf.profiling import Profiler, quick_profile
         print("  ✅ Module 14 (Profiling) imported")
     except ImportError:
         print("  ⚠️  Module 14 (Profiling) not available - using basic profiling")
         Profiler = None
 
     try:
-        from tinytorch.perf.compression import magnitude_prune, structured_prune
+        from trentorch.perf.compression import magnitude_prune, structured_prune
         print("  ✅ Module 16 (Compression) imported")
     except ImportError:
         print("  ⚠️  Module 16 (Compression) not available - skipping pruning demo")
         magnitude_prune = None
 
     try:
-        from tinytorch.perf.benchmarking import BenchmarkSuite, BenchmarkResult
+        from trentorch.perf.benchmarking import BenchmarkSuite, BenchmarkResult
         print("  ✅ Module 19 (Benchmarking) imported")
     except ImportError:
         print("  ⚠️  Module 19 (Benchmarking) not available - using basic benchmarking")
@@ -1170,7 +1170,7 @@ def run_optimization_workflow_example():
     submission = generate_submission(
         baseline_report=baseline_report,
         optimized_report=optimized_report,
-        student_name="TinyTorch Optimizer",
+        student_name="TrenTorch Optimizer",
         techniques_applied=["model_sizing", "architecture_search"]  # Students list real techniques
     )
     ### END SOLUTION
@@ -1196,7 +1196,7 @@ def run_optimization_workflow_example():
     print("  ✅ How to import and use optimization APIs from Modules 14-19")
     print("  ✅ How to benchmark before and after optimization")
     print("  ✅ How to generate professional submissions with improvement metrics")
-    print("  ✅ How TinyTorch modules work together as a complete framework")
+    print("  ✅ How TrenTorch modules work together as a complete framework")
     print("\n💡 Next steps:")
     print("  - Apply real optimizations (quantization, pruning, etc.)")
     print("  - Benchmark milestone models (XOR, TinyDigits MLP/CNN, Transformer, etc.)")
@@ -1247,7 +1247,7 @@ This tells other engineers EXACTLY what you did, so they can reproduce or build 
 """
 ## 🧪 Unit Tests
 
-Individual unit tests for each component, following TinyTorch testing patterns.
+Individual unit tests for each component, following TrenTorch testing patterns.
 
 **Testing Strategy:**
 1. **Unit tests** - Test each class/function in isolation
@@ -1388,7 +1388,7 @@ def test_unit_submission_generation():
 
     # Check submission structure
     assert isinstance(submission, dict), "Submission should be a dictionary"
-    assert 'tinytorch_version' in submission, "Should have version field"
+    assert 'trentorch_version' in submission, "Should have version field"
     assert 'submission_type' in submission, "Should have submission type"
     assert 'timestamp' in submission, "Should have timestamp"
     assert 'system_info' in submission, "Should have system info"
@@ -1435,13 +1435,13 @@ def validate_submission_schema(submission: Dict[str, Any]) -> bool:
     Used for automated validation before accepting community submissions.
     """
     # Check required top-level fields
-    required_fields = ['tinytorch_version', 'submission_type', 'timestamp', 'system_info', 'baseline']
+    required_fields = ['trentorch_version', 'submission_type', 'timestamp', 'system_info', 'baseline']
     for field in required_fields:
         if field not in submission:
             raise AssertionError(f"Missing required field: {field}")
 
     # Check field types
-    assert isinstance(submission['tinytorch_version'], str), "Version should be string"
+    assert isinstance(submission['trentorch_version'], str), "Version should be string"
     assert isinstance(submission['submission_type'], str), "Submission type should be string"
     assert isinstance(submission['timestamp'], str), "Timestamp should be string"
     assert isinstance(submission['system_info'], dict), "System info should be dict"
@@ -1678,7 +1678,7 @@ def test_unit_json_serialization():
     loaded_json = json.loads(Path(test_file).read_text())
 
     # Verify structure is preserved
-    assert loaded_json['tinytorch_version'] == submission['tinytorch_version'], "Version should match"
+    assert loaded_json['trentorch_version'] == submission['trentorch_version'], "Version should match"
     assert loaded_json['student_name'] == submission['student_name'], "Student name should match"
     assert loaded_json['baseline']['model_name'] == submission['baseline']['model_name'], "Model name should match"
 
@@ -1717,7 +1717,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1751,7 +1751,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 20")
+    print("Run: tren module complete 20")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -1799,7 +1799,7 @@ Data → Tensor (M01) → Layers (M03) → Model → Training (M08)
 3. **Composability** - Complex systems (transformers) built from simple primitives (linear layers)
 4. **Progressive Enhancement** - Module 06 activated gradients dormant since Module 01
 
-**Reflection Question:** When you imported `from tinytorch.core.tensor import Tensor` in Module 15 (Quantization), the Tensor already had gradient tracking from Module 06. How does this "single source of truth" design simplify system integration compared to having separate BasicTensor and GradTensor classes?
+**Reflection Question:** When you imported `from trentorch.core.tensor import Tensor` in Module 15 (Quantization), the Tensor already had gradient tracking from Module 06. How does this "single source of truth" design simplify system integration compared to having separate BasicTensor and GradTensor classes?
 
 ### Benchmarking Methodology: Science Meets Engineering
 
@@ -1924,7 +1924,7 @@ TRAP 5: Confusing Latency and Throughput
      throughput = measure_batch_processing()
 ```
 
-**Real Example from TinyTorch:**
+**Real Example from TrenTorch:**
 
 ```python
 # ❌ WRONG: Measures more than inference
@@ -1979,7 +1979,7 @@ WITHOUT Schema:                     WITH Schema:
 2. **Type safety** - `accuracy: float` not `accuracy: any`
 3. **Value constraints** - `accuracy in [0.0, 1.0]` catches errors
 4. **Nested structure** - Group related fields (`baseline: {metrics: {...}}`)
-5. **Version tracking** - `tinytorch_version: "0.1.0"` enables evolution
+5. **Version tracking** - `trentorch_version: "0.1.0"` enables evolution
 
 **The Power of Machine-Readable Data:**
 
@@ -2064,10 +2064,10 @@ This capstone represents the final stage of the ML systems lifecycle—but it's 
 
 You've completed an educational framework, but the patterns you learned apply directly to production systems.
 
-**Translating TinyTorch Skills to Production:**
+**Translating TrenTorch Skills to Production:**
 
 ```
-TinyTorch Pattern          →  Production Equivalent
+TrenTorch Pattern          →  Production Equivalent
 ─────────────────────────────────────────────────────
 BenchmarkReport            →  MLflow Tracking
 generate_submission()      →  Experiment logging
@@ -2099,7 +2099,7 @@ Congratulations! You've gone from implementing basic tensors to understanding en
 """
 ## ⭐ Aha Moment: You Built a Complete ML System
 
-**What you built:** A professional benchmarking and submission system for your TinyTorch models.
+**What you built:** A professional benchmarking and submission system for your TrenTorch models.
 
 **Why it matters:** You've gone from raw tensors to complete ML systems! Your capstone ties
 together everything: models, training, optimization, profiling, and benchmarking. The
@@ -2114,7 +2114,7 @@ def demo_capstone():
     print("🎯 AHA MOMENT: You Built a Complete ML System")
     print("=" * 45)
 
-    print("\n📚 Your TinyTorch Journey:")
+    print("\n📚 Your TrenTorch Journey:")
     print()
     print("  Modules 01-08: Foundation")
     print("    Tensor -> Activations -> Layers -> Losses")
@@ -2143,7 +2143,7 @@ if __name__ == "__main__":
 """
 ## 🚀 MODULE SUMMARY: Capstone - Benchmarking & Submission
 
-Congratulations! You've completed the TinyTorch capstone by building a professional benchmarking and submission system!
+Congratulations! You've completed the TrenTorch capstone by building a professional benchmarking and submission system!
 
 ### Key Accomplishments
 - **Built a complete BenchmarkReport class** with comprehensive performance measurement (accuracy, latency, throughput, memory)
@@ -2158,7 +2158,7 @@ Congratulations! You've completed the TinyTorch capstone by building a professio
 - **Reproducibility requirements**: System context, schema validation, and standardized reporting
 - **Production patterns**: How real ML systems measure and compare model performance
 
-### The Complete TinyTorch Journey
+### The Complete TrenTorch Journey
 
 ```
 Module 01: Tensor          -> Built foundation
@@ -2178,7 +2178,7 @@ You started Module 01 with a simple Tensor class. Now you have:
 
 **You didn't just learn ML systems - you BUILT one from scratch.**
 
-Export with: `tito module complete 20`
+Export with: `tren module complete 20`
 
-**Congratulations on completing TinyTorch!**
+**Congratulations on completing TrenTorch!**
 """

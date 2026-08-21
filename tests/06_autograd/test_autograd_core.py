@@ -2,8 +2,8 @@
 Module 06: Autograd - Core Functionality Tests
 Tests automatic differentiation and computational graphs
 
-NOTE: These tests reference a Variable class that is not implemented in TinyTorch.
-TinyTorch enhances Tensor directly via enable_autograd(). These tests are retained
+NOTE: These tests reference a Variable class that is not implemented in TrenTorch.
+TrenTorch enhances Tensor directly via enable_autograd(). These tests are retained
 as placeholders for future Variable API support but currently provide no test
 coverage.
 """
@@ -30,7 +30,7 @@ class TestVariableCreation:
     def test_variable_creation(self):
         """Test creating Variable with gradient tracking."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             # Create variable that requires gradients
             x = Variable(np.array([2.0, 3.0]), requires_grad=True)
@@ -45,7 +45,7 @@ class TestVariableCreation:
     def test_variable_no_grad(self):
         """Test creating Variable without gradient tracking."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([1.0, 2.0]), requires_grad=False)
 
@@ -59,7 +59,7 @@ class TestVariableCreation:
     def test_variable_grad_initialization(self):
         """Test gradient is properly initialized."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([1.0]), requires_grad=True)
 
@@ -76,7 +76,7 @@ class TestBasicOperations:
     def test_addition_gradient(self):
         """Test gradient computation for addition."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([2.0]), requires_grad=True)
             y = Variable(np.array([3.0]), requires_grad=True)
@@ -98,7 +98,7 @@ class TestBasicOperations:
     def test_multiplication_gradient(self):
         """Test gradient computation for multiplication."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([3.0]), requires_grad=True)
             y = Variable(np.array([4.0]), requires_grad=True)
@@ -120,7 +120,7 @@ class TestBasicOperations:
     def test_power_gradient(self):
         """Test gradient computation for power operation."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([3.0]), requires_grad=True)
 
@@ -145,7 +145,7 @@ class TestChainRule:
     def test_simple_chain_rule(self):
         """Test chain rule with simple composition."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([2.0]), requires_grad=True)
 
@@ -165,7 +165,7 @@ class TestChainRule:
     def test_complex_chain_rule(self):
         """Test chain rule with more complex composition."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([2.0]), requires_grad=True)
 
@@ -185,7 +185,7 @@ class TestChainRule:
     def test_multiple_variable_chain(self):
         """Test chain rule with multiple variables."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([2.0]), requires_grad=True)
             y = Variable(np.array([3.0]), requires_grad=True)
@@ -212,7 +212,7 @@ class TestComputationGraph:
     def test_graph_construction(self):
         """Test that computation graph is built correctly."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([1.0]), requires_grad=True)
             y = x + 1
@@ -232,7 +232,7 @@ class TestComputationGraph:
     def test_graph_backward_traversal(self):
         """Test backward pass traverses graph correctly."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([2.0]), requires_grad=True)
             y = Variable(np.array([3.0]), requires_grad=True)
@@ -256,7 +256,7 @@ class TestComputationGraph:
     def test_graph_memory_management(self):
         """Test computation graph doesn't cause memory leaks."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             # Create many operations
             x = Variable(np.array([1.0]), requires_grad=True)
@@ -282,7 +282,7 @@ class TestGradientAccumulation:
     def test_gradient_accumulation(self):
         """Test gradients accumulate across multiple backward passes."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([1.0]), requires_grad=True)
 
@@ -306,7 +306,7 @@ class TestGradientAccumulation:
     def test_gradient_zeroing(self):
         """Test gradient zeroing functionality."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([1.0]), requires_grad=True)
 
@@ -329,7 +329,7 @@ class TestGradientAccumulation:
     def test_gradient_clipping(self):
         """Test gradient clipping for stability."""
         try:
-            from tinytorch.core.autograd import Variable, clip_gradients
+            from trentorch.core.autograd import Variable, clip_gradients
 
             x = Variable(np.array([10.0]), requires_grad=True)
 
@@ -356,7 +356,7 @@ class TestAutogradUtilities:
     def test_no_grad_context(self):
         """Test no_grad context manager."""
         try:
-            from tinytorch.core.autograd import Variable, no_grad
+            from trentorch.core.autograd import Variable, no_grad
 
             x = Variable(np.array([1.0]), requires_grad=True)
 
@@ -372,7 +372,7 @@ class TestAutogradUtilities:
     def test_detach_operation(self):
         """Test detaching variables from computation graph."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([2.0]), requires_grad=True)
             y = x * 3
@@ -390,7 +390,7 @@ class TestAutogradUtilities:
     def test_grad_check(self):
         """Test gradient checking utility."""
         try:
-            from tinytorch.core.autograd import Variable, gradcheck
+            from trentorch.core.autograd import Variable, gradcheck
 
             def simple_function(x):
                 return x ** 2

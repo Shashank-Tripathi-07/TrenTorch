@@ -1,7 +1,7 @@
-# TinyTorch NBGrader Release Tiers
+# TrenTorch NBGrader Release Tiers
 
-Internal proposal for using Tito and NBGrader to create instructor,
-student, and challenge artifacts without weakening the TinyTorch
+Internal proposal for using Tren and NBGrader to create instructor,
+student, and challenge artifacts without weakening the TrenTorch
 narrative flow.
 
 This is a design document, not a public user guide.
@@ -12,7 +12,7 @@ The student release should not mean "remove every solution." It should
 mean "leave the learner with the smallest meaningful implementation set
 that produces ownership of the system."
 
-TinyTorch should use backward design:
+TrenTorch should use backward design:
 
 1. Define the evidence of understanding for each module.
 2. Strip only the implementation regions that produce that evidence.
@@ -69,21 +69,21 @@ fundamental implementation holes from the student tier.
 
 ## NBGrader Compliance Model
 
-NBGrader should remain the grading and release engine. Tito should own
-TinyTorch-specific policy before NBGrader runs.
+NBGrader should remain the grading and release engine. Tren should own
+TrenTorch-specific policy before NBGrader runs.
 
 Current flow:
 
 ```bash
-tito nbgrader generate --all
-tito nbgrader release --all
+tren nbgrader generate --all
+tren nbgrader release --all
 ```
 
 Proposed hidden/internal flow:
 
 ```bash
-tito nbgrader generate --all --tier student
-tito nbgrader generate --all --tier challenge
+tren nbgrader generate --all --tier student
+tren nbgrader generate --all --tier challenge
 ```
 
 The flag should stay hidden from public help until the pedagogy is
@@ -95,16 +95,16 @@ NBGrader constraints:
 - Solution regions must stay in cells with a stable `grade_id` when
   NBGrader is expected to strip them.
 - Written reflection answers can be stripped by marker regions while
-  remaining ungraded, using the config Tito already writes:
+  remaining ungraded, using the config Tren already writes:
   `c.ClearSolutions.enforce_metadata = False`.
-- Custom TinyTorch policy should not be stored inside
+- Custom TrenTorch policy should not be stored inside
   `metadata.nbgrader`, because NBGrader rejects unknown fields.
 
-Recommended TinyTorch metadata:
+Recommended TrenTorch metadata:
 
 ```json
 {
-  "tinytorch": {
+  "trentorch": {
     "release_role": "core"
   }
 }
@@ -119,7 +119,7 @@ Recommended region marker syntax:
 ```
 
 NBGrader still recognizes this because the delimiter contains
-`BEGIN SOLUTION` and `END SOLUTION`. Tito can parse the role first:
+`BEGIN SOLUTION` and `END SOLUTION`. Tren can parse the role first:
 
 - `role=core`: leave markers for student release; NBGrader strips it.
 - `role=scaffold`: remove marker lines, keep content for student release.
@@ -190,10 +190,10 @@ Challenge work should extend them, not replace their fundamentals.
 
 ### Pass 1: Add Internal Role Support
 
-- Add a hidden `--tier` option to `tito nbgrader generate`.
+- Add a hidden `--tier` option to `tren nbgrader generate`.
 - Default to current behavior.
 - Parse optional role annotations from solution marker lines.
-- Keep role data in TinyTorch-owned metadata or marker syntax, not in
+- Keep role data in TrenTorch-owned metadata or marker syntax, not in
   `metadata.nbgrader`.
 - Add unit tests for `core`, `scaffold`, `challenge`, and `instructor`
   handling.
@@ -243,8 +243,8 @@ Run these checks in CI or release verification:
 
 ```bash
 python3 tests/validate_nbgrader_config.py
-tito nbgrader generate --all --tier student
-tito nbgrader release --all
+tren nbgrader generate --all --tier student
+tren nbgrader release --all
 ```
 
 When NBGrader is installed, the release smoke test should verify all 20

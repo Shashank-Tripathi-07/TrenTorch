@@ -32,7 +32,7 @@ class TestConvolutionCore:
         ✅ TEST: Conv2d class exists and is importable
         """
         try:
-            from tinytorch.core.spatial import Conv2d
+            from trentorch.core.spatial import Conv2d
             
             assert Conv2d is not None, "Conv2d class not found"
             
@@ -44,7 +44,7 @@ class TestConvolutionCore:
         ✅ TEST: Conv2d can be initialized with proper parameters
         """
         try:
-            from tinytorch.core.spatial import Conv2d
+            from trentorch.core.spatial import Conv2d
             
             conv = Conv2d(in_channels=3, out_channels=16, kernel_size=3)
             
@@ -64,8 +64,8 @@ class TestConvolutionCore:
         ✅ TEST: Conv2d forward pass produces correct output shape
         """
         try:
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.tensor import Tensor
             
             conv = Conv2d(in_channels=3, out_channels=16, kernel_size=3, padding=1)
             
@@ -85,7 +85,7 @@ class TestConvolutionCore:
         ✅ TEST: MaxPool2d class exists
         """
         try:
-            from tinytorch.core.spatial import MaxPool2d
+            from trentorch.core.spatial import MaxPool2d
             
             assert MaxPool2d is not None, "MaxPool2d not found"
             
@@ -97,8 +97,8 @@ class TestConvolutionCore:
         ✅ TEST: MaxPool2d produces correct output shape
         """
         try:
-            from tinytorch.core.spatial import MaxPool2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import MaxPool2d
+            from trentorch.core.tensor import Tensor
             
             pool = MaxPool2d(kernel_size=2)
             
@@ -123,9 +123,9 @@ class TestConvWithPriorModules:
         ✅ TEST: Conv2d + ReLU activation
         """
         try:
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
             
             conv = Conv2d(3, 16, kernel_size=3, padding=1)
             relu = ReLU()
@@ -148,10 +148,10 @@ class TestConvWithPriorModules:
         ✅ TEST: CNN feature extraction → Linear classifier
         """
         try:
-            from tinytorch.core.spatial import Conv2d, MaxPool2d
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d, MaxPool2d
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
             
             # CNN layers
             conv = Conv2d(3, 16, kernel_size=3, padding=1)  # (3, 32, 32) → (16, 32, 32)
@@ -181,9 +181,9 @@ class TestConvWithPriorModules:
         ✅ TEST: Convolutions work with DataLoader batches
         """
         try:
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
             
             # Image dataset
             images = Tensor(rng.standard_normal((20, 3, 16, 16)))
@@ -207,8 +207,8 @@ class TestConvWithPriorModules:
         ✅ TEST: Convolution gradients (if autograd works)
         """
         try:
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.tensor import Tensor
             
             conv = Conv2d(3, 8, kernel_size=3, padding=1)
             
@@ -243,10 +243,10 @@ class TestCNNArchitecture:
         ✅ TEST: Simple CNN (Conv → Pool → Conv → Pool → FC)
         """
         try:
-            from tinytorch.core.spatial import Conv2d, MaxPool2d
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d, MaxPool2d
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
             
             # LeNet-style architecture
             conv1 = Conv2d(1, 6, kernel_size=5)  # (1, 28, 28) → (6, 24, 24)
@@ -276,12 +276,12 @@ class TestCNNArchitecture:
         ✅ TEST: CNN can be trained (components work together)
         """
         try:
-            from tinytorch.core.spatial import Conv2d, MaxPool2d
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d, MaxPool2d
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
             
             # Simple CNN
             conv = Conv2d(3, 8, kernel_size=3, padding=1)
@@ -329,7 +329,7 @@ class TestRegressionPrevention:
     def test_tensor_still_works(self):
         """✅ Module 01"""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             a = Tensor([1, 2, 3])
             assert a.shape == (3,)
         except Exception as e:
@@ -338,8 +338,8 @@ class TestRegressionPrevention:
     def test_activations_still_work(self):
         """✅ Module 02"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU
             relu = ReLU()
             x = Tensor([-1, 0, 1])
             y = relu(x)
@@ -350,8 +350,8 @@ class TestRegressionPrevention:
     def test_layers_still_work(self):
         """✅ Module 03"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
             layer = Linear(4, 2)
             x = Tensor(rng.standard_normal((2, 4)))
             y = layer(x)
@@ -362,8 +362,8 @@ class TestRegressionPrevention:
     def test_losses_still_work(self):
         """✅ Module 04"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.losses import MSELoss
             loss_fn = MSELoss()
             pred = Tensor([[1.0, 2.0]])
             target = Tensor([[1.5, 2.5]])
@@ -375,8 +375,8 @@ class TestRegressionPrevention:
     def test_dataloader_still_works(self):
         """✅ Module 05"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             data = Tensor(rng.standard_normal((10, 3)))
             targets = Tensor(np.arange(10).astype(float))
             dataset = TensorDataset(data, targets)
@@ -388,7 +388,7 @@ class TestRegressionPrevention:
     def test_autograd_still_works(self):
         """✅ Module 06"""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             x = Tensor([1.0], requires_grad=True)
             assert hasattr(x, 'requires_grad')
         except TypeError:
@@ -399,8 +399,8 @@ class TestRegressionPrevention:
     def test_optimizers_still_work(self):
         """✅ Module 07"""
         try:
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.layers import Linear
             layer = Linear(3, 2)
             opt = SGD(layer.parameters(), lr=0.01)
             assert hasattr(opt, 'step')
@@ -410,10 +410,10 @@ class TestRegressionPrevention:
     def test_training_still_works(self):
         """✅ Module 08"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
             
             layer = Linear(4, 2)
             loss_fn = MSELoss()
@@ -455,8 +455,8 @@ class TestModule09Completion:
         }
         
         try:
-            from tinytorch.core.spatial import Conv2d, MaxPool2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d, MaxPool2d
+            from trentorch.core.tensor import Tensor
             
             # Test 1: Conv2d exists
             capabilities["Conv2d exists"] = True
@@ -478,7 +478,7 @@ class TestModule09Completion:
                 capabilities["MaxPool2d forward works"] = True
             
             # Test 5: CNN architecture
-            from tinytorch.core.layers import Linear
+            from trentorch.core.layers import Linear
             fc = Linear(8 * 8 * 8, 10)
             flat = Tensor(pooled.data.reshape(2, -1))
             logits = fc(flat)

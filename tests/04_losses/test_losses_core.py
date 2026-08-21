@@ -21,8 +21,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
+from trentorch.core.tensor import Tensor
+from trentorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
 
 
 class TestMSELoss:

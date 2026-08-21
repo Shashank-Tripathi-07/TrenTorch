@@ -22,13 +22,13 @@ import pytest
 from pathlib import Path
 
 
-# Get the tinytorch root directory
-TINYTORCH_ROOT = Path(__file__).parent.parent.parent
+# Get the trentorch root directory
+TRENTORCH_ROOT = Path(__file__).parent.parent.parent
 
 
 def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tuple[int, str, str]:
     """
-    Run a milestone via tito CLI and capture output.
+    Run a milestone via tren CLI and capture output.
 
     Args:
         milestone_id: Milestone ID (01-06)
@@ -38,11 +38,11 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
     Returns:
         (return_code, stdout, stderr)
     """
-    # Use the bin/tito script directly
-    tito_script = TINYTORCH_ROOT / "bin" / "tito"
+    # Use the bin/tren script directly
+    tren_script = TRENTORCH_ROOT / "bin" / "tren"
 
     cmd = [
-        str(tito_script),
+        str(tren_script),
         "milestone", "run", milestone_id,
         "--skip-checks"  # Skip prerequisite checks since we're testing
     ]
@@ -51,13 +51,13 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
         cmd.extend(["--part", str(part)])
 
     env = os.environ.copy()
-    env["TITO_ALLOW_SYSTEM"] = "1"  # Allow running without venv
-    env["PYTHONPATH"] = str(TINYTORCH_ROOT)
+    env["TREN_ALLOW_SYSTEM"] = "1"  # Allow running without venv
+    env["PYTHONPATH"] = str(TRENTORCH_ROOT)
 
     # Auto-answer prompts by providing 'n' to stdin (decline syncing achievements, etc.)
     result = subprocess.run(
         cmd,
-        cwd=TINYTORCH_ROOT,
+        cwd=TRENTORCH_ROOT,
         capture_output=True,
         text=True,
         timeout=timeout,

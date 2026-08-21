@@ -42,11 +42,11 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in modules/16_compression/compression_dev.py
-**Building Side:** Code exports to tinytorch.perf.compression
+**Building Side:** Code exports to trentorch.perf.compression
 
 ```python
 # Final package structure:
-from tinytorch.perf.compression import magnitude_prune, structured_prune, measure_sparsity
+from trentorch.perf.compression import magnitude_prune, structured_prune, measure_sparsity
 ```
 
 **Why this matters:**
@@ -66,10 +66,10 @@ import copy
 from typing import List, Dict, Any, Tuple, Optional
 import time
 
-# Import from TinyTorch package (previous modules must be completed and exported)
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear, Sequential
-from tinytorch.core.activations import ReLU
+# Import from TrenTorch package (previous modules must be completed and exported)
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear, Sequential
+from trentorch.core.activations import ReLU
 
 # Constants for memory calculations
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
@@ -87,11 +87,11 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 - `numpy` (for array operations and numerical computing)
 - `copy` (for model duplication during compression)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` (Tensor class)
-- `tinytorch.core.layers` (Linear, Sequential)
-- `tinytorch.core.activations` (ReLU)
-- `tinytorch.perf.profiling` (Profiler, analyze_weight_distribution)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` (Tensor class)
+- `trentorch.core.layers` (Linear, Sequential)
+- `trentorch.core.activations` (ReLU)
+- `trentorch.perf.profiling` (Profiler, analyze_weight_distribution)
 
 **Dependency Flow**:
 ```
@@ -126,7 +126,7 @@ distribution. We'll discover that many weights are tiny and might not matter muc
 # %%
 # Profile weight distribution to discover pruning opportunities
 # Module 14 (Profiling) must be completed before Module 16
-from tinytorch.perf.profiling import Profiler, analyze_weight_distribution
+from trentorch.perf.profiling import Profiler, analyze_weight_distribution
 
 def show_weight_distribution_motivation():
     """Display weight distribution analysis - motivates compression techniques."""
@@ -1585,7 +1585,7 @@ if __name__ == "__main__":
 ## 🔧 Consolidated Compression Classes for Export
 
 Now that we've implemented all compression techniques, let's create a consolidated class
-for export to the tinytorch package. This allows milestones to use the complete compression system.
+for export to the trentorch package. This allows milestones to use the complete compression system.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "compression_export", "solution": false}
@@ -1739,7 +1739,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1831,7 +1831,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 16")
+    print("Run: tren module complete 16")
 
 # %% [markdown]
 """
@@ -1964,7 +1964,7 @@ Congratulations! You've built a comprehensive model compression system that can 
 
 ### Ready for Next Steps
 Your compression implementation enables efficient model deployment across diverse hardware constraints!
-Export with: `tito module complete 16`
+Export with: `tren module complete 16`
 
 **Next**: Module 17 will add acceleration techniques including vectorization and kernel fusion!
 """

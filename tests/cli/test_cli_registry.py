@@ -2,7 +2,7 @@
 CLI Registry Tests - Validate all commands are properly registered and accessible
 
 This test suite ensures:
-1. All commands in TinyTorchCLI.commands are valid BaseCommand subclasses
+1. All commands in TrenTorchCLI.commands are valid BaseCommand subclasses
 2. All commands have proper metadata (name, description)
 3. All commands can be invoked via argparse
 4. No commands are missing from registration
@@ -14,12 +14,12 @@ import argparse
 from pathlib import Path
 import sys
 
-# Add tito to path
+# Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tito.main import TinyTorchCLI
-from tito.commands.base import BaseCommand
-from tito.core.config import CLIConfig
+from tren.main import TrenTorchCLI
+from tren.commands.base import BaseCommand
+from tren.core.config import CLIConfig
 
 
 class TestCLIRegistry:
@@ -27,7 +27,7 @@ class TestCLIRegistry:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.cli = TinyTorchCLI()
+        self.cli = TrenTorchCLI()
         self.config = CLIConfig.from_project_root()
 
     def test_all_commands_are_base_command_subclasses(self):
@@ -96,7 +96,7 @@ class TestCLIRegistry:
         # Verify all commands in self.cli.commands are in parser
         for cmd_name in self.cli.commands.keys():
             assert cmd_name in subparser_choices, (
-                f"Command '{cmd_name}' registered in TinyTorchCLI.commands but not in parser"
+                f"Command '{cmd_name}' registered in TrenTorchCLI.commands but not in parser"
             )
 
     def test_no_duplicate_command_names(self):
@@ -124,8 +124,8 @@ class TestCommandFiles:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.cli = TinyTorchCLI()
-        self.commands_dir = Path(__file__).parent.parent.parent / "tito" / "commands"
+        self.cli = TrenTorchCLI()
+        self.commands_dir = Path(__file__).parent.parent.parent / "tren" / "commands"
 
     def test_command_files_exist(self):
         """Verify all registered commands have corresponding files."""
@@ -187,7 +187,7 @@ class TestEpilogDocumentation:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.cli = TinyTorchCLI()
+        self.cli = TrenTorchCLI()
 
     def test_epilog_mentions_registered_commands(self):
         """Verify epilog mentions all registered command groups."""
@@ -213,7 +213,7 @@ class TestEpilogDocumentation:
         if missing:
             pytest.fail(
                 f"Commands registered but not in epilog: {missing}\n"
-                f"Update epilog in tito/main.py create_parser() method"
+                f"Update epilog in tren/main.py create_parser() method"
             )
 
 

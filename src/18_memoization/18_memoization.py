@@ -42,11 +42,11 @@ Let's make inference blazingly fast through computational reuse!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/18_memoization/kvcaching_dev.py`
-**Building Side:** Code exports to `tinytorch.generation.kv_cache`
+**Building Side:** Code exports to `trentorch.generation.kv_cache`
 
 ```python
 # How to use this module:
-from tinytorch.perf.memoization import KVCache, enable_kv_cache
+from trentorch.perf.memoization import KVCache, enable_kv_cache
 ```
 
 **Why this matters:**
@@ -65,8 +65,8 @@ rng = np.random.default_rng(7)
 import time
 from typing import Tuple, Optional, Dict, List
 
-# Import TinyTorch components from previous modules
-from tinytorch.core.tensor import Tensor
+# Import TrenTorch components from previous modules
+from trentorch.core.tensor import Tensor
 
 # Internal constants for memory calculations (not exported)
 _BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
@@ -83,8 +83,8 @@ _MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 - `time` (for performance measurement)
 - `typing` (for type hints)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` (Tensor class from Module 01)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` (Tensor class from Module 01)
 
 **Dependency Flow**:
 ```
@@ -131,7 +131,7 @@ def profile_naive_generation():
     This function runs ONLY when the module is executed directly,
     not when imported (avoiding side effects during imports).
     """
-    from tinytorch.perf.profiling import Profiler
+    from trentorch.perf.profiling import Profiler
 
     profiler = Profiler()
 
@@ -603,7 +603,7 @@ class KVCache:
         HINTS:
         - valid_len = self.seq_pos (how many tokens have been cached so far)
         - Use slicing: cache.data[:, :, :valid_len, :] to get valid portion
-        - Wrap result in Tensor() for consistency with TinyTorch API
+        - Wrap result in Tensor() for consistency with TrenTorch API
         - If seq_pos=0, returns empty cache (shape with 0 in sequence dimension)
 
         Raises:
@@ -911,7 +911,7 @@ def _cached_generation_step(x, attention, cache_obj, layer_idx):
         6. Reshape and project to output
     """
     import numpy as np
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.tensor import Tensor
 
     batch_size = x.shape[0]
     num_heads = attention.num_heads
@@ -1501,7 +1501,7 @@ def enable_kv_cache(model):
         cache: KVCache object for this model
 
     EXAMPLE:
-    >>> from tinytorch.core.transformers import GPT
+    >>> from trentorch.core.transformers import GPT
     >>> model = GPT(vocab_size=100, embed_dim=128, num_layers=4, num_heads=4)
     >>> cache = enable_kv_cache(model)
     >>> hasattr(model, '_kv_cache')  # True
@@ -1817,7 +1817,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1881,7 +1881,7 @@ def test_module():
 
     print("=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 18")
+    print("Run: tren module complete 18")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -2057,5 +2057,5 @@ Your KV caching implementation demonstrates the principle: "spend memory to save
 
 **Next**: Module 19 (Benchmarking) will teach you how to measure and compare these optimizations quantitatively!
 
-Export with: `tito module complete 18`
+Export with: `tren module complete 18`
 """

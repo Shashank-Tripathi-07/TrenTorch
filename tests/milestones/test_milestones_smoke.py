@@ -24,10 +24,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 # Setup paths
-TINYTORCH_ROOT = Path(__file__).parent.parent.parent
-MILESTONES_DIR = TINYTORCH_ROOT / "milestones"
+TRENTORCH_ROOT = Path(__file__).parent.parent.parent
+MILESTONES_DIR = TRENTORCH_ROOT / "milestones"
 
-sys.path.insert(0, str(TINYTORCH_ROOT))
+sys.path.insert(0, str(TRENTORCH_ROOT))
 sys.path.insert(0, str(MILESTONES_DIR))
 
 

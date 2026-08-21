@@ -28,8 +28,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.layers import Layer
-from tinytorch.core.tensor import Tensor
+from trentorch.core.layers import Layer
+from trentorch.core.tensor import Tensor
 
 
 class TestLayerBaseClass:

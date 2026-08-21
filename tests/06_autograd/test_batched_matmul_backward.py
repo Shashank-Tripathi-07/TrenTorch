@@ -12,8 +12,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 import numpy as np
 rng = np.random.default_rng(7)
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
 
 # Enable autograd
 enable_autograd()

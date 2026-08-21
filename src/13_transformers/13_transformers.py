@@ -45,11 +45,11 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/13_transformers/transformers_dev.py`
-**Building Side:** Code exports to `tinytorch.core.transformers`
+**Building Side:** Code exports to `trentorch.core.transformers`
 
 ```python
 # How to use this module:
-from tinytorch.core.transformers import LayerNorm, MLP, TransformerBlock, GPT
+from trentorch.core.transformers import LayerNorm, MLP, TransformerBlock, GPT
 ```
 
 **Why this matters:**
@@ -65,14 +65,14 @@ from tinytorch.core.transformers import LayerNorm, MLP, TransformerBlock, GPT
 import numpy as np
 rng = np.random.default_rng(7)
 
-from tinytorch.core.activations import GELU
-from tinytorch.core.attention import MultiHeadAttention
-from tinytorch.core.autograd import Function
-from tinytorch.core.embeddings import EmbeddingLayer
-from tinytorch.core.layers import Linear
+from trentorch.core.activations import GELU
+from trentorch.core.attention import MultiHeadAttention
+from trentorch.core.autograd import Function
+from trentorch.core.embeddings import EmbeddingLayer
+from trentorch.core.layers import Linear
 
 # Import from previous modules - following proper dependency chain
-from tinytorch.core.tensor import Tensor
+from trentorch.core.tensor import Tensor
 
 # Constants for memory calculations
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
@@ -102,7 +102,7 @@ def create_causal_mask(seq_len: int) -> Tensor:
          [1, 1, 1, 1]]
 
     Usage:
-        >>> from tinytorch.core.transformers import create_causal_mask
+        >>> from trentorch.core.transformers import create_causal_mask
         >>> mask = create_causal_mask(seq_len=10)
         >>> output = attention(x, mask=mask)
     """
@@ -116,11 +116,11 @@ def create_causal_mask(seq_len: int) -> Tensor:
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/13_transformers/transformers_dev.py`
-**Building Side:** Code exports to `tinytorch.core.transformers`
+**Building Side:** Code exports to `trentorch.core.transformers`
 
 ```python
 # How to use this module:
-from tinytorch.core.transformers import TransformerBlock, TinyGPT, LayerNorm, MLP
+from trentorch.core.transformers import TransformerBlock, TinyGPT, LayerNorm, MLP
 ```
 
 **Why this matters:**
@@ -139,12 +139,12 @@ from tinytorch.core.transformers import TransformerBlock, TinyGPT, LayerNorm, ML
 **External Dependencies**:
 - `numpy` (for array operations and numerical computing)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` (Module 01: Tensor foundation)
-- `tinytorch.core.activations` (Module 03: GELU activation)
-- `tinytorch.core.layers` (Module 04: Linear layers)
-- `tinytorch.core.embeddings` (Module 11: Embedding layers)
-- `tinytorch.core.attention` (Module 12: MultiHeadAttention)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` (Module 01: Tensor foundation)
+- `trentorch.core.activations` (Module 03: GELU activation)
+- `trentorch.core.layers` (Module 04: Linear layers)
+- `trentorch.core.embeddings` (Module 11: Embedding layers)
+- `trentorch.core.attention` (Module 12: MultiHeadAttention)
 
 **Dependency Flow**:
 ```
@@ -1842,7 +1842,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1896,7 +1896,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 13")
+    print("Run: tren module complete 13")
 
 # Call the comprehensive test
 # test_module()  # Only run in __main__ block below
@@ -2028,7 +2028,7 @@ Congratulations! You've built the complete transformer architecture that powers 
 
 ### Ready for Next Steps
 Your transformer implementation is the capstone of the language modeling pipeline.
-Export with: `tito module complete 13`
+Export with: `tren module complete 13`
 
 **Next**: Module 14 will add profiling and optimization techniques to make your transformers production-ready!
 """

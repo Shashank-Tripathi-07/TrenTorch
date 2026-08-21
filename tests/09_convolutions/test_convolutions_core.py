@@ -31,9 +31,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.spatial import Conv2d, MaxPool2d, AvgPool2d
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.spatial import Conv2d, MaxPool2d, AvgPool2d
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
 
 
 class TestConv2DLayer:
@@ -250,7 +250,7 @@ class TestConvOutputShapes:
         padding = (kernel_size - 1) / 2
         For kernel=3: padding=1, for kernel=5: padding=2
 
-        NOTE: TinyTorch uses explicit integer padding (padding=1) rather than
+        NOTE: TrenTorch uses explicit integer padding (padding=1) rather than
         PyTorch's padding='same' string. This teaches the formula directly.
         """
         # With padding=1 and kernel=3, output should match input spatial dims

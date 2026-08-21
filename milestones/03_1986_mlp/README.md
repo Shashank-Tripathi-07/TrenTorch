@@ -7,7 +7,7 @@ The 1969 XOR crisis had killed neural network research. Then in 1986, **Rumelhar
 2. Backpropagation makes them trainable
 3. They work on REAL-WORLD data (not just toy problems)
 
-This paper **ended the AI Winter** and launched modern deep learning. Now it's your turn to recreate that breakthrough using YOUR Tiny🔥Torch!
+This paper **ended the AI Winter** and launched modern deep learning. Now it's your turn to recreate that breakthrough using YOUR Tren🔥Torch!
 
 ## What You're Building
 
@@ -63,7 +63,7 @@ This milestone uses **progressive scaling** with 2 scripts:
 - Fast training = quick feedback loop
 - Small size = easy to understand what's happening
 - Decent accuracy = proves concept works
-- Ships with TinyTorch = no downloads needed
+- Ships with TrenTorch = no downloads needed
 
 ## Expected Results
 
@@ -109,12 +109,12 @@ cd milestones/03_1986_mlp
 # Quick validation on TinyDigits (run after Module 08)
 python 01_rumelhart_tinydigits.py
 
-# Or run the full milestone from the TinyTorch project root:
-tito milestone run 03
+# Or run the full milestone from the TrenTorch project root:
+tren milestone run 03
 
 # Run individual parts:
-tito milestone run 03 --part 1  # XOR Solved
-tito milestone run 03 --part 2  # TinyDigits
+tren milestone run 03 --part 1  # XOR Solved
+tren milestone run 03 --part 2  # TinyDigits
 ```
 
 ## Further Reading

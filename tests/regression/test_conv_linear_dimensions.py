@@ -42,9 +42,9 @@ rng = np.random.default_rng(7)
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.spatial import Conv2d, MaxPool2d
-from tinytorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
+from trentorch.core.spatial import Conv2d, MaxPool2d
+from trentorch.core.layers import Linear
 
 
 def calculate_conv_output_size(input_size, kernel_size, stride=1, padding=0):

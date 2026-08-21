@@ -84,14 +84,14 @@ from rich import box
 # Add project root to path
 sys.path.insert(0, os.getcwd())
 
-# Import TinyTorch components YOU BUILT!
+# Import TrenTorch components YOU BUILT!
 # Only needs Modules 01-03 (no training required)
-from tinytorch import Tensor, Linear, Sigmoid
+from trentorch import Tensor, Linear, Sigmoid
 
 console = Console()
 
 # =============================================================================
-# 🎯 YOUR TINYTORCH MODULES IN ACTION
+# 🎯 YOUR TRENTORCH MODULES IN ACTION
 # =============================================================================
 #
 # This milestone uses YOUR modules to demonstrate a fundamental limitation:

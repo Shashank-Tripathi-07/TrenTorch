@@ -24,8 +24,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 import pytest
 import numpy as np
 rng = np.random.default_rng(7)
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
 
 # Enable autograd once for all tests
 enable_autograd()
@@ -139,7 +139,7 @@ def test_regression_layernorm_gradient_flow():
     """
     print("Testing regression: LayerNorm gradient flow...")
 
-    from tinytorch.core.transformers import LayerNorm
+    from trentorch.core.transformers import LayerNorm
 
     ln = LayerNorm(4)
     ln.gamma.requires_grad = True
@@ -170,7 +170,7 @@ def test_regression_embedding_requires_grad():
     """
     print("Testing regression: Embedding requires_grad...")
 
-    from tinytorch.core.embeddings import Embedding
+    from trentorch.core.embeddings import Embedding
 
     embed = Embedding(vocab_size=10, embed_dim=8)
     embed.weight.requires_grad = True
@@ -195,7 +195,7 @@ def test_regression_dropout_uses_tensor_ops():
     """
     print("Testing regression: Dropout Tensor operations...")
 
-    from tinytorch.core.layers import Dropout
+    from trentorch.core.layers import Dropout
 
     dropout = Dropout(0.5)
     x = Tensor([[1.0, 2.0, 3.0, 4.0]], requires_grad=True)

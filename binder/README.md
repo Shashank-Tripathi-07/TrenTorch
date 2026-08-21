@@ -1,24 +1,24 @@
 # Binder Environment Setup
 
-This directory contains configuration files for running TinyTorch in cloud environments via [Binder](https://mybinder.org) and [Google Colab](https://colab.research.google.com).
+This directory contains configuration files for running TrenTorch in cloud environments via [Binder](https://mybinder.org) and [Google Colab](https://colab.research.google.com).
 
 ## Files
 
 - **`requirements.txt`**: Python dependencies for the Binder environment
-- **`postBuild`**: Script that runs after environment setup to install TinyTorch
+- **`postBuild`**: Script that runs after environment setup to install TrenTorch
 
 ## How It Works
 
 ### Binder
 
-When users click the "Launch Binder" button on any notebook page in the TinyTorch documentation:
+When users click the "Launch Binder" button on any notebook page in the TrenTorch documentation:
 
 1. Binder reads `binder/requirements.txt` to install Python dependencies
 2. Binder runs `binder/postBuild` which:
-   - Installs the TinyTorch package (`pip install -e .`)
+   - Installs the TrenTorch package (`pip install -e .`)
    - Generates student notebooks from `src/*.py` files using Jupytext
    - Populates `modules/` with ready-to-use Jupyter notebooks
-3. Users get a fully configured JupyterLab environment with TinyTorch and all notebooks ready to use
+3. Users get a fully configured JupyterLab environment with TrenTorch and all notebooks ready to use
 
 **Note**: The `modules/` directory is gitignored because notebooks are generated from the source `.py` files. This ensures students always get notebooks that match the current code.
 
@@ -36,7 +36,7 @@ Colab launch buttons automatically:
 
 **Colab URL Format:**
 ```
-https://colab.research.google.com/github/harvard-edge/cs249r_book/blob/main/tinytorch/path/to/notebook.ipynb
+https://colab.research.google.com/github/harvard-edge/cs249r_book/blob/main/trentorch/path/to/notebook.ipynb
 ```
 
 ## Testing
@@ -53,8 +53,8 @@ To test your Binder setup:
 2. **Verify Installation:**
    Once Binder launches, test in a notebook:
    ```python
-   import tinytorch
-   print(tinytorch.__version__)
+   import trentorch
+   print(trentorch.__version__)
    ```
 
 3. **Check Available Resources:**
@@ -87,7 +87,7 @@ To test your Binder setup:
 
 ## Deployment Environments
 
-As documented in the TinyTorch paper, three deployment environments are supported:
+As documented in the TrenTorch paper, three deployment environments are supported:
 
 1. **JupyterHub** (institutional server)
    - 8-core/32GB supports ~50 students
@@ -97,7 +97,7 @@ As documented in the TinyTorch paper, three deployment environments are supporte
    - Best for MOOCs and self-paced learning
    - No setup required from students
 
-3. **Local Installation** (`pip install tinytorch`)
+3. **Local Installation** (`pip install trentorch`)
    - Best for self-paced learning and development
    - Full control over environment
 

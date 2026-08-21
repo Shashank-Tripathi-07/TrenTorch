@@ -41,7 +41,7 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in src/01_tensor/01_tensor.py
-**Building Side:** Code exports to tinytorch.core.tensor
+**Building Side:** Code exports to trentorch.core.tensor
 
 ```python
 # Final package structure:
@@ -76,20 +76,20 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 **External Dependencies**:
 - `numpy` (for array operations and numerical computing)
 
-**TinyTorch Dependencies**: NONE
+**TrenTorch Dependencies**: NONE
 
-**Important**: This module has NO TinyTorch dependencies.
+**Important**: This module has NO TrenTorch dependencies.
 Other modules will import FROM this module.
 
 **Dependency Flow**:
 ```
 Module 01 (Tensor) → All Other Modules
      ↓
-  Foundation for entire TinyTorch system
+  Foundation for entire TrenTorch system
 ```
 
 Students completing this module will have built the foundation
-that every other TinyTorch component depends on.
+that every other TrenTorch component depends on.
 """
 
 # %% [markdown]
@@ -1761,7 +1761,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1850,7 +1850,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 01")
+    print("Run: tren module complete 01")
 
 # Run comprehensive module test
 if __name__ == "__main__":
@@ -1995,7 +1995,7 @@ Congratulations! You've built the foundational Tensor class that powers all mach
 
 ### Ready for Next Steps
 Your Tensor implementation enables all future ML operations.
-Export with: `tito module complete 01`
+Export with: `tren module complete 01`
 
 **Next**: Module 02 will add Activations that introduce nonlinearity to your tensors!
 """

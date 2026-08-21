@@ -26,12 +26,12 @@ class TestModule01StillWorking:
         # Project structure should remain intact
         project_root = Path(__file__).parent.parent.parent
         assert (project_root / "modules").exists(), "Module 01: Module structure broken"
-        assert (project_root / "tinytorch").exists(), "Module 01: Package structure broken"
+        assert (project_root / "trentorch").exists(), "Module 01: Package structure broken"
 
     def test_tensor_functionality_stable(self):
         """Ensure tensor functionality wasn't broken by activations development."""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             # Basic tensor operations should still work
             t = Tensor([1, 2, 3])
@@ -52,8 +52,8 @@ class TestModule02ActivationsCore:
     def test_relu_activation(self):
         """Test ReLU activation function."""
         try:
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
 
             relu = ReLU()
             x = Tensor(np.array([-2, -1, 0, 1, 2]))
@@ -68,8 +68,8 @@ class TestModule02ActivationsCore:
     def test_sigmoid_activation(self):
         """Test Sigmoid activation function."""
         try:
-            from tinytorch.core.activations import Sigmoid
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.activations import Sigmoid
+            from trentorch.core.tensor import Tensor
 
             sigmoid = Sigmoid()
             x = Tensor(np.array([0, 1, -1]))
@@ -91,8 +91,8 @@ class TestProgressiveStackIntegration:
     def test_tensor_activation_pipeline(self):
         """Test tensors work correctly with activations."""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
 
             # Create tensor using Module 02
             x = Tensor(np.array([-1, 0, 1, 2]))
@@ -115,8 +115,8 @@ class TestProgressiveStackIntegration:
     def test_activation_chaining(self):
         """Test multiple activations can be chained."""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU, Sigmoid, Tanh
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid, Tanh
 
             x = Tensor(rng.standard_normal((5, 10)))
 
@@ -141,8 +141,8 @@ class TestNonLinearityCapability:
     def test_nonlinearity_proof(self):
         """Test that activations actually provide non-linearity."""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU
 
             relu = ReLU()
 
@@ -172,8 +172,8 @@ class TestXORProblemReadiness:
     def test_xor_components_available(self):
         """Test components needed for XOR are available."""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
 
             # XOR inputs
             X = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]))
@@ -196,8 +196,8 @@ class TestXORProblemReadiness:
     def test_activation_expressiveness(self):
         """Test activations provide sufficient expressiveness."""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
 
             # Test that we can represent different patterns
             patterns = [
@@ -236,7 +236,7 @@ class TestRegressionPrevention:
     def test_no_module_01_tensor_regression(self):
         """Verify Module 01 Tensor functionality unchanged."""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             # Basic tensor creation should still work
             t = Tensor([1, 2, 3])
@@ -259,7 +259,7 @@ class TestRegressionPrevention:
 
         # Tensor level (if available)
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             t = Tensor([1])
             assert t.shape == (1,), "Tensor level broken"
         except ImportError:
@@ -267,7 +267,7 @@ class TestRegressionPrevention:
 
         # Activation level (if available)
         try:
-            from tinytorch.core.activations import ReLU
+            from trentorch.core.activations import ReLU
             relu = ReLU()
             assert callable(relu), "Activation level broken"
         except ImportError:

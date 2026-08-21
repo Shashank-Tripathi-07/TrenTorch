@@ -13,9 +13,9 @@ from test_utils import setup_integration_test
 # Ensure proper setup before importing
 setup_integration_test()
 
-# Import ONLY from TinyTorch package
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
+# Import ONLY from TrenTorch package
+from trentorch.core.tensor import Tensor
+from trentorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
 
 
 class TestTensorActivationInterface:
@@ -124,7 +124,7 @@ class TestTensorActivationDataTypes:
         for activation in activations:
             result = activation(x_f64)
 
-            # TinyTorch uses float32 for efficiency - verify it works regardless of input dtype
+            # TrenTorch uses float32 for efficiency - verify it works regardless of input dtype
             assert result.dtype == np.float32, f"{type(activation).__name__} should output float32"
             assert isinstance(result, Tensor), f"{type(activation).__name__} should return Tensor"
 

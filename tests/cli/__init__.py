@@ -1,1 +1,1 @@
-"""CLI tests - Validate TinyTorch command-line interface."""
+"""CLI tests - Validate TrenTorch command-line interface."""

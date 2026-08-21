@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, '.')
 
 import numpy as np
-from tinytorch import Tensor, Linear, ReLU, Sigmoid, BinaryCrossEntropyLoss, SGD
+from trentorch import Tensor, Linear, ReLU, Sigmoid, BinaryCrossEntropyLoss, SGD
 
 print("=" * 70)
 print("🧪 THOROUGH XOR TEST - Verifying Multi-Layer Networks")

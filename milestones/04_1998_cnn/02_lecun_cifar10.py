@@ -10,7 +10,7 @@ CNNs preserve spatial hierarchies through local connectivity and weight sharing,
 enabling recognition of complex patterns in natural images.
 
 🎯 WHAT YOU'RE BUILDING:
-Using YOUR Tiny🔥Torch implementations, you'll build a CNN that achieves 65%+ accuracy
+Using YOUR Tren🔥Torch implementations, you'll build a CNN that achieves 65%+ accuracy
 on CIFAR-10 natural images - proving YOUR spatial modules can extract hierarchical
 features from real-world photographs!
 
@@ -88,20 +88,20 @@ import time
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
-# Import TinyTorch components YOU BUILT!
-from tinytorch.core.tensor import Tensor              # Module 02: YOU built this!
-from tinytorch.core.layers import Linear             # Module 04: YOU built this!
-from tinytorch.core.activations import ReLU, Softmax  # Module 03: YOU built this!
-from tinytorch.core.spatial import Conv2d, MaxPool2d, BatchNorm2d  # Module 09: YOU built this!
-from tinytorch.core.optimizers import Adam            # Module 07: YOUR optimizer!
-from tinytorch.core.dataloader import DataLoader, Dataset  # Module 05: YOU built this!
-from tinytorch.core.dataloader import RandomHorizontalFlip, RandomCrop, Compose  # Module 05: Data Augmentation!
+# Import TrenTorch components YOU BUILT!
+from trentorch.core.tensor import Tensor              # Module 02: YOU built this!
+from trentorch.core.layers import Linear             # Module 04: YOU built this!
+from trentorch.core.activations import ReLU, Softmax  # Module 03: YOU built this!
+from trentorch.core.spatial import Conv2d, MaxPool2d, BatchNorm2d  # Module 09: YOU built this!
+from trentorch.core.optimizers import Adam            # Module 07: YOUR optimizer!
+from trentorch.core.dataloader import DataLoader, Dataset  # Module 05: YOU built this!
+from trentorch.core.dataloader import RandomHorizontalFlip, RandomCrop, Compose  # Module 05: Data Augmentation!
 
 # Import dataset manager
 from data_manager import DatasetManager
 
 # =============================================================================
-# 🎯 YOUR TINYTORCH MODULES IN ACTION
+# 🎯 YOUR TRENTORCH MODULES IN ACTION
 # =============================================================================
 #
 # This milestone showcases the modules YOU built. Here's what powers this CNN:
@@ -216,7 +216,7 @@ def flatten(x):
 
 class CIFARCNN:
     """
-    Convolutional Neural Network for CIFAR-10 using YOUR Tiny🔥Torch!
+    Convolutional Neural Network for CIFAR-10 using YOUR Tren🔥Torch!
 
     This architecture demonstrates how spatial feature extraction enables
     recognition of complex patterns in natural images.
@@ -226,7 +226,7 @@ class CIFARCNN:
     """
 
     def __init__(self):
-        print("🧠 Building CIFAR-10 CNN with YOUR Tiny🔥Torch modules...")
+        print("🧠 Building CIFAR-10 CNN with YOUR Tren🔥Torch modules...")
 
         # Convolutional feature extractors - YOUR spatial modules!
         self.conv1 = Conv2d(in_channels=3, out_channels=32, kernel_size=(3, 3))   # Module 09!
@@ -412,7 +412,7 @@ def visualize_cifar_cnn():
 
 def train_cifar_cnn(model, train_loader, epochs=3, learning_rate=0.001):
     """Train CNN using YOUR complete training system with DataLoader!"""
-    print("\n🚀 Training CIFAR-10 CNN with YOUR Tiny🔥Torch!")
+    print("\n🚀 Training CIFAR-10 CNN with YOUR Tren🔥Torch!")
     print(f"   Dataset: {len(train_loader.dataset)} color images")
     print(f"   Batch size: {train_loader.batch_size}")
     print(f"   YOUR DataLoader (Module 05) handles batching!")
@@ -611,7 +611,7 @@ def analyze_cnn_systems(model, batch_size=32):
 # training, testing, and analysis. This is YOUR end-to-end ML pipeline.
 
 def main():
-    """Demonstrate CIFAR-10 CNN using YOUR Tiny🔥Torch!"""
+    """Demonstrate CIFAR-10 CNN using YOUR Tren🔥Torch!"""
 
     parser = argparse.ArgumentParser(description='CIFAR-10 CNN')
     parser.add_argument('--test-only', action='store_true',

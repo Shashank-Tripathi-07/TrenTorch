@@ -1,4 +1,4 @@
-# TinyTorch diagram style guide
+# TrenTorch diagram style guide
 
 Visual convention for the per-module "What You'll Build" diagrams in
 `../../assets/images/diagrams/`. The SVGs are the **source-of-truth**
@@ -35,7 +35,7 @@ has to trace which box an arrow came from, the layout is wrong.
 | Arrow / connector        | —          | `#9ca3af`  | —          |
 | Page background          | `#ffffff`  | —          | —          |
 
-`#ff8246` is `flameorange` from the TinyTorch brand palette (also
+`#ff8246` is `flameorange` from the TrenTorch brand palette (also
 defined in `pdf/_quarto.yml`). It's the only chromatic color allowed in
 a diagram. Don't introduce sage/navy/red/etc.
 
@@ -261,7 +261,7 @@ introduce a *different* transform.
 
    Note: the path is `.svg`. The `svg-to-pdf.lua` filter rewrites it
    to `.pdf` for the PDF format only.
-6. From `tinytorch/quarto/`: `make pdf`. Verify visually.
+6. From `trentorch/quarto/`: `make pdf`. Verify visually.
 
 ## How to edit an existing diagram
 
@@ -269,7 +269,7 @@ introduce a *different* transform.
    Designer both round-trip cleanly; a text editor is fine for
    coordinate or color tweaks).
 2. Save. Don't run any generator — there isn't one anymore.
-3. From `tinytorch/quarto/`: `make pdf`. The Makefile pattern
+3. From `trentorch/quarto/`: `make pdf`. The Makefile pattern
    rule will reconvert only the changed SVG to PDF and re-render.
 4. Re-render to PNG (`rsvg-convert`) and eyeball it. The PDF builds
    from PNG-equivalent data — if it looks wrong as a PNG, it'll look

@@ -104,11 +104,11 @@ python milestones/06_2018_mlperf/01_optimization_olympics.py
 python milestones/06_2018_mlperf/02_generation_speedup.py
 ```
 
-Or via tito:
+Or via tren:
 ```bash
-tito milestone run 06
-tito milestone run 06 --part 1  # Model compression
-tito milestone run 06 --part 2  # Generation speedup
+tren milestone run 06
+tren milestone run 06 --part 1  # Model compression
+tren milestone run 06 --part 2  # Generation speedup
 ```
 
 ## Key Learning

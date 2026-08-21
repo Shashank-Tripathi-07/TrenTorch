@@ -41,11 +41,11 @@ Let's transform tokens into intelligence!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/11_embeddings/embeddings_dev.py`
-**Building Side:** Code exports to `tinytorch.text.embeddings`
+**Building Side:** Code exports to `trentorch.text.embeddings`
 
 ```python
 # How to use this module:
-from tinytorch.core.embeddings import Embedding, PositionalEncoding, create_sinusoidal_embeddings
+from trentorch.core.embeddings import Embedding, PositionalEncoding, create_sinusoidal_embeddings
 ```
 
 **Why this matters:**
@@ -65,10 +65,10 @@ import math
 from typing import List, Optional, Tuple
 
 # Import from previous modules - following dependency chain
-from tinytorch.core.tensor import Tensor
+from trentorch.core.tensor import Tensor
 
 # Enable autograd for gradient tracking (required for learnable embeddings)
-from tinytorch.core.autograd import Function, enable_autograd
+from trentorch.core.autograd import Function, enable_autograd
 enable_autograd()
 
 # Constants for memory calculations
@@ -86,8 +86,8 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 - `numpy` (for array operations and numerical computing)
 - `math` (for mathematical constants and functions)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor.Tensor` (from Module 01)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor.Tensor` (from Module 01)
 
 **Dependency Flow**:
 ```
@@ -1785,7 +1785,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1900,7 +1900,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 11")
+    print("Run: tren module complete 11")
 
 # %% [markdown]
 """
@@ -2001,7 +2001,7 @@ Congratulations! You've built a complete embedding system that transforms discre
 
 ### Ready for Next Steps
 Your embeddings implementation enables attention mechanisms and transformer architectures.
-Export with: `tito module complete 11`
+Export with: `tren module complete 11`
 
 **Next**: Module 12 will add attention mechanisms for context-aware representations!
 """

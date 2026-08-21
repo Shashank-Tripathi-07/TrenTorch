@@ -40,7 +40,7 @@ class TestDataLoaderCore:
         ✅ TEST: Dataset base class exists and is abstract
         """
         try:
-            from tinytorch.core.dataloader import Dataset
+            from trentorch.core.dataloader import Dataset
             
             # Dataset should be importable
             assert Dataset is not None, "Dataset class not found"
@@ -66,8 +66,8 @@ class TestDataLoaderCore:
         ✅ TEST: TensorDataset wraps tensors correctly
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import TensorDataset
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import TensorDataset
             
             # Create test data
             data = Tensor(rng.standard_normal((100, 10)))
@@ -91,8 +91,8 @@ class TestDataLoaderCore:
         ✅ TEST: DataLoader iterates and batches correctly
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Create test data
             data = Tensor(rng.standard_normal((20, 5)))
@@ -119,8 +119,8 @@ class TestDataLoaderCore:
         ✅ TEST: DataLoader shuffling works
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Create ordered data
             data = Tensor(np.arange(20).reshape(20, 1).astype(float))
@@ -160,9 +160,9 @@ class TestDataLoaderWithLayers:
         ✅ TEST: DataLoader feeds data to Linear layer correctly
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Create test data
             data = Tensor(rng.standard_normal((20, 10)))
@@ -189,10 +189,10 @@ class TestDataLoaderWithLayers:
         ✅ TEST: DataLoader + Linear + Activation pipeline
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Softmax
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Softmax
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Create test data
             data = Tensor(rng.standard_normal((20, 10)))
@@ -229,11 +229,11 @@ class TestDataLoaderWithLayers:
         ✅ TEST: Complete forward pass: DataLoader → Model → Loss
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Create test data
             data = Tensor(rng.standard_normal((20, 10)))
@@ -281,7 +281,7 @@ class TestRegressionPrevention:
         ✅ TEST: Module 01 (Tensor) operations still work
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             # Basic operations
             a = Tensor([1.0, 2.0, 3.0])
@@ -308,8 +308,8 @@ class TestRegressionPrevention:
         ✅ TEST: Module 02 (Activations) still work
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU, Sigmoid, Softmax
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid, Softmax
             
             x = Tensor(np.array([-1.0, 0.0, 1.0, 2.0]))
             
@@ -336,8 +336,8 @@ class TestRegressionPrevention:
         ✅ TEST: Module 03 (Layers) still work
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
             
             layer = Linear(10, 5)
             x = Tensor(rng.standard_normal((4, 10)))
@@ -353,8 +353,8 @@ class TestRegressionPrevention:
         ✅ TEST: Module 04 (Losses) still work
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.losses import MSELoss, CrossEntropyLoss
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.losses import MSELoss, CrossEntropyLoss
             
             pred = Tensor([[0.1, 0.9], [0.8, 0.2]])
             target = Tensor([[0.0, 1.0], [1.0, 0.0]])
@@ -397,10 +397,10 @@ class TestModule05Completion:
         }
         
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import Dataset, TensorDataset, DataLoader
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import Dataset, TensorDataset, DataLoader
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
             
             # Test 1: Dataset abstraction
             assert Dataset is not None

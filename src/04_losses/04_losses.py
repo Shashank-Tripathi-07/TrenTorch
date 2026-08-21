@@ -45,11 +45,11 @@ Let's measure prediction quality!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `src/04_losses/04_losses.py`
-**Building Side:** Code exports to `tinytorch.core.losses`
+**Building Side:** Code exports to `trentorch.core.losses`
 
 ```python
 # Final package structure:
-from tinytorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss, log_softmax  # This module
+from trentorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss, log_softmax  # This module
 ```
 
 **Why this matters:**
@@ -68,7 +68,7 @@ from tinytorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyL
 **External Dependencies**:
 - `numpy` (for numerical operations)
 
-**TinyTorch Dependencies**:
+**TrenTorch Dependencies**:
 - **Module 01 (Tensor)**: Foundation for all loss computations
   - Used for: Input/output data structures, shape operations, element-wise operations
   - Required: Yes - losses operate on Tensor objects
@@ -87,9 +87,9 @@ Module 01 (Tensor) → Module 02 (Activations) → Module 03 (Layers) → Module
 ```
 
 **Import Strategy**:
-This module imports directly from the TinyTorch package (`from tinytorch.core.*`).
+This module imports directly from the TrenTorch package (`from trentorch.core.*`).
 **Assumption**: Modules 01 (Tensor), 02 (Activations), and 03 (Layers) have been completed and exported to the package.
-If you see import errors, make sure you've run `tito module complete` for each previous module.
+If you see import errors, make sure you've run `tren module complete` for each previous module.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "setup", "solution": true}
@@ -100,10 +100,10 @@ import numpy as np
 rng = np.random.default_rng(7)
 from typing import Optional
 
-# Import from TinyTorch package (previous modules must be completed and exported)
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.activations import ReLU
-from tinytorch.core.layers import Linear
+# Import from TrenTorch package (previous modules must be completed and exported)
+from trentorch.core.tensor import Tensor
+from trentorch.core.activations import ReLU
+from trentorch.core.layers import Linear
 
 # Constants for numerical stability
 EPSILON = 1e-7  # Small value to prevent log(0) and numerical instability
@@ -1349,7 +1349,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1405,7 +1405,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 04")
+    print("Run: tren module complete 04")
 
 
 # %%
@@ -1722,7 +1722,7 @@ Congratulations! You've built the measurement system that enables all machine le
 - **Computational cost**: CE is C times more expensive than MSE due to softmax
 - **Production patterns**: Hierarchical softmax and sampled softmax for large vocabularies
 
-Export with: `tito module complete 04`
+Export with: `tren module complete 04`
 
 **Next**: Module 05 will add DataLoader for efficient data pipelines!
 """

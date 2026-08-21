@@ -32,7 +32,7 @@ class TestTrainingCore:
         ✅ TEST: Trainer class exists and is importable
         """
         try:
-            from tinytorch.core.training import Trainer
+            from trentorch.core.training import Trainer
             
             assert Trainer is not None, "Trainer class not found"
             
@@ -44,10 +44,10 @@ class TestTrainingCore:
         ✅ TEST: Trainer can be initialized with model, optimizer, loss
         """
         try:
-            from tinytorch.core.training import Trainer
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.training import Trainer
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.losses import MSELoss
             
             # Create components
             model = Linear(10, 2)
@@ -70,11 +70,11 @@ class TestTrainingCore:
         ✅ TEST: Trainer can run a single training step
         """
         try:
-            from tinytorch.core.training import Trainer
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.training import Trainer
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.losses import MSELoss
             
             model = Linear(5, 2)
             optimizer = SGD(model.parameters(), lr=0.01)
@@ -104,12 +104,12 @@ class TestTrainingCore:
         ✅ TEST: Trainer can run a full training epoch
         """
         try:
-            from tinytorch.core.training import Trainer
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.training import Trainer
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Create model and training components
             model = Linear(5, 2)
@@ -150,12 +150,12 @@ class TestManualTrainingLoop:
         ✅ TEST: Complete manual training loop
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Create model
             layer1 = Linear(5, 10)
@@ -207,10 +207,10 @@ class TestManualTrainingLoop:
         ✅ TEST: Verify actual learning (loss decreases)
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
             
             # Simple problem: learn to output zeros
             rng = np.random.default_rng(7)
@@ -256,9 +256,9 @@ class TestTrainingUtilities:
         ✅ TEST: Can track losses during training
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
             
             layer = Linear(3, 1)
             loss_fn = MSELoss()
@@ -284,9 +284,9 @@ class TestTrainingUtilities:
         ✅ TEST: Efficient batch processing
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Create model
             layer = Linear(10, 5)
@@ -318,7 +318,7 @@ class TestRegressionPrevention:
     def test_tensor_still_works(self):
         """✅ Module 01 regression check"""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             a = Tensor([1.0, 2.0])
             b = Tensor([3.0, 4.0])
@@ -332,8 +332,8 @@ class TestRegressionPrevention:
     def test_activations_still_work(self):
         """✅ Module 02 regression check"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU
             
             relu = ReLU()
             x = Tensor([-1.0, 0.0, 1.0])
@@ -347,8 +347,8 @@ class TestRegressionPrevention:
     def test_layers_still_work(self):
         """✅ Module 03 regression check"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
             
             layer = Linear(4, 2)
             x = Tensor(rng.standard_normal((2, 4)))
@@ -362,8 +362,8 @@ class TestRegressionPrevention:
     def test_losses_still_work(self):
         """✅ Module 04 regression check"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.losses import MSELoss
             
             loss_fn = MSELoss()
             pred = Tensor([[1.0, 2.0]])
@@ -378,8 +378,8 @@ class TestRegressionPrevention:
     def test_dataloader_still_works(self):
         """✅ Module 05 regression check"""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             data = Tensor(rng.standard_normal((10, 3)))
             targets = Tensor(np.arange(10).astype(float))
@@ -395,7 +395,7 @@ class TestRegressionPrevention:
     def test_autograd_still_works(self):
         """✅ Module 06 regression check"""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             x = Tensor([2.0], requires_grad=True)
             
@@ -410,8 +410,8 @@ class TestRegressionPrevention:
     def test_optimizers_still_work(self):
         """✅ Module 07 regression check"""
         try:
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
             
             param = Tensor([1.0, 2.0], requires_grad=True)
             optimizer = SGD([param], lr=0.1)
@@ -421,7 +421,7 @@ class TestRegressionPrevention:
             
         except TypeError:
             # Might fail if requires_grad not supported
-            from tinytorch.core.layers import Linear
+            from trentorch.core.layers import Linear
             layer = Linear(2, 1)
             optimizer = SGD(layer.parameters(), lr=0.1)
             assert hasattr(optimizer, 'step'), "SGD broken"
@@ -448,11 +448,11 @@ class TestModule08Completion:
         }
         
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             # Test 1: Loss computation
             layer = Linear(4, 2)

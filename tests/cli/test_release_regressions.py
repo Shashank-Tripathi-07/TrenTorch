@@ -13,18 +13,18 @@ from pathlib import Path
 import numpy as np
 from rich.console import Console
 
-from tito.commands.export_utils import find_source_file_for_export
-from tito.commands.milestone import (
+from tren.commands.export_utils import find_source_file_for_export
+from tren.commands.milestone import (
     MILESTONE_SCRIPTS,
     _required_modules_for,
     _validate_required_exports,
 )
-from tito.commands.module.workflow import ModuleWorkflowCommand
-from tito.commands.package.reset import ResetCommand
-from tito.core.config import CLIConfig
+from tren.commands.module.workflow import ModuleWorkflowCommand
+from tren.commands.package.reset import ResetCommand
+from tren.core.config import CLIConfig
 
 
-TINYTORCH_ROOT = Path(__file__).resolve().parents[2]
+TRENTORCH_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _import_script(path: Path):
@@ -47,13 +47,13 @@ def test_mlperf_full_requirements_match_all_default_parts():
 
 
 def test_export_validator_rejects_silent_none_exports(monkeypatch):
-    import tinytorch
+    import trentorch
 
-    monkeypatch.setattr(tinytorch, "Tensor", None)
+    monkeypatch.setattr(trentorch, "Tensor", None)
 
     failures = _validate_required_exports([1])
 
-    assert "tinytorch.Tensor: exported as None" in failures
+    assert "trentorch.Tensor: exported as None" in failures
 
 
 def test_export_validator_accepts_current_core_exports():
@@ -62,36 +62,36 @@ def test_export_validator_accepts_current_core_exports():
 
 def test_export_source_mappings_match_current_default_exp_targets():
     assert (
-        find_source_file_for_export(Path("tinytorch/perf/benchmarking.py"))
+        find_source_file_for_export(Path("trentorch/perf/benchmarking.py"))
         == "src/19_benchmarking/19_benchmarking.py"
     )
     assert (
-        find_source_file_for_export(Path("tinytorch/olympics.py"))
+        find_source_file_for_export(Path("trentorch/olympics.py"))
         == "src/20_capstone/20_capstone.py"
     )
 
 
 def test_module_workflow_reports_default_exp_export_paths(monkeypatch):
-    monkeypatch.chdir(TINYTORCH_ROOT)
-    command = ModuleWorkflowCommand(CLIConfig.from_project_root(TINYTORCH_ROOT))
+    monkeypatch.chdir(TRENTORCH_ROOT)
+    command = ModuleWorkflowCommand(CLIConfig.from_project_root(TRENTORCH_ROOT))
 
-    assert command._get_export_path_for_module("19_benchmarking") == "tinytorch/perf/benchmarking.py"
-    assert command._get_export_path_for_module("20_capstone") == "tinytorch/olympics.py"
+    assert command._get_export_path_for_module("19_benchmarking") == "trentorch/perf/benchmarking.py"
+    assert command._get_export_path_for_module("20_capstone") == "trentorch/olympics.py"
 
 
 def test_module_next_steps_use_start_subcommand():
-    command = ModuleWorkflowCommand(CLIConfig.from_project_root(TINYTORCH_ROOT))
+    command = ModuleWorkflowCommand(CLIConfig.from_project_root(TRENTORCH_ROOT))
     output = io.StringIO()
     command.console = Console(file=output, width=120)
 
     command.show_next_steps("01")
 
     text = output.getvalue()
-    assert "tito module start 02" in text
+    assert "tren module start 02" in text
 
 
 def test_root_public_api_exports_completed_module_symbols():
-    import tinytorch
+    import trentorch
 
     expected_symbols = [
         "BatchNorm2d",
@@ -106,12 +106,12 @@ def test_root_public_api_exports_completed_module_symbols():
     ]
 
     for symbol in expected_symbols:
-        assert symbol in tinytorch.__all__
-        assert getattr(tinytorch, symbol) is not None
+        assert symbol in trentorch.__all__
+        assert getattr(trentorch, symbol) is not None
 
 
 def test_scalar_left_tensor_ops_preserve_autograd():
-    from tinytorch import Tensor
+    from trentorch import Tensor
 
     x = Tensor([2.0, 4.0], requires_grad=True)
 
@@ -131,10 +131,10 @@ def test_scalar_left_tensor_ops_preserve_autograd():
 
 
 def test_mlperf_optimization_loads_packaged_tinydigits():
-    script = TINYTORCH_ROOT / "milestones" / "06_2018_mlperf" / "01_optimization_olympics.py"
+    script = TRENTORCH_ROOT / "milestones" / "06_2018_mlperf" / "01_optimization_olympics.py"
     module = _import_script(script)
 
-    train_images, train_labels, test_images, test_labels = module.load_tinydigits_arrays(TINYTORCH_ROOT)
+    train_images, train_labels, test_images, test_labels = module.load_tinydigits_arrays(TRENTORCH_ROOT)
 
     assert train_images.shape[1:] == (8, 8)
     assert test_images.shape[1:] == (8, 8)
@@ -145,7 +145,7 @@ def test_mlperf_optimization_loads_packaged_tinydigits():
 
 def test_generation_speedup_import_error_lists_actual_requirements():
     text = (
-        TINYTORCH_ROOT
+        TRENTORCH_ROOT
         / "milestones"
         / "06_2018_mlperf"
         / "02_generation_speedup.py"
@@ -157,10 +157,10 @@ def test_generation_speedup_import_error_lists_actual_requirements():
 
 def test_milestone_list_uses_actual_history_start_year():
     env = os.environ.copy()
-    env["TITO_ALLOW_SYSTEM"] = "1"
+    env["TREN_ALLOW_SYSTEM"] = "1"
     result = subprocess.run(
-        [sys.executable, "-m", "tito.main", "milestone", "list", "--simple"],
-        cwd=TINYTORCH_ROOT,
+        [sys.executable, "-m", "tren.main", "milestone", "list", "--simple"],
+        cwd=TRENTORCH_ROOT,
         capture_output=True,
         text=True,
         env=env,
@@ -173,7 +173,7 @@ def test_milestone_list_uses_actual_history_start_year():
 
 def test_package_reset_success_messages_render_real_newlines(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
-    command = ResetCommand(CLIConfig.from_project_root(TINYTORCH_ROOT))
+    command = ResetCommand(CLIConfig.from_project_root(TRENTORCH_ROOT))
     output = io.StringIO()
     command.console = Console(file=output, width=120)
 
@@ -183,13 +183,13 @@ def test_package_reset_success_messages_render_real_newlines(monkeypatch, tmp_pa
     text = output.getvalue()
     assert "\\n" not in text
     assert "You can re-complete modules with:" in text
-    assert "tito module complete XX" in text
+    assert "tren module complete XX" in text
     assert "You can re-run milestones with:" in text
-    assert "tito milestone run XX" in text
+    assert "tren milestone run XX" in text
 
 
 def test_generated_warning_points_to_current_export_command():
-    text = (TINYTORCH_ROOT / "tito" / "commands" / "export_utils.py").read_text(encoding="utf-8")
+    text = (TRENTORCH_ROOT / "tren" / "commands" / "export_utils.py").read_text(encoding="utf-8")
 
-    assert "tito module complete XX" in text
-    assert "tito module complete <module_name>" not in text
+    assert "tren module complete XX" in text
+    assert "tren module complete <module_name>" not in text

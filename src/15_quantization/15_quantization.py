@@ -44,11 +44,11 @@ Let's make models 4x smaller!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in modules/15_quantization/quantization_dev.py
-**Building Side:** Code exports to tinytorch.perf.quantization
+**Building Side:** Code exports to trentorch.perf.quantization
 
 ```python
 # Final package structure:
-from tinytorch.perf.quantization import quantize_int8, QuantizedLinear, quantize_model
+from trentorch.perf.quantization import quantize_int8, QuantizedLinear, quantize_model
 ```
 
 **Why this matters:**
@@ -67,9 +67,9 @@ from typing import Tuple, Dict, List, Optional
 import warnings
 
 # Import dependencies from other modules
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear, Sequential
-from tinytorch.core.activations import ReLU
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear, Sequential
+from trentorch.core.activations import ReLU
 
 # Constants for INT8 quantization
 INT8_MIN_VALUE = -128
@@ -96,11 +96,11 @@ if __name__ == "__main__":
 - `time` (for performance measurements)
 - `typing` (for type annotations)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` (Tensor class from Module 01)
-- `tinytorch.core.layers` (Linear, Sequential from Module 03)
-- `tinytorch.core.activations` (ReLU from Module 02)
-- `tinytorch.perf.profiling` (Profiler from Module 14)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` (Tensor class from Module 01)
+- `trentorch.core.layers` (Linear, Sequential from Module 03)
+- `trentorch.core.activations` (ReLU from Module 02)
+- `trentorch.perf.profiling` (Profiler from Module 14)
 
 **Dependency Flow**:
 ```
@@ -124,7 +124,7 @@ FP32 weights actually consume. This will show us why reduced precision matters.
 # %%
 def explore_motivation_profiling():
     """Profile model memory usage to discover the quantization problem."""
-    from tinytorch.perf.profiling import Profiler
+    from trentorch.perf.profiling import Profiler
 
     profiler = Profiler()
 
@@ -1415,7 +1415,7 @@ def test_unit_quantize_model():
     """Test model quantization implementation."""
     print("Unit Test: Model Quantization...")
 
-    # Create test model using explicit layer composition (TinyTorch pattern)
+    # Create test model using explicit layer composition (TrenTorch pattern)
     layer1 = Linear(4, 8)
     activation = ReLU()
     layer2 = Linear(8, 3)
@@ -1426,7 +1426,7 @@ def test_unit_quantize_model():
     layer2.weight = Tensor(rng.standard_normal((8, 3)) * 0.5)
     layer2.bias = Tensor(rng.standard_normal(3) * 0.1)
 
-    # Use Sequential from tinytorch.core.layers
+    # Use Sequential from trentorch.core.layers
     model = Sequential(layer1, activation, layer2)
 
     # Test original model
@@ -1695,7 +1695,7 @@ def test_unit_analyze_model_sizes():
     """Test model size analysis."""
     print("Unit Test: Model Size Analysis...")
 
-    # Create and quantize a model for testing (using Sequential from tinytorch.core.layers)
+    # Create and quantize a model for testing (using Sequential from trentorch.core.layers)
     layer1_orig = Linear(100, 50)
     activation_orig = ReLU()
     layer2_orig = Linear(50, 10)
@@ -1736,7 +1736,7 @@ if __name__ == "__main__":
 ## 🔧 Consolidated Quantization Classes for Export
 
 Now that we've implemented all quantization components, let's create consolidated classes
-for export to the tinytorch package. This allows milestones to use the complete quantization system.
+for export to the trentorch package. This allows milestones to use the complete quantization system.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "quantization_export", "solution": true}
@@ -1980,7 +1980,7 @@ This is the production workflow: measure -> compress -> validate -> deploy.
 
 # %% nbgrader={"grade": false, "grade_id": "demo-profiler-quantization", "solution": true}
 # Import Profiler from Module 14
-from tinytorch.perf.profiling import Profiler
+from trentorch.perf.profiling import Profiler
 
 def explore_quantization_with_profiler():
     """Demonstrate memory savings using Profiler from Module 14."""
@@ -1990,7 +1990,7 @@ def explore_quantization_with_profiler():
     profiler = Profiler()
 
     # Create a simple model
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     model = Linear(512, 256)
     model.name = "baseline_model"
 
@@ -2129,7 +2129,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -2150,7 +2150,7 @@ def test_module():
     # Test realistic usage scenario
     print("Integration Test: End-to-end quantization workflow...")
 
-    # Create a realistic model using explicit composition (Sequential from tinytorch.core.layers)
+    # Create a realistic model using explicit composition (Sequential from trentorch.core.layers)
     layer1 = Linear(784, 128)  # MNIST-like input
     activation1 = ReLU()
     layer2 = Linear(128, 64)
@@ -2233,7 +2233,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 15")
+    print("Run: tren module complete 15")
 
 # %% [markdown] nbgrader={"grade": false, "grade_id": "quantization-reflection", "solution": true}
 """
@@ -2392,7 +2392,7 @@ Congratulations! You've built a complete INT8 quantization system that can reduc
 - Hardware efficiency: Specialized INT8 instructions provide 2-4x speedup
 - Deployment benefits: Smaller models fit on mobile and edge devices
 
-Export with: `tito module complete 15`
+Export with: `tren module complete 15`
 
 Quantization is one of the most impactful optimization techniques — reducing precision to INT8 delivers 4x memory savings with minimal accuracy loss.
 """

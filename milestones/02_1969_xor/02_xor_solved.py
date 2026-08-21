@@ -89,13 +89,13 @@ sys.path.insert(0, os.getcwd())
 
 # Seed will be set before training to guarantee 100% convergence
 
-# Import TinyTorch components YOU BUILT!
-from tinytorch import Tensor, Linear, ReLU, Sigmoid, BinaryCrossEntropyLoss, SGD
+# Import TrenTorch components YOU BUILT!
+from trentorch import Tensor, Linear, ReLU, Sigmoid, BinaryCrossEntropyLoss, SGD
 
 console = Console()
 
 # =============================================================================
-# 🎯 YOUR TINYTORCH MODULES IN ACTION
+# 🎯 YOUR TRENTORCH MODULES IN ACTION
 # =============================================================================
 #
 # This milestone showcases the modules YOU built. Here's what powers this solution:
@@ -435,7 +435,7 @@ def main():
     # initializations land in a "dead ReLU" saddle point that pins accuracy
     # at 75% (one of the four XOR cases stuck at p≈0.5). 1986 (the year of the
     # backprop paper) reliably escapes that saddle.
-    import tinytorch.core.layers as _layers
+    import trentorch.core.layers as _layers
     _layers.rng = np.random.default_rng(1986)
 
     model = XORNetwork(hidden_size=4)

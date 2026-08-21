@@ -32,7 +32,7 @@ class TestAttentionCore:
         ✅ TEST: scaled_dot_product_attention function exists
         """
         try:
-            from tinytorch.core.attention import scaled_dot_product_attention
+            from trentorch.core.attention import scaled_dot_product_attention
             
             assert scaled_dot_product_attention is not None
             
@@ -44,8 +44,8 @@ class TestAttentionCore:
         ✅ TEST: Scaled dot-product attention computes correctly
         """
         try:
-            from tinytorch.core.attention import scaled_dot_product_attention
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.attention import scaled_dot_product_attention
+            from trentorch.core.tensor import Tensor
             
             seq_len, d_k = 10, 16
             
@@ -70,7 +70,7 @@ class TestAttentionCore:
         ✅ TEST: MultiHeadAttention class exists
         """
         try:
-            from tinytorch.core.attention import MultiHeadAttention
+            from trentorch.core.attention import MultiHeadAttention
             
             assert MultiHeadAttention is not None
             
@@ -82,7 +82,7 @@ class TestAttentionCore:
         ✅ TEST: MultiHeadAttention can be initialized
         """
         try:
-            from tinytorch.core.attention import MultiHeadAttention
+            from trentorch.core.attention import MultiHeadAttention
             
             embed_dim = 64
             num_heads = 8
@@ -99,8 +99,8 @@ class TestAttentionCore:
         ✅ TEST: MultiHeadAttention forward pass
         """
         try:
-            from tinytorch.core.attention import MultiHeadAttention
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.attention import MultiHeadAttention
+            from trentorch.core.tensor import Tensor
             
             embed_dim = 64
             num_heads = 8
@@ -131,9 +131,9 @@ class TestAttentionWithEmbeddings:
         ✅ TEST: Attention works on embedded tokens
         """
         try:
-            from tinytorch.core.attention import MultiHeadAttention
-            from tinytorch.core.embeddings import Embedding
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.attention import MultiHeadAttention
+            from trentorch.core.embeddings import Embedding
+            from trentorch.core.tensor import Tensor
             
             vocab_size = 100
             embed_dim = 64
@@ -167,11 +167,11 @@ class TestAttentionWithTraining:
         ✅ TEST: Attention parameters can be trained
         """
         try:
-            from tinytorch.core.attention import MultiHeadAttention
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.attention import MultiHeadAttention
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
             
             embed_dim = 32
             num_heads = 4
@@ -217,14 +217,14 @@ class TestRegressionPrevention:
 
     def test_tensor_still_works(self):
         """✅ Module 01"""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
         a = Tensor([1, 2, 3])
         assert a.shape == (3,)
 
     def test_activations_still_work(self):
         """✅ Module 02"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU
         relu = ReLU()
         x = Tensor([-1, 0, 1])
         y = relu(x)
@@ -232,8 +232,8 @@ class TestRegressionPrevention:
 
     def test_layers_still_work(self):
         """✅ Module 03"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
         layer = Linear(4, 2)
         x = Tensor(rng.standard_normal((2, 4)))
         y = layer(x)
@@ -241,8 +241,8 @@ class TestRegressionPrevention:
 
     def test_losses_still_work(self):
         """✅ Module 04"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.losses import MSELoss
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.losses import MSELoss
         loss_fn = MSELoss()
         pred = Tensor([[1.0]])
         target = Tensor([[2.0]])
@@ -251,8 +251,8 @@ class TestRegressionPrevention:
 
     def test_dataloader_still_works(self):
         """✅ Module 05"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.dataloader import TensorDataset, DataLoader
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.dataloader import TensorDataset, DataLoader
         data = Tensor(rng.standard_normal((10, 3)))
         targets = Tensor(np.arange(10).astype(float))
         dataset = TensorDataset(data, targets)
@@ -261,18 +261,18 @@ class TestRegressionPrevention:
 
     def test_optimizers_still_work(self):
         """✅ Module 07"""
-        from tinytorch.core.optimizers import SGD
-        from tinytorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.layers import Linear
         layer = Linear(3, 2)
         opt = SGD(layer.parameters(), lr=0.01)
         assert hasattr(opt, 'step')
 
     def test_training_still_works(self):
         """✅ Module 08"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.losses import MSELoss
-        from tinytorch.core.optimizers import SGD
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.losses import MSELoss
+        from trentorch.core.optimizers import SGD
         
         layer = Linear(4, 2)
         loss_fn = MSELoss()
@@ -288,8 +288,8 @@ class TestRegressionPrevention:
     def test_convolutions_still_work(self):
         """✅ Module 09"""
         try:
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.tensor import Tensor
             
             conv = Conv2d(3, 8, kernel_size=3, padding=1)
             x = Tensor(rng.standard_normal((2, 3, 8, 8)))
@@ -301,8 +301,8 @@ class TestRegressionPrevention:
     def test_embeddings_still_work(self):
         """✅ Module 11"""
         try:
-            from tinytorch.core.embeddings import Embedding
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.embeddings import Embedding
+            from trentorch.core.tensor import Tensor
             
             embedding = Embedding(100, 32)
             ids = Tensor(np.array([[1, 2, 3]]))
@@ -330,8 +330,8 @@ class TestModule12Completion:
         }
         
         try:
-            from tinytorch.core.attention import scaled_dot_product_attention, MultiHeadAttention
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.attention import scaled_dot_product_attention, MultiHeadAttention
+            from trentorch.core.tensor import Tensor
             
             # Test 1: scaled_dot_product
             capabilities["scaled_dot_product exists"] = True

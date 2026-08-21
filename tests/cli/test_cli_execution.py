@@ -12,10 +12,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Add tito to path
+# Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tito.main import TinyTorchCLI
+from tren.main import TrenTorchCLI
 
 
 class TestCommandExecution:
@@ -23,29 +23,29 @@ class TestCommandExecution:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.cli = TinyTorchCLI()
+        self.cli = TrenTorchCLI()
         self.project_root = Path(__file__).parent.parent.parent
 
-    def test_bare_tito_command(self):
-        """Test bare 'tito' command shows welcome screen."""
+    def test_bare_tren_command(self):
+        """Test bare 'tren' command shows welcome screen."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'],
+            [sys.executable, '-m', 'tren.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
         )
 
         # Should exit successfully
-        assert result.returncode == 0, f"Bare tito command failed: {result.stderr}"
+        assert result.returncode == 0, f"Bare tren command failed: {result.stderr}"
 
         # Should show welcome message
-        assert "Welcome to Tiny" in result.stdout or "TORCH" in result.stdout
+        assert "Welcome to Tren" in result.stdout or "TORCH" in result.stdout
         assert "Command Groups:" in result.stdout or "Quick Start:" in result.stdout
 
-    def test_tito_help(self):
-        """Test 'tito -h' shows help."""
+    def test_tren_help(self):
+        """Test 'tren -h' shows help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', '-h'],
+            [sys.executable, '-m', 'tren.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -53,20 +53,20 @@ class TestCommandExecution:
 
         assert result.returncode == 0
         # Custom help displays logo and commands
-        assert "TinyTorch" in result.stdout or "TORCH" in result.stdout
+        assert "TrenTorch" in result.stdout or "TORCH" in result.stdout
         assert "Quick Start" in result.stdout or "module" in result.stdout
 
-    def test_tito_version(self):
-        """Test 'tito --version' shows version."""
+    def test_tren_version(self):
+        """Test 'tren --version' shows version."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', '--version'],
+            [sys.executable, '-m', 'tren.main', '--version'],
             cwd=self.project_root,
             capture_output=True,
             text=True
         )
 
         assert result.returncode == 0
-        assert "Tiny" in result.stdout or "CLI" in result.stdout
+        assert "Tren" in result.stdout or "CLI" in result.stdout
 
     @pytest.mark.parametrize("command", [
         'setup', 'system', 'module', 'dev', 'package', 'nbgrader',
@@ -75,7 +75,7 @@ class TestCommandExecution:
     def test_command_help_works(self, command):
         """Test that each command's help can be displayed."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', command, '-h'],
+            [sys.executable, '-m', 'tren.main', command, '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -103,7 +103,7 @@ class TestCommandExecution:
     def test_subcommand_help_works(self, command, subcommand):
         """Test that subcommands can show help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', command, subcommand, '-h'],
+            [sys.executable, '-m', 'tren.main', command, subcommand, '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -127,7 +127,7 @@ class TestCommandGrouping:
     def test_student_facing_commands_discoverable(self):
         """Test that main student-facing commands are easily discoverable."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main'],
+            [sys.executable, '-m', 'tren.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -144,7 +144,7 @@ class TestCommandGrouping:
     def test_developer_commands_documented(self):
         """Test that developer commands are documented in help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', '-h'],
+            [sys.executable, '-m', 'tren.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -169,7 +169,7 @@ class TestErrorMessages:
     def test_invalid_command_shows_help(self):
         """Test that invalid commands show helpful error."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', 'nonexistent'],
+            [sys.executable, '-m', 'tren.main', 'nonexistent'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -186,7 +186,7 @@ class TestErrorMessages:
         """Test that missing subcommands show help."""
         # Try module command without subcommand
         result = subprocess.run(
-            [sys.executable, '-m', 'tito.main', 'module'],
+            [sys.executable, '-m', 'tren.main', 'module'],
             cwd=self.project_root,
             capture_output=True,
             text=True

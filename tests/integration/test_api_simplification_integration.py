@@ -7,7 +7,7 @@ Validates that the new PyTorch-compatible API integrates correctly across all co
 - optim module with Adam, SGD
 - Complete workflow integration (model creation → optimizer → training setup)
 
-This follows TinyTorch testing conventions:
+This follows TrenTorch testing conventions:
 1. Unit tests in test_api_simplification.py
 2. Integration tests here (cross-component)
 3. Examples as ultimate integration validation
@@ -20,7 +20,7 @@ import pytest
 
 pytestmark = pytest.mark.skip(
     reason=(
-        "PyTorch-style top-level API scaffold is not part of the current TinyTorch "
+        "PyTorch-style top-level API scaffold is not part of the current TrenTorch "
         "release surface."
     )
 )
@@ -43,10 +43,10 @@ def test_modern_api_integration():
     try:
         # Test 1: Modern imports work
         try:
-            import tinytorch.nn as nn
-            import tinytorch.nn.functional as F
-            import tinytorch.optim as optim
-            from tinytorch.core.tensor import Tensor, Parameter
+            import trentorch.nn as nn
+            import trentorch.nn.functional as F
+            import trentorch.optim as optim
+            from trentorch.core.tensor import Tensor, Parameter
 
             results["tests"].append({
                 "name": "modern_imports",
@@ -180,8 +180,8 @@ def test_modern_api_integration():
         # Test 5: Backward compatibility integration
         try:
             # Test old names still work
-            from tinytorch.core.layers import Linear as Dense
-            from tinytorch.core.spatial import MultiChannelConv2D
+            from trentorch.core.layers import Linear as Dense
+            from trentorch.core.spatial import MultiChannelConv2D
 
             dense = Linear(5, 3)
             conv = MultiChannelConv2D(3, 8, (3, 3))
@@ -270,9 +270,9 @@ def test_pytorch_api_compatibility():
 
     try:
         # Test PyTorch-like import patterns
-        import tinytorch.nn as nn
-        import tinytorch.nn.functional as F
-        import tinytorch.optim as optim
+        import trentorch.nn as nn
+        import trentorch.nn.functional as F
+        import trentorch.optim as optim
 
         # Test 1: PyTorch-like model definition
         try:
@@ -357,7 +357,7 @@ def test_pytorch_api_compatibility():
 
 
 if __name__ == '__main__':
-    print("🧪 TinyTorch API Simplification Integration Tests")
+    print("🧪 TrenTorch API Simplification Integration Tests")
     print("=" * 60)
 
     # Run integration tests

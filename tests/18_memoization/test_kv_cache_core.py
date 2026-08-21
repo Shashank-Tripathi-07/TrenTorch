@@ -27,8 +27,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.perf.memoization import KVCache
+from trentorch.core.tensor import Tensor
+from trentorch.perf.memoization import KVCache
 
 
 class TestKVCacheBasics:

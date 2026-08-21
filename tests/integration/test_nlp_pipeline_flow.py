@@ -23,13 +23,13 @@ from pathlib import Path
 # Add project root
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
-from tinytorch.core.embeddings import Embedding
-from tinytorch.core.attention import MultiHeadAttention
-from tinytorch.core.transformers import TransformerBlock
-from tinytorch.core.layers import Linear
-from tinytorch.core.losses import CrossEntropyLoss
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
+from trentorch.core.embeddings import Embedding
+from trentorch.core.attention import MultiHeadAttention
+from trentorch.core.transformers import TransformerBlock
+from trentorch.core.layers import Linear
+from trentorch.core.losses import CrossEntropyLoss
 
 # Enable autograd
 enable_autograd()

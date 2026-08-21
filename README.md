@@ -4,7 +4,7 @@
 
 # Tren⚡Torch
 
-### TinyTorch. On Steroids.
+### TrenTorch. On Steroids.
 
 [![Validate](https://github.com/Shashank-Tripathi-07/TrenTorch/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/Shashank-Tripathi-07/TrenTorch/actions/workflows/validate.yml)
 [![Python](https://img.shields.io/badge/python-3.10+-3776ab?logo=python&logoColor=white)](https://python.org)
@@ -21,7 +21,7 @@
 ---
 
 > [!NOTE]
-> **This is our implementation of [TinyTorch](https://mlsysbook.ai/tinytorch)** (Harvard CS249r), rebuilt in our own style and pushed further. Same bones, more muscle.
+> **This is our implementation of [TrenTorch](https://mlsysbook.ai/trentorch)** (Harvard CS249r), rebuilt in our own style and pushed further. Same bones, more muscle.
 
 ---
 
@@ -33,7 +33,7 @@ Be the best engineer yourself !
 
 ### The Bricks 🧱
 
-TinyTorch teaches the fundamentals. TrenTorch takes those same bricks and adds the reps: cleaner internals, sharper performance instincts, and an implementation pushed past the original spec wherever we saw the chance.
+TrenTorch teaches the fundamentals. TrenTorch takes those same bricks and adds the reps: cleaner internals, sharper performance instincts, and an implementation pushed past the original spec wherever we saw the chance.
 
 - **Small enough to read in one sitting** - every op traceable back to raw NumPy
 - **Big enough to actually flex** - the real architecture real frameworks run on
@@ -95,7 +95,7 @@ A **complete ML framework**, built from zero. No single finish line, a set of mi
       <td>📅 Binder/Colab support</td>
     </tr>
     <tr>
-      <td>✅ <code>tito</code> CLI for workflows</td>
+      <td>✅ <code>tren</code> CLI for workflows</td>
       <td>🔧 Performance tuning passes</td>
       <td>📅 More milestones beyond MLPerf</td>
     </tr>
@@ -262,32 +262,32 @@ TrenTorch/
 │   ├── 05_2017_transformer/
 │   └── 06_2018_mlperf/
 │
-├── tito/                       # 🎛️ CLI tool for streamlined workflows
+├── tren/                       # 🎛️ CLI tool for streamlined workflows
 │   ├── main.py                 # Entry point
 │   ├── commands/                # Command modules
 │   └── core/                   # Core utilities
 │
-├── tinytorch/                  # 📦 Generated package (import from here)
+├── trentorch/                  # 📦 Generated package (import from here)
 │   ├── core/                   # Core ML components
 │   └── ...                     # The framework you built
 │
 └── tests/                      # ✅ Module, CLI, integration, and milestone tests
 ```
 
-**Key workflow**: `src/*.py` → `modules/*.ipynb` → `tinytorch/*.py`
+**Key workflow**: `src/*.py` → `modules/*.ipynb` → `trentorch/*.py`
 
 ---
 
 ## Credit Where It's Due
 
-TrenTorch is our implementation, built on the curriculum and foundation of [TinyTorch](https://mlsysbook.ai/tinytorch), created by [Prof. Vijay Janapa Reddi](https://vijay.seas.harvard.edu) and the [ML Systems Book](https://mlsysbook.ai) community at Harvard University. Full respect to the original project, we just wanted to take it further.
+TrenTorch is our implementation, built on the curriculum and foundation of [TrenTorch](https://mlsysbook.ai/trentorch), created by [Prof. Vijay Janapa Reddi](https://vijay.seas.harvard.edu) and the [ML Systems Book](https://mlsysbook.ai) community at Harvard University. Full respect to the original project, we just wanted to take it further.
 
 Related educational frameworks worth knowing about:
 - [tinygrad](https://github.com/tinygrad/tinygrad) - George Hotz's minimalist framework
 - [micrograd](https://github.com/karpathy/micrograd) - Andrej Karpathy's tiny autograd
 - [MiniTorch](https://minitorch.github.io/) - Cornell's educational framework
 
-We're addicted to making great software that runs (we're a bit of perfectionists ourselves) and is useful to humanity. This is our shot at making TinyTorch, but adding more stuff that is currently experimental and quite famous.
+We're addicted to making great software that runs (we're a bit of perfectionists ourselves) and is useful to humanity. This is our shot at making TrenTorch, but adding more stuff that is currently experimental and quite famous.
 
 ---
 

@@ -107,7 +107,7 @@ console = Console()
 
 
 def load_tinydigits_arrays(project_root=None):
-    """Load TinyDigits arrays shipped with TinyTorch."""
+    """Load TinyDigits arrays shipped with TrenTorch."""
     root = Path(project_root) if project_root is not None else Path(__file__).parent.parent.parent
     data_dir = root / "datasets" / "tinydigits"
     train_path = data_dir / "train.pkl"
@@ -132,7 +132,7 @@ def load_tinydigits_arrays(project_root=None):
     )
 
 # =============================================================================
-# 🎯 YOUR TINYTORCH MODULES IN ACTION
+# 🎯 YOUR TRENTORCH MODULES IN ACTION
 # =============================================================================
 #
 # This milestone showcases YOUR complete optimization toolkit:
@@ -776,30 +776,30 @@ def main():
     # ─────────────────────────────────────────────────────────────────────────
     # IMPORT YOUR IMPLEMENTATIONS
     # ─────────────────────────────────────────────────────────────────────────
-    console.print("[bold cyan]📦 Loading YOUR Tiny🔥Torch implementations...[/bold cyan]\n")
+    console.print("[bold cyan]📦 Loading YOUR Tren🔥Torch implementations...[/bold cyan]\n")
 
     try:
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU
         console.print("  [green]✓[/green] Tensor, Linear, ReLU (YOUR implementations)")
 
-        from tinytorch.perf.profiling import Profiler
+        from trentorch.perf.profiling import Profiler
         console.print("  [green]✓[/green] Profiler (YOUR Module 14)")
 
-        from tinytorch.perf.quantization import Quantizer
+        from trentorch.perf.quantization import Quantizer
         console.print("  [green]✓[/green] Quantizer (YOUR Module 15)")
 
-        from tinytorch.perf.compression import Compressor
+        from trentorch.perf.compression import Compressor
         console.print("  [green]✓[/green] Compressor (YOUR Module 16)")
 
-        from tinytorch.perf.acceleration import vectorized_matmul, fused_gelu
+        from trentorch.perf.acceleration import vectorized_matmul, fused_gelu
         console.print("  [green]✓[/green] vectorized_matmul, fused_gelu (YOUR Module 17)")
 
-        from tinytorch.perf.memoization import KVCache
+        from trentorch.perf.memoization import KVCache
         console.print("  [green]✓[/green] KVCache (YOUR Module 18)")
 
-        from tinytorch.perf.benchmarking import Benchmark, MLPerf
+        from trentorch.perf.benchmarking import Benchmark, MLPerf
         console.print("  [green]✓[/green] Benchmark, MLPerf (YOUR Module 19)")
 
     except ImportError as e:
@@ -879,7 +879,7 @@ def main():
     except FileNotFoundError as e:
         console.print(Panel(
             f"[red]{e}[/red]\n\n"
-            "[yellow]Milestone 06 uses the TinyDigits dataset shipped with TinyTorch.[/yellow]",
+            "[yellow]Milestone 06 uses the TinyDigits dataset shipped with TrenTorch.[/yellow]",
             title="TinyDigits Missing",
             border_style="red"
         ))
@@ -890,8 +890,8 @@ def main():
     # ─────────────────────────────────────────────────────────────────────────
     console.print("\n[bold cyan]🏋️ Quick training (10 epochs)...[/bold cyan]")
 
-    from tinytorch.core.optimizers import SGD
-    from tinytorch.core.losses import CrossEntropyLoss
+    from trentorch.core.optimizers import SGD
+    from trentorch.core.losses import CrossEntropyLoss
 
     optimizer = SGD(model.parameters(), lr=CONFIG['learning_rate'])
     loss_fn = CrossEntropyLoss()

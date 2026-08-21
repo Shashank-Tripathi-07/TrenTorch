@@ -1,19 +1,19 @@
 # Environment Validation Tests
 
-Comprehensive tests to ensure TinyTorch environment is correctly configured.
+Comprehensive tests to ensure TrenTorch environment is correctly configured.
 
 ## For Students
 
 ```bash
 # Quick health check
-tito system health
+tren system health
 
 # Verbose output for debugging
-tito system health --verbose
+tren system health --verbose
 ```
 
 **Use when**:
-- After running `tito setup`
+- After running `tren setup`
 - Before starting a new module
 - When something isn't working
 - Sharing output with TAs for help
@@ -27,8 +27,8 @@ Tests 50+ environment checks:
 - **Python Environment**: Version (3.10+), virtual environment, pip
 - **Core Dependencies**: NumPy, Matplotlib, pytest, PyYAML, Rich
 - **Jupyter Environment**: Jupyter, JupyterLab, kernels, Jupytext
-- **TinyTorch Package**: Import, core modules, version
-- **Project Structure**: tinytorch/, modules/, src/, tests/, TITO CLI
+- **TrenTorch Package**: Import, core modules, version
+- **Project Structure**: trentorch/, modules/, src/, tests/, TITO CLI
 - **System Resources**: Disk space, memory
 - **Git Configuration**: Git available, user configured
 
@@ -44,7 +44,7 @@ Auto-discovers and tests ALL packages from requirements files:
 
 ```bash
 # Via TITO (recommended)
-tito system health
+tren system health
 
 # Via pytest
 pytest tests/environment/ -v

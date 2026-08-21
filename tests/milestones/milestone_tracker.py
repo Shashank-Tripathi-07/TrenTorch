@@ -1,7 +1,7 @@
 """
-Compatibility milestone progress tracker for TinyTorch tests and older hooks.
+Compatibility milestone progress tracker for TrenTorch tests and older hooks.
 
-The canonical milestone definitions live in ``tito.commands.milestone``.
+The canonical milestone definitions live in ``tren.commands.milestone``.
 This file mirrors that table so legacy imports do not carry stale module
 names or write to a separate home-directory progress file.
 """
@@ -15,7 +15,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from tito.commands.milestone import MILESTONE_SCRIPTS
+from tren.commands.milestone import MILESTONE_SCRIPTS
 
 console = Console()
 
@@ -39,7 +39,7 @@ def _build_milestones() -> Dict[str, Dict]:
             "name": f"{milestone['year']} - {milestone['name']}",
             "requires": [f"{m:02d}" for m in milestone["required_modules"]],
             "description": milestone["description"],
-            "run_command": f"tito milestone run {milestone_id}",
+            "run_command": f"tren milestone run {milestone_id}",
         }
     return milestones
 
@@ -49,7 +49,7 @@ MILESTONE_ORDER = sorted(MILESTONES.keys())
 
 
 class MilestoneTracker:
-    """Tracks module progress and milestone readiness using .tito files."""
+    """Tracks module progress and milestone readiness using .tren files."""
 
     def __init__(
         self,
@@ -57,8 +57,8 @@ class MilestoneTracker:
         module_progress_file: Optional[Path] = None,
     ):
         root = _project_root()
-        self.progress_file = progress_file or root / ".tito" / "milestones.json"
-        self.module_progress_file = module_progress_file or root / ".tito" / "progress.json"
+        self.progress_file = progress_file or root / ".tren" / "milestones.json"
+        self.module_progress_file = module_progress_file or root / ".tren" / "progress.json"
         self.progress_file.parent.mkdir(parents=True, exist_ok=True)
         self.module_progress_file.parent.mkdir(parents=True, exist_ok=True)
         self.progress = self._load_progress()
@@ -163,7 +163,7 @@ class MilestoneTracker:
         console.print()
 
     def show_progress(self) -> None:
-        table = Table(title="TinyTorch Milestone Progress", box=box.ROUNDED)
+        table = Table(title="TrenTorch Milestone Progress", box=box.ROUNDED)
         table.add_column("Milestone", style="cyan")
         table.add_column("Status", justify="center")
         table.add_column("Requirements", style="dim")

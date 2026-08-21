@@ -6,7 +6,7 @@ name: '⚡ TrenTorch · ✅ Validate'
 #
 # Runs the same 7-stage progressive test suite TinyTorch runs against its own
 # dev branch, adapted for this repo: content lives at the repo root here
-# (no tinytorch/ subdirectory), and main is the only long-lived branch.
+# (no trentorch/ subdirectory), and main is the only long-lived branch.
 #
 # Flow:
 #   1. INLINE_BUILD     — Build package from src/ modules
@@ -27,7 +27,7 @@ name: '⚡ TrenTorch · ✅ Validate'
 #   - Manual trigger can select: linux, windows, or all
 #   - Windows uses Git Bash (shell: bash) for cross-platform compatibility
 #
-# Adapted from harvard-edge/cs249r_book's tinytorch-validate-dev.yml. Not
+# Adapted from harvard-edge/cs249r_book's trentorch-validate-dev.yml. Not
 # included here: the upstream link-check stage (depended on a reusable
 # workflow and shared config from that monorepo that don't exist in this
 # repo) and the publish/preview/PDF workflows (deploy to infrastructure —
@@ -42,7 +42,7 @@ on:
   workflow_dispatch:
     inputs:
       test_type:
-        description: 'Test type to run (matches: tito dev test --<type>)'
+        description: 'Test type to run (matches: tren dev test --<type>)'
         required: false
         default: 'all'
         type: choice
@@ -79,7 +79,7 @@ concurrency:
 
 env:
   TITO_ALLOW_SYSTEM: "1"
-  TINYTORCH_QUIET: "1"
+  TRENTORCH_QUIET: "1"
   PYTHONIOENCODING: "utf-8"  # Required for Windows emoji support in Rich
   PYTHONUTF8: "1"            # Force UTF-8 for all Python I/O (subprocess pipes)
 
@@ -210,10 +210,10 @@ jobs:
         run: |
           echo "📝 Building package from src/ modules..."
           echo "   Tests each module exports correctly in sequence."
-          ./bin/tito dev test --inline --ci
+          ./bin/tren dev test --inline --ci
 
       # Stages 2-5 each need the exported package present to skip their own
-      # redundant `tito dev export --all` (see tito/commands/dev/test.py's
+      # redundant `tren dev export --all` (see tren/commands/dev/test.py's
       # _check_imports/_build_package: without this, every one of those jobs
       # rebuilds the identical package from scratch before it can run its
       # own tests). Sharing Stage 1's already-built output cuts that
@@ -224,7 +224,7 @@ jobs:
         with:
           name: built-package-${{ matrix.os }}
           path: |
-            tinytorch/
+            trentorch/
             modules/
           retention-days: 1
 
@@ -276,7 +276,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          ./bin/tito dev test --unit --ci
+          ./bin/tren dev test --unit --ci
 
   # ===========================================================================
   # STAGE 3: INTEGRATION TESTS - Cross-module validation
@@ -326,7 +326,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          ./bin/tito dev test --integration --ci
+          ./bin/tren dev test --integration --ci
 
   # ===========================================================================
   # STAGE 4: CLI TESTS - Verify CLI commands work
@@ -376,7 +376,7 @@ jobs:
 
       - name: Run CLI Tests
         run: |
-          ./bin/tito dev test --cli --ci
+          ./bin/tren dev test --cli --ci
 
   # ===========================================================================
   # STAGE 5: E2E TESTS - Full user journey validation
@@ -428,7 +428,7 @@ jobs:
 
       - name: Run E2E Tests
         run: |
-          ./bin/tito dev test --e2e --ci
+          ./bin/tren dev test --e2e --ci
 
   # ===========================================================================
   # STAGE 6: FRESH INSTALL - Simulates a real fresh-install experience
@@ -502,7 +502,7 @@ jobs:
         run: |
           echo "🎓 Running user journey validation..."
           echo "   This resets all modules and runs the full user journey."
-          ./bin/tito dev test --user-journey --ci
+          ./bin/tren dev test --user-journey --ci
 
   # ===========================================================================
   # Summary: Collect and report all results

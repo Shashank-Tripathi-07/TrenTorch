@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Integration Tests for TinyTorch Layers Module
+Integration Tests for TrenTorch Layers Module
 
 This file contains the integration tests that were removed from Module 03
 to keep the module focused on unit testing only. These tests demonstrate
@@ -13,8 +13,8 @@ import numpy as np
 rng = np.random.default_rng(7)
 import pytest
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
 
 
 class Sequential:
@@ -207,7 +207,7 @@ def run_performance_benchmarks():
 
 
 if __name__ == "__main__":
-    print("🚀 TINYTORCH LAYERS INTEGRATION TESTS")
+    print("🚀 TRENTORCH LAYERS INTEGRATION TESTS")
     print("=" * 50)
     print("Testing how layers work together with other modules...")
 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
 
         print("\n" + "=" * 50)
         print("🎉 ALL INTEGRATION TESTS PASSED!")
-        print("✅ Layers module integrates perfectly with the TinyTorch system!")
+        print("✅ Layers module integrates perfectly with the TrenTorch system!")
 
     except Exception as e:
         print(f"\n❌ Integration test failed: {e}")

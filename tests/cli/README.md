@@ -1,11 +1,11 @@
 # CLI Test Suite
 
-Comprehensive test suite for the TinyTorch CLI (`tito`). Ensures all commands are properly registered, documented, and executable.
+Comprehensive test suite for the TrenTorch CLI (`tren`). Ensures all commands are properly registered, documented, and executable.
 
 ## Test Files
 
 ### 1. `test_cli_registry.py` - Command Registration Tests
-Validates the command registry in [tito/main.py](../../tito/main.py#L74-L99):
+Validates the command registry in [tren/main.py](../../tren/main.py#L74-L99):
 
 - **TestCLIRegistry**: Core registry validation
   - All commands inherit from `BaseCommand`
@@ -28,10 +28,10 @@ Validates the command registry in [tito/main.py](../../tito/main.py#L74-L99):
 Smoke tests for actual command execution:
 
 - **TestCommandExecution**: Basic execution
-  - Bare `tito` command shows welcome screen
-  - `tito -h` shows help
-  - `tito --version` works
-  - All 18 commands can show help (`tito <cmd> -h`)
+  - Bare `tren` command shows welcome screen
+  - `tren -h` shows help
+  - `tren --version` works
+  - All 18 commands can show help (`tren <cmd> -h`)
   - All subcommands can show help
 
 - **TestCommandGrouping**: Discoverability
@@ -46,8 +46,8 @@ Smoke tests for actual command execution:
 Ensures help text is consistent and complete:
 
 - **TestHelpConsistency**: Formatting consistency
-  - All command helps mention 'tito'
-  - Bare `tito` vs `tito -h` serve different purposes
+  - All command helps mention 'tren'
+  - Bare `tren` vs `tren -h` serve different purposes
   - No references to removed commands
 
 - **TestWelcomeScreen**: Welcome screen quality
@@ -88,7 +88,7 @@ pytest tests/cli/ -v -s
 
 ### ✅ Validates
 
-1. **Registration**: All commands in `TinyTorchCLI.commands` dict
+1. **Registration**: All commands in `TrenTorchCLI.commands` dict
 2. **Implementation**: All commands inherit from `BaseCommand`
 3. **Documentation**: All commands have clear descriptions
 4. **Execution**: All commands can run without crashing
@@ -123,14 +123,14 @@ Key patterns used:
 
 When adding a new command:
 
-1. Add to `TinyTorchCLI.commands` dict in [tito/main.py](../../tito/main.py#L74-L99)
-2. Create command file in `tito/commands/`
+1. Add to `TrenTorchCLI.commands` dict in [tren/main.py](../../tren/main.py#L74-L99)
+2. Create command file in `tren/commands/`
 3. Add to epilog if it's a major command group
 4. Tests will automatically validate it!
 
 When removing a command:
 
-1. Remove from `TinyTorchCLI.commands` dict
+1. Remove from `TrenTorchCLI.commands` dict
 2. Delete command file OR add to `known_internal` in tests
 3. Update epilog/welcome screen
 

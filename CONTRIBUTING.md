@@ -1,10 +1,10 @@
-# Contributing to TinyTorch 🔥
+# Contributing to TrenTorch 🔥
 
-Thank you for your interest in contributing to TinyTorch! This educational ML framework is designed to teach systems engineering principles through hands-on implementation.
+Thank you for your interest in contributing to TrenTorch! This educational ML framework is designed to teach systems engineering principles through hands-on implementation.
 
 ## 🎯 Contributing Philosophy
 
-TinyTorch is an **educational framework** where every contribution should:
+TrenTorch is an **educational framework** where every contribution should:
 - **Enhance learning** - Make concepts clearer for students
 - **Maintain pedagogical flow** - Preserve the learning progression
 - **Follow systems thinking** - Emphasize memory, performance, and scaling
@@ -17,7 +17,7 @@ TinyTorch is an **educational framework** where every contribution should:
 1. **Clone and setup environment**:
    ```bash
    git clone https://github.com/harvard-edge/cs249r_book.git
-   cd cs249r_book/tinytorch
+   cd cs249r_book/trentorch
    python3 -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    pip install -r requirements.txt
@@ -26,9 +26,9 @@ TinyTorch is an **educational framework** where every contribution should:
 
 2. **Verify installation**:
    ```bash
-   tito --version       # Check TinyTorch version
-   tito system health   # Verify environment
-   tito module status   # See module progress
+   tren --version       # Check TrenTorch version
+   tren system health   # Verify environment
+   tren module status   # See module progress
    ```
 
 3. **Read the development guidelines**:
@@ -78,7 +78,7 @@ git checkout -b feature/your-improvement
 # 3. Make changes following standards in CONTRIBUTING.md
 # 4. Test thoroughly
 pytest tests/
-tito module test 01
+tren module test 01
 
 # 5. Commit with descriptive messages
 git add <specific-files>    # Never use 'git add .' — stage files explicitly
@@ -106,7 +106,7 @@ All contributions must pass:
 1. **Module Tests** (run tests for a specific module):
    ```bash
    pytest tests/NN_name/             # e.g., pytest tests/01_tensor/
-   tito module test NN               # e.g., tito module test 01
+   tren module test NN               # e.g., tren module test 01
    ```
 
 2. **Integration Tests**:
@@ -128,11 +128,11 @@ All contributions must pass:
 - **File Format**: Work in `modules/NN_name/name.ipynb` notebooks in Jupyter Lab
 - **Location**: Notebooks are in `modules/NN_name/` directories (e.g., `modules/01_tensor/tensor.ipynb`)
 - **Testing**: Run tests inline as you build
-- **Export**: Use `tito module complete N` to export to package
+- **Export**: Use `tren module complete N` to export to package
 
 **For Contributors** (improving the framework):
 - **Source Files**: Edit `src/NN_name/NN_name.py` files (source of truth, e.g., `src/01_tensor/01_tensor.py`)
-- **Notebooks**: Generated from source files using `tito dev export`
+- **Notebooks**: Generated from source files using `tren dev export`
 - **Structure**: Follow the standardized module structure
 - **Testing**: Include immediate testing after each implementation
 - **Systems Analysis**: MANDATORY memory and performance analysis
@@ -172,7 +172,7 @@ Every contribution should emphasize:
 
 When reporting bugs, include:
 
-1. **Version**: Run `tito --version` to get TinyTorch version
+1. **Version**: Run `tren --version` to get TrenTorch version
 2. **Environment**: OS, Python version, virtual environment status
 3. **Module**: Which module/checkpoint is affected
 4. **Steps to Reproduce**: Exact commands and inputs
@@ -182,10 +182,10 @@ When reporting bugs, include:
 
 ```bash
 # Always include this information
-tito --version
+tren --version
 python3 --version
 echo $VIRTUAL_ENV
-tito system health
+tren system health
 ```
 
 ## 🌟 Feature Requests
@@ -207,7 +207,7 @@ For new features, please:
 
 ## 🏷️ Releases (Maintainers Only)
 
-TinyTorch follows [semantic versioning](https://semver.org/):
+TrenTorch follows [semantic versioning](https://semver.org/):
 
 | Release Type | Version Change | When to Use |
 |--------------|----------------|-------------|
@@ -217,7 +217,7 @@ TinyTorch follows [semantic versioning](https://semver.org/):
 
 ### Release Process
 
-Releases are created via the `tinytorch-publish-live.yml` GitHub Actions workflow:
+Releases are created via the `trentorch-publish-live.yml` GitHub Actions workflow:
 
 1. Maintainer triggers workflow from GitHub Actions
 2. Select release type (patch/minor/major)
@@ -226,7 +226,7 @@ Releases are created via the `tinytorch-publish-live.yml` GitHub Actions workflo
    - Bumps version in code
    - Runs tests and preflight checks
    - Merges dev → main
-   - Deploys to tinytorch.org
+   - Deploys to trentorch.org
    - Creates git tag (e.g., v0.1.1)
    - Creates GitHub Release with notes
    - Publishes to PyPI
@@ -256,7 +256,7 @@ Your commits will be included in the next release with appropriate version bump.
 
 ## 🏆 Contributor Recognition
 
-We use [All Contributors](https://allcontributors.org) to recognize everyone who helps improve TinyTorch.
+We use [All Contributors](https://allcontributors.org) to recognize everyone who helps improve TrenTorch.
 
 ### How to Recognize a Contributor
 
@@ -286,6 +286,6 @@ After merging a PR or resolving an issue, comment:
 
 ---
 
-**Remember**: TinyTorch is about teaching students to understand ML systems by building them. Every contribution should enhance that educational mission! 🎓🔥
+**Remember**: TrenTorch is about teaching students to understand ML systems by building them. Every contribution should enhance that educational mission! 🎓🔥
 
 **Questions?** Check the docs or open a GitHub Discussion.

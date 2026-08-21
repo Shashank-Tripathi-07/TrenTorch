@@ -1,5 +1,5 @@
 """
-Integration tests for TinyTorch optimizers with other modules.
+Integration tests for TrenTorch optimizers with other modules.
 
 Tests that optimizers correctly integrate with:
 - Module 01: Tensor operations
@@ -15,13 +15,13 @@ import numpy as np
 rng = np.random.default_rng(7)
 import pytest
 
-# Import from tinytorch package
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.activations import ReLU, Sigmoid, Softmax, Tanh
-from tinytorch.core.layers import Linear, Layer, Dropout
-from tinytorch.core.autograd import enable_autograd
-from tinytorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
-from tinytorch.core.optimizers import SGD, Adam, AdamW
+# Import from trentorch package
+from trentorch.core.tensor import Tensor
+from trentorch.core.activations import ReLU, Sigmoid, Softmax, Tanh
+from trentorch.core.layers import Linear, Layer, Dropout
+from trentorch.core.autograd import enable_autograd
+from trentorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
+from trentorch.core.optimizers import SGD, Adam, AdamW
 
 # Enable autograd
 enable_autograd()

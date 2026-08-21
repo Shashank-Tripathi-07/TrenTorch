@@ -34,9 +34,9 @@ from pathlib import Path
 # Add project root
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.optimizers import SGD, Adam
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.optimizers import SGD, Adam
+from trentorch.core.autograd import enable_autograd
 
 enable_autograd()
 

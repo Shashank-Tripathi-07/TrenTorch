@@ -41,11 +41,11 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in modules/10_tokenization/tokenization_dev.py
-**Building Side:** Code exports to tinytorch.core.tokenization
+**Building Side:** Code exports to trentorch.core.tokenization
 
 ```python
 # Final package structure:
-from tinytorch.core.tokenization import Tokenizer, CharTokenizer, BPETokenizer
+from trentorch.core.tokenization import Tokenizer, CharTokenizer, BPETokenizer
 ```
 
 **Why this matters:**
@@ -77,7 +77,7 @@ KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 - `numpy` (for numerical operations and statistics)
 - `collections.Counter` (for frequency counting)
 
-**TinyTorch Dependencies**:
+**TrenTorch Dependencies**:
 - Module 01 (Tensor): Optional - only needed if converting tokens to Tensor format
 
 **Important**: This module focuses on text processing fundamentals that work independently.
@@ -91,7 +91,7 @@ Module 10 (Tokenization) → Module 11 (Embeddings)
 ```
 
 Students completing this module will have built the text processing foundation
-that enables all NLP tasks in TinyTorch.
+that enables all NLP tasks in TrenTorch.
 """
 
 # %% [markdown]
@@ -1366,7 +1366,7 @@ def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: Lis
         raise ValueError(
             f"Unknown tokenization strategy: '{strategy}'\n"
             f"  ❌ Strategy '{strategy}' is not recognized\n"
-            f"  💡 TinyTorch supports 'char' (character-level) and 'bpe' (byte-pair encoding) strategies\n"
+            f"  💡 TrenTorch supports 'char' (character-level) and 'bpe' (byte-pair encoding) strategies\n"
             f"  🔧 Use: create_tokenizer('char', corpus=texts) or create_tokenizer('bpe', vocab_size=1000, corpus=texts)"
         )
 
@@ -1808,7 +1808,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1875,7 +1875,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 10")
+    print("Run: tren module complete 10")
 
 # Call the comprehensive test only when running directly
 if __name__ == "__main__":
@@ -2019,7 +2019,7 @@ Congratulations! You've built a complete tokenization system for converting text
 
 ### Ready for Next Steps
 Your tokenization implementation enables text processing for language models.
-Export with: `tito module complete 10`
+Export with: `tren module complete 10`
 
 **Next**: Module 11 will add learnable embeddings that convert your token IDs into rich vector representations!
 """

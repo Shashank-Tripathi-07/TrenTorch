@@ -39,10 +39,10 @@ class TestTrainingLoop:
         loss.backward() → computes gradients
         optimizer.step() → applies gradients to weights
         """
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.optimizers import SGD
-        from tinytorch.core.autograd import enable_autograd
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.autograd import enable_autograd
 
         enable_autograd()
 
@@ -80,10 +80,10 @@ class TestTrainingLoop:
         - Flat = stuck (learning rate too small?)
         - Increasing = exploding (learning rate too large?)
         """
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.optimizers import SGD
-        from tinytorch.core.autograd import enable_autograd
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.autograd import enable_autograd
 
         enable_autograd()
 
@@ -126,12 +126,12 @@ class TestTrainingLoop:
         STUDENT LEARNING: Accumulation trades memory for compute
         while keeping the same effective learning behavior.
         """
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.losses import MSELoss
-        from tinytorch.core.optimizers import SGD
-        from tinytorch.core.training import Trainer
-        from tinytorch.core.autograd import enable_autograd
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.losses import MSELoss
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.training import Trainer
+        from trentorch.core.autograd import enable_autograd
 
         enable_autograd()
 
@@ -184,10 +184,10 @@ class TestTrainingUtilities:
         STUDENT LEARNING: Always call zero_grad() at the START of each
         training iteration, BEFORE the forward pass.
         """
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.optimizers import SGD
-        from tinytorch.core.autograd import enable_autograd
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.autograd import enable_autograd
 
         enable_autograd()
 
@@ -219,8 +219,8 @@ class TestTrainingUtilities:
         STUDENT LEARNING: Training code should handle iterables,
         not just lists with a known length.
         """
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.training import Trainer
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.training import Trainer
 
         class DummyOptimizer:
             def __init__(self):

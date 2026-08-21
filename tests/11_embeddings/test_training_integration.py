@@ -18,10 +18,10 @@ class TestTrainingLoopIntegration:
     def test_basic_training_loop(self):
         """Test basic training loop components work together."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Sigmoid
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.losses import MSELoss
 
             # Build simple network
             layer1 = Linear(2, 4)
@@ -54,9 +54,9 @@ class TestTrainingLoopIntegration:
     def test_optimizer_integration(self):
         """Test optimizer works with model parameters."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
 
             layer = Linear(10, 5)
 
@@ -88,8 +88,8 @@ class TestTrainingLoopIntegration:
     def test_loss_computation(self):
         """Test loss functions work with network outputs."""
         try:
-            from tinytorch.core.losses import MSELoss, CrossEntropyLoss
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.losses import MSELoss, CrossEntropyLoss
+            from trentorch.core.tensor import Tensor
 
             mse = MSELoss()
 
@@ -113,9 +113,9 @@ class TestDataLoaderIntegration:
     def test_batch_processing(self):
         """Test training handles batches correctly."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import DataLoader
+            from trentorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import DataLoader
 
             # Create simple dataset
             X = rng.standard_normal((100, 10))
@@ -145,9 +145,9 @@ class TestDataLoaderIntegration:
     def test_epoch_training(self):
         """Test training for multiple epochs."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.losses import MSELoss
 
             model = Linear(5, 1)
             loss_fn = MSELoss()
@@ -187,8 +187,8 @@ class TestModelEvaluation:
     def test_accuracy_computation(self):
         """Test classification accuracy computation."""
         try:
-            from tinytorch.core.metrics import accuracy
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.metrics import accuracy
+            from trentorch.core.tensor import Tensor
 
             # Binary classification predictions
             predictions = Tensor(np.array([[0.9], [0.1], [0.8], [0.3]]))
@@ -211,7 +211,7 @@ class TestModelEvaluation:
     def test_model_evaluation_mode(self):
         """Test model can switch between training and evaluation."""
         try:
-            from tinytorch.core.layers import Linear
+            from trentorch.core.layers import Linear
 
             model = Linear(10, 5)
 
@@ -236,10 +236,10 @@ class TestCompleteMLPipeline:
     def test_xor_training_pipeline(self):
         """Test complete XOR training pipeline."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Sigmoid
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
 
             # XOR dataset
             X = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32))

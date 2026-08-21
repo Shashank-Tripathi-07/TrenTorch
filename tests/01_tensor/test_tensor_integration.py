@@ -17,12 +17,12 @@ class TestTensorFoundation:
 
     def test_tensor_import(self):
         """Test Tensor can be imported from package."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
         assert Tensor is not None
 
     def test_tensor_creation(self):
         """Test various ways to create tensors."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         # From list
         t1 = Tensor([1, 2, 3])
@@ -38,19 +38,19 @@ class TestTensorFoundation:
 
     def test_tensor_properties(self):
         """Test tensor properties work correctly."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         data = rng.standard_normal((3, 4, 5))
         t = Tensor(data)
 
         assert t.shape == (3, 4, 5)
-        # TinyTorch uses float32 for efficiency
+        # TrenTorch uses float32 for efficiency
         assert t.dtype == np.float32
         assert np.allclose(t.data, data)
 
     def test_tensor_for_neural_networks(self):
         """Test tensor supports operations needed by neural networks."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         # Weights and inputs
         weights = Tensor(rng.standard_normal((10, 20)))
@@ -69,7 +69,7 @@ class TestTensorMemoryManagement:
 
     def test_tensor_memory_sharing(self):
         """Test tensor memory behavior."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         original_data = np.array([1, 2, 3])
         t = Tensor(original_data)
@@ -79,7 +79,7 @@ class TestTensorMemoryManagement:
 
     def test_tensor_copy_semantics(self):
         """Test tensor copying doesn't break."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         t1 = Tensor([1, 2, 3])
         t2 = Tensor(t1.data.copy())
@@ -94,7 +94,7 @@ class TestTensorIntegrationReadiness:
 
     def test_ready_for_activations(self):
         """Test tensor works with activation-like operations."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         t = Tensor(np.array([-1, 0, 1, 2]))
 
@@ -105,7 +105,7 @@ class TestTensorIntegrationReadiness:
 
     def test_ready_for_layers(self):
         """Test tensor works with layer-like operations."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         # Batch of inputs
         x = Tensor(rng.standard_normal((32, 784)))  # MNIST-like
@@ -120,7 +120,7 @@ class TestTensorIntegrationReadiness:
 
     def test_ready_for_spatial_operations(self):
         """Test tensor works with spatial/CNN operations."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         # Image tensor (batch, height, width, channels)
         image = Tensor(rng.standard_normal((8, 32, 32, 3)))
@@ -135,7 +135,7 @@ class TestTensorIntegrationReadiness:
 
     def test_ready_for_autograd(self):
         """Test tensor is ready for gradient computation."""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         # Should be able to create tensors that could track gradients
         t = Tensor(np.array([1.0, 2.0, 3.0]))

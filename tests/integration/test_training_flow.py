@@ -24,12 +24,12 @@ from pathlib import Path
 # Add project root
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.activations import ReLU, Sigmoid
-from tinytorch.core.losses import MSELoss, CrossEntropyLoss
-from tinytorch.core.optimizers import SGD, Adam
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.activations import ReLU, Sigmoid
+from trentorch.core.losses import MSELoss, CrossEntropyLoss
+from trentorch.core.optimizers import SGD, Adam
+from trentorch.core.autograd import enable_autograd
 
 # Enable autograd for all tests
 enable_autograd()

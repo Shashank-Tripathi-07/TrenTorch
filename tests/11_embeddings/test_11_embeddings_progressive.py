@@ -33,7 +33,7 @@ class TestEmbeddingCore:
         ✅ TEST: Embedding class exists
         """
         try:
-            from tinytorch.core.embeddings import Embedding
+            from trentorch.core.embeddings import Embedding
             
             assert Embedding is not None, "Embedding class not found"
             
@@ -45,7 +45,7 @@ class TestEmbeddingCore:
         ✅ TEST: Embedding can be initialized with vocab_size and embed_dim
         """
         try:
-            from tinytorch.core.embeddings import Embedding
+            from trentorch.core.embeddings import Embedding
             
             vocab_size = 1000
             embed_dim = 64
@@ -65,8 +65,8 @@ class TestEmbeddingCore:
         ✅ TEST: Embedding forward converts token IDs to vectors
         """
         try:
-            from tinytorch.core.embeddings import Embedding
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.embeddings import Embedding
+            from trentorch.core.tensor import Tensor
             
             vocab_size = 100
             embed_dim = 32
@@ -90,8 +90,8 @@ class TestEmbeddingCore:
         ✅ TEST: Positional embedding exists (if implemented)
         """
         try:
-            from tinytorch.core.embeddings import PositionalEmbedding
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.embeddings import PositionalEmbedding
+            from trentorch.core.tensor import Tensor
             
             max_len = 512
             embed_dim = 64
@@ -118,9 +118,9 @@ class TestEmbeddingWithTokenization:
         ✅ TEST: Embedding works with tokenized text
         """
         try:
-            from tinytorch.core.embeddings import Embedding
-            from tinytorch.core.tokenizer import Tokenizer
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.embeddings import Embedding
+            from trentorch.core.tokenizer import Tokenizer
+            from trentorch.core.tensor import Tensor
             
             # Create tokenizer
             tokenizer = Tokenizer()
@@ -153,11 +153,11 @@ class TestEmbeddingWithTraining:
         ✅ TEST: Embedding weights can be trained
         """
         try:
-            from tinytorch.core.embeddings import Embedding
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.embeddings import Embedding
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
             
             vocab_size = 50
             embed_dim = 16
@@ -205,14 +205,14 @@ class TestRegressionPrevention:
 
     def test_tensor_still_works(self):
         """✅ Module 01"""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
         a = Tensor([1, 2, 3])
         assert a.shape == (3,)
 
     def test_activations_still_work(self):
         """✅ Module 02"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU
         relu = ReLU()
         x = Tensor([-1, 0, 1])
         y = relu(x)
@@ -220,8 +220,8 @@ class TestRegressionPrevention:
 
     def test_layers_still_work(self):
         """✅ Module 03"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
         layer = Linear(4, 2)
         x = Tensor(rng.standard_normal((2, 4)))
         y = layer(x)
@@ -229,8 +229,8 @@ class TestRegressionPrevention:
 
     def test_losses_still_work(self):
         """✅ Module 04"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.losses import MSELoss
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.losses import MSELoss
         loss_fn = MSELoss()
         pred = Tensor([[1.0]])
         target = Tensor([[2.0]])
@@ -239,8 +239,8 @@ class TestRegressionPrevention:
 
     def test_dataloader_still_works(self):
         """✅ Module 05"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.dataloader import TensorDataset, DataLoader
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.dataloader import TensorDataset, DataLoader
         data = Tensor(rng.standard_normal((10, 3)))
         targets = Tensor(np.arange(10).astype(float))
         dataset = TensorDataset(data, targets)
@@ -249,18 +249,18 @@ class TestRegressionPrevention:
 
     def test_optimizers_still_work(self):
         """✅ Module 07"""
-        from tinytorch.core.optimizers import SGD
-        from tinytorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.layers import Linear
         layer = Linear(3, 2)
         opt = SGD(layer.parameters(), lr=0.01)
         assert hasattr(opt, 'step')
 
     def test_training_still_works(self):
         """✅ Module 08"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.losses import MSELoss
-        from tinytorch.core.optimizers import SGD
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.losses import MSELoss
+        from trentorch.core.optimizers import SGD
         
         layer = Linear(4, 2)
         loss_fn = MSELoss()
@@ -276,8 +276,8 @@ class TestRegressionPrevention:
     def test_convolutions_still_work(self):
         """✅ Module 09"""
         try:
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.tensor import Tensor
             
             conv = Conv2d(3, 8, kernel_size=3, padding=1)
             x = Tensor(rng.standard_normal((2, 3, 8, 8)))
@@ -289,7 +289,7 @@ class TestRegressionPrevention:
     def test_tokenization_still_works(self):
         """✅ Module 10"""
         try:
-            from tinytorch.core.tokenizer import Tokenizer
+            from trentorch.core.tokenizer import Tokenizer
             
             tokenizer = Tokenizer()
             tokenizer.fit(["hello world"])
@@ -318,8 +318,8 @@ class TestModule11Completion:
         }
         
         try:
-            from tinytorch.core.embeddings import Embedding
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.embeddings import Embedding
+            from trentorch.core.tensor import Tensor
             
             # Test 1: Exists
             capabilities["Embedding exists"] = True

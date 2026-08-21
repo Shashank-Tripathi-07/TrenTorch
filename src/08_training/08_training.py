@@ -42,11 +42,11 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/08_training/training_dev.py`
-**Building Side:** Code exports to `tinytorch.core.training`
+**Building Side:** Code exports to `trentorch.core.training`
 
 ```python
 # How to use this module:
-from tinytorch.core.training import Trainer, CosineSchedule, clip_grad_norm
+from trentorch.core.training import Trainer, CosineSchedule, clip_grad_norm
 ```
 
 **Why this matters:**
@@ -70,13 +70,13 @@ import sys
 import os
 
 # Import dependencies from other modules
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.losses import MSELoss, CrossEntropyLoss
-from tinytorch.core.optimizers import SGD, AdamW
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.losses import MSELoss, CrossEntropyLoss
+from trentorch.core.optimizers import SGD, AdamW
 
 # Enable autograd for gradient tracking (required for training)
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.autograd import enable_autograd
 enable_autograd()
 
 # Constants for learning rate scheduling defaults
@@ -94,12 +94,12 @@ DEFAULT_TOTAL_EPOCHS = 100  # Default total epochs for learning rate schedule
 - `numpy` (for array operations and numerical computing)
 - `pickle` (for checkpoint serialization)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` - Tensor class from Module 01
-- `tinytorch.core.layers` - Linear layer from Module 03
-- `tinytorch.core.losses` - Loss functions from Module 04
-- `tinytorch.core.autograd` - Gradient tracking from Module 06
-- `tinytorch.core.optimizers` - SGD, AdamW from Module 07
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` - Tensor class from Module 01
+- `trentorch.core.layers` - Linear layer from Module 03
+- `trentorch.core.losses` - Loss functions from Module 04
+- `trentorch.core.autograd` - Gradient tracking from Module 06
+- `trentorch.core.optimizers` - SGD, AdamW from Module 07
 
 **Dependency Flow**:
 ```
@@ -1799,7 +1799,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1905,7 +1905,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 08")
+    print("Run: tren module complete 08")
 
 if __name__ == "__main__":
     test_module()
@@ -2042,7 +2042,7 @@ Congratulations! You've built the complete training infrastructure that orchestr
 - **Checkpoint overhead**: Pickle adds 10-30% overhead, optimizer state doubles size
 - **Scheduling behavior**: Cosine annealing balances aggressive initial learning with fine-tuning
 
-Export with: `tito module complete 08`
+Export with: `tren module complete 08`
 
 **Next**: Module 09 will add convolution operations for spatial neural network processing!
 """

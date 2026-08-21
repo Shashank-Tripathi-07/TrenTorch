@@ -11,7 +11,7 @@ after the 1969 XOR crisis.
 
 🎯 MILESTONE 3: MULTI-LAYER PERCEPTRON ON TINYDIGITS
 The 1986 backpropagation paper proved multi-layer networks could solve
-real-world problems. Let's recreate that breakthrough using YOUR Tiny🔥Torch!
+real-world problems. Let's recreate that breakthrough using YOUR Tren🔥Torch!
 
 ✅ REQUIRED MODULES (Run after Module 08):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -56,7 +56,7 @@ can
   - 150 training + 47 test samples (curated for fast learning)
   - 8×8 grayscale images (64 features)
   - 10 classes (digits 0-9)
-  - Ships with TinyTorch (~310 KB, no download!)
+  - Ships with TrenTorch (~310 KB, no download!)
 
 📊 EXPECTED RESULTS:
 - Training time: ~1-2 minutes
@@ -74,9 +74,9 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, os.getcwd())
 
-# Import TinyTorch components YOU BUILT!
-from tinytorch import Tensor, Linear, ReLU, CrossEntropyLoss, SGD
-from tinytorch.core.dataloader import TensorDataset, DataLoader
+# Import TrenTorch components YOU BUILT!
+from trentorch import Tensor, Linear, ReLU, CrossEntropyLoss, SGD
+from trentorch.core.dataloader import TensorDataset, DataLoader
 
 # Rich for beautiful output
 from rich.console import Console
@@ -89,7 +89,7 @@ from rich import box
 console = Console()
 
 # =============================================================================
-# 🎯 YOUR TINYTORCH MODULES IN ACTION
+# 🎯 YOUR TRENTORCH MODULES IN ACTION
 # =============================================================================
 #
 # This milestone showcases YOUR complete ML system on a classification task:
@@ -200,7 +200,7 @@ def load_digit_dataset():
         border_style="cyan"
     ))
 
-    # Load from TinyDigits dataset (shipped with TinyTorch)
+    # Load from TinyDigits dataset (shipped with TrenTorch)
     project_root = Path(__file__).parent.parent.parent
     train_path = project_root / "datasets" / "tinydigits" / "train.pkl"
     test_path = project_root / "datasets" / "tinydigits" / "test.pkl"
@@ -635,7 +635,7 @@ def train_mlp():
         if run_experiment:
             compare_batch_sizes(train_images, train_labels, test_images, test_labels)
     except EOFError:
-        # Non-interactive mode (e.g., tito milestone run) - skip experiment
+        # Non-interactive mode (e.g., tren milestone run) - skip experiment
         pass
 
 

@@ -42,11 +42,11 @@ By the end of this module, you will:
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/06_autograd/autograd_dev.py`
-**Building Side:** Code exports to `tinytorch.core.autograd`
+**Building Side:** Code exports to `trentorch.core.autograd`
 
 ```python
 # How to use this module:
-from tinytorch.core.autograd import Function, enable_autograd
+from trentorch.core.autograd import Function, enable_autograd
 ```
 
 **Why this matters:**
@@ -68,7 +68,7 @@ from typing import Optional, List, Tuple
 import sys
 import os
 
-from tinytorch.core.tensor import Tensor
+from trentorch.core.tensor import Tensor
 
 # Constants for numerical differentiation
 EPSILON = 1e-7  # Small perturbation for numerical gradient computation
@@ -2832,8 +2832,8 @@ def enable_autograd(quiet=False):
 
     # Patch activations and losses to track gradients
     try:
-        from tinytorch.core.activations import Sigmoid, ReLU, Softmax, GELU, Tanh
-        from tinytorch.core.losses import BinaryCrossEntropyLoss, MSELoss, CrossEntropyLoss
+        from trentorch.core.activations import Sigmoid, ReLU, Softmax, GELU, Tanh
+        from trentorch.core.losses import BinaryCrossEntropyLoss, MSELoss, CrossEntropyLoss
 
         # Store original methods
         _original_sigmoid_forward = Sigmoid.forward
@@ -2937,7 +2937,7 @@ def enable_autograd(quiet=False):
 
         def tracked_ce_forward(self, logits, targets):
             """Cross-entropy loss with gradient tracking."""
-            from tinytorch.core.losses import log_softmax
+            from trentorch.core.losses import log_softmax
 
             # Compute log-softmax for numerical stability
             log_probs = log_softmax(logits, dim=-1)
@@ -2990,7 +2990,7 @@ enable_autograd(quiet=True)
 """
 ## ⚠️ DANGER: In-Place Operations Break Autograd
 
-**THIS IS THE MOST COMMON SILENT FAILURE IN TINYTORCH!**
+**THIS IS THE MOST COMMON SILENT FAILURE IN TRENTORCH!**
 
 ### Critical Rule: Never Modify Tensors In-Place When requires_grad=True
 
@@ -3072,15 +3072,15 @@ If your gradients look wrong or you get mysterious errors:
 ### Why PyTorch Has torch.no_grad()
 
 PyTorch explicitly disables gradient tracking during parameter updates to allow safe in-place operations.
-TinyTorch now supports this via the `no_grad` context manager:
+TrenTorch now supports this via the `no_grad` context manager:
 
 ```python
 # PyTorch pattern
 with torch.no_grad():
     W -= 0.01 * W.grad  # Safe inside no_grad context
 
-# TinyTorch equivalent
-from tinytorch.core.autograd import no_grad
+# TrenTorch equivalent
+from trentorch.core.autograd import no_grad
 with no_grad():
     W -= 0.01 * W.grad  # No graph built, safe for parameter updates
 ```
@@ -3224,7 +3224,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Autograd works for complex computation graphs
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -3312,7 +3312,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 06")
+    print("Run: tren module complete 06")
 
 # Test function defined above, will be called in main block
 
@@ -3491,7 +3491,7 @@ Congratulations! You've built the gradient engine that makes neural networks lea
 
 ### Ready for Next Steps
 Your autograd implementation enables optimization!
-Export with: `tito module complete 06`
+Export with: `tren module complete 06`
 
 **Next**: Module 07 will add optimizers (SGD, Adam) that use these gradients to actually train neural networks!
 """

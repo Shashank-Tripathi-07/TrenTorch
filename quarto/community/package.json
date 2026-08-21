@@ -1,5 +1,5 @@
 {
-  "name": "tinytorch-community-tests",
+  "name": "trentorch-community-tests",
   "version": "1.0.0",
   "description": "E2E tests for Tiny Torch Community",
   "scripts": {

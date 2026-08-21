@@ -1,7 +1,7 @@
 """
 Regression tests for community progress sync (issue #1849).
 
-These guard the bug where the TinyTorch dashboard did not reflect CLI progress:
+These guard the bug where the TrenTorch dashboard did not reflect CLI progress:
 
 1. Automatic sync was silently skipped on any non-TTY shell (Git Bash / MinTTY
    on Windows, IDE terminals), because the trigger gated on
@@ -20,19 +20,19 @@ from pathlib import Path
 
 import pytest
 
-# Add tito to path (CI exports the package first; these tests only need tito).
+# Add tren to path (CI exports the package first; these tests only need tren).
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from rich.console import Console
 
-from tito.core import runtime
-from tito.core import submission
-from tito.core.submission import (
+from tren.core import runtime
+from tren.core import submission
+from tren.core.submission import (
     SyncResult,
     SubmissionHandler,
     auto_sync_after_completion,
 )
-from tito.core.config import CLIConfig
+from tren.core.config import CLIConfig
 
 
 @pytest.fixture
@@ -206,7 +206,7 @@ def test_sync_result_truthiness():
 
 def test_community_sync_subcommand_registered():
     import argparse
-    from tito.commands.community import CommunityCommand
+    from tren.commands.community import CommunityCommand
 
     cmd = CommunityCommand(CLIConfig.from_project_root(Path.cwd()))
     parser = argparse.ArgumentParser()
@@ -216,10 +216,10 @@ def test_community_sync_subcommand_registered():
 
 
 def test_community_sync_requires_login(monkeypatch):
-    from tito.commands.community import CommunityCommand
+    from tren.commands.community import CommunityCommand
     import argparse
 
-    monkeypatch.setattr("tito.commands.community.auth.is_logged_in", lambda: False)
+    monkeypatch.setattr("tren.commands.community.auth.is_logged_in", lambda: False)
     cmd = CommunityCommand(CLIConfig.from_project_root(Path.cwd()))
     ns = argparse.Namespace(community_command="sync")
     assert cmd.run(ns) == 1  # not logged in -> nonzero exit, no upload attempted

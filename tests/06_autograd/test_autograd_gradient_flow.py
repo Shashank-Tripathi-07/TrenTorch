@@ -13,13 +13,13 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
-from tinytorch.core.activations import GELU
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
+from trentorch.core.activations import GELU
 # Try to import transformer for mean/sqrt monkey-patches (Module 13)
 # This is optional - tests will skip if not available
 try:
-    from tinytorch.core import transformer
+    from trentorch.core import transformer
 except ImportError:
     transformer = None  # Transformer module not yet available
 

@@ -3,7 +3,7 @@
 r"""
 measure-pdf-images.py — observed-size figure sizing recommendations.
 
-Walk the rendered TinyTorch Lab Guide PDF, read every image's actual
+Walk the rendered TrenTorch Lab Guide PDF, read every image's actual
 on-page bounding box (the geometry XeLaTeX put on the page AFTER our
 global \includegraphics cap fired). For each image, match it back to
 the source .qmd reference, classify the rendered size against an
@@ -37,7 +37,7 @@ Pipeline:
      exactly which author line the override should land on.
   7. Emit TSV to stdout.
 
-Usage (from `tinytorch/quarto/`):
+Usage (from `trentorch/quarto/`):
   python3 tools/measure-pdf-images.py
   python3 tools/measure-pdf-images.py --verbose    # include OK rows
   python3 tools/measure-pdf-images.py --json       # machine-readable
@@ -278,14 +278,14 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--site", type=Path, default=Path.cwd())
     p.add_argument("--pdf", type=Path, default=None,
-                   help="rendered PDF (default: pdf/_build/TinyTorch-Guide.pdf)")
+                   help="rendered PDF (default: pdf/_build/TrenTorch-Guide.pdf)")
     p.add_argument("--verbose", "-v", action="store_true",
                    help="include OK rows")
     p.add_argument("--json", action="store_true")
     args = p.parse_args()
 
     site = args.site
-    pdf_f = args.pdf or site / "pdf/_build/TinyTorch-Guide.pdf"
+    pdf_f = args.pdf or site / "pdf/_build/TrenTorch-Guide.pdf"
     if not pdf_f.exists():
         print(f"error: PDF not found at {pdf_f}. Run `quarto render pdf/` first.",
               file=sys.stderr)

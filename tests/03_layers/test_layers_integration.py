@@ -17,12 +17,12 @@ class TestLayerFoundation:
 
     def test_layer_base_import(self):
         """Test Layer base class can be imported."""
-        from tinytorch.core.layers import Layer
+        from trentorch.core.layers import Layer
         assert Layer is not None
 
     def test_layer_interface(self):
         """Test Layer has required interface."""
-        from tinytorch.core.layers import Layer
+        from trentorch.core.layers import Layer
 
         layer = Layer()
 
@@ -34,8 +34,8 @@ class TestLayerFoundation:
 
     def test_layer_inheritance(self):
         """Test Layer can be inherited from."""
-        from tinytorch.core.layers import Layer
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Layer
+        from trentorch.core.tensor import Tensor
 
         class TestLayer(Layer):
             def forward(self, x):
@@ -54,8 +54,8 @@ class TestLayerTensorIntegration:
 
     def test_layer_accepts_tensor_input(self):
         """Test layers accept Tensor inputs."""
-        from tinytorch.core.layers import Layer
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Layer
+        from trentorch.core.tensor import Tensor
 
         class IdentityLayer(Layer):
             def forward(self, x):
@@ -70,8 +70,8 @@ class TestLayerTensorIntegration:
 
     def test_layer_produces_tensor_output(self):
         """Test layers produce Tensor outputs."""
-        from tinytorch.core.layers import Layer
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Layer
+        from trentorch.core.tensor import Tensor
 
         class ScaleLayer(Layer):
             def __init__(self, scale=2.0):
@@ -89,8 +89,8 @@ class TestLayerTensorIntegration:
 
     def test_layer_batch_processing(self):
         """Test layers handle batch dimensions correctly."""
-        from tinytorch.core.layers import Layer
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Layer
+        from trentorch.core.tensor import Tensor
 
         class AddBiasLayer(Layer):
             def __init__(self, bias_value=1.0):
@@ -115,8 +115,8 @@ class TestLayerChaining:
 
     def test_layer_output_as_input(self):
         """Test output of one layer can be input to another."""
-        from tinytorch.core.layers import Layer
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Layer
+        from trentorch.core.tensor import Tensor
 
         class MultiplyLayer(Layer):
             def __init__(self, factor):
@@ -136,8 +136,8 @@ class TestLayerChaining:
 
     def test_sequential_layer_processing(self):
         """Test sequential processing through multiple layers."""
-        from tinytorch.core.layers import Layer
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Layer
+        from trentorch.core.tensor import Tensor
 
         class MultiplyLayer(Layer):
             def __init__(self, factor):
@@ -173,8 +173,8 @@ class TestLayerParameterManagement:
 
     def test_layer_with_parameters(self):
         """Test layer can store and use parameters."""
-        from tinytorch.core.layers import Layer
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Layer
+        from trentorch.core.tensor import Tensor
 
         class ParameterizedLayer(Layer):
             def __init__(self, input_size, output_size):
@@ -197,8 +197,8 @@ class TestLayerParameterManagement:
 
     def test_layer_parameter_shapes(self):
         """Test layer parameters have correct shapes."""
-        from tinytorch.core.layers import Layer
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Layer
+        from trentorch.core.tensor import Tensor
 
         class LinearLayer(Layer):
             def __init__(self, in_features, out_features):

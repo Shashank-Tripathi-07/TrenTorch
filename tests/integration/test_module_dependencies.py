@@ -7,7 +7,7 @@ Tests how each module interfaces with modules that came before it
 import numpy as np
 rng = np.random.default_rng(7)
 
-# Module dependency graph for TinyTorch
+# Module dependency graph for TrenTorch
 # Current module structure:
 # 01_tensor, 02_activations, 03_layers, 04_losses, 05_dataloader,
 # 06_autograd, 07_optimizers, 08_training, 09_convolutions,
@@ -87,7 +87,7 @@ def get_module_integration_tests(module_name: str):
 # Base integration tests that check module interfaces
 def test_tensor_integration():
     """Test that Tensor works as expected for dependent modules."""
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.tensor import Tensor
     import numpy as np
     rng = np.random.default_rng(7)
 
@@ -104,7 +104,7 @@ def test_tensor_integration():
 
 def test_layer_integration():
     """Test Layer base class interface."""
-    from tinytorch.core.layers import Layer
+    from trentorch.core.layers import Layer
 
     # Test that Layer exists and has expected interface
     assert hasattr(Layer, 'forward'), "Layer should have forward method"
@@ -117,8 +117,8 @@ def test_layer_integration():
 
 def test_dense_integration():
     """Test Dense layer integration with Tensor."""
-    from tinytorch.core.layers import Linear
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.layers import Linear
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     # Test Dense with Tensor input
@@ -132,8 +132,8 @@ def test_dense_integration():
 
 def test_dense_with_tensor():
     """Test that Dense properly uses Tensor for weights/bias."""
-    from tinytorch.core.layers import Linear
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.layers import Linear
+    from trentorch.core.tensor import Tensor
 
     layer = Linear(10, 5)
 
@@ -147,9 +147,9 @@ def test_dense_with_tensor():
 
 def test_dense_with_activations():
     """Test Dense layer works with activation functions."""
-    from tinytorch.core.layers import Linear
-    from tinytorch.core.activations import ReLU, Sigmoid
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.layers import Linear
+    from trentorch.core.activations import ReLU, Sigmoid
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     # Build small network: Dense -> ReLU -> Dense -> Sigmoid
@@ -177,8 +177,8 @@ def test_dense_with_activations():
 
 def test_multi_layer_network():
     """Test building multi-layer networks with Dense."""
-    from tinytorch.core.layers import Linear
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.layers import Linear
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     # Build 3-layer network
@@ -205,8 +205,8 @@ def test_multi_layer_network():
 
 def test_conv2d_with_tensor():
     """Test Conv2d integration with Tensor."""
-    from tinytorch.core.spatial import Conv2d
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.spatial import Conv2d
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     # Create Conv2d layer
@@ -223,8 +223,8 @@ def test_conv2d_with_tensor():
 
 def test_pooling_integration():
     """Test pooling layers work with Conv2d output."""
-    from tinytorch.core.spatial import Conv2d, MaxPool2d
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.spatial import Conv2d, MaxPool2d
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     conv = Conv2d(3, 32, kernel_size=3, padding=1)
@@ -241,8 +241,8 @@ def test_pooling_integration():
 
 def test_attention_with_dense():
     """Test attention mechanism uses Dense layers."""
-    from tinytorch.core.attention import MultiHeadAttention
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.attention import MultiHeadAttention
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     attention = MultiHeadAttention(embed_dim=64, num_heads=4)
@@ -254,8 +254,8 @@ def test_attention_with_dense():
 
 def test_multihead_integration():
     """Test multi-head attention integration."""
-    from tinytorch.core.attention import MultiHeadAttention
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.attention import MultiHeadAttention
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     mha = MultiHeadAttention(embed_dim=64, num_heads=8)
@@ -271,7 +271,7 @@ def test_autograd_integration():
     NOTE: This test requires autograd to be enabled (Module 06+).
     It will skip if requires_grad is not available.
     """
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     # Check if autograd is enabled (requires_grad parameter available)
@@ -287,8 +287,8 @@ def test_autograd_integration():
 
 def test_optimizer_integration():
     """Test optimizers work with layers."""
-    from tinytorch.core.optimizers import SGD
-    from tinytorch.core.layers import Linear
+    from trentorch.core.optimizers import SGD
+    from trentorch.core.layers import Linear
 
     layer = Linear(10, 5)
     params = layer.parameters()
@@ -300,10 +300,10 @@ def test_optimizer_integration():
 
 def test_training_loop_integration():
     """Test training loop integrates optimizer and autograd."""
-    from tinytorch.core.layers import Linear
-    from tinytorch.core.optimizers import SGD
-    from tinytorch.core.losses import MSELoss
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.layers import Linear
+    from trentorch.core.optimizers import SGD
+    from trentorch.core.losses import MSELoss
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     # Simple model
@@ -330,8 +330,8 @@ def test_loss_backward_integration():
     NOTE: This test requires autograd to be enabled (Module 06+).
     It will skip if requires_grad is not available.
     """
-    from tinytorch.core.losses import MSELoss
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.losses import MSELoss
+    from trentorch.core.tensor import Tensor
     import numpy as np
 
     loss_fn = MSELoss()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Training Capability Tests for TinyTorch
+Training Capability Tests for TrenTorch
 ========================================
 Tests that models can actually learn (not just forward pass).
 Validates gradient flow, parameter updates, and convergence.
@@ -15,11 +15,11 @@ rng = np.random.default_rng(7)
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.insert(0, project_root)
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.activations import ReLU, Sigmoid
-from tinytorch.core.losses import MSELoss as MeanSquaredError, CrossEntropyLoss
-from tinytorch.core.optimizers import SGD, Adam
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.activations import ReLU, Sigmoid
+from trentorch.core.losses import MSELoss as MeanSquaredError, CrossEntropyLoss
+from trentorch.core.optimizers import SGD, Adam
 class Sequential:
     """Simple sequential container for testing."""
     def __init__(self, layers):

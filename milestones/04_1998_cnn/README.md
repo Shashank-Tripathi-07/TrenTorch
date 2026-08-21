@@ -44,7 +44,7 @@ CNNs that exploit spatial structure in images:
 
 ## Milestone Structure
 
-This milestone has **two parts** that progressively showcase your TinyTorch modules:
+This milestone has **two parts** that progressively showcase your TrenTorch modules:
 
 ### Part 1: TinyDigits (works offline, default)
 
@@ -124,8 +124,8 @@ This is why CNNs remained state-of-the-art for vision until Vision Transformers 
 ## Running the Milestone
 
 ```bash
-# Default milestone path from the TinyTorch project root
-tito milestone run 04
+# Default milestone path from the TrenTorch project root
+tren milestone run 04
 
 # Or run the default script directly
 cd milestones/04_1998_cnn

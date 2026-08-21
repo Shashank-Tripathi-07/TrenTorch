@@ -1,6 +1,6 @@
-# Organizational Insights from TinyTorch Development History
+# Organizational Insights from TrenTorch Development History
 
-This document summarizes key organizational decisions and learnings from TinyTorch's development history that inform the paper's discussion of curriculum design and infrastructure.
+This document summarizes key organizational decisions and learnings from TrenTorch's development history that inform the paper's discussion of curriculum design and infrastructure.
 
 ## Key Organizational Evolutions
 
@@ -10,7 +10,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 
 **Key Decision**:
 - **Source of Truth**: `modules/NN_name/name_dev.py` (Python files with Jupytext percent format)
-- **Generated Artifacts**: `.ipynb` files generated via `tito nbgrader generate` for student assignments
+- **Generated Artifacts**: `.ipynb` files generated via `tren nbgrader generate` for student assignments
 - **Never Commit**: `.ipynb` files excluded from version control during development
 
 **Rationale**:
@@ -74,24 +74,24 @@ This document summarizes key organizational decisions and learnings from TinyTor
 
 ### 4. PyTorch-Inspired Package Organization
 
-**Evolution**: Package structure evolved to mirror PyTorch's organization (`tinytorch.core`, `tinytorch.nn`, `tinytorch.optim`) enabling progressive imports.
+**Evolution**: Package structure evolved to mirror PyTorch's organization (`trentorch.core`, `trentorch.nn`, `trentorch.optim`) enabling progressive imports.
 
 **Key Decision**:
-- **Progressive Exports**: Each completed module exports to package, enabling `from tinytorch.nn import Linear` after Module 03
+- **Progressive Exports**: Each completed module exports to package, enabling `from trentorch.nn import Linear` after Module 03
 - **Package Structure**: Mirrors PyTorch (`core`, `nn`, `optim`, `data`, `profiling`) for transfer learning
 - **NBDev Integration**: `#| export` directives and `#| default_exp` targets enable automated package generation
 - **Immediate Usability**: Completed modules become importable immediately, creating tangible progress
 
 **Rationale**:
-- Transfer learning: Students familiar with PyTorch recognize TinyTorch structure
+- Transfer learning: Students familiar with PyTorch recognize TrenTorch structure
 - Progressive accumulation: Framework grows module-by-module, visible through imports
 - Professional standards: Package organization mirrors production frameworks
 - Motivation: Students see concrete evidence of progress through expanding imports
 
 **Evidence from History**:
-- Commit: "Update tinytorch and tito with module exports"
+- Commit: "Update trentorch and tren with module exports"
 - Commit: "feat: Add PyTorch-style __call__ methods and update milestone syntax"
-- Package structure enables milestone validation: "from tinytorch.nn import Transformer" after Module 13
+- Package structure enables milestone validation: "from trentorch.nn import Transformer" after Module 13
 
 **Paper Relevance**: This package organization directly supports Section 4's "Package Organization" subsection and the claim that "students build a working framework progressively, not isolated exercises."
 
@@ -152,7 +152,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 **Key Decision**:
 - **NBGrader Metadata**: Cells marked with `nbgrader` metadata for automated grading
 - **NBDev Export**: `#| export` directives enable package generation from notebooks
-- **Workflow**: `tito nbgrader generate` creates student assignments, `tito module complete` exports to package
+- **Workflow**: `tren nbgrader generate` creates student assignments, `tren module complete` exports to package
 - **Solution Hiding**: `### BEGIN SOLUTION` / `### END SOLUTION` blocks hide implementations from students
 
 **Rationale**:
@@ -164,7 +164,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 **Evidence from History**:
 - Commit: "Fix NBGrader metadata for Modules 15 and 16"
 - Documentation: `docs/development/module-rules.md` details NBGrader integration
-- Workflow: `tito` CLI integrates both tools seamlessly
+- Workflow: `tren` CLI integrates both tools seamlessly
 
 **Paper Relevance**: This workflow supports Section 4's "Automated Assessment Infrastructure" discussion and demonstrates how curriculum design integrates assessment with learning.
 
@@ -174,7 +174,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 
 ### What These Evolutions Reveal
 
-1. **Iterative Design**: TinyTorch's organization evolved through practical use, not upfront design. This suggests curriculum design benefits from iterative refinement based on student feedback and implementation challenges.
+1. **Iterative Design**: TrenTorch's organization evolved through practical use, not upfront design. This suggests curriculum design benefits from iterative refinement based on student feedback and implementation challenges.
 
 2. **Pedagogical Principles Drive Technical Decisions**: Every organizational decision (Python-first, inline testing, package structure) serves pedagogical goals (cognitive load management, immediate feedback, transfer learning).
 
@@ -190,7 +190,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 - Subsection on "Organizational Patterns" discussing how Python-first workflow, inline testing, and package organization evolved through iterative refinement
 - Discussion of how professional development practices (Git workflows, code review) integrate naturally with educational content
 
-**Section 3 (TinyTorch Architecture) could expand**:
+**Section 3 (TrenTorch Architecture) could expand**:
 - "Module Structure" subsection could reference how standardization emerged from practical use
 - "Package Organization" could discuss how PyTorch-inspired structure enables transfer learning
 
@@ -200,7 +200,7 @@ This document summarizes key organizational decisions and learnings from TinyTor
 
 ## Questions for Paper Authors
 
-1. **Should we add explicit discussion of organizational evolution?** The paper currently describes TinyTorch's current state but doesn't discuss how it evolved. Adding this could strengthen the "design patterns" contribution.
+1. **Should we add explicit discussion of organizational evolution?** The paper currently describes TrenTorch's current state but doesn't discuss how it evolved. Adding this could strengthen the "design patterns" contribution.
 
 2. **How much technical detail about workflow?** The Python-first workflow and NBGrader integration are mentioned but not detailed. Should we expand these discussions?
 

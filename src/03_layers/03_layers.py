@@ -41,13 +41,13 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in modules/03_layers/layers_dev.py
-**Building Side:** Code exports to tinytorch.core.layers
+**Building Side:** Code exports to trentorch.core.layers
 
 ```python
 # Final package structure:
-from tinytorch.core.layers import Linear, Dropout  # This module
-from tinytorch.core.tensor import Tensor  # Module 01 - foundation
-from tinytorch.core.activations import ReLU, Sigmoid  # Module 02 - intelligence
+from trentorch.core.layers import Linear, Dropout  # This module
+from trentorch.core.tensor import Tensor  # Module 01 - foundation
+from trentorch.core.activations import ReLU, Sigmoid  # Module 02 - intelligence
 ```
 
 **Why this matters:**
@@ -69,9 +69,9 @@ import numpy as np
 # milestones/01_1958_perceptron/01_rosenblatt_forward.py for the pattern.
 rng = np.random.default_rng(7)
 
-# Import from TinyTorch package (previous modules must be completed and exported)
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.activations import ReLU, Sigmoid
+# Import from TrenTorch package (previous modules must be completed and exported)
+from trentorch.core.tensor import Tensor
+from trentorch.core.activations import ReLU, Sigmoid
 
 # Constants for weight initialization
 # Note: True Xavier/Glorot uses sqrt(2/(fan_in+fan_out)), but we use the simpler
@@ -92,9 +92,9 @@ DROPOUT_MAX_PROB = 1.0  # Maximum dropout probability (drop everything)
 **External Dependencies**:
 - `numpy` (for array operations and numerical computing)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor.Tensor` (Module 01)
-- `tinytorch.core.activations.ReLU, Sigmoid` (Module 02)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor.Tensor` (Module 01)
+- `trentorch.core.activations.ReLU, Sigmoid` (Module 02)
 
 **Important**: This module depends on Tensor and Activations.
 Ensure previous modules are completed and exported.
@@ -883,7 +883,7 @@ model = Sequential(Linear(784, 128), ReLU(), Linear(128, 10))
 out = model(x)  # Chains all layers automatically
 ```
 
-This is TinyTorch's equivalent of PyTorch's nn.Sequential - simpler but same idea.
+This is TrenTorch's equivalent of PyTorch's nn.Sequential - simpler but same idea.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "sequential", "solution": false}
@@ -1248,7 +1248,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1311,7 +1311,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 03")
+    print("Run: tren module complete 03")
 
 # %% [markdown]
 """
@@ -1461,7 +1461,7 @@ Congratulations! You've built the fundamental building blocks that make neural n
 ### Ready for Next Steps
 Your layer implementation enables building complete neural networks! The Linear layer provides learnable transformations, manual composition chains them together, and Dropout prevents overfitting.
 
-Export with: `tito module complete 03`
+Export with: `tren module complete 03`
 
 **Next**: Module 04 will add loss functions (CrossEntropyLoss, MSELoss) that measure how wrong your model is - the foundation for learning!
 """

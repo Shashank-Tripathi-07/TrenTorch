@@ -41,11 +41,11 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/09_convolutions/convolutions_dev.py`
-**Building Side:** Code exports to `tinytorch.core.spatial`
+**Building Side:** Code exports to `trentorch.core.spatial`
 
 ```python
 # How to use this module:
-from tinytorch.core.spatial import Conv2d, MaxPool2d, AvgPool2d
+from trentorch.core.spatial import Conv2d, MaxPool2d, AvgPool2d
 ```
 
 **Why this matters:**
@@ -63,10 +63,10 @@ import numpy as np
 rng = np.random.default_rng(7)
 import time
 
-from tinytorch.core.tensor import Tensor
+from trentorch.core.tensor import Tensor
 
 # Enable autograd for gradient tracking (required for BatchNorm2d learnable parameters)
-from tinytorch.core.autograd import enable_autograd, Function, ReLUBackward
+from trentorch.core.autograd import enable_autograd, Function, ReLUBackward
 enable_autograd()
 
 # Constants for convolution defaults
@@ -89,9 +89,9 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 - `numpy` (for array operations and numerical computing)
 - `time` (for performance measurements)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` (Tensor class from Module 01)
-- `tinytorch.core.autograd` (gradient tracking from Module 06)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` (Tensor class from Module 01)
+- `trentorch.core.autograd` (gradient tracking from Module 06)
 
 **Important**: This module builds on the complete training pipeline.
 Spatial operations will integrate with your existing layers and training system.
@@ -810,7 +810,7 @@ class Conv2d:
         # Return Tensor with gradient tracking enabled
         result = Tensor(output, requires_grad=(x.requires_grad or self.weight.requires_grad))
 
-        # Attach backward function for gradient computation (following TinyTorch protocol)
+        # Attach backward function for gradient computation (following TrenTorch protocol)
         if result.requires_grad:
             result._grad_fn = Conv2dBackward(
                 x, self.weight, self.bias,
@@ -2980,7 +2980,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -3097,7 +3097,7 @@ def test_module():
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
-    print("Run: tito module complete 09")
+    print("Run: tren module complete 09")
 
 # Run module test when this cell is executed
 if __name__ == "__main__":
@@ -3238,5 +3238,5 @@ Your spatial operations enable building complete CNNs for computer vision tasks!
 
 **Next**: Milestone 03 will combine your spatial operations with training pipeline to build a CNN for CIFAR-10!
 
-Export with: `tito module complete 09`
+Export with: `tren module complete 09`
 """

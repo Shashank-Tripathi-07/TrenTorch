@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Shape Validation Tests for TinyTorch
+Shape Validation Tests for TrenTorch
 =====================================
 Comprehensive shape validation ensuring all operations produce expected dimensions.
 Uses pytest style - one test per specific behavior for clear reporting.
@@ -18,12 +18,12 @@ import pytest
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.insert(0, project_root)
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
-from tinytorch.core.spatial import Conv2d
-from tinytorch.core.transformers import TransformerBlock, LayerNorm
-from tinytorch.core.embeddings import Embedding, PositionalEncoding
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
+from trentorch.core.spatial import Conv2d
+from trentorch.core.transformers import TransformerBlock, LayerNorm
+from trentorch.core.embeddings import Embedding, PositionalEncoding
 
 class Sequential:
     """Simple sequential container for testing."""
@@ -44,27 +44,27 @@ class F:
     """Functional interface for testing."""
     @staticmethod
     def relu(x):
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.activations import ReLU
         return ReLU()(x)
     @staticmethod
     def sigmoid(x):
-        from tinytorch.core.activations import Sigmoid
+        from trentorch.core.activations import Sigmoid
         return Sigmoid()(x)
     @staticmethod
     def tanh(x):
-        from tinytorch.core.activations import Tanh
+        from trentorch.core.activations import Tanh
         return Tanh()(x)
     @staticmethod
     def softmax(x, dim=-1):
-        from tinytorch.core.activations import Softmax
+        from trentorch.core.activations import Softmax
         return Softmax()(x)
     @staticmethod
     def max_pool2d(x, kernel_size):
-        from tinytorch.core.spatial import MaxPool2d
+        from trentorch.core.spatial import MaxPool2d
         return MaxPool2d(kernel_size)(x)
     @staticmethod
     def avg_pool2d(x, kernel_size):
-        from tinytorch.core.spatial import AvgPool2d
+        from trentorch.core.spatial import AvgPool2d
         return AvgPool2d(kernel_size)(x)
     @staticmethod
     def flatten(x, start_dim=1):

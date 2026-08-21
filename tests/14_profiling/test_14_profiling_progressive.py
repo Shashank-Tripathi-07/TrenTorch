@@ -33,7 +33,7 @@ class TestProfilingCore:
         ✅ TEST: Profiler class exists
         """
         try:
-            from tinytorch.perf.profiling import Profiler
+            from trentorch.perf.profiling import Profiler
             
             assert Profiler is not None
             
@@ -45,8 +45,8 @@ class TestProfilingCore:
         ✅ TEST: Profiler works as context manager
         """
         try:
-            from tinytorch.perf.profiling import Profiler
-            from tinytorch.core.tensor import Tensor
+            from trentorch.perf.profiling import Profiler
+            from trentorch.core.tensor import Tensor
             
             profiler = Profiler()
             
@@ -67,8 +67,8 @@ class TestProfilingCore:
         ✅ TEST: Memory profiling capability
         """
         try:
-            from tinytorch.perf.profiling import profile_memory, MemoryProfiler
-            from tinytorch.core.tensor import Tensor
+            from trentorch.perf.profiling import profile_memory, MemoryProfiler
+            from trentorch.core.tensor import Tensor
             
             # Profile memory usage
             with MemoryProfiler() as mp:
@@ -85,8 +85,8 @@ class TestProfilingCore:
         ✅ TEST: Execution timing works
         """
         try:
-            from tinytorch.perf.profiling import Timer
-            from tinytorch.core.tensor import Tensor
+            from trentorch.perf.profiling import Timer
+            from trentorch.core.tensor import Tensor
             
             timer = Timer()
             
@@ -113,9 +113,9 @@ class TestProfilingWithModels:
         ✅ TEST: Profile Linear layer execution
         """
         try:
-            from tinytorch.perf.profiling import Profiler
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.tensor import Tensor
+            from trentorch.perf.profiling import Profiler
+            from trentorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
             
             layer = Linear(100, 50)
             profiler = Profiler()
@@ -138,9 +138,9 @@ class TestProfilingWithModels:
         ✅ TEST: Profile Conv2d layer execution
         """
         try:
-            from tinytorch.perf.profiling import Profiler
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.perf.profiling import Profiler
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.tensor import Tensor
             
             conv = Conv2d(3, 16, kernel_size=3, padding=1)
             profiler = Profiler()
@@ -160,9 +160,9 @@ class TestProfilingWithModels:
         ✅ TEST: Profile TransformerBlock execution
         """
         try:
-            from tinytorch.perf.profiling import Profiler
-            from tinytorch.core.transformers import TransformerBlock
-            from tinytorch.core.tensor import Tensor
+            from trentorch.perf.profiling import Profiler
+            from trentorch.core.transformers import TransformerBlock
+            from trentorch.core.tensor import Tensor
             
             block = TransformerBlock(64, 8, ff_dim=256)
             profiler = Profiler()
@@ -188,11 +188,11 @@ class TestProfilingWithTraining:
         ✅ TEST: Profile training step
         """
         try:
-            from tinytorch.perf.profiling import Profiler
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.perf.profiling import Profiler
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
             
             layer = Linear(10, 5)
             loss_fn = MSELoss()
@@ -225,14 +225,14 @@ class TestRegressionPrevention:
 
     def test_tensor_still_works(self):
         """✅ Module 01"""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
         a = Tensor([1, 2, 3])
         assert a.shape == (3,)
 
     def test_activations_still_work(self):
         """✅ Module 02"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU
         relu = ReLU()
         x = Tensor([-1, 0, 1])
         y = relu(x)
@@ -240,8 +240,8 @@ class TestRegressionPrevention:
 
     def test_layers_still_work(self):
         """✅ Module 03"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
         layer = Linear(4, 2)
         x = Tensor(rng.standard_normal((2, 4)))
         y = layer(x)
@@ -249,16 +249,16 @@ class TestRegressionPrevention:
 
     def test_losses_still_work(self):
         """✅ Module 04"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.losses import MSELoss
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.losses import MSELoss
         loss_fn = MSELoss()
         loss = loss_fn(Tensor([[1.0]]), Tensor([[2.0]]))
         assert loss.data.size == 1
 
     def test_dataloader_still_works(self):
         """✅ Module 05"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.dataloader import TensorDataset, DataLoader
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.dataloader import TensorDataset, DataLoader
         data = Tensor(rng.standard_normal((10, 3)))
         targets = Tensor(np.arange(10).astype(float))
         dataset = TensorDataset(data, targets)
@@ -267,8 +267,8 @@ class TestRegressionPrevention:
 
     def test_optimizers_still_work(self):
         """✅ Module 07"""
-        from tinytorch.core.optimizers import SGD
-        from tinytorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.layers import Linear
         layer = Linear(3, 2)
         opt = SGD(layer.parameters(), lr=0.01)
         assert hasattr(opt, 'step')
@@ -276,8 +276,8 @@ class TestRegressionPrevention:
     def test_convolutions_still_work(self):
         """✅ Module 09"""
         try:
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.tensor import Tensor
             conv = Conv2d(3, 8, kernel_size=3, padding=1)
             x = Tensor(rng.standard_normal((2, 3, 8, 8)))
             y = conv(x)
@@ -288,8 +288,8 @@ class TestRegressionPrevention:
     def test_attention_still_works(self):
         """✅ Module 12"""
         try:
-            from tinytorch.core.attention import MultiHeadAttention
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.attention import MultiHeadAttention
+            from trentorch.core.tensor import Tensor
             mha = MultiHeadAttention(32, 4)
             x = Tensor(rng.standard_normal((1, 5, 32)))
             out = mha(x)
@@ -300,8 +300,8 @@ class TestRegressionPrevention:
     def test_transformers_still_work(self):
         """✅ Module 13"""
         try:
-            from tinytorch.core.transformers import TransformerBlock
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.transformers import TransformerBlock
+            from trentorch.core.tensor import Tensor
             block = TransformerBlock(32, 4, ff_dim=128)
             x = Tensor(rng.standard_normal((1, 5, 32)))
             out = block(x)
@@ -327,7 +327,7 @@ class TestModule14Completion:
         }
         
         try:
-            from tinytorch.perf.profiling import Profiler
+            from trentorch.perf.profiling import Profiler
             
             # Test 1: Profiler exists
             capabilities["Profiler exists"] = True

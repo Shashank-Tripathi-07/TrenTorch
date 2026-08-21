@@ -1,7 +1,7 @@
 """
 Integration test for Module 04: Linear
 
-Validates that the dense module integrates correctly with the TinyTorch package.
+Validates that the dense module integrates correctly with the TrenTorch package.
 This is a quick validation test, not a comprehensive capability test.
 """
 
@@ -29,7 +29,7 @@ def test_dense_module_integration():
     try:
         # Test 1: Linear networks import from package
         try:
-            from tinytorch.core.dense import MLP, LinearNetwork
+            from trentorch.core.dense import MLP, LinearNetwork
             results["tests"].append({
                 "name": "dense_import",
                 "status": "✅ PASS",
@@ -38,7 +38,7 @@ def test_dense_module_integration():
         except ImportError as e:
             # Try alternative imports
             try:
-                from tinytorch.core.networks import MLP
+                from trentorch.core.networks import MLP
                 results["tests"].append({
                     "name": "dense_import",
                     "status": "✅ PASS",
@@ -74,8 +74,8 @@ def test_dense_module_integration():
 
         # Test 3: Integration with previous modules
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
 
             # Test forward pass
             data = rng.standard_normal((2, 4))  # batch_size=2, input_size=4

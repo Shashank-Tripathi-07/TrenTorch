@@ -19,12 +19,12 @@ class TestDenseModuleExports:
 
     def test_dense_class_exports(self):
         """Test Dense class exports from layers module."""
-        from tinytorch.core.layers import Linear as Dense
+        from trentorch.core.layers import Linear as Dense
         assert Dense is not None, "Dense class should be exported"
 
     def test_dense_is_callable(self):
         """Test Dense can be instantiated."""
-        from tinytorch.core.layers import Linear as Dense
+        from trentorch.core.layers import Linear as Dense
         layer = Dense(10, 5)
         assert layer is not None, "Should create Dense layer instance"
         assert hasattr(layer, 'forward'), "Dense should have forward method"
@@ -35,8 +35,8 @@ class TestDenseLayerFunctionality:
 
     def test_dense_forward_pass(self):
         """Test Dense layer forward pass produces correct shape."""
-        from tinytorch.core.layers import Linear as Dense
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear as Dense
+        from trentorch.core.tensor import Tensor
 
         # Create layer
         layer = Dense(10, 5)
@@ -54,8 +54,8 @@ class TestDenseLayerFunctionality:
 
     def test_dense_with_bias(self):
         """Test Dense layer with bias enabled."""
-        from tinytorch.core.layers import Linear as Dense
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear as Dense
+        from trentorch.core.tensor import Tensor
 
         layer = Dense(10, 5, bias=True)
         assert hasattr(layer, 'bias'), "Layer should have bias"
@@ -67,8 +67,8 @@ class TestDenseLayerFunctionality:
 
     def test_dense_without_bias(self):
         """Test Dense layer with bias disabled."""
-        from tinytorch.core.layers import Linear as Dense
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear as Dense
+        from trentorch.core.tensor import Tensor
 
         layer = Dense(10, 5, bias=False)
         assert layer.bias is None, "Bias should be None when disabled"
@@ -79,8 +79,8 @@ class TestDenseLayerFunctionality:
 
     def test_dense_callable_interface(self):
         """Test Dense layer can be called directly."""
-        from tinytorch.core.layers import Linear as Dense
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear as Dense
+        from trentorch.core.tensor import Tensor
 
         layer = Dense(10, 5)
         x = Tensor(rng.standard_normal((4, 10)))
@@ -97,14 +97,14 @@ class TestNetworkComposition:
 
     def test_sequential_exists(self):
         """Test if Sequential is available for network composition."""
-        from tinytorch.core.layers import Sequential
-        assert Sequential is not None, "Sequential should be importable from tinytorch.core.layers"
+        from trentorch.core.layers import Sequential
+        assert Sequential is not None, "Sequential should be importable from trentorch.core.layers"
 
     def test_multi_layer_network(self):
         """Test building a multi-layer network."""
-        from tinytorch.core.layers import Linear as Dense
-        from tinytorch.core.activations import ReLU, Sigmoid
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear as Dense
+        from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.tensor import Tensor
 
         # Build network manually (without Sequential)
         layer1 = Dense(784, 128)
@@ -134,9 +134,9 @@ class TestXORCapability:
 
     def test_xor_network_structure(self):
         """Test building XOR network structure."""
-        from tinytorch.core.layers import Linear as Dense
-        from tinytorch.core.activations import ReLU, Sigmoid
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear as Dense
+        from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.tensor import Tensor
 
         # XOR network: 2 -> 4 -> 1
         hidden = Dense(2, 4)
@@ -159,7 +159,7 @@ class TestXORCapability:
 
 def run_integration_tests():
     """Run all integration tests and return summary."""
-    # This would be called by tito module complete
+    # This would be called by tren module complete
     pytest.main([__file__, '-v', '--tb=short'])
 
 

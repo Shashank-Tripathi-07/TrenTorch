@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from tito.commands.nbgrader import NBGraderCommand
-from tito.core.config import CLIConfig
+from tren.commands.nbgrader import NBGraderCommand
+from tren.core.config import CLIConfig
 
 
 def make_config(project_root: Path) -> CLIConfig:

@@ -12,7 +12,7 @@ This is where we enable learning through sophisticated optimization algorithms.
 - Preparation: Ready for training loops (Module 08)
 
 💡 FOR STUDENTS: If tests fail, check:
-1. Does your SGD class exist in tinytorch.core.optimizers?
+1. Does your SGD class exist in trentorch.core.optimizers?
 2. Does SGD.step() update parameters using gradients?
 3. Do momentum and learning rate work correctly?
 4. Are parameter groups handled properly?
@@ -45,10 +45,10 @@ class TestFoundationStackStillWorks:
         ✅ TEST: Complete foundation pipeline (01→06) should still work
         """
         try:
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
 
             # Create network
             dense = Linear(10, 5)
@@ -77,9 +77,9 @@ class TestFoundationStackStillWorks:
         ✅ TEST: Gradient computation from Module 06 still works
         """
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
 
             # Create simple network
             layer = Linear(4, 2)
@@ -135,8 +135,8 @@ class TestModule07OptimizersCore:
         🚨 IF FAILS: SGD optimizer doesn't exist or missing components
         """
         try:
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
 
             # Create test parameters
             params = [Tensor(rng.standard_normal((3, 3)), requires_grad=True)]
@@ -173,8 +173,8 @@ class TestModule07OptimizersCore:
         💡 Momentum helps escape local minima and speeds up convergence
         """
         try:
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
 
             # Create test parameter
             param = Tensor(np.array([[1.0, 2.0], [3.0, 4.0]]), requires_grad=True)
@@ -213,8 +213,8 @@ class TestModule07OptimizersCore:
         💡 Adam is the most popular optimizer in deep learning
         """
         try:
-            from tinytorch.core.optimizers import Adam
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.optimizers import Adam
+            from trentorch.core.tensor import Tensor
 
             # Create test parameters
             params = [Tensor(rng.standard_normal((3, 3)), requires_grad=True)]
@@ -251,8 +251,8 @@ class TestModule07OptimizersCore:
         💡 Forgetting zero_grad() is a common training bug!
         """
         try:
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
 
             # Create parameter with gradient
             param = Tensor(rng.standard_normal((2, 2)), requires_grad=True)
@@ -298,10 +298,10 @@ class TestOptimizerIntegration:
         💡 This is the core loop that trains all neural networks
         """
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
 
             # Create simple network
             layer = Linear(4, 2)
@@ -351,10 +351,10 @@ class TestOptimizerIntegration:
         - Optimizer methods exist and can be called
         """
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
 
             # Create network
             layer = Linear(4, 2)
@@ -409,7 +409,7 @@ class TestRegressionPrevention:
     def test_module_06_not_broken(self):
         """Ensure autograd still works after adding optimizers."""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             # Simple gradient test
             x = Tensor(np.array([2.0, 3.0]), requires_grad=True)
@@ -428,10 +428,10 @@ class TestRegressionPrevention:
     def test_progressive_compatibility(self):
         """Test that all foundation modules work together."""
         try:
-            from tinytorch.core.activations import ReLU, Sigmoid
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
 
             # Build and run a complete network
             layer1 = Linear(4, 8)
