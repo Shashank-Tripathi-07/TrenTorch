@@ -9,7 +9,7 @@
 Nothing about TrenTorch exists on a user's machine until they run one command:
 
 ```text
-curl -sSL mlsysbook.ai/trentorch/install.sh | bash
+curl -sSL mlsysbook.ai/tinytorch/install.sh | bash
 ```
 
 This pipes a single Bash script (`quarto/install.sh`, 874 lines) into a shell. Nothing else is downloaded first. The script itself is small (tens of KB); everything else it does is described below, step by step, matching `main()` at the bottom of the file. **This URL is upstream's**; this fork's copy of the script still points at the upstream repository until it's repointed at TrenTorch's own.

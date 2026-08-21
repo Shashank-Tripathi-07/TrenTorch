@@ -6,9 +6,9 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 once it reaches `v1.0.0`. Until then, minor version bumps may include
 backwards-incompatible changes that are noted explicitly under "Breaking".
 
-Releases are tagged in git as `trentorch-vX.Y.Z` (the package-prefixed tag
-distinguishes TrenTorch releases from book volume releases that share this
-monorepo). See [GitHub Releases](https://github.com/harvard-edge/cs249r_book/releases?q=trentorch)
+Releases are tagged in git as `tinytorch-vX.Y.Z` (the package-prefixed tag
+distinguishes TinyTorch releases from book volume releases that share this
+monorepo). See [GitHub Releases](https://github.com/harvard-edge/cs249r_book/releases?q=tinytorch)
 for the canonical list.
 
 ## [Unreleased]
@@ -27,7 +27,7 @@ room to breathe alongside the textbook's release cadence.
   the leftover Apache-2.0 stub `LICENSE` file). A NOTICE block at the
   bottom of `LICENSE` documents the MIT-vs-CC-BY-NC-SA boundary between
   TrenTorch *software* and the surrounding *educational content*.
-- **Explicit-version release path.** `trentorch-publish-live` workflow now
+- **Explicit-version release path.** `tinytorch-publish-live` workflow now
   accepts an `explicit_version` input that bypasses the major/minor/patch
   auto-bump for non-incremental jumps (used for this 0.1.x → 0.1.10
   release). Ordinary releases continue to use `release_type`.
@@ -51,6 +51,6 @@ room to breathe alongside the textbook's release cadence.
 
 ## [0.1.9] and earlier
 
-See [GitHub Releases](https://github.com/harvard-edge/cs249r_book/releases?q=trentorch)
+See [GitHub Releases](https://github.com/harvard-edge/cs249r_book/releases?q=tinytorch)
 for pre-0.10 history. The 0.1.x line tracked early-access content
 iteration during the Volume II writing process.

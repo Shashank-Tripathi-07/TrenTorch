@@ -59,7 +59,7 @@ Everything TrenTorch uses, what it is, and why it's the right tool for this proj
 
 | Technology | What it is | How TrenTorch uses it |
 |---|---|---|
-| Quarto | A publishing system for technical documents, built on Pandoc. | Builds the public docs site at `mlsysbook.ai/trentorch/` from hand-authored `.qmd` pages under `trentorch/quarto/`, and separately builds a PDF course guide via a second Quarto book project. |
+| Quarto | A publishing system for technical documents, built on Pandoc. | Builds the public docs site at `mlsysbook.ai/tinytorch/` from hand-authored `.qmd` pages under `tinytorch/quarto/`, and separately builds a PDF course guide via a second Quarto book project. |
 | TinyTeX and Mermaid CLI | A minimal LaTeX distribution, and a diagram-rendering CLI. | Used in CI to render the Quarto-based PDF guide, including any Mermaid diagrams it contains. |
 | LaTeX (via `xu-cheng/latex-action`) | A typesetting system. | Compiles the separate TrenTorch research paper (`trentorch/paper/paper.tex`) to PDF in CI, independent of the Quarto-based guide. |
 | GitHub Pages (`gh-pages` branch) | Static site hosting built into GitHub. | Hosts the upstream project's production docs site. This fork doesn't currently deploy the site anywhere; the Quarto source still builds locally. |
@@ -81,7 +81,7 @@ Everything TrenTorch uses, what it is, and why it's the right tool for this proj
 |---|---|---|
 | VS Code Extension API (TypeScript) | The API used to build Visual Studio Code extensions. | Powers "TrenTorch Workbench" (`vscode-ext/`), a sidebar extension that wraps the `tren` module, test, and build workflow in a graphical tree view, for students and contributors who prefer working inside VS Code. |
 | mybinder.org and Google Colab | Free, browser-based hosted Jupyter environments. | Let students run TrenTorch with no local installation at all. A `binder/postBuild` script installs the package and regenerates every module notebook from source at environment build time. |
-| Docker | A containerization tool. | Used in CI (`trentorch-validate-dev.yml`'s fresh-install stage) to simulate a brand-new student machine installing the package from scratch. |
+| Docker | A containerization tool. | Used in CI (`tinytorch-validate-dev.yml`'s fresh-install stage) to simulate a brand-new student machine installing the package from scratch. |
 
 ## Architecture
 
@@ -144,7 +144,7 @@ Students can optionally create an account and opt into a social layer: `tren com
 
 ### Documentation site and PDFs
 
-Upstream's public docs site (`mlsysbook.ai/trentorch/`) is a Quarto project rooted at `trentorch/quarto/`; this fork has the same source but doesn't deploy it anywhere yet. Each module has a corresponding hand-authored `.qmd` page under `quarto/modules/` (for example `01_tensor.qmd`), but this is not generated from the module notebook. It's independent prose that links out to the actual notebook (a Binder launch URL) and the actual source file (a GitHub link), so the three representations of a module (source, notebook, docs page) are maintained separately and can drift out of sync with each other.
+Upstream's public docs site (`mlsysbook.ai/tinytorch/`) is a Quarto project rooted at `tinytorch/quarto/`; this fork has the same source but doesn't deploy it anywhere yet. Each module has a corresponding hand-authored `.qmd` page under `quarto/modules/` (for example `01_tensor.qmd`), but this is not generated from the module notebook. It's independent prose that links out to the actual notebook (a Binder launch URL) and the actual source file (a GitHub link), so the three representations of a module (source, notebook, docs page) are maintained separately and can drift out of sync with each other.
 
 A separate Quarto book project under `quarto/pdf/` reuses those same `.qmd` chapter files to render a downloadable PDF course guide via LaTeX. The TrenTorch research paper is a fully independent LaTeX document (`paper/paper.tex`), compiled separately and not derived from the Quarto content at all.
 
@@ -154,12 +154,12 @@ TrenTorch is designed to run in four different ways with no code changes: a loca
 
 ### CI/CD (upstream-only, not present in this fork)
 
-The upstream project runs five GitHub Actions workflows covering validation, previews, production publishing, and PDF builds, tied to the `harvard-edge/cs249r_book` repository's own secrets and deploy targets (`mlsysbook.ai`, a `gh-pages` branch, `trentorch-vX.Y.Z` release tags). None of that exists in this fork. Summarized here only as background for anyone who's read the upstream docs and is looking for the equivalent here, there isn't one yet:
+The upstream project runs five GitHub Actions workflows covering validation, previews, production publishing, and PDF builds, tied to the `harvard-edge/cs249r_book` repository's own secrets and deploy targets (`mlsysbook.ai`, a `gh-pages` branch, `tinytorch-vX.Y.Z` release tags). None of that exists in this fork. Summarized here only as background for anyone who's read the upstream docs and is looking for the equivalent here, there isn't one yet:
 
-- **`trentorch-validate-dev.yml`**: the required gate. An 8-stage pipeline: configure, build the package from `src/`, unit tests, integration tests, CLI tests, end-to-end tests, a Docker-based fresh-install simulation, and a non-blocking link check over the docs site.
-- **`trentorch-preview-dev.yml`**: builds the docs site and PDFs, runs a visual smoke test, deploys to a dev-preview GitHub Pages site.
-- **`trentorch-publish-live.yml`**: bumps the version, merges `dev` into `main`, builds the site and PDFs, deploys to `mlsysbook.ai/trentorch/`, tags a release.
-- **`trentorch-build-pdfs.yml`** / **`trentorch-update-pdfs.yml`**: build and redeploy the PDF guide and paper.
+- **`tinytorch-validate-dev.yml`**: the required gate. An 8-stage pipeline: configure, build the package from `src/`, unit tests, integration tests, CLI tests, end-to-end tests, a Docker-based fresh-install simulation, and a non-blocking link check over the docs site.
+- **`tinytorch-preview-dev.yml`**: builds the docs site and PDFs, runs a visual smoke test, deploys to a dev-preview GitHub Pages site.
+- **`tinytorch-publish-live.yml`**: bumps the version, merges `dev` into `main`, builds the site and PDFs, deploys to `mlsysbook.ai/tinytorch/`, tags a release.
+- **`tinytorch-build-pdfs.yml`** / **`tinytorch-update-pdfs.yml`**: build and redeploy the PDF guide and paper.
 
 ### Testing
 
@@ -171,7 +171,7 @@ A root `conftest.py` runs a pre-flight check before any test executes: it verifi
 
 These are good starting points if you're looking for a first contribution.
 
-- **`CONTRIBUTING.md`'s documented release process doesn't match the actual publish workflow.** It states the release process "deploys to trentorch.org" and "publishes to PyPI." Neither is true as of this document: `trentorch-publish-live.yml` deploys to `mlsysbook.ai/trentorch/` via the `gh-pages` branch, and contains no PyPI publish step anywhere (grepped for `pypi`/`twine`, no matches). Distribution is currently via git tags and GitHub Releases, not PyPI, unlike the sibling `mlsysim` package, which does have its own `mlsysim-pypi-publish.yml`.
+- **`CONTRIBUTING.md`'s documented release process doesn't match the actual publish workflow.** It states the release process "deploys to tinytorch.org" and "publishes to PyPI." Neither is true as of this document: `tinytorch-publish-live.yml` deploys to `mlsysbook.ai/tinytorch/` via the `gh-pages` branch, and contains no PyPI publish step anywhere (grepped for `pypi`/`twine`, no matches). Distribution is currently via git tags and GitHub Releases, not PyPI, unlike the sibling `mlsysim` package, which does have its own `mlsysim-pypi-publish.yml`.
 - **The three-tier release model in `NBGRADER_RELEASE_TIERS.md` is an unimplemented proposal.** The document itself says so explicitly ("an internal proposal... a design document, not a public user guide"), but a reader skimming only the per-module classification tables could easily mistake it for current behavior. The shipped system is the simpler two-artifact (instructor, student) model.
 - **`tren olympics` is a placeholder with no real functionality**, as described above, distinct from the working `trentorch.olympics` capstone module.
 - **`tren benchmark`'s server submission is a stub.** Both `baseline` and `capstone` compute and save real local scores, but the "submit to the community" call does not actually reach a server as of this document.

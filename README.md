@@ -33,7 +33,7 @@ Be the best engineer yourself !
 
 ### The Bricks 🧱
 
-TrenTorch teaches the fundamentals. TrenTorch takes those same bricks and adds the reps: cleaner internals, sharper performance instincts, and an implementation pushed past the original spec wherever we saw the chance.
+TinyTorch teaches the fundamentals. TrenTorch takes those same bricks and adds the reps: cleaner internals, sharper performance instincts, and an implementation pushed past the original spec wherever we saw the chance.
 
 - **Small enough to read in one sitting** - every op traceable back to raw NumPy
 - **Big enough to actually flex** - the real architecture real frameworks run on
@@ -280,14 +280,14 @@ TrenTorch/
 
 ## Credit Where It's Due
 
-TrenTorch is our implementation, built on the curriculum and foundation of [TrenTorch](https://mlsysbook.ai/trentorch), created by [Prof. Vijay Janapa Reddi](https://vijay.seas.harvard.edu) and the [ML Systems Book](https://mlsysbook.ai) community at Harvard University. Full respect to the original project, we just wanted to take it further.
+TrenTorch is our implementation, built on the curriculum and foundation of [TinyTorch](https://mlsysbook.ai/tinytorch), created by [Prof. Vijay Janapa Reddi](https://vijay.seas.harvard.edu) and the [ML Systems Book](https://mlsysbook.ai) community at Harvard University. Full respect to the original project, we just wanted to take it further.
 
 Related educational frameworks worth knowing about:
 - [tinygrad](https://github.com/tinygrad/tinygrad) - George Hotz's minimalist framework
 - [micrograd](https://github.com/karpathy/micrograd) - Andrej Karpathy's tiny autograd
 - [MiniTorch](https://minitorch.github.io/) - Cornell's educational framework
 
-We're addicted to making great software that runs (we're a bit of perfectionists ourselves) and is useful to humanity. This is our shot at making TrenTorch, but adding more stuff that is currently experimental and quite famous.
+We're addicted to making great software that runs (we're a bit of perfectionists ourselves) and is useful to humanity. This is our shot at making TinyTorch, but adding more stuff that is currently experimental and quite famous.
 
 ---
 
