@@ -26,9 +26,7 @@
 
 ## Why TrenTorch?
 
-Everyone wants to be an astronaut. Very few want to be the rocket scientist.
-
-Everyone wants to train models, run inference, ship AI. Almost nobody wants to know how the framework under their feet actually works, line by line, tensor by tensor.
+Be the best engineer yourself ! 
 
 **We wanted to know. So we built one. Then we didn't stop at "good enough."**
 
@@ -42,9 +40,7 @@ TinyTorch teaches the fundamentals. TrenTorch takes those same bricks and adds t
 
 No black boxes. No `import torch`. Just the machinery, exposed.
 
-<div align="center">
-<img src=".github/assets/skunkworks-log.svg" width="100%" alt="Night-shift engineering log: coffee stains, a transpose bug found at 01:42, and a stamp reading built at 3 AM" />
-</div>
+
 
 ---
 
