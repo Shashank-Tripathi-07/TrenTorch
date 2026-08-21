@@ -342,7 +342,7 @@ class DevTestCommand(BaseCommand):
         try:
             # Use 'dev export --all' to build the package from src/
             # This creates notebooks and exports to tinytorch/core/
-            cmd = [sys.executable, str(project_root / "bin" / "tito"), "dev", "export", "--all"]
+            cmd = [sys.executable, str(project_root / "bin" / "tren"), "dev", "export", "--all"]
 
             if ci_mode:
                 # Stream output in CI mode
@@ -662,7 +662,7 @@ class DevTestCommand(BaseCommand):
             # Step 1: Export notebook from src/ to modules/
             try:
                 export_result = subprocess.run(
-                    [sys.executable, str(project_root / "bin" / "tito"),
+                    [sys.executable, str(project_root / "bin" / "tren"),
                      "dev", "export", module_num],
                     capture_output=True,
                     text=True,
@@ -696,7 +696,7 @@ class DevTestCommand(BaseCommand):
             # Step 2: Run module complete (tests + copy to tinytorch/core/)
             try:
                 result = subprocess.run(
-                    [sys.executable, str(project_root / "bin" / "tito"),
+                    [sys.executable, str(project_root / "bin" / "tren"),
                      "module", "complete", module_num],
                     capture_output=True,
                     text=True,
@@ -925,7 +925,7 @@ class DevTestCommand(BaseCommand):
                 print(f"  │  → Step 1: tito module start {module_num} --no-jupyter", end=" ", flush=True)
             try:
                 result = subprocess.run(
-                    [sys.executable, str(project_root / "bin" / "tito"),
+                    [sys.executable, str(project_root / "bin" / "tren"),
                      "module", "start", module_num, "--no-jupyter"],
                     capture_output=True,
                     text=True,
@@ -961,7 +961,7 @@ class DevTestCommand(BaseCommand):
                 print(f"  │  → Step 2: tito module complete {module_num}", end=" ", flush=True)
             try:
                 result = subprocess.run(
-                    [sys.executable, str(project_root / "bin" / "tito"),
+                    [sys.executable, str(project_root / "bin" / "tren"),
                      "module", "complete", module_num],
                     capture_output=True,
                     text=True,
@@ -1019,7 +1019,7 @@ class DevTestCommand(BaseCommand):
 
                     try:
                         result = subprocess.run(
-                            [sys.executable, str(project_root / "bin" / "tito"),
+                            [sys.executable, str(project_root / "bin" / "tren"),
                              "milestone", "run", milestone_id, "--skip-checks"],
                             capture_output=True,
                             text=True,
