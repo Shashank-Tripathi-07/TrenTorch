@@ -312,7 +312,7 @@ class DevTestCommand(BaseCommand):
         try:
             result = subprocess.run(
                 [sys.executable, "-c",
-                 "from tinytorch import Tensor; assert Tensor is not None"],
+                 "from trentorch import Tensor; assert Tensor is not None"],
                 cwd=project_root,
                 capture_output=True,
                 timeout=10
@@ -874,8 +874,8 @@ class DevTestCommand(BaseCommand):
                     if item.is_dir() and item.name[0].isdigit():
                         shutil.rmtree(item)
 
-            # Clear tinytorch/core/ (remove all .py except __init__.py)
-            core_dir = project_root / "tinytorch" / "core"
+            # Clear trentorch/core/ (remove all .py except __init__.py)
+            core_dir = project_root / "trentorch" / "core"
             if core_dir.exists():
                 for py_file in core_dir.glob("*.py"):
                     if py_file.name != "__init__.py":
