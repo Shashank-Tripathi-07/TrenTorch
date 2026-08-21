@@ -94,10 +94,10 @@ bash /tmp/install.sh
 cd tinytorch
 source .venv/bin/activate
 
-# Step 2: Verify tito works
+# Step 2: Verify tren works
 echo ""
-echo "▶ Step 2: Verifying tito CLI..."
-tito --version
+echo "▶ Step 2: Verifying tren CLI..."
+tren --version
 
 # Step 3: Verify datasets are real files (not LFS pointers)
 echo ""
@@ -129,7 +129,7 @@ print(f'✓ Loaded {len(data[\"images\"])} training images')
 "
 
 # Step 5: Run milestone 01 (Perceptron - simplest)
-# No --non-interactive flag: `tito milestone run` doesn't have one, and
+# No --non-interactive flag: `tren milestone run` doesn't have one, and
 # doesn't need one -- it already checks sys.stdin/stdout.isatty() itself
 # and skips its "Press Enter to begin" / "Continue to next part?" prompts
 # automatically whenever it isn't attached to a real terminal, which is
@@ -137,14 +137,14 @@ print(f'✓ Loaded {len(data[\"images\"])} training images')
 # argparse reject the whole command before any of that logic runs.
 echo ""
 echo "▶ Step 5: Running Milestone 01 (Perceptron)..."
-timeout 120 tito milestone run 01 || {
+timeout 120 tren milestone run 01 || {
     echo "⚠ Milestone 01 did not complete (may need module implementations)"
 }
 
 # Step 6: Run milestone 03 (MLP with TinyDigits - the one that caught the LFS bug)
 echo ""
 echo "▶ Step 6: Running Milestone 03 (MLP/TinyDigits)..."
-timeout 180 tito milestone run 03 || {
+timeout 180 tren milestone run 03 || {
     echo "⚠ Milestone 03 did not complete (may need module implementations)"
 }
 
