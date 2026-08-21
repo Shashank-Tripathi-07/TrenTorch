@@ -4,7 +4,6 @@
 
 # Tren⚡Torch
 
-### TrenTorch. On Steroids.
 
 [![Validate](https://github.com/Shashank-Tripathi-07/TrenTorch/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/Shashank-Tripathi-07/TrenTorch/actions/workflows/validate.yml)
 [![Python](https://img.shields.io/badge/python-3.10+-3776ab?logo=python&logoColor=white)](https://python.org)
