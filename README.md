@@ -285,6 +285,33 @@ Related educational frameworks worth knowing about:
 - [micrograd](https://github.com/karpathy/micrograd) - Andrej Karpathy's tiny autograd
 - [MiniTorch](https://minitorch.github.io/) - Cornell's educational framework
 
+We're addicted to making great software that runs (we're a bit of perfectionists ourselves) and is useful to humanity. This is our shot at making TinyTorch, but adding more stuff that is currently experimental and quite famous.
+
+---
+
+## Team Engineers
+
+<table width="100%" style="width:100%">
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="50%">
+        <a href="https://github.com/Shashank-Tripathi-07"><img src="https://avatars.githubusercontent.com/Shashank-Tripathi-07?v=4" width="90px;" alt="Rocky"/></a>
+        <br />
+        <b>Rocky</b>
+        <br />
+        <sub>Debugs autograd for fun, ships before sunrise.</sub>
+      </td>
+      <td align="center" valign="top" width="50%">
+        <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="90px;" alt="Shivtej Gaikwad"/></a>
+        <br />
+        <b>Shivtej Gaikwad</b>
+        <br />
+        <sub>IIT Guwahati. Shows up, ships, moves on to the next thing.</sub>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ---
 
 ## License
