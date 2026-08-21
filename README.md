@@ -21,7 +21,7 @@
 ---
 
 > [!NOTE]
-> **This is our implementation of [TrenTorch](https://mlsysbook.ai/trentorch)** (Harvard CS249r), rebuilt in our own style and pushed further. Same bones, more muscle.
+> **This is our implementation of [TinyTorch](https://mlsysbook.ai/tinytorch)** (Harvard CS249r), rebuilt in our own style and pushed further. Same bones, more muscle.
 
 ---
 
