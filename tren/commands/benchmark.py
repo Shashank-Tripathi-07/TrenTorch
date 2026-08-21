@@ -235,7 +235,7 @@ class BenchmarkCommand(BaseCommand):
         }
 
         # Save results
-        benchmark_dir = Path(".tito") / "benchmarks"
+        benchmark_dir = Path(".tren") / "benchmarks"
         benchmark_dir.mkdir(parents=True, exist_ok=True)
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"baseline_{timestamp_str}.json"
@@ -274,7 +274,7 @@ class BenchmarkCommand(BaseCommand):
 
         # Check if Module 20 is available
         try:
-            from tinytorch.perf.benchmarking import Benchmark
+            from trentorch.perf.benchmarking import Benchmark
         except ImportError:
             console.print(Panel(
                 "[red]❌ Module 19 (Benchmarking) not available[/red]\n\n"
@@ -292,7 +292,7 @@ class BenchmarkCommand(BaseCommand):
         # so this check previously always failed and reported "Module 20 not
         # complete" even for students who genuinely finished it.
         try:
-            from tinytorch.olympics import generate_submission
+            from trentorch.olympics import generate_submission
         except ImportError:
             console.print(Panel(
                 "[yellow]⚠️  Module 20 (Capstone) not complete[/yellow]\n\n"
@@ -341,7 +341,7 @@ class BenchmarkCommand(BaseCommand):
         }
 
         # Save results
-        benchmark_dir = Path(".tito") / "benchmarks"
+        benchmark_dir = Path(".tren") / "benchmarks"
         benchmark_dir.mkdir(parents=True, exist_ok=True)
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_{timestamp_str}.json"
@@ -388,7 +388,7 @@ class BenchmarkCommand(BaseCommand):
         }
 
         # Save results
-        benchmark_dir = Path(".tito") / "benchmarks"
+        benchmark_dir = Path(".tren") / "benchmarks"
         benchmark_dir.mkdir(parents=True, exist_ok=True)
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_simplified_{timestamp_str}.json"
@@ -566,7 +566,7 @@ class BenchmarkCommand(BaseCommand):
                     submission["system_info"] = results.get("system_info", {})
 
                 # Save submission
-                submission_dir = Path(".tito") / "submissions"
+                submission_dir = Path(".tren") / "submissions"
                 submission_dir.mkdir(parents=True, exist_ok=True)
                 timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
                 submission_file = submission_dir / f"{benchmark_type}_submission_{timestamp_str}.json"

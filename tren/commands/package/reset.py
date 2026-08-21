@@ -179,12 +179,12 @@ class ResetCommand(BaseCommand):
         return 0
 
     def _create_backup(self) -> Path:
-        """Create timestamped backup of .tito folder."""
+        """Create timestamped backup of .tren folder."""
         console = self.console
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_dir = Path(f".tito_backup_{timestamp}")
+        backup_dir = Path(f".tren_backup_{timestamp}")
 
-        tito_dir = Path(".tito")
+        tito_dir = Path(".tren")
         if tito_dir.exists():
             shutil.copytree(tito_dir, backup_dir)
             console.print(f"[green]✅ Backup created: {backup_dir}[/green]")
@@ -226,7 +226,7 @@ class ResetCommand(BaseCommand):
             self._create_backup()
 
         # Reset all data files
-        tito_dir = Path(".tito")
+        tito_dir = Path(".tren")
         tito_dir.mkdir(parents=True, exist_ok=True)
 
         # Reset progress.json
@@ -292,7 +292,7 @@ class ResetCommand(BaseCommand):
             self._create_backup()
 
         # Reset progress.json
-        tito_dir = Path(".tito")
+        tito_dir = Path(".tren")
         tito_dir.mkdir(parents=True, exist_ok=True)
 
         progress_file = tito_dir / "progress.json"
@@ -343,7 +343,7 @@ class ResetCommand(BaseCommand):
             self._create_backup()
 
         # Reset milestones.json
-        tito_dir = Path(".tito")
+        tito_dir = Path(".tren")
         tito_dir.mkdir(parents=True, exist_ok=True)
 
         milestones_file = tito_dir / "milestones.json"
@@ -389,7 +389,7 @@ class ResetCommand(BaseCommand):
                 return 0
 
         # Reset config.json
-        tito_dir = Path(".tito")
+        tito_dir = Path(".tren")
         tito_dir.mkdir(parents=True, exist_ok=True)
 
         config_file = tito_dir / "config.json"

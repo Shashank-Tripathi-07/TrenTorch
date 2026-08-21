@@ -37,7 +37,7 @@ if sys.platform == "win32" or os.name == "nt":
 # Set TINYTORCH_QUIET before any tinytorch imports to suppress autograd messages
 os.environ['TINYTORCH_QUIET'] = '1'
 
-from .core.config import CLIConfig
+from .core.config import CLIConfig, migrate_progress_dir
 from .core.virtual_env_manager import get_venv_path
 from .core.console import get_console, print_banner, print_error, print_ascii_logo, Panel
 from .core.exceptions import TinyTorchCLIError
@@ -92,8 +92,9 @@ class TrenTorchCLI:
     def __init__(self):
         """Initialize the CLI application."""
         self.config = CLIConfig.from_project_root()
+        migrate_progress_dir(self.config.project_root)
         self.console = get_console()
-        self._tito_dir = self.config.project_root / '.tito'
+        self._tito_dir = self.config.project_root / '.tren'
         # SINGLE SOURCE OF TRUTH: All valid commands registered here
         self.commands: Dict[str, Type[BaseCommand]] = {
             # Essential
@@ -170,7 +171,7 @@ class TrenTorchCLI:
         return not self._tito_dir.exists()
 
     def _mark_welcome_shown(self) -> None:
-        """Mark that the welcome message has been shown by creating .tito/ folder."""
+        """Mark that the welcome message has been shown by creating .tren/ folder."""
         self._tito_dir.mkdir(parents=True, exist_ok=True)
 
     def _show_first_run_welcome(self) -> None:

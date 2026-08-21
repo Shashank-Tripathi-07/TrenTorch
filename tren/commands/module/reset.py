@@ -215,10 +215,10 @@ class ModuleResetCommand(BaseCommand):
             return 0
 
     def _update_progress_tracking(self, module_number: str, module_name: str) -> None:
-        """Remove module from completed progress in .tito/progress.json."""
+        """Remove module from completed progress in .tren/progress.json."""
         console = self.console
 
-        tito_dir = self.config.project_root / ".tito"
+        tito_dir = self.config.project_root / ".tren"
         tito_dir.mkdir(parents=True, exist_ok=True)
         progress_file = tito_dir / "progress.json"
 
@@ -244,11 +244,11 @@ class ModuleResetCommand(BaseCommand):
                 console.print(f"[dim]Could not update progress: {e}[/dim]")
 
     def _clear_all_progress(self) -> None:
-        """Clear all progress tracking in .tito/ directory."""
-        tito_dir = self.config.project_root / ".tito"
+        """Clear all progress tracking in .tren/ directory."""
+        tito_dir = self.config.project_root / ".tren"
         tito_dir.mkdir(parents=True, exist_ok=True)
 
-        # Reset .tito/progress.json
+        # Reset .tren/progress.json
         progress_file = tito_dir / "progress.json"
         progress_file.write_text(json.dumps({
             "version": "1.0",
