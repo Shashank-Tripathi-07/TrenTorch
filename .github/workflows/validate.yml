@@ -65,9 +65,17 @@ permissions:
   contents: read
   actions: read
 
+# Concurrency: group by PR number for pull_request events, by commit SHA for
+# push events. cancel-in-progress only applies to pull_request runs (a new
+# push to the same PR branch should cancel the stale run). Push-to-main runs
+# each get their own SHA-scoped group and are NEVER cancelled by a later
+# push. Upstream (cs249r_book) grouped push runs by branch name alone, so
+# merging two PRs back to back within a run's lifetime cancelled the first
+# run outright, its conclusion came back "cancelled," and the README badge
+# read as failing for a merge that was never actually broken.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   TITO_ALLOW_SYSTEM: "1"
