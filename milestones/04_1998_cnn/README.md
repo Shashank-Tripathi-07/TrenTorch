@@ -1,0 +1,157 @@
+# Milestone 04: The CNN Revolution (1998)
+
+## Historical Context
+
+After backpropagation revived neural networks (1986), researchers still struggled with image recognition. MLPs treated pixels independently, requiring millions of parameters and ignoring spatial structure.
+
+Then in 1998, **Yann LeCun's LeNet-5** revolutionized computer vision with **Convolutional Neural Networks (CNNs)**. By using:
+- **Shared weights** (convolution) → 100× fewer parameters
+- **Local connectivity** → preserves spatial structure
+- **Pooling** → translation invariance
+
+LeNet achieved 99%+ accuracy on handwritten digits, launching the deep learning revolution that led to ImageNet (2012), object detection, and modern computer vision.
+
+## What You're Building
+
+CNNs that exploit spatial structure in images:
+1. **TinyDigits** - Prove convolution works on 8×8 digits
+2. **CIFAR-10** - Scale to natural color images (32×32)
+
+## Required Modules
+
+**Run after Module 09** (Convolutions: Conv2d + Pooling)
+
+<table width="100%">
+  <thead>
+<tr>
+<th width="25%"><b>Module</b></th>
+<th width="25%">Component</th>
+<th width="50%">What It Provides</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><b>Module 01</b></td><td>Tensor</td><td>YOUR data structure</td></tr>
+<tr><td><b>Module 02</b></td><td>Activations</td><td>YOUR ReLU activation</td></tr>
+<tr><td><b>Module 03</b></td><td>Layers</td><td>YOUR Linear layers</td></tr>
+<tr><td><b>Module 04</b></td><td>Losses</td><td>YOUR CrossEntropyLoss</td></tr>
+<tr><td><b>Module 05</b></td><td>DataLoader</td><td>YOUR data batching</td></tr>
+<tr><td><b>Module 06</b></td><td>Autograd</td><td>YOUR automatic differentiation</td></tr>
+<tr><td><b>Module 07</b></td><td>Optimizers</td><td>YOUR SGD/Adam optimizers</td></tr>
+<tr><td><b>Module 08</b></td><td>Training</td><td>YOUR end-to-end training loop</td></tr>
+<tr><td><b>Module 09</b></td><td>Convolutions</td><td>YOUR Conv2d + MaxPool2d</td></tr>
+</tbody>
+</table>
+
+## Milestone Structure
+
+This milestone has **two parts** that progressively showcase your TinyTorch modules:
+
+### Part 1: TinyDigits (works offline, default)
+
+**Script:** `01_lecun_tinydigits.py`
+
+**Purpose:** Prove CNNs > MLPs on same data
+
+- **Dataset:** TinyDigits (8x8 handwritten digits, ships with repo)
+- **Architecture:** Conv(1->8) -> Pool -> Conv(8->16) -> Pool -> Linear(->10)
+- **Comparison:** CNN ~90% vs MLP ~80% (Milestone 03)
+- **Key Learning:** "Convolution preserves spatial structure!"
+
+**Why This Comparison Matters:**
+- Same dataset, different architecture
+- Direct proof that spatial operations help
+- ~10% accuracy gain from exploiting locality
+
+### Part 2: CIFAR-10 (optional scale-up, requires download)
+
+**Script:** `02_lecun_cifar10.py`
+
+**Purpose:** Scale to natural color images + showcase YOUR DataLoader!
+
+- **Dataset:** CIFAR-10 (60K images, 32x32 RGB, 10 classes)
+- **Architecture:** Deeper CNN with BatchNorm + data augmentation
+- **Expected:** 70%+ accuracy
+- **Key Learning:** "YOUR DataLoader + CNN scale to realistic vision!"
+
+**What Part 2 Showcases:**
+- **YOUR DataLoader (Module 05)** batches 50,000 images efficiently
+- **YOUR Dataset abstraction** handles real image data
+- Shuffling prevents memorization, improves generalization
+- First-run prompts for download (~170 MB) with space check
+
+**Historical Note:** CIFAR-10 (2009) became the benchmark for evaluating CNN architectures before ImageNet.
+
+## Expected Results
+
+<table width="100%">
+  <thead>
+<tr>
+<th width="18%"><b>Script</b></th>
+<th width="12%">Dataset</th>
+<th width="12%">Image Size</th>
+<th width="15%">Architecture</th>
+<th width="12%">Accuracy</th>
+<th width="15%">Training Time</th>
+<th width="18%">vs MLP</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><b>01 (TinyDigits)</b></td><td>1K train</td><td>8×8 gray</td><td>Simple CNN</td><td>~90%</td><td>5-7 min</td><td>+10% improvement</td></tr>
+<tr><td><b>02 (CIFAR-10)</b></td><td>50K train</td><td>32×32 RGB</td><td>Deeper CNN</td><td>65-75%</td><td>30-60 min</td><td>MLPs struggle here</td></tr>
+</tbody>
+</table>
+
+## Key Learning: Why Convolution Dominates Vision
+
+CNNs exploit three key principles:
+
+### 1. Local Connectivity
+**MLP:** Every pixel connects to every neuron (millions of parameters)
+**CNN:** Only local regions connect (shared filters, 100× fewer params)
+
+### 2. Translation Invariance
+**MLP:** "Cat in top-left" ≠ "Cat in bottom-right" (different weights!)
+**CNN:** Same filter detects features anywhere (shared weights)
+
+### 3. Hierarchical Features
+**Layer 1:** Edge detectors (vertical, horizontal, diagonal)
+**Layer 2:** Texture patterns (combinations of edges)
+**Layer 3:** Object parts (wheels, faces, legs)
+**Output:** Full objects (cars, cats, planes)
+
+This is why CNNs remained state-of-the-art for vision until Vision Transformers (2020)!
+
+## Running the Milestone
+
+```bash
+# Default milestone path from the TinyTorch project root
+tito milestone run 04
+
+# Or run the default script directly
+cd milestones/04_1998_cnn
+python 01_lecun_tinydigits.py
+
+# Optional scale-up to natural images
+python 02_lecun_cifar10.py
+```
+
+## Further Reading
+
+- **LeNet-5 Paper**: LeCun et al. (1998). "Gradient-based learning applied to document recognition"
+- **CIFAR-10**: Krizhevsky (2009). "Learning Multiple Layers of Features from Tiny Images"
+- **ImageNet Moment**: Krizhevsky et al. (2012). "ImageNet Classification with Deep CNNs" (AlexNet)
+- **Modern Survey**: [A guide to convolution arithmetic](https://arxiv.org/abs/1603.07285)
+
+## Achievement Unlocked
+
+After completing this milestone, you'll understand:
+- Why convolution works better than dense layers for images
+- How local connectivity + weight sharing reduce parameters
+- What CNNs learn at each layer (edges → textures → parts → objects)
+- Why spatial operations dominated vision until transformers
+
+**You've recreated the architecture that launched modern computer vision!**
+
+---
+
+**Note for Next Milestone:** CNNs excel at vision, but what about sequences (text, audio, time series)? Milestone 05 introduces **Transformers** - the architecture that unified vision AND language!
