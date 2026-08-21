@@ -110,10 +110,10 @@ class ResetCommand(BaseCommand):
         console.print(Panel("🔄 Resetting TinyTorch Package",
                            title="Package Reset", border_style="bright_yellow"))
 
-        tinytorch_path = Path("tinytorch")
+        tinytorch_path = Path("trentorch")
 
         if not tinytorch_path.exists():
-            console.print(Panel("[yellow]⚠️  TinyTorch package directory not found. Nothing to reset.[/yellow]",
+            console.print(Panel("[yellow]⚠️  TrenTorch package directory not found. Nothing to reset.[/yellow]",
                               title="Nothing to Reset", border_style="yellow"))
             return 0
 
@@ -148,7 +148,7 @@ class ResetCommand(BaseCommand):
             if py_file.name != "__init__.py":
                 try:
                     rel_path = py_file.relative_to(tinytorch_path)
-                    reset_text.append(f"  🗑️  tinytorch/{rel_path}\n", style="red")
+                    reset_text.append(f"  🗑️  trentorch/{rel_path}\n", style="red")
                     py_file.unlink()
                     files_removed += 1
                 except Exception as e:
@@ -305,7 +305,7 @@ class ResetCommand(BaseCommand):
         console.print(Panel(
             "[green]✅ Module progress reset![/green]\n\n"
             "You can re-complete modules with:\n"
-            "[cyan]tito module complete XX[/cyan]",
+            "[cyan]tren module complete XX[/cyan]",
             title="🔄 Progress Reset",
             border_style="green"
         ))
@@ -356,7 +356,7 @@ class ResetCommand(BaseCommand):
         console.print(Panel(
             "[green]✅ Milestone achievements reset![/green]\n\n"
             "You can re-run milestones with:\n"
-            "[cyan]tito milestone run XX[/cyan]",
+            "[cyan]tren milestone run XX[/cyan]",
             title="🔄 Milestones Reset",
             border_style="green"
         ))

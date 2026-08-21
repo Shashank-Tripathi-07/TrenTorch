@@ -86,9 +86,9 @@ class UpdateCommand(BaseCommand):
         )
 
     def _get_current_version(self) -> str:
-        """Get current version from tinytorch package."""
+        """Get current version from trentorch package."""
         try:
-            from tinytorch import __version__
+            from trentorch import __version__
             return __version__
         except ImportError:
             return "unknown"
