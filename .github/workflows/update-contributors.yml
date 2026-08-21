@@ -11,6 +11,7 @@ on:
     types: [opened]
   pull_request:
     types: [opened, closed]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
