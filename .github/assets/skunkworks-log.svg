@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="100%" role="img" aria-label="Engineering log meme: a night-shift field notebook page for the TrenTorch project">
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#173049" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="ring1" cx="50%" cy="50%" r="50%">
+      <stop offset="70%" stop-color="#3b2a12" stop-opacity="0"/>
+      <stop offset="86%" stop-color="#c98a3a" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#c98a3a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="900" height="480" fill="#0b1220"/>
+  <rect width="900" height="480" fill="url(#grid)"/>
+
+  <!-- corner tick marks, drafting-table style -->
+  <g stroke="#3a6d8f" stroke-width="2">
+    <path d="M20,20 L52,20 M20,20 L20,52" fill="none"/>
+    <path d="M880,20 L848,20 M880,20 L880,52" fill="none"/>
+    <path d="M20,460 L52,460 M20,460 L20,428" fill="none"/>
+    <path d="M880,460 L848,460 M880,460 L880,428" fill="none"/>
+  </g>
+
+  <!-- coffee ring stains -->
+  <circle cx="760" cy="120" r="34" fill="url(#ring1)"/>
+  <circle cx="120" cy="360" r="26" fill="url(#ring1)"/>
+
+  <!-- title block -->
+  <text x="46" y="70" font-family="Consolas, 'Courier New', monospace" font-size="15" fill="#5a94b8" letter-spacing="3">TRENTORCH // ENGINEERING LOG</text>
+  <text x="46" y="94" font-family="Consolas, 'Courier New', monospace" font-size="13" fill="#3d6a86">SHEET 07 — NIGHT SHIFT — NO SUPERVISION</text>
+  <line x1="46" y1="106" x2="854" y2="106" stroke="#22496a" stroke-width="1.5"/>
+
+  <!-- log entries -->
+  <g font-family="Consolas, 'Courier New', monospace" font-size="18" fill="#e8e2d4">
+    <text x="46" y="160"><tspan fill="#d4740c">23:58</tspan>  "the gradients look wrong" said everyone, still nobody checked the sign</text>
+    <text x="46" y="198"><tspan fill="#d4740c">01:42</tspan>  found it. one transpose. one single transpose.</text>
+    <text x="46" y="236"><tspan fill="#d4740c">02:47</tspan>  loss is going down. we do not fully trust it yet.</text>
+    <text x="46" y="274"><tspan fill="#d4740c">03:15</tspan>  third coffee. whiteboard now 40% tensors, 60% arrows to nowhere</text>
+    <text x="46" y="312"><tspan fill="#d4740c">04:31</tspan>  it trained. it actually trained. someone say something.</text>
+    <text x="46" y="350"><tspan fill="#d4740c">04:58</tspan>  wrote zero comments. future us will figure it out.</text>
+  </g>
+
+  <line x1="46" y1="372" x2="854" y2="372" stroke="#22496a" stroke-width="1.5"/>
+  <text x="46" y="404" font-family="Consolas, 'Courier New', monospace" font-size="14" fill="#5a94b8">STATUS: SHIPPED</text>
+  <text x="46" y="426" font-family="Consolas, 'Courier New', monospace" font-size="14" fill="#5a94b8">SIGNED: WHOEVER WAS STILL AWAKE</text>
+
+  <!-- stamp -->
+  <g transform="translate(742,392) rotate(-9)">
+    <circle cx="0" cy="0" r="52" fill="none" stroke="#d4740c" stroke-width="3" opacity="0.85"/>
+    <circle cx="0" cy="0" r="44" fill="none" stroke="#d4740c" stroke-width="1" opacity="0.6"/>
+    <text x="0" y="-6" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="13" font-weight="bold" fill="#d4740c">BUILT AT</text>
+    <text x="0" y="12" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="13" font-weight="bold" fill="#d4740c">3 AM</text>
+  </g>
+</svg>

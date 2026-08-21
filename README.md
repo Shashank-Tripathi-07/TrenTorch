@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src=".github/assets/trentorch-bolt.svg" width="120" height="120" alt="TrenTorch pulsing bolt mark" />
+
 # Tren⚡Torch
 
 ### TinyTorch. On Steroids.
@@ -39,6 +41,10 @@ TinyTorch teaches the fundamentals. TrenTorch takes those same bricks and adds t
 - **Ours** - rebuilt, refactored, and hardened in our own hands
 
 No black boxes. No `import torch`. Just the machinery, exposed.
+
+<div align="center">
+<img src=".github/assets/skunkworks-log.svg" width="100%" alt="Night-shift engineering log: coffee stains, a transpose bug found at 01:42, and a stamp reading built at 3 AM" />
+</div>
 
 ---
 
