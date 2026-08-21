@@ -59,8 +59,8 @@ docs = [
 ]
 
 [tool.nbdev]
-lib_name = "trentorch"
-lib_path = "trentorch"
+lib_name = "tinytorch"
+lib_path = "tinytorch"
 nbs_path = "modules"
 doc_path = "_docs"
 branch = "main"
