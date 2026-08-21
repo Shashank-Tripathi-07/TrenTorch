@@ -61,8 +61,8 @@ set -e  # Exit on any error
 #   TINYTORCH_BRANCH=dev ./install.sh
 #   TINYTORCH_VERSION=0.1.5 TINYTORCH_BRANCH=feature/foo ./install.sh
 #   TINYTORCH_NON_INTERACTIVE=1 ./install.sh  # Skip all prompts (for CI)
-REPO_URL="https://github.com/Shashank-Tripathi-07/TrenTorch.git"
-REPO_SHORT="Shashank-Tripathi-07/TrenTorch"
+REPO_SHORT="${GITHUB_REPOSITORY:-Shashank-Tripathi-07/TrenTorch}"
+REPO_URL="https://github.com/${REPO_SHORT}.git"
 # TrenTorch is currently a private repo, so an anonymous clone/ls-remote of
 # REPO_URL 404s. If GITHUB_TOKEN is set (GitHub injects one automatically
 # inside this repo's own CI), use it to authenticate instead. Does nothing
@@ -72,7 +72,7 @@ if [ -n "$GITHUB_TOKEN" ]; then
 else
     EFFECTIVE_REPO_URL="$REPO_URL"
 fi
-TAGS_API="https://api.github.com/repos/Shashank-Tripathi-07/TrenTorch/tags"
+TAGS_API="https://api.github.com/repos/${REPO_SHORT}/tags"
 TAG_PREFIX="tinytorch-v"
 BRANCH="${TINYTORCH_BRANCH:-main}"
 INSTALL_DIR="${TINYTORCH_INSTALL_DIR:-tinytorch}"

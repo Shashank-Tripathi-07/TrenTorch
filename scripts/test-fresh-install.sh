@@ -81,9 +81,10 @@ CURL_AUTH=()
 if [ -n "$GITHUB_TOKEN" ]; then
     CURL_AUTH=(-H "Authorization: token $GITHUB_TOKEN")
 fi
-curl -fsSL "${CURL_AUTH[@]}" "https://raw.githubusercontent.com/Shashank-Tripathi-07/TrenTorch/${BRANCH}/quarto/install.sh" -o /tmp/install.sh || {
+REPO_SLUG="${GITHUB_REPOSITORY:-Shashank-Tripathi-07/TrenTorch}"
+curl -fsSL "${CURL_AUTH[@]}" "https://raw.githubusercontent.com/${REPO_SLUG}/${BRANCH}/quarto/install.sh" -o /tmp/install.sh || {
     echo "✗ Failed to download install script for branch: $BRANCH"
-    echo "  URL: https://raw.githubusercontent.com/Shashank-Tripathi-07/TrenTorch/${BRANCH}/quarto/install.sh"
+    echo "  URL: https://raw.githubusercontent.com/${REPO_SLUG}/${BRANCH}/quarto/install.sh"
     echo "  Hint: Does the branch '${BRANCH}' exist and contain quarto/install.sh?"
     [ -z "$GITHUB_TOKEN" ] && echo "  Also: TrenTorch is a private repo and no GITHUB_TOKEN was set -- that alone would 404 here."
     exit 1
