@@ -32,10 +32,10 @@ def _gather_system_info(venv_path: Path) -> dict:
         hasattr(sys, 'real_prefix')
     )
 
-    # TinyTorch Version
+    # TrenTorch Version
     try:
-        import tinytorch
-        tinytorch_version = getattr(tinytorch, '__version__', 'unknown')
+        import trentorch
+        tinytorch_version = getattr(trentorch, '__version__', 'unknown')
     except ImportError:
         tinytorch_version = "not installed"
 
@@ -118,16 +118,17 @@ class InfoCommand(BaseCommand):
         if venv_path_str != "N/A":
             info_table.add_row("  └─ Path", venv_path_str)
 
-        # TinyTorch Version
+        # TrenTorch Version
         if info["tinytorch_version"] != "not installed":
-            info_table.add_row("TinyTorch Version", info["tinytorch_version"])
+            info_table.add_row("TrenTorch Version", info["tinytorch_version"])
             try:
-                import tinytorch
-                info_table.add_row("  └─ Location", str(Path(tinytorch.__file__).parent))
+                import trentorch
+                if trentorch.__file__:
+                    info_table.add_row("  └─ Location", str(Path(trentorch.__file__).parent))
             except ImportError:
                 pass
         else:
-            info_table.add_row("TinyTorch Version", "❌ Not Installed")
+            info_table.add_row("TrenTorch Version", "❌ Not Installed")
 
         # NumPy Version
         if info["numpy_version"] != "not installed":
@@ -164,7 +165,7 @@ class InfoCommand(BaseCommand):
         # Helpful tips pointing to other commands
         console.print(Panel(
             "[dim]💡 For more information:[/dim]\n"
-            "• Run [cyan]tito system health[/cyan] for environment health check and validation",
+            "• Run [cyan]tren system health[/cyan] for environment health check and validation",
             border_style="blue"
         ))
 

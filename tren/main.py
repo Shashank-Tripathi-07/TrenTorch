@@ -86,7 +86,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-class TinyTorchCLI:
+class TrenTorchCLI:
     """Main CLI application class."""
 
     def __init__(self):
@@ -121,21 +121,21 @@ class TinyTorchCLI:
         # Welcome screen sections (used for both tito and tito --help)
         self.welcome_sections = {
             'quick_start': [
-                (f'[{Theme.CAT_QUICKSTART}]tito setup[/{Theme.CAT_QUICKSTART}]', 'First-time setup (includes verification)'),
-                (f'[{Theme.CAT_QUICKSTART}]tito module start 01[/{Theme.CAT_QUICKSTART}]', 'Start Module 01 (tensors)'),
-                (f'[{Theme.CAT_QUICKSTART}]tito module complete 01[/{Theme.CAT_QUICKSTART}]', 'Test, export, and track progress'),
+                (f'[{Theme.CAT_QUICKSTART}]tren setup[/{Theme.CAT_QUICKSTART}]', 'First-time setup (includes verification)'),
+                (f'[{Theme.CAT_QUICKSTART}]tren module start 01[/{Theme.CAT_QUICKSTART}]', 'Start Module 01 (tensors)'),
+                (f'[{Theme.CAT_QUICKSTART}]tren module complete 01[/{Theme.CAT_QUICKSTART}]', 'Test, export, and track progress'),
             ],
             'track_progress': [
-                (f'[{Theme.CAT_PROGRESS}]tito module status[/{Theme.CAT_PROGRESS}]', 'View module progress'),
-                (f'[{Theme.CAT_PROGRESS}]tito milestone status[/{Theme.CAT_PROGRESS}]', 'View unlocked capabilities'),
+                (f'[{Theme.CAT_PROGRESS}]tren module status[/{Theme.CAT_PROGRESS}]', 'View module progress'),
+                (f'[{Theme.CAT_PROGRESS}]tren milestone status[/{Theme.CAT_PROGRESS}]', 'View unlocked capabilities'),
             ],
             'community': [
-                (f'[{Theme.CAT_COMMUNITY}]tito community login[/{Theme.CAT_COMMUNITY}]', 'Log in to TinyTorch'),
-                (f'[{Theme.CAT_COMMUNITY}]tito community logout[/{Theme.CAT_COMMUNITY}]', 'Log out of TinyTorch'),
+                (f'[{Theme.CAT_COMMUNITY}]tren community login[/{Theme.CAT_COMMUNITY}]', 'Log in to TrenTorch'),
+                (f'[{Theme.CAT_COMMUNITY}]tren community logout[/{Theme.CAT_COMMUNITY}]', 'Log out of TrenTorch'),
             ],
             'help_docs': [
-                (f'[{Theme.CAT_HELP}]tito system health[/{Theme.CAT_HELP}]', 'Check environment health'),
-                (f'[{Theme.CAT_HELP}]tito --help[/{Theme.CAT_HELP}]', 'See all commands'),
+                (f'[{Theme.CAT_HELP}]tren system health[/{Theme.CAT_HELP}]', 'Check environment health'),
+                (f'[{Theme.CAT_HELP}]tren --help[/{Theme.CAT_HELP}]', 'See all commands'),
             ]
         }
 
@@ -188,7 +188,7 @@ The best way to learn:
   [{Theme.SUCCESS}]1.[/{Theme.SUCCESS}] Read the module and run the code
   [{Theme.SUCCESS}]2.[/{Theme.SUCCESS}] Study how the solutions work
   [{Theme.SUCCESS}]3.[/{Theme.SUCCESS}] Try implementing from scratch
-     [{Theme.DIM}](reset with: tito module reset)[/{Theme.DIM}]
+     [{Theme.DIM}](reset with: tren module reset)[/{Theme.DIM}]
 
 [{Theme.WARNING}]🐛 PRE-RELEASE:[/{Theme.WARNING}] We're looking for bugs and feedback!
    Found something? → [{Theme.INFO}]github.com/harvard-edge/cs249r_book/discussions[/{Theme.INFO}]"""
@@ -196,7 +196,7 @@ The best way to learn:
         self.console.print()
         self.console.print(Panel(
             welcome_text,
-            title="[bold]Welcome to TinyTorch (Pre-release)[/bold]",
+            title="[bold]Welcome to TrenTorch (Pre-release)[/bold]",
             border_style=Theme.BORDER_WELCOME,
             box=box.ROUNDED
         ))
@@ -240,8 +240,8 @@ The best way to learn:
     def create_parser(self) -> argparse.ArgumentParser:
         """Create the main argument parser."""
         parser = argparse.ArgumentParser(
-            prog="tito",
-            description="Tiny🔥Torch CLI - Build ML systems from scratch",
+            prog="tren",
+            description="Tren🔥Torch CLI - Build ML systems from scratch",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog=self._generate_epilog()
         )
@@ -250,7 +250,7 @@ The best way to learn:
         parser.add_argument(
             '--version',
             action='version',
-            version=f'Tiny🔥Torch v{__version__}'
+            version=f'Tren🔥Torch v{__version__}'
         )
         parser.add_argument(
             '--verbose', '-v',
@@ -292,7 +292,7 @@ The best way to learn:
                 "Environment validation failed:\n" + "\n".join(f"  • {issue}" for issue in issues),
                 "Environment Issues"
             )
-            self.console.print("\n[dim]Run 'tito system health' for detailed diagnosis[/dim]")
+            self.console.print("\n[dim]Run 'tren system health' for detailed diagnosis[/dim]")
             # Return True to allow command execution despite validation issues
             # This is temporary for development
             return True
@@ -356,7 +356,7 @@ The best way to learn:
             self.console.print()
             self.console.print(Panel(
                 f"[yellow]'{first_arg}' is not a valid command.[/yellow]\n\n"
-                f"[dim]Run 'tito --help' to see all available commands.[/dim]",
+                f"[dim]Run 'tren --help' to see all available commands.[/dim]",
                 title="[bold]Command Not Found[/bold]",
                 border_style="yellow"
             ))
@@ -436,7 +436,7 @@ The best way to learn:
                 # Generate dynamic welcome message
                 self.console.print(Panel(
                     self._generate_welcome_text(),
-                    title="Welcome to Tiny🔥Torch!",
+                    title="Welcome to Tren🔥Torch!",
                     border_style=Theme.BORDER_WELCOME
                 ))
                 return 0
@@ -464,7 +464,7 @@ The best way to learn:
 
 def main() -> int:
     """Main entry point for the CLI."""
-    cli = TinyTorchCLI()
+    cli = TrenTorchCLI()
     return cli.run(sys.argv[1:])
 
 if __name__ == "__main__":

@@ -27,6 +27,16 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+# Importing trentorch.core.autograd has the side effect of calling
+# enable_autograd(), which monkey-patches Tensor.__init__ to accept
+# requires_grad. This file only ever imports trentorch.core.tensor
+# directly below, so without this import here, every Tensor(...,
+# requires_grad=True) call in this file raises TypeError when this file
+# runs on its own (exactly what `tren module complete 06` does) -- it
+# previously only passed by accident, when pytest happened to collect a
+# sibling file that imports trentorch.core.autograd first.
+import trentorch.core.autograd  # noqa: F401
+
 
 class TestAutogradCore:
     """

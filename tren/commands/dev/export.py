@@ -92,20 +92,20 @@ class DevExportCommand(BaseCommand):
         ))
         console.print()
 
-        # Guard: Ensure we're in the correct directory (tinytorch project root)
+        # Guard: Ensure we're in the correct directory (trentorch project root)
         # Check for key files that indicate we're in the right place
         cwd = Path.cwd()
         is_tinytorch_root = (
-            (cwd / "tinytorch" / "__init__.py").exists() or  # Running from repo root
-            (cwd / "src").exists() and (cwd / "pyproject.toml").exists()  # Already in tinytorch/
+            (cwd / "trentorch" / "__init__.py").exists() or  # Running from repo root
+            (cwd / "src").exists() and (cwd / "pyproject.toml").exists()  # Already in trentorch/
         )
         if not is_tinytorch_root:
             console.print(Panel(
-                "[red]❌ Must run from TinyTorch project directory[/red]\n\n"
+                "[red]❌ Must run from TrenTorch project directory[/red]\n\n"
                 "[dim]Expected structure:[/dim]\n"
-                "[dim]  tinytorch/          ← run from here[/dim]\n"
+                "[dim]  trentorch/          ← run from here[/dim]\n"
                 "[dim]  ├── src/[/dim]\n"
-                "[dim]  ├── tinytorch/      ← package exports here[/dim]\n"
+                "[dim]  ├── trentorch/      ← package exports here[/dim]\n"
                 "[dim]  │   └── __init__.py[/dim]\n"
                 "[dim]  └── pyproject.toml[/dim]",
                 title="Wrong Directory", border_style="red"
@@ -206,12 +206,12 @@ class DevExportCommand(BaseCommand):
         console.print(f"✅ Converted {len(converted)} modules: {', '.join(converted)}")
 
         # Step 2: Export all using nbdev Python API
-        console.print("🔄 Exporting all notebooks to tinytorch package...")
+        console.print("🔄 Exporting all notebooks to trentorch package...")
         try:
             from nbdev.export import nb_export
             from pathlib import Path as P
-            
-            lib_path = Path.cwd() / "tinytorch"
+
+            lib_path = Path.cwd() / "trentorch"
             nbs_path = Path.cwd() / "modules"
             
             # Export all notebooks in the modules directory
@@ -259,7 +259,7 @@ class DevExportCommand(BaseCommand):
         """
         from nbdev.export import nb_export
         success_count = 0
-        lib_path = Path.cwd() / "tinytorch"
+        lib_path = Path.cwd() / "trentorch"
 
         for notebook_path_str in notebook_paths:
             try:
@@ -269,9 +269,9 @@ class DevExportCommand(BaseCommand):
                 export_target = self._get_export_target(module_path)
                 notebook_name = notebook_path.name
                 target_display = (
-                    f"tinytorch/{export_target.replace('.', '/')}.py"
+                    f"trentorch/{export_target.replace('.', '/')}.py"
                     if export_target != "unknown"
-                    else "tinytorch/..."
+                    else "trentorch/..."
                 )
                 console.print(f"[dim]🔄 Exporting {notebook_name} → {target_display}[/dim]")
 

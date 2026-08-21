@@ -1,11 +1,11 @@
-# tito/commands/login.py
+# tren/commands/login.py
 import time
 from argparse import ArgumentParser, Namespace
 from rich.panel import Panel
 from rich.prompt import Confirm
-from tito.commands.base import BaseCommand
-from tito.core.auth import AuthReceiver, save_credentials, delete_credentials, ENDPOINTS, is_logged_in
-from tito.core.browser import open_url
+from tren.commands.base import BaseCommand
+from tren.core.auth import AuthReceiver, save_credentials, delete_credentials, ENDPOINTS, is_logged_in
+from tren.core.browser import open_url
 
 class LoginCommand(BaseCommand):
     @property
@@ -104,8 +104,8 @@ class LoginCommand(BaseCommand):
         actually exists, so a fresh login stays quiet.
         """
         import json
-        from tito.core.submission import auto_sync_after_completion
-        from tito.core.modules import get_module_mapping
+        from tren.core.submission import auto_sync_after_completion
+        from tren.core.modules import get_module_mapping
 
         progress_file = self.config.project_root / ".tito" / "progress.json"
         try:

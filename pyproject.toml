@@ -58,8 +58,8 @@ docs = [
 ]
 
 [tool.nbdev]
-lib_name = "tinytorch"
-lib_path = "tinytorch"
+lib_name = "trentorch"
+lib_path = "trentorch"
 nbs_path = "modules"
 doc_path = "_docs"
 branch = "main"
@@ -67,8 +67,8 @@ recursive = true
 tst_flags = "notest"
 put_version_in_init = false
 custom_sidebar = false
-doc_host = "https://tinytorch.github.io"
-doc_baseurl = "/TinyTorch/"
+doc_host = "https://trentorch.github.io"
+doc_baseurl = "/TrenTorch/"
 
 [project.urls]
 Homepage = "https://trentorch.vercel.app"

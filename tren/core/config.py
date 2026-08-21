@@ -16,7 +16,7 @@ class CLIConfig:
     # Project paths
     project_root: Path
     assignments_dir: Path
-    tinytorch_dir: Path
+    trentorch_dir: Path
     bin_dir: Path
     modules_dir: Path  # Student working directory (src/)
 
@@ -53,7 +53,7 @@ class CLIConfig:
             project_root=project_root,
             assignments_dir=project_root / 'assignments',
             modules_dir=modules_path,
-            tinytorch_dir=project_root / 'tinytorch',
+            trentorch_dir=project_root / 'trentorch',
             bin_dir=project_root / 'bin'
         )
 
@@ -84,9 +84,9 @@ class CLIConfig:
         if not self.modules_dir.exists():
             issues.append(f"Modules directory not found: {self.modules_dir}")
 
-        # tinytorch_dir check removed - the project root IS tinytorch
-        # if not self.tinytorch_dir.exists():
-        #     issues.append(f"TinyTorch package not found: {self.tinytorch_dir}")
+        # trentorch_dir check removed - the project root IS trentorch
+        # if not self.trentorch_dir.exists():
+        #     issues.append(f"TrenTorch package not found: {self.trentorch_dir}")
 
         # Check required packages
         for package in self.required_packages:

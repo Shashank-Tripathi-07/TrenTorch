@@ -100,8 +100,8 @@ class SystemResetCommand(BaseCommand):
                     except Exception as e:
                         errors.append(f"modules/{item.name}: {e}")
 
-        # 2. Clear tinytorch/core/ (keep __init__.py)
-        core_dir = project_root / "tinytorch" / "core"
+        # 2. Clear trentorch/core/ (keep __init__.py)
+        core_dir = project_root / "trentorch" / "core"
         core_cleared = 0
         if core_dir.exists():
             for py_file in core_dir.glob("*.py"):
@@ -110,7 +110,7 @@ class SystemResetCommand(BaseCommand):
                         py_file.unlink()
                         core_cleared += 1
                     except Exception as e:
-                        errors.append(f"tinytorch/core/{py_file.name}: {e}")
+                        errors.append(f"trentorch/core/{py_file.name}: {e}")
 
         # 3. Reset progress (unless --keep-progress)
         progress_reset = False

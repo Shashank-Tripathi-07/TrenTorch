@@ -57,7 +57,7 @@ def _ensure_dir() -> None:
 
 def save_credentials(data: Dict[str, str]) -> None:
     """Persist credentials to disk safely and atomically."""
-    from tito.core.console import get_console
+    from tren.core.console import get_console
     _ensure_dir()
     p = _credentials_path()
     # Use a unique temporary file to prevent race conditions (e.g. during login callback)

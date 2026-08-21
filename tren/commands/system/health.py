@@ -116,47 +116,47 @@ class HealthCommand(BaseCommand):
         nb_table.add_column("Status", justify="center", width=15)
         nb_table.add_column("Detail", style="dim", width=35)
 
-        # 1. Can we import the tinytorch package at all?
+        # 1. Can we import the trentorch package at all?
         try:
-            import tinytorch
+            import trentorch
             nb_table.add_row(
-                "TinyTorch package",
+                "TrenTorch package",
                 "[green]✅ OK[/green]",
-                f"v{getattr(tinytorch, '__version__', 'unknown')}"
+                f"v{getattr(trentorch, '__version__', 'unknown')}"
             )
         except ImportError as e:
             nb_table.add_row(
-                "TinyTorch package",
+                "TrenTorch package",
                 "[red]❌ Not importable[/red]",
                 "run: pip install -e ."
             )
-            issues.append("tinytorch package not importable — run: pip install -e .")
+            issues.append("trentorch package not importable — run: pip install -e .")
 
-        # 2. Does tinytorch/core/tensor.py exist? (the most common failure point)
-        core_dir = self.config.project_root / "tinytorch" / "core"
+        # 2. Does trentorch/core/tensor.py exist? (the most common failure point)
+        core_dir = self.config.project_root / "trentorch" / "core"
         tensor_file = core_dir / "tensor.py"
         if tensor_file.exists():
             nb_table.add_row(
                 "Core module files",
                 "[green]✅ OK[/green]",
-                f"{len(list(core_dir.glob('*.py')))} files in tinytorch/core/"
+                f"{len(list(core_dir.glob('*.py')))} files in trentorch/core/"
             )
         else:
             nb_table.add_row(
                 "Core module files",
                 "[red]❌ Missing[/red]",
-                "tinytorch/core/tensor.py not found"
+                "trentorch/core/tensor.py not found"
             )
-            issues.append("tinytorch/core/tensor.py missing — package may be corrupted")
+            issues.append("trentorch/core/tensor.py missing — package may be corrupted")
 
         # 3. Can the Tensor class actually be imported?
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             if Tensor is not None:
                 nb_table.add_row(
                     "Tensor import",
                     "[green]✅ OK[/green]",
-                    "from tinytorch.core.tensor import Tensor"
+                    "from trentorch.core.tensor import Tensor"
                 )
             else:
                 nb_table.add_row(
@@ -164,7 +164,7 @@ class HealthCommand(BaseCommand):
                     "[yellow]⚠️  None[/yellow]",
                     "Module 01 may not be exported yet"
                 )
-                issues.append("Tensor is None — complete Module 01: tito module complete 01")
+                issues.append("Tensor is None — complete Module 01: tren module complete 01")
         except ImportError as e:
             nb_table.add_row(
                 "Tensor import",
@@ -227,7 +227,7 @@ class HealthCommand(BaseCommand):
         required_paths = [
             ('src/', 'Source modules directory (student workspace)'),
             ('tests/', 'Test suite directory'),
-            ('tito/', 'CLI infrastructure'),
+            ('tren/', 'CLI infrastructure'),
             ('requirements.txt', 'Dependencies file')
         ]
 

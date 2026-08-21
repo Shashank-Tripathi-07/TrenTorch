@@ -155,27 +155,27 @@ class TinyTorchStatusAnalyzer:
         }
 
         try:
-            # Check if tito is available
-            result = subprocess.run(['tito', '--version'], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
+            # Check if tren is available
+            result = subprocess.run(['tren', '--version'], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
             if result.returncode == 0:
                 tito_status['tito_available'] = True
             else:
-                tito_status['issues'].append("Tito command not available")
+                tito_status['issues'].append("Tren command not available")
         except Exception as e:
-            tito_status['issues'].append(f"Tito CLI error: {str(e)}")
+            tito_status['issues'].append(f"Tren CLI error: {str(e)}")
 
-        # Test key commands if tito is available
+        # Test key commands if tren is available
         if tito_status['tito_available']:
             test_commands = ['system info', 'module status']
             for cmd in test_commands:
                 try:
-                    result = subprocess.run(f'tito {cmd}'.split(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
+                    result = subprocess.run(f'tren {cmd}'.split(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
                     tito_status['commands_working'][cmd] = result.returncode == 0
                     if result.returncode != 0:
-                        tito_status['issues'].append(f"Tito '{cmd}' command failed")
+                        tito_status['issues'].append(f"Tren '{cmd}' command failed")
                 except Exception as e:
                     tito_status['commands_working'][cmd] = False
-                    tito_status['issues'].append(f"Tito '{cmd}' error: {str(e)}")
+                    tito_status['issues'].append(f"Tren '{cmd}' error: {str(e)}")
 
         self.tito_status = tito_status
         return tito_status

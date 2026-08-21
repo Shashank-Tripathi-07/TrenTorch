@@ -277,12 +277,12 @@ class PreflightCommand(BaseCommand):
             ("src/", "Source files directory"),
             ("milestones/", "Milestone scripts"),
             ("tests/", "Test directory"),
-            ("tito/", "CLI directory"),
+            ("tren/", "CLI directory"),
         ]
 
         # Optional directories (generated, not in git)
         optional_dirs = [
-            ("tinytorch/", "Package directory (run 'tito export' to generate)"),
+            ("trentorch/", "Package directory (run 'tren dev export --all' to generate)"),
         ]
 
         for dir_path, desc in required_dirs:
@@ -373,20 +373,20 @@ class PreflightCommand(BaseCommand):
             self.console.print(f"\n[bold]🖥️ CLI Commands[/bold]")
 
         cli_checks = [
-            (["--version"], "tito --version"),
-            (["--help"], "tito --help"),
-            (["module", "status"], "tito module status"),
-            (["system", "info"], "tito system info"),
-            (["milestone", "list", "--simple"], "tito milestone list"),
+            (["--version"], "tren --version"),
+            (["--help"], "tren --help"),
+            (["module", "status"], "tren module status"),
+            (["system", "info"], "tren system info"),
+            (["milestone", "list", "--simple"], "tren milestone list"),
         ]
 
-        # Use bin/tito wrapper (no pip install required)
-        tito_bin = project_root / "bin" / "tito"
+        # Use bin/tren wrapper (no pip install required)
+        tito_bin = project_root / "bin" / "tren"
 
         for args, name in cli_checks:
             start = time.time()
             cmd = [sys.executable, str(tito_bin)] + args
-            cmd_str = f"./bin/tito {' '.join(args)}"
+            cmd_str = f"./bin/tren {' '.join(args)}"
 
             code, stdout, stderr = self._run_command(cmd, project_root, timeout=30, verbose=verbose)
 
@@ -428,10 +428,10 @@ class PreflightCommand(BaseCommand):
             self.console.print(f"\n[bold]📦 Package Imports[/bold]")
 
         imports = [
-            ("import tinytorch", "tinytorch package"),
+            ("import trentorch", "trentorch package"),
             # Check Tensor is actually available (not None from failed import)
-            ("from tinytorch import Tensor; assert Tensor is not None, 'Tensor not exported - run: tito dev export --all'", "Tensor class"),
-            ("from tito.main import TinyTorchCLI", "CLI class"),
+            ("from trentorch import Tensor; assert Tensor is not None, 'Tensor not exported - run: tren dev export --all'", "Tensor class"),
+            ("from tren.main import TrenTorchCLI", "CLI class"),
         ]
 
         for import_stmt, name in imports:
