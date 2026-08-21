@@ -15,7 +15,7 @@ Thanks to everyone who's helped build TrenTorch. Kept up to date automatically â
         <sub>Issues: 0 &middot; PRs: 1 &middot; Merged: 1</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
-        <a href="https://github.com/Shashank-Tripathi-07"><img src="https://avatars.githubusercontent.com/Shashank-Tripathi-07?v=4" width="80px;" alt="Rocky"/></a>
+        <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" width="80px;" alt="Rocky"/></a>
         <br />
         <b>Rocky</b>
         <br />

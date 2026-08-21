@@ -27,6 +27,14 @@ README_FILE = ROOT / "README.md"
 DEFAULT_INTRO = "New to TrenTorch — say hi and add a real intro!"
 COLUMNS = 5
 
+# Custom avatar images checked into the repo, used instead of the person's
+# live GitHub avatar URL. Add an entry here (and the image under
+# .github/assets/) for anyone who wants their own picture instead of
+# whatever's on their GitHub profile.
+AVATAR_OVERRIDES = {
+    "Shashank-Tripathi-07": ".github/assets/rocky-avatar.png",
+}
+
 # Private repo, so shields.io can't query the real GitHub API for a live
 # contributor count (no auth to a private repo) -- this badge is a static
 # image whose count this script keeps in sync manually instead.
@@ -105,11 +113,12 @@ def build_grid(counts: dict, existing: dict) -> str:
     for login in logins:
         c = counts[login]
         name, intro = existing.get(login, (login, DEFAULT_INTRO))
+        avatar_src = AVATAR_OVERRIDES.get(login, f"https://avatars.githubusercontent.com/{login}?v=4")
         stats = f"Issues: {c['issues']} &middot; PRs: {c['prs']} &middot; Merged: {c['merged']}"
         cells.append(
             f'      <td align="center" valign="top" width="{width}%">\n'
             f'        <a href="https://github.com/{login}">'
-            f'<img src="https://avatars.githubusercontent.com/{login}?v=4" width="80px;" alt="{name}"/></a>\n'
+            f'<img src="{avatar_src}" width="80px;" alt="{name}"/></a>\n'
             f'        <br />\n'
             f'        <b>{name}</b>\n'
             f'        <br />\n'
