@@ -2,9 +2,10 @@ name: '📋 Update Contributors Table'
 
 # Recomputes CONTRIBUTORS.md (issues raised, PRs raised, PRs merged per
 # person) from the real GitHub API whenever an issue or PR is opened, or a
-# PR closes. Opens a PR with the change and merges it immediately rather
-# than pushing to main directly, since main requires PRs for everyone except
-# repo admins (this workflow's token is not exempt, nor should it be).
+# PR closes. Opens a PR with the change and stops there -- it does not
+# merge it. main requires PRs for everyone except repo admins, and this
+# bot isn't exempt from that any more than a human contributor is; a
+# maintainer reviews and merges like any other PR.
 
 on:
   issues:
@@ -43,7 +44,7 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Open and merge update PR
+      - name: Open update PR (no auto-merge)
         if: steps.diff.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,7 +57,5 @@ jobs:
           git commit -m "Update CONTRIBUTORS.md"
           git push origin "$BRANCH"
           gh pr create --title "Update CONTRIBUTORS.md" \
-            --body "Automated update from real issue/PR activity. See .github/workflows/update-contributors.yml." \
+            --body "Automated update from real issue/PR activity. See .github/workflows/update-contributors.yml. Needs a maintainer to review and merge, this bot does not merge its own PRs." \
             --base main --head "$BRANCH"
-          gh pr merge "$BRANCH" --squash --delete-branch || \
-            echo "::warning::Could not auto-merge, left open for manual merge."
