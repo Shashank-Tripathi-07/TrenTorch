@@ -24,7 +24,7 @@ cs249r_book/
     trentorch/           # The installable package, generated from modules/ by nbdev
     tren/                # The `tren` CLI package
     milestones/          # Six historical-ML reproduction exercises
-    quarto/              # Docs site source (mlsysbook.ai/trentorch/) + PDF guide + community dashboard
+    quarto/              # Docs site source (mlsysbook.ai/tinytorch/) + PDF guide + community dashboard
     paper/               # Independent LaTeX research paper
     vscode-ext/           # "TrenTorch Workbench" VS Code extension
     binder/               # mybinder.org / Colab launch configuration
@@ -33,11 +33,11 @@ cs249r_book/
     pyproject.toml, settings.ini, MANIFEST.in, requirements.txt
     CONTRIBUTING.md, INSTRUCTOR.md, NBGRADER_RELEASE_TIERS.md, CHANGELOG.md
   .github/workflows/
-    trentorch-validate-dev.yml
-    trentorch-preview-dev.yml
-    trentorch-publish-live.yml
-    trentorch-build-pdfs.yml
-    trentorch-update-pdfs.yml
+    tinytorch-validate-dev.yml
+    tinytorch-preview-dev.yml
+    tinytorch-publish-live.yml
+    tinytorch-build-pdfs.yml
+    tinytorch-update-pdfs.yml
 ```
 
 ---
@@ -195,13 +195,13 @@ Each milestone directory (for example `milestones/01_1958_perceptron/`) contains
 
 ### 5.1 The docs site
 
-`quarto/_quarto.yml` is the main website Quarto project. Upstream publishes it at `mlsysbook.ai/trentorch/`; this fork doesn't currently deploy it anywhere, but the site still builds locally via `quarto render`. Structure:
+`quarto/_quarto.yml` is the main website Quarto project. Upstream publishes it at `mlsysbook.ai/tinytorch/`; this fork doesn't currently deploy it anywhere, but the site still builds locally via `quarto render`. Structure:
 
 - `quarto/modules/01_tensor.qmd` through `20_capstone.qmd`: one hand-authored chapter per module. These are prose pages that link out to the actual notebook (a Binder launch URL pointing at `modules/<NN>/<slug>.ipynb`) and the actual source (a GitHub link to `src/<NN>/<NN>.py`); they are not generated from either. There is no notebook-to-docs conversion script anywhere in the project (confirmed by searching `tren/` and `scripts/` for `nbconvert` or similar, with no matches).
 - `quarto/milestones/` and `quarto/tiers/`: narrative pages for the six milestones and the three curriculum tiers (Foundation, Architecture, Optimization).
-- `quarto/tren/`: CLI reference documentation.
+- `quarto/tito/`: CLI reference documentation (not yet renamed to match the `tren` CLI, still lives at this path on disk).
 - `quarto/config/announcement.yml`: the site's announcement banner configuration, upstream-specific (links to sibling mlsysbook.ai projects that don't apply to this fork).
-- `quarto/install.sh`: the install script. Upstream serves it at `mlsysbook.ai/trentorch/install.sh`; this fork has no equivalent hosted URL, so it's run from a local checkout or a raw GitHub URL instead.
+- `quarto/install.sh`: the install script. Upstream serves it at `mlsysbook.ai/tinytorch/install.sh`; this fork has no equivalent hosted URL, so it's run from a local checkout or a raw GitHub URL instead.
 
 ### 5.2 The PDF guide and the paper
 
@@ -247,7 +247,7 @@ TrenTorch is not currently published to PyPI by any automated workflow. Upstream
 
 ## 8. CI/CD
 
-The upstream TrenTorch project runs five GitHub Actions workflows (validate, preview, publish, and two PDF-build workflows) that gate merges, build and deploy the docs site to `mlsysbook.ai`, and cut versioned releases. None of that CI/CD infrastructure exists in this fork: it's specific to the `harvard-edge/cs249r_book` repository's GitHub Actions setup and secrets, and can't be used here without standing up equivalent workflows against this repository. If TrenTorch adds its own CI later, it would need to be built independently rather than copied wholesale, since the originals assume the monorepo's directory layout and deploy targets.
+The upstream TinyTorch project runs five GitHub Actions workflows (validate, preview, publish, and two PDF-build workflows) that gate merges, build and deploy the docs site to `mlsysbook.ai`, and cut versioned releases. None of that CI/CD infrastructure exists in this fork: it's specific to the `harvard-edge/cs249r_book` repository's GitHub Actions setup and secrets, and can't be used here without standing up equivalent workflows against this repository. If TrenTorch adds its own CI later, it would need to be built independently rather than copied wholesale, since the originals assume the monorepo's directory layout and deploy targets.
 
 ---
 
@@ -266,7 +266,7 @@ For instructor-side grading workflows specifically, `INSTRUCTOR.md` documents th
 
 ## 10. Known-broken or inaccurate as of this document
 
-- `CONTRIBUTING.md`'s "Release Process" section claims the release workflow "deploys to trentorch.org" and "publishes to PyPI." Neither matches the actual `trentorch-publish-live.yml` workflow, which deploys to `mlsysbook.ai/trentorch/` via `gh-pages` and has no PyPI step at all.
+- `CONTRIBUTING.md`'s "Release Process" section claims the release workflow "deploys to tinytorch.org" and "publishes to PyPI." Neither matches the actual `tinytorch-publish-live.yml` workflow, which deploys to `mlsysbook.ai/tinytorch/` via `gh-pages` and has no PyPI step at all.
 - `trentorch/scripts/build-docs.sh` references a defunct Jupyter Book pipeline (`docs/_build/html`, `website/docs/`) that predates the current Quarto site, and is not called from any current CI workflow.
 - `tests/integration/test_module_integration.py` is fully disabled (`pytest.mark.skip`) with a comment that it targets stale package paths.
 - `settings.ini` and `pyproject.toml` specify different dependency version floors for the same package; nothing currently enforces they stay consistent beyond the manual version-bump step in the publish workflow.
@@ -291,7 +291,7 @@ For instructor-side grading workflows specifically, `INSTRUCTOR.md` documents th
 1. Locate the relevant command class (Section 2.2's table) or core module (Section 2.3's table).
 2. Make the fix. If it involves environment detection, subprocess behavior, or anything platform-specific, test on both a Unix shell and Windows if you can; this codebase has a documented history of Windows-specific bugs in exactly this kind of code (see `tren/core/runtime.py`'s CI-versus-interactive fix in the design doc's "Project history").
 3. Add or update a test in `tests/cli/`. Prefer testing through the real subprocess entry point (`python -m tren.main ...`) when you're testing user-facing behavior, and importing `tren.main.TrenTorchCLI` directly when you're testing internal logic.
-4. `pytest tests/cli/` locally, then open a PR. CI's `trentorch-validate-dev.yml` runs the CLI test stage on both Ubuntu and Windows.
+4. `pytest tests/cli/` locally, then open a PR. CI's `tinytorch-validate-dev.yml` runs the CLI test stage on both Ubuntu and Windows.
 
 ### Adding or fixing a milestone
 
@@ -303,4 +303,4 @@ For instructor-side grading workflows specifically, `INSTRUCTOR.md` documents th
 
 1. Docs pages live under `quarto/modules/`, `quarto/milestones/`, and `quarto/tiers/`, hand-authored `.qmd` files, not generated from module source. If you add or substantially change a module, remember to update its corresponding `.qmd` page yourself; nothing does this automatically, and nothing currently fails a build if it goes stale.
 2. Preview locally with Quarto's own render/preview commands from within `quarto/`, or use `tren dev build` to build via the project's `make` targets.
-3. PDF-specific changes (the guide or the paper) can be tested locally if you have a LaTeX distribution installed; CI verifies them via `trentorch-build-pdfs.yml` on every relevant change.
+3. PDF-specific changes (the guide or the paper) can be tested locally if you have a LaTeX distribution installed; CI verifies them via `tinytorch-build-pdfs.yml` on every relevant change.

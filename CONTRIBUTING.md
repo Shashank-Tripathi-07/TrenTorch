@@ -217,7 +217,7 @@ TrenTorch follows [semantic versioning](https://semver.org/):
 
 ### Release Process
 
-Releases are created via the `trentorch-publish-live.yml` GitHub Actions workflow:
+Releases are created via the `tinytorch-publish-live.yml` GitHub Actions workflow:
 
 1. Maintainer triggers workflow from GitHub Actions
 2. Select release type (patch/minor/major)
@@ -226,7 +226,7 @@ Releases are created via the `trentorch-publish-live.yml` GitHub Actions workflo
    - Bumps version in code
    - Runs tests and preflight checks
    - Merges dev → main
-   - Deploys to trentorch.org
+   - Deploys to tinytorch.org
    - Creates git tag (e.g., v0.1.1)
    - Creates GitHub Release with notes
    - Publishes to PyPI

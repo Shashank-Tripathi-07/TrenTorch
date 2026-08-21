@@ -26,7 +26,7 @@ Environment and configuration tooling. Dispatcher: `tren/commands/system/system.
 | `info` | `system/info.py` | Show system/environment info (Python version, platform, venv status, TrenTorch/NumPy versions, disk space, memory). `--json` for machine-readable output. |
 | `health` | `system/health.py` | Quick environment health check (status-only table, no version numbers). No arguments. |
 | `jupyter` | `system/jupyter.py` | Start a Jupyter server. `--notebook` (classic) or `--lab` (JupyterLab, otherwise classic notebook is default); `--port N` (default 8888). |
-| `update` | `system/update.py` | Check GitHub for a newer `trentorch-v*` tag and update in place. `--check` (check only, don't install), `--yes`/`-y` (skip confirmation). Preserves `modules/`, `trentorch/core/`, `.tren/`, `.venv/`; overwrites `src/`, `tren/`, `tests/`, `milestones/`, `datasets/`, `bin/`, and a few root files. **As inherited, this still points at the upstream repo's tags**, not this fork's, so it would check/update against the wrong project until repointed. |
+| `update` | `system/update.py` | Check GitHub for a newer `tinytorch-v*` tag and update in place. `--check` (check only, don't install), `--yes`/`-y` (skip confirmation). Preserves `modules/`, `trentorch/core/`, `.tren/`, `.venv/`; overwrites `src/`, `tren/`, `tests/`, `milestones/`, `datasets/`, `bin/`, and a few root files. **As inherited, this still points at the upstream repo's tags**, not this fork's, so it would check/update against the wrong project until repointed. |
 | `logo` | `system/logo.py` | Explains the TrenTorch logo's symbolism. `--image` shows the path to the actual logo PNG. |
 | `reset` | `system/reset.py` | Reset TrenTorch to a pristine state: clears `modules/` and `trentorch/core/*.py`, optionally resets progress. `--force`/`-f` (skip confirmation), `--keep-progress` (only reset code, not tracking), `--ci` (no prompts, plain-text `RESET OK`/`RESET FAILED` output for automation). |
 
@@ -178,15 +178,15 @@ Achievement/capability-unlock tracking, gated on completed modules. `tren/comman
 
 ## `tren community`
 
-Login/profile/status tooling. `tren/commands/community.py`. **Talks to the upstream TrenTorch project's own hosted backend** (`mlsysbook.ai`, Netlify, Supabase), not anything TrenTorch hosts; the commands below run without erroring but won't do anything meaningful from this fork.
+Login/profile/status tooling. `tren/commands/community.py`. **Talks to the upstream TinyTorch project's own hosted backend** (`mlsysbook.ai`, Netlify, Supabase), not anything TrenTorch hosts; the commands below run without erroring but won't do anything meaningful from this fork.
 
 | Subcommand | Delegates to / does | Notes |
 |---|---|---|
 | `login` | `LoginCommand` (`tren/commands/login.py`) | Opens a browser for OAuth-style login; also offers to sync any progress completed while logged out |
 | `logout` | `LogoutCommand` | Clears stored credentials via a browser-confirmed logout flow |
-| `profile` | Opens `mlsysbook.ai/trentorch/community/?action=profile&community=true` in a browser | |
+| `profile` | Opens `mlsysbook.ai/tinytorch/community/?action=profile&community=true` in a browser | |
 | `status` | Shows an "ID card" panel: online/authenticated + email, or a not-authenticated panel | |
-| `map` | Opens `mlsysbook.ai/trentorch/community/community.html` in a browser | |
+| `map` | Opens `mlsysbook.ai/tinytorch/community/community.html` in a browser | |
 | `sync` | `SubmissionHandler.sync_progress()` | Explicit recovery path: pushes the current `progress.json` on demand, for a student who completed modules before logging in or whose automatic sync was skipped |
 
 `login`/`logout` are only reachable through `tren community login`/`tren community logout` (or by direct instantiation of `LoginCommand`/`LogoutCommand` in other files like `setup.py`); there is no bare top-level `tren login`.
