@@ -46,14 +46,9 @@
 #   - Python venv module (usually included; on Debian/Ubuntu: apt install python3-venv)
 #   - Internet connection to GitHub
 #
-# DOCUMENTATION
-# -------------
-#   https://tinytorch.ai
-#   https://mlsysbook.ai/tinytorch/
-#
 # SOURCE
 # ------
-#   https://github.com/harvard-edge/cs249r_book (tinytorch/ subdirectory)
+#   https://github.com/Shashank-Tripathi-07/TrenTorch
 #
 # ============================================================================
 
@@ -63,16 +58,24 @@ set -e  # Exit on any error
 # Configuration
 # ============================================================================
 # These can be overridden via environment variables for testing:
-#   TINYTORCH_BRANCH=dev curl -sSL mlsysbook.ai/tinytorch/install.sh | bash
+#   TINYTORCH_BRANCH=dev ./install.sh
 #   TINYTORCH_VERSION=0.1.5 TINYTORCH_BRANCH=feature/foo ./install.sh
 #   TINYTORCH_NON_INTERACTIVE=1 ./install.sh  # Skip all prompts (for CI)
-REPO_URL="https://github.com/harvard-edge/cs249r_book.git"
-REPO_SHORT="harvard-edge/cs249r_book"
-TAGS_API="https://api.github.com/repos/harvard-edge/cs249r_book/tags"
+REPO_URL="https://github.com/Shashank-Tripathi-07/TrenTorch.git"
+REPO_SHORT="Shashank-Tripathi-07/TrenTorch"
+# TrenTorch is currently a private repo, so an anonymous clone/ls-remote of
+# REPO_URL 404s. If GITHUB_TOKEN is set (GitHub injects one automatically
+# inside this repo's own CI), use it to authenticate instead. Does nothing
+# extra once/if the repo is public.
+if [ -n "$GITHUB_TOKEN" ]; then
+    EFFECTIVE_REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_SHORT}.git"
+else
+    EFFECTIVE_REPO_URL="$REPO_URL"
+fi
+TAGS_API="https://api.github.com/repos/Shashank-Tripathi-07/TrenTorch/tags"
 TAG_PREFIX="tinytorch-v"
 BRANCH="${TINYTORCH_BRANCH:-main}"
 INSTALL_DIR="${TINYTORCH_INSTALL_DIR:-tinytorch}"
-SPARSE_PATH="tinytorch"
 # Non-interactive mode: skip prompts, use defaults (for CI/testing)
 NON_INTERACTIVE="${TINYTORCH_NON_INTERACTIVE:-}"
 # Version is fetched from GitHub tags (single source of truth)
@@ -206,7 +209,7 @@ fetch_latest_version() {
 
     # Fallback: fetch pyproject.toml directly from raw.githubusercontent.com
     if command_exists curl; then
-        local pyproject_url="https://raw.githubusercontent.com/${REPO_SHORT}/${BRANCH}/tinytorch/pyproject.toml"
+        local pyproject_url="https://raw.githubusercontent.com/${REPO_SHORT}/${BRANCH}/pyproject.toml"
         local pyproject
         pyproject=$(curl -fsSL --max-time 10 "$pyproject_url" 2>/dev/null) || true
         if [ -n "$pyproject" ]; then
@@ -413,7 +416,7 @@ check_internet() {
     # leave this hanging for minutes with no feedback. Bound it so a dead
     # network produces a clear message quickly instead of an installer
     # that just appears to be stuck.
-    if ! run_with_timeout "$NETWORK_CHECK_TIMEOUT" git ls-remote --exit-code "$REPO_URL" >/dev/null 2>&1; then
+    if ! run_with_timeout "$NETWORK_CHECK_TIMEOUT" git ls-remote --exit-code "$EFFECTIVE_REPO_URL" >/dev/null 2>&1; then
         print_error "Cannot reach GitHub"
         echo "  This usually means one of:"
         echo "    - Your internet connection is down or very slow"
@@ -601,20 +604,19 @@ do_install() {
     echo ""
 
     # -------------------------------------------------------------------------
-    # Step 1: Download from GitHub using sparse checkout
-    # This downloads only the tinytorch/ subdirectory, not the entire repo
+    # Step 1: Download from GitHub with a shallow clone
     # -------------------------------------------------------------------------
     echo -e "${BLUE}[1/4]${NC} Downloading from GitHub..."
 
     TEMP_DIR=$(mktemp -d)
 
-    # A shallow sparse clone of one small folder should take a few seconds.
-    # If it's still running after CLONE_TIMEOUT, something is wrong
-    # (dead network, proxy silently dropping the connection, etc.) --
-    # better to fail with a clear message than leave the spinner running
-    # forever with no way to tell it apart from a slow-but-working download.
-    run_with_timeout "$CLONE_TIMEOUT" git clone --depth 1 --filter=blob:none --sparse --branch "$BRANCH" \
-        "$REPO_URL" "$TEMP_DIR/repo" >/dev/null 2>&1 &
+    # A shallow clone should take a few seconds. If it's still running after
+    # CLONE_TIMEOUT, something is wrong (dead network, proxy silently
+    # dropping the connection, etc.) -- better to fail with a clear message
+    # than leave the spinner running forever with no way to tell it apart
+    # from a slow-but-working download.
+    run_with_timeout "$CLONE_TIMEOUT" git clone --depth 1 --branch "$BRANCH" \
+        "$EFFECTIVE_REPO_URL" "$TEMP_DIR/repo" >/dev/null 2>&1 &
     local clone_pid=$!
     spin $clone_pid "Cloning repository..."
     wait $clone_pid
@@ -632,16 +634,12 @@ do_install() {
         exit 1
     fi
 
-    local original_dir="$PWD"
-    cd "$TEMP_DIR/repo"
-    git sparse-checkout set "$SPARSE_PATH" 2>/dev/null
-
     # Capture commit hash for provenance tracking
-    COMMIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-    cd "$original_dir"
+    COMMIT_HASH=$(git -C "$TEMP_DIR/repo" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
     # Move to final location
-    mv "$TEMP_DIR/repo/$SPARSE_PATH" "$INSTALL_DIR"
+    rm -rf "$TEMP_DIR/repo/.git"
+    mv "$TEMP_DIR/repo" "$INSTALL_DIR"
     rm -rf "$TEMP_DIR"
     TEMP_DIR=""
 

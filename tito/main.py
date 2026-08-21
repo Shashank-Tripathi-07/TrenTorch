@@ -54,7 +54,6 @@ from .commands.benchmark import BenchmarkCommand
 from .commands.community import CommunityCommand
 from .commands.dev import DevCommand
 from .commands.olympics import OlympicsCommand
-from .commands.convert import ConvertCommand
 
 # Get version from pyproject.toml (single source of truth)
 def _get_version() -> str:
@@ -112,7 +111,6 @@ class TinyTorchCLI:
             'community': CommunityCommand,
             'benchmark': BenchmarkCommand,
             'olympics': OlympicsCommand,
-            'convert': ConvertCommand,
         }
 
         # Command categorization for help display

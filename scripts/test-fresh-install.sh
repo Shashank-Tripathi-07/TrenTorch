@@ -22,7 +22,6 @@ set -e
 # Defaults
 BRANCH="main"
 CI_MODE=false
-INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/harvard-edge/cs249r_book/main/tinytorch/quarto/install.sh"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -71,10 +70,22 @@ echo ""
 echo "▶ Step 1: Running install script (branch: $BRANCH)..."
 export TINYTORCH_BRANCH="$BRANCH"
 export TINYTORCH_NON_INTERACTIVE=1
-curl -fsSL "https://raw.githubusercontent.com/harvard-edge/cs249r_book/${BRANCH}/tinytorch/quarto/install.sh" -o /tmp/install.sh || {
+# TrenTorch is currently a private repo: raw.githubusercontent.com 404s an
+# anonymous request the same way it would for a nonexistent file, so this
+# needs GITHUB_TOKEN (present automatically in this repo's own CI) passed
+# as a bearer token. install.sh's own internal git clone needs the same
+# token, which it already reads from this same env var -- exported above
+# via TINYTORCH_BRANCH and here via GITHUB_TOKEN, which stays in the
+# environment for `bash /tmp/install.sh` below to inherit.
+CURL_AUTH=()
+if [ -n "$GITHUB_TOKEN" ]; then
+    CURL_AUTH=(-H "Authorization: token $GITHUB_TOKEN")
+fi
+curl -fsSL "${CURL_AUTH[@]}" "https://raw.githubusercontent.com/Shashank-Tripathi-07/TrenTorch/${BRANCH}/quarto/install.sh" -o /tmp/install.sh || {
     echo "✗ Failed to download install script for branch: $BRANCH"
-    echo "  URL: https://raw.githubusercontent.com/harvard-edge/cs249r_book/${BRANCH}/tinytorch/quarto/install.sh"
-    echo "  Hint: Does the branch '${BRANCH}' exist and contain tinytorch/quarto/install.sh?"
+    echo "  URL: https://raw.githubusercontent.com/Shashank-Tripathi-07/TrenTorch/${BRANCH}/quarto/install.sh"
+    echo "  Hint: Does the branch '${BRANCH}' exist and contain quarto/install.sh?"
+    [ -z "$GITHUB_TOKEN" ] && echo "  Also: TrenTorch is a private repo and no GITHUB_TOKEN was set -- that alone would 404 here."
     exit 1
 }
 bash /tmp/install.sh
@@ -117,16 +128,22 @@ print(f'✓ Loaded {len(data[\"images\"])} training images')
 "
 
 # Step 5: Run milestone 01 (Perceptron - simplest)
+# No --non-interactive flag: `tito milestone run` doesn't have one, and
+# doesn't need one -- it already checks sys.stdin/stdout.isatty() itself
+# and skips its "Press Enter to begin" / "Continue to next part?" prompts
+# automatically whenever it isn't attached to a real terminal, which is
+# always true here (piped/CI). Passing --non-interactive just makes
+# argparse reject the whole command before any of that logic runs.
 echo ""
 echo "▶ Step 5: Running Milestone 01 (Perceptron)..."
-timeout 120 tito milestone run 01 --non-interactive || {
+timeout 120 tito milestone run 01 || {
     echo "⚠ Milestone 01 did not complete (may need module implementations)"
 }
 
 # Step 6: Run milestone 03 (MLP with TinyDigits - the one that caught the LFS bug)
 echo ""
 echo "▶ Step 6: Running Milestone 03 (MLP/TinyDigits)..."
-timeout 180 tito milestone run 03 --non-interactive || {
+timeout 180 tito milestone run 03 || {
     echo "⚠ Milestone 03 did not complete (may need module implementations)"
 }
 
@@ -167,6 +184,7 @@ else
     # Run in Docker - note: no git-lfs installed, just like a typical student machine
     docker run --rm \
         -e DEBIAN_FRONTEND=noninteractive \
+        -e GITHUB_TOKEN="$GITHUB_TOKEN" \
         python:3.11-slim \
         bash -c "
             apt-get update && apt-get install -y git curl xxd > /dev/null 2>&1
