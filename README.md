@@ -296,19 +296,26 @@ We're addicted to making great software that runs (we're a bit of perfectionists
 <table width="100%" style="width:100%">
   <tbody>
     <tr>
-      <td align="center" valign="top" width="50%">
+      <td align="center" valign="top" width="33%">
         <a href="https://github.com/Shashank-Tripathi-07"><img src="https://avatars.githubusercontent.com/Shashank-Tripathi-07?v=4" width="90px;" alt="Rocky"/></a>
         <br />
         <b>Rocky</b>
         <br />
         <sub>IIT Guwahati, Debugs autograd for fun, ships before sunrise.</sub>
       </td>
-      <td align="center" valign="top" width="50%">
+      <td align="center" valign="top" width="33%">
         <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="90px;" alt="Shivtej Gaikwad"/></a>
         <br />
         <b>Shivtej Gaikwad</b>
         <br />
         <sub>IIT Guwahati. Shows up, ships, moves on to the next thing.</sub>
+      </td>
+      <td align="center" valign="top" width="33%">
+        <a href="https://github.com/aadityansha06"><img src="https://avatars.githubusercontent.com/aadityansha06?v=4" width="90px;" alt="Aadityansha"/></a>
+        <br />
+        <b>Aadityansha</b>
+        <br />
+        <sub>Reducing CPU stalls, one commit at a time.</sub>
       </td>
     </tr>
   </tbody>
