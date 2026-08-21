@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 NBGrader Configuration Validation Script
-Validates all TinyTorch modules for NBGrader compatibility
+Validates all TrenTorch modules for NBGrader compatibility
 """
 
 import argparse
@@ -484,13 +484,13 @@ def _default_project_root() -> Path:
 def _parse_args() -> argparse.Namespace:
     project_root = _default_project_root()
     parser = argparse.ArgumentParser(
-        description="Validate TinyTorch source files for nbgrader metadata compatibility"
+        description="Validate TrenTorch source files for nbgrader metadata compatibility"
     )
     parser.add_argument(
         "--modules-dir",
         type=Path,
         default=project_root / "src",
-        help="Directory containing module folders (default: tinytorch/src)",
+        help="Directory containing module folders (default: trentorch/src)",
     )
     parser.add_argument(
         "--output",

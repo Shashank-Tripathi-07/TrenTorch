@@ -1,5 +1,5 @@
 """
-Compatibility milestone progress tracker for TinyTorch tests and older hooks.
+Compatibility milestone progress tracker for TrenTorch tests and older hooks.
 
 The canonical milestone definitions live in ``tren.commands.milestone``.
 This file mirrors that table so legacy imports do not carry stale module
@@ -163,7 +163,7 @@ class MilestoneTracker:
         console.print()
 
     def show_progress(self) -> None:
-        table = Table(title="TinyTorch Milestone Progress", box=box.ROUNDED)
+        table = Table(title="TrenTorch Milestone Progress", box=box.ROUNDED)
         table.add_column("Milestone", style="cyan")
         table.add_column("Status", justify="center")
         table.add_column("Requirements", style="dim")

@@ -13,9 +13,9 @@ Tests that verify:
 import numpy as np
 rng = np.random.default_rng(7)
 import pytest
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.spatial import Conv2d, MaxPool2d, AvgPool2d
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.spatial import Conv2d, MaxPool2d, AvgPool2d
+from trentorch.core.autograd import enable_autograd
 
 
 class TestConv2dOperations:

@@ -18,7 +18,7 @@ LeNet achieved 99%+ accuracy on handwritten digits, launching the deep learning
 revolution that led to modern computer vision.
 
 🎯 MILESTONE 4 PART 1: PROVE CNNs > MLPs (Offline)
-Using YOUR Tiny🔥Torch spatial modules, you'll build a CNN that OUTPERFORMS the
+Using YOUR Tren🔥Torch spatial modules, you'll build a CNN that OUTPERFORMS the
 MLP from Milestone 03 on the SAME dataset. This proves spatial operations matter!
 
 ✅ REQUIRED MODULES (Run after Module 09):
@@ -101,18 +101,18 @@ from rich import box
 # Add paths for local development
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
-# Import TinyTorch components
-from tinytorch import Tensor, SGD, CrossEntropyLoss
-from tinytorch.core.spatial import Conv2d, MaxPool2d
-from tinytorch.core.layers import Linear, ReLU
-from tinytorch.core.dataloader import DataLoader, TensorDataset
+# Import TrenTorch components
+from trentorch import Tensor, SGD, CrossEntropyLoss
+from trentorch.core.spatial import Conv2d, MaxPool2d
+from trentorch.core.layers import Linear, ReLU
+from trentorch.core.dataloader import DataLoader, TensorDataset
 
 console = Console()
 
-# Note: Autograd is automatically enabled when tinytorch is imported
+# Note: Autograd is automatically enabled when trentorch is imported
 
 # =============================================================================
-# 🎯 YOUR TINYTORCH MODULES IN ACTION
+# 🎯 YOUR TRENTORCH MODULES IN ACTION
 # =============================================================================
 #
 # This milestone showcases YOUR NEW spatial modules for the first time:
@@ -164,9 +164,9 @@ def load_digits_dataset():
 
     Returns 150 training + 47 test grayscale images of handwritten digits (0-9).
     Each image is 8×8 pixels, perfect for quick CNN demonstrations.
-    Ships with TinyTorch - no downloads needed!
+    Ships with TrenTorch - no downloads needed!
     """
-    # Load from TinyDigits dataset (shipped with TinyTorch)
+    # Load from TinyDigits dataset (shipped with TrenTorch)
     project_root = Path(__file__).parent.parent.parent
     train_path = project_root / "datasets" / "tinydigits" / "train.pkl"
     test_path = project_root / "datasets" / "tinydigits" / "test.pkl"

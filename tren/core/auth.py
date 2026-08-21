@@ -1,4 +1,4 @@
-"""Simple secure JSON credentials storage system for TinyTorch CLI."""
+"""Simple secure JSON credentials storage system for TrenTorch CLI."""
 from __future__ import annotations
 
 import http.server
@@ -18,7 +18,7 @@ from urllib.parse import urlparse, parse_qs
 import certifi
 
 # --- Configuration Constants ---
-API_BASE_URL = "https://tinytorch.netlify.app"
+API_BASE_URL = "https://trentorch.netlify.app"
 
 # API Endpoints
 ENDPOINTS = {
@@ -36,7 +36,7 @@ AUTH_CALLBACK_PATH = "/callback"
 CREDENTIALS_FILE_NAME = "credentials.json"
 
 # Determine credentials directory (Standard Python way)
-CREDENTIALS_DIR = os.getenv("TINYTORCH_CREDENTIALS_DIR", str(Path.home() / ".tinytorch"))
+CREDENTIALS_DIR = os.getenv("TRENTORCH_CREDENTIALS_DIR", str(Path.home() / ".trentorch"))
 
 
 # --- Storage Logic ---

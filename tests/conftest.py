@@ -1,11 +1,11 @@
 """
-Pytest configuration for TinyTorch tests.
+Pytest configuration for TrenTorch tests.
 
 This file is automatically loaded by pytest and sets up the test environment.
 It also provides a Rich-based educational test output that helps students
 understand what each test does and why it matters.
 
-CRITICAL: This conftest validates that the tinytorch package is properly
+CRITICAL: This conftest validates that the trentorch package is properly
 exported before any tests run. If exports are missing, tests fail fast
 with a clear error message.
 """
@@ -28,8 +28,8 @@ project_root = tests_dir.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-# Set quiet mode for tinytorch imports during tests
-os.environ['TINYTORCH_QUIET'] = '1'
+# Set quiet mode for trentorch imports during tests
+os.environ['TRENTORCH_QUIET'] = '1'
 
 
 # =============================================================================
@@ -40,10 +40,10 @@ os.environ['TINYTORCH_QUIET'] = '1'
 
 def _validate_package_exported():
     """
-    Validate that tinytorch package is properly exported.
+    Validate that trentorch package is properly exported.
 
     This prevents a critical bug where tests pass because:
-    1. tinytorch/__init__.py uses try/except for imports
+    1. trentorch/__init__.py uses try/except for imports
     2. Missing exports result in Tensor = None (not ImportError)
     3. Tests import None and may pass vacuously
 
@@ -52,7 +52,7 @@ def _validate_package_exported():
     errors = []
 
     # Check 1: Core module files exist
-    core_dir = project_root / "tinytorch" / "core"
+    core_dir = project_root / "trentorch" / "core"
     required_modules = [
         "tensor.py",
         "activations.py",
@@ -63,11 +63,11 @@ def _validate_package_exported():
     for module in required_modules:
         module_path = core_dir / module
         if not module_path.exists():
-            errors.append(f"Missing: tinytorch/core/{module}")
+            errors.append(f"Missing: trentorch/core/{module}")
 
     # Check 2: Tensor class is actually importable (not None)
     try:
-        from tinytorch import Tensor
+        from trentorch import Tensor
         if Tensor is None:
             errors.append("Tensor is None (import failed silently)")
     except ImportError as e:
@@ -75,7 +75,7 @@ def _validate_package_exported():
 
     # Check 3: Verify Tensor is actually the class, not a stub
     try:
-        from tinytorch import Tensor
+        from trentorch import Tensor
         if Tensor is not None:
             # Try to instantiate - this catches incomplete implementations
             t = Tensor([1, 2, 3])
@@ -92,7 +92,7 @@ def _validate_package_exported():
 
 
 def pytest_configure(config):
-    """Configure pytest with TinyTorch-specific settings."""
+    """Configure pytest with TrenTorch-specific settings."""
     # Register custom markers
     config.addinivalue_line(
         "markers", "module(name): mark test as belonging to a specific module"
@@ -106,20 +106,20 @@ def pytest_configure(config):
 
     # CRITICAL: Validate package is exported before running tests
     # Skip validation if explicitly disabled (e.g., for export tests)
-    if os.environ.get('TINYTORCH_SKIP_EXPORT_CHECK') != '1':
+    if os.environ.get('TRENTORCH_SKIP_EXPORT_CHECK') != '1':
         is_valid, errors = _validate_package_exported()
         if not is_valid:
             error_msg = "\n".join(f"  • {e}" for e in errors)
             raise pytest.UsageError(
                 f"\n\n"
                 f"{'='*70}\n"
-                f"❌ TINYTORCH PACKAGE NOT EXPORTED\n"
+                f"❌ TRENTORCH PACKAGE NOT EXPORTED\n"
                 f"{'='*70}\n\n"
-                f"The tinytorch package is not properly built. Tests cannot run.\n\n"
+                f"The trentorch package is not properly built. Tests cannot run.\n\n"
                 f"Errors found:\n{error_msg}\n\n"
                 f"To fix this, run:\n\n"
                 f"    tren dev export --all\n\n"
-                f"This exports all module notebooks to the tinytorch package.\n"
+                f"This exports all module notebooks to the trentorch package.\n"
                 f"{'='*70}\n"
             )
 
@@ -129,12 +129,12 @@ try:
 except ImportError:
     pass  # test_utils not yet created or has issues
 
-# Register the --tinytorch CLI flag (the pytest_tinytorch plugin was removed
+# Register the --trentorch CLI flag (the pytest_trentorch plugin was removed
 # during test cleanup, but tren module test still passes this flag)
 def pytest_addoption(parser):
-    """Register --tinytorch flag for educational test output."""
+    """Register --trentorch flag for educational test output."""
     parser.addoption(
-        "--tinytorch",
+        "--trentorch",
         action="store_true",
         default=False,
         help="Enable educational WHAT/WHY test output",
@@ -182,7 +182,7 @@ def get_module_from_path(path: str) -> Optional[str]:
     return None
 
 
-class TinyTorchTestReporter:
+class TrenTorchTestReporter:
     """Rich-based test reporter for educational output."""
 
     def __init__(self):
@@ -276,7 +276,7 @@ class TinyTorchTestReporter:
 
 
 # Global reporter instance
-_reporter = TinyTorchTestReporter()
+_reporter = TrenTorchTestReporter()
 
 
 # =============================================================================
@@ -290,7 +290,7 @@ def pytest_collection_modifyitems(session, config, items):
         module = get_module_from_path(str(item.fspath))
         if module:
             # Store module info for later use
-            item._tinytorch_module = module
+            item._trentorch_module = module
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -305,13 +305,13 @@ def pytest_runtest_makereport(item, call):
         docstring = item.function.__doc__ if hasattr(item, 'function') else None
 
         # Store for later use if needed
-        report._tinytorch_docstring = docstring
+        report._trentorch_docstring = docstring
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """Add educational summary at the end of test run."""
     # Check if we should show educational summary
-    if config.getoption("--tinytorch", default=False):
+    if config.getoption("--trentorch", default=False):
         _reporter.print_summary()
 
 
@@ -332,7 +332,7 @@ def run_tests_with_rich_output(test_path: str = None, verbose: bool = True):
 
     # Header
     console.print(Panel(
-        "[bold]🧪 TinyTorch Test Runner[/bold]\n"
+        "[bold]🧪 TrenTorch Test Runner[/bold]\n"
         "Running tests with educational context...",
         border_style="blue"
     ))

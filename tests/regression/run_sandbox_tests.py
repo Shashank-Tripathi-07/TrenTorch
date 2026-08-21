@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-TinyTorch Sandbox Integrity Tests
+TrenTorch Sandbox Integrity Tests
 ==================================
 Run this to ensure the student learning sandbox is robust.
 All core infrastructure must work perfectly so students can
@@ -20,7 +20,7 @@ TEST_MODULES = [
 def run_sandbox_tests():
     """Run all sandbox integrity tests."""
     print("="*60)
-    print("🧪 TINYTORCH SANDBOX INTEGRITY CHECK")
+    print("🧪 TRENTORCH SANDBOX INTEGRITY CHECK")
     print("="*60)
     print("\nEnsuring the learning environment is robust...\n")
 

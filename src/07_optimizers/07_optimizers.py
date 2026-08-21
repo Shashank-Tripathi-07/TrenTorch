@@ -41,11 +41,11 @@ Let's get started!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `src/07_optimizers/07_optimizers.py`
-**Building Side:** Code exports to `tinytorch.core.optimizers`
+**Building Side:** Code exports to `trentorch.core.optimizers`
 
 ```python
 # How to use this module:
-from tinytorch.core.optimizers import SGD, Adam, AdamW
+from trentorch.core.optimizers import SGD, Adam, AdamW
 ```
 
 **Why this matters:**
@@ -64,11 +64,11 @@ rng = np.random.default_rng(7)
 from typing import List, Union, Optional, Dict, Any
 
 # Import Tensor from Module 01 (now with gradient support from Module 06)
-from tinytorch.core.tensor import Tensor
+from trentorch.core.tensor import Tensor
 
 # Enable autograd to add gradient tracking to Tensor
 # This module depends on Module 06 (Autograd) being available
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.autograd import enable_autograd
 enable_autograd()
 
 # Constants for optimizer defaults
@@ -1727,7 +1727,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -1747,10 +1747,10 @@ def test_module():
     # Test realistic neural network optimization scenario
     print("🧪 Integration Test: Multi-layer Network Optimization...")
 
-    # Import components from TinyTorch package (previous modules must be completed and exported)
-    from tinytorch.core.layers import Linear
-    from tinytorch.core.activations import ReLU
-    from tinytorch.core.losses import MSELoss
+    # Import components from TrenTorch package (previous modules must be completed and exported)
+    from trentorch.core.layers import Linear
+    from trentorch.core.activations import ReLU
+    from trentorch.core.losses import MSELoss
 
     # Create parameters for a 2-layer network
     # Layer 1: 3 inputs -> 4 hidden

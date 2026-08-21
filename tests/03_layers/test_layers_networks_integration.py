@@ -13,10 +13,10 @@ from test_utils import setup_integration_test
 # Ensure proper setup before importing
 setup_integration_test()
 
-# Import ONLY from TinyTorch package
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear, Sequential
-from tinytorch.core.activations import ReLU, Sigmoid, Tanh
+# Import ONLY from TrenTorch package
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear, Sequential
+from trentorch.core.activations import ReLU, Sigmoid, Tanh
 
 
 class TestLayersDenseNetworkInterface:
@@ -134,8 +134,8 @@ class TestLayerNetworkDataFlow:
             assert network_out.shape == (batch_size, output_size), f"Network should output correct shape for config {shape_configs}"
 
     def test_dtype_normalization_across_layer_network_boundary(self):
-        """Test that TinyTorch normalizes all data to float32 consistently."""
-        # TinyTorch uses float32 for all operations (standard for deep learning)
+        """Test that TrenTorch normalizes all data to float32 consistently."""
+        # TrenTorch uses float32 for all operations (standard for deep learning)
         layer = Linear(4, 6)
         network = Sequential([Linear(6, 8), ReLU(), Linear(8, 2)])
 
@@ -152,7 +152,7 @@ class TestLayerNetworkDataFlow:
         layer_out_f64 = layer(x_f64)
         network_out_f64 = network(layer_out_f64)
 
-        # TinyTorch normalizes to float32 for consistency and efficiency
+        # TrenTorch normalizes to float32 for consistency and efficiency
         assert layer_out_f64.dtype == np.float32, "Layer normalizes to float32"
         assert network_out_f64.dtype == np.float32, "Network normalizes to float32"
 

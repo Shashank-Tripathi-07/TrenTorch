@@ -1,8 +1,8 @@
 """
-NBGrader integration commands for TinyTorch.
+NBGrader integration commands for TrenTorch.
 
 This command group is an instructor/developer convenience layer around
-nbgrader's own workflow. TinyTorch owns module discovery and assignment
+nbgrader's own workflow. TrenTorch owns module discovery and assignment
 staging; nbgrader owns release, collection, autograding, feedback, and export.
 """
 
@@ -63,7 +63,7 @@ class NBGraderCommand(BaseCommand):
 
         generate_parser = subparsers.add_parser(
             "generate",
-            help="Stage TinyTorch notebooks as nbgrader source assignments",
+            help="Stage TrenTorch notebooks as nbgrader source assignments",
         )
         generate_parser.add_argument(
             "module",
@@ -135,7 +135,7 @@ class NBGraderCommand(BaseCommand):
 
         console.print(Panel(
             "[bold yellow]NBGrader Integration[/bold yellow]\n\n"
-            "TinyTorch stages module notebooks for nbgrader, then delegates grading "
+            "TrenTorch stages module notebooks for nbgrader, then delegates grading "
             "operations to the nbgrader CLI.\n\n"
             "[dim]This is instructor/developer tooling, not the main learner workflow.[/dim]",
             border_style="yellow",
@@ -147,7 +147,7 @@ class NBGraderCommand(BaseCommand):
                 "[bold cyan]NBGrader Commands[/bold cyan]\n\n"
                 "Available subcommands:\n"
                 "  • [bold]init[/bold]       - Initialize nbgrader directories and config\n"
-                "  • [bold]generate[/bold]   - Stage source assignments from TinyTorch notebooks\n"
+                "  • [bold]generate[/bold]   - Stage source assignments from TrenTorch notebooks\n"
                 "  • [bold]release[/bold]    - Create student release notebooks\n"
                 "  • [bold]collect[/bold]    - Collect student submissions\n"
                 "  • [bold]autograde[/bold]  - Auto-grade submissions\n"
@@ -301,20 +301,20 @@ class NBGraderCommand(BaseCommand):
 
     def _default_config_text(self) -> str:
         return (
-            '"""TinyTorch nbgrader configuration."""\n\n'
+            '"""TrenTorch nbgrader configuration."""\n\n'
             "c = get_config()  # noqa: F821\n\n"
             "# nbgrader works inside this course directory. It contains source/,\n"
             "# release/, submitted/, autograded/, feedback/, and gradebook.db.\n"
             'c.CourseDirectory.root = "assignments"\n'
-            'c.CourseDirectory.course_id = "tinytorch"\n'
-            "# TinyTorch validates marker metadata during staging. Allow written\n"
+            'c.CourseDirectory.course_id = "trentorch"\n'
+            "# TrenTorch validates marker metadata during staging. Allow written\n"
             "# reflection cells to be stripped without assigning manual-grade points.\n"
             "c.ClearSolutions.enforce_metadata = False\n"
             "c.ExecutePreprocessor.timeout = 120\n"
         )
 
     def _generate(self, args: Namespace) -> int:
-        """Stage source assignments from TinyTorch notebooks."""
+        """Stage source assignments from TrenTorch notebooks."""
         console = self.console
 
         if args.all:
@@ -336,7 +336,7 @@ class NBGraderCommand(BaseCommand):
             return 1
 
         if not modules_to_process:
-            console.print("[red]No TinyTorch modules found in src/[/red]")
+            console.print("[red]No TrenTorch modules found in src/[/red]")
             return 1
 
         release_tier = getattr(args, "tier", "student")
@@ -438,7 +438,7 @@ class NBGraderCommand(BaseCommand):
         """Validate and normalize nbgrader cell metadata in a notebook."""
         errors = []
         if release_tier not in RELEASE_TIERS:
-            return [f"Unknown TinyTorch release tier: {release_tier}"]
+            return [f"Unknown TrenTorch release tier: {release_tier}"]
 
         cells = notebook.get("cells")
         if not isinstance(cells, list):
@@ -535,7 +535,7 @@ class NBGraderCommand(BaseCommand):
         cell["source"] = source
 
     def _apply_release_tier(self, source: str, release_tier: str) -> Tuple[str, List[str]]:
-        """Apply TinyTorch release-role policy before nbgrader stripping."""
+        """Apply TrenTorch release-role policy before nbgrader stripping."""
         if not source or (SOLUTION_BEGIN_MARKER not in source and SOLUTION_END_MARKER not in source):
             return source, []
 
@@ -761,7 +761,7 @@ class NBGraderCommand(BaseCommand):
         return 0
 
     def _run_external(self, cmd: List[str], *, capture_output: bool = False) -> subprocess.CompletedProcess:
-        """Run an external command from the TinyTorch project root."""
+        """Run an external command from the TrenTorch project root."""
         try:
             return subprocess.run(
                 cmd,

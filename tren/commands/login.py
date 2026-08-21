@@ -14,7 +14,7 @@ class LoginCommand(BaseCommand):
 
     @property
     def description(self) -> str:
-        return "Log in to TinyTorch via web browser"
+        return "Log in to TrenTorch via web browser"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--force", action="store_true", help="Force re-login")
@@ -133,7 +133,7 @@ class LogoutCommand(BaseCommand):
 
     @property
     def description(self) -> str:
-        return "Log out of TinyTorch by clearing stored credentials"
+        return "Log out of TrenTorch by clearing stored credentials"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         pass  # No arguments needed
@@ -176,11 +176,11 @@ class LogoutCommand(BaseCommand):
 
             if not logout_confirmed:
                 self.console.print("[yellow]Logout confirmation not received (timed out). Please ensure the browser tab opened.[/yellow]")
-                self.console.print("[dim]If issues persist, you can manually delete credentials at ~/.tinytorch/credentials.json[/dim]")
+                self.console.print("[dim]If issues persist, you can manually delete credentials at ~/.trentorch/credentials.json[/dim]")
                 return 1
 
             delete_credentials()
-            self.console.print("[green]✅ Successfully logged out of TinyTorch![/green]")
+            self.console.print("[green]✅ Successfully logged out of TrenTorch![/green]")
             return 0
         except Exception as e:
             self.console.print(f"[red]Error during logout: {e}[/red]")

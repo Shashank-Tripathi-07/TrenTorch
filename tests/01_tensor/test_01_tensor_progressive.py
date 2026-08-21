@@ -48,7 +48,7 @@ class TestModule01TensorCore:
     def test_tensor_creation_and_basics(self):
         """Test tensor creation works correctly."""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             # Basic tensor creation
             t1 = Tensor([1, 2, 3])
@@ -65,7 +65,7 @@ class TestModule01TensorCore:
     def test_tensor_operations(self):
         """Test basic tensor operations work."""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             t1 = Tensor([1, 2, 3])
             t2 = Tensor([4, 5, 6])
@@ -97,7 +97,7 @@ class TestProgressiveStack:
         """Test end-to-end capability through Module 01."""
         try:
             # This should work if tensor is implemented
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             # Create tensors using Module 01
             data = rng.standard_normal((5, 10))
@@ -118,7 +118,7 @@ class TestDependencyValidation:
     def test_module_01_exports(self):
         """Test Module 01 (Tensor) exports are available."""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             t = Tensor([1, 2, 3])
             assert t.shape == (3,), "Module 01 Tensor export broken"
         except ImportError:
@@ -129,7 +129,7 @@ class TestDependencyValidation:
     def test_module_01_tensor_uses_numpy(self):
         """Test Module 01 Tensor correctly uses NumPy foundation."""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             # Tensor should store data as numpy array
             t = Tensor(np.array([1, 2, 3]))

@@ -1,4 +1,4 @@
-# TinyTorch Test Suite
+# TrenTorch Test Suite
 
 Comprehensive testing organized by purpose and scope.
 
@@ -53,8 +53,8 @@ pytest tests/01_tensor/ -v          # Specific module
 
 ### 🎓 Educational Mode (Recommended for Students)
 ```bash
-pytest tests/ --tinytorch           # Rich output with WHAT/WHY context
-pytest tests/01_tensor/ --tinytorch # Single module with education
+pytest tests/ --trentorch           # Rich output with WHAT/WHY context
+pytest tests/01_tensor/ --trentorch # Single module with education
 ```
 
 **Educational mode shows:**
@@ -93,7 +93,7 @@ def test_tensor_addition(self):
     """
 ```
 
-This format enables the `--tinytorch` flag to show educational context when tests run.
+This format enables the `--trentorch` flag to show educational context when tests run.
 
 ## Adding New Tests
 

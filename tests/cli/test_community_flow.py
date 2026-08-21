@@ -1,5 +1,5 @@
 """
-Tests for the TinyTorch community submission and progress syncing flow.
+Tests for the TrenTorch community submission and progress syncing flow.
 
 These tests validate:
 1. Retrieval of authentication status and tokens.
@@ -53,7 +53,7 @@ class TestCommunitySyncFlow:
             project_root=tmp_path,
             assignments_dir=tmp_path / "assignments",
             modules_dir=tmp_path / "src",
-            tinytorch_dir=tmp_path / "tinytorch",
+            trentorch_dir=tmp_path / "trentorch",
             bin_dir=tmp_path / "bin"
         )
         return config, progress_file, milestones_file

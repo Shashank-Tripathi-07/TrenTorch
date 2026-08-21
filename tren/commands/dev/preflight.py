@@ -1,5 +1,5 @@
 """
-Preflight checks for TinyTorch development and releases.
+Preflight checks for TrenTorch development and releases.
 
 This command runs comprehensive verification before commits, PRs, or releases.
 The same checks can be used in CI/CD pipelines.
@@ -137,7 +137,7 @@ class PreflightCommand(BaseCommand):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         self.log_file = log_dir / f"preflight_{timestamp}.log"
         self.log_lines: List[str] = []
-        self._log(f"TinyTorch Preflight - {timestamp}")
+        self._log(f"TrenTorch Preflight - {timestamp}")
         self._log(f"Project root: {project_root}")
         self._log("-" * 60)
 
@@ -168,7 +168,7 @@ class PreflightCommand(BaseCommand):
                 f"[bold cyan]{level_emoji} {level_desc}[/bold cyan]\n\n"
                 f"Running verification checks before {'CI/CD' if is_ci else 'your next step'}...\n"
                 f"[dim]Level: {level} | CI Mode: {is_ci} | Verbose: {verbose}[/dim]",
-                title="TinyTorch Preflight",
+                title="TrenTorch Preflight",
                 border_style="bright_cyan"
             ))
             console.print()
@@ -282,7 +282,7 @@ class PreflightCommand(BaseCommand):
 
         # Optional directories (generated, not in git)
         optional_dirs = [
-            ("tinytorch/", "Package directory (run 'tren export' to generate)"),
+            ("trentorch/", "Package directory (run 'tren export' to generate)"),
         ]
 
         for dir_path, desc in required_dirs:
@@ -428,10 +428,10 @@ class PreflightCommand(BaseCommand):
             self.console.print(f"\n[bold]📦 Package Imports[/bold]")
 
         imports = [
-            ("import tinytorch", "tinytorch package"),
+            ("import trentorch", "trentorch package"),
             # Check Tensor is actually available (not None from failed import)
-            ("from tinytorch import Tensor; assert Tensor is not None, 'Tensor not exported - run: tren dev export --all'", "Tensor class"),
-            ("from tren.main import TinyTorchCLI", "CLI class"),
+            ("from trentorch import Tensor; assert Tensor is not None, 'Tensor not exported - run: tren dev export --all'", "Tensor class"),
+            ("from tren.main import TrenTorchCLI", "CLI class"),
         ]
 
         for import_stmt, name in imports:

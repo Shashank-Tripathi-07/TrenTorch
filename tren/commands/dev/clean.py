@@ -1,5 +1,5 @@
 """
-Developer clean command for TinyTorch CLI.
+Developer clean command for TrenTorch CLI.
 
 Wraps clean targets so the VS Code extension and other tools
 can call Tren instead of raw make commands.

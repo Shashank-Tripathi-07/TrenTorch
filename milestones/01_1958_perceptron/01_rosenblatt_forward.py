@@ -9,7 +9,7 @@ could learn from examples. It sparked the first AI boom and demonstrated that ma
 could actually learn to recognize patterns, launching the neural network revolution.
 
 🎯 MILESTONE 1: FORWARD PASS (BEFORE TRAINING)
-Using YOUR Tiny🔥Torch implementations, you'll build a perceptron with RANDOM weights.
+Using YOUR Tren🔥Torch implementations, you'll build a perceptron with RANDOM weights.
 This milestone shows you WHY training is essential - the model won't work without it!
 
 ⚠️ IMPORTANT: This is NOT the trained version!
@@ -89,14 +89,14 @@ import numpy as np
 rng = np.random.default_rng()
 import argparse
 
-# Add project root to path for correct tinytorch imports
+# Add project root to path for correct trentorch imports
 # This allows the script to be run from the root of the project
 sys.path.insert(0, os.getcwd())
 
-# Import TinyTorch components YOU BUILT!
-from tinytorch.core.tensor import Tensor        # Module 01: YOU built this!
-from tinytorch.core.layers import Linear        # Module 03: YOU built this!
-from tinytorch.core.activations import Sigmoid  # Module 02: YOU built this!
+# Import TrenTorch components YOU BUILT!
+from trentorch.core.tensor import Tensor        # Module 01: YOU built this!
+from trentorch.core.layers import Linear        # Module 03: YOU built this!
+from trentorch.core.activations import Sigmoid  # Module 02: YOU built this!
 
 # Import Rich for beautiful CLI output
 from rich.console import Console
@@ -247,7 +247,7 @@ def press_enter_to_continue() :
         console.print()
 
 def main():
-    """Demonstrate Rosenblatt's Perceptron using YOUR Tiny🔥Torch system!"""
+    """Demonstrate Rosenblatt's Perceptron using YOUR Tren🔥Torch system!"""
 
     # Header
     console.print()
@@ -299,13 +299,13 @@ def main():
     # Step 2: Create the Perceptron model with YOUR components
     console.print("[bold]🧠 Step 2: Building Model[/bold]")
     console.print("   [yellow]⚠️  No training yet - you haven't learned Modules 05-07![/yellow]")
-    console.print("   🧠 Assembling perceptron with YOUR Tiny🔥Torch modules...")
+    console.print("   🧠 Assembling perceptron with YOUR Tren🔥Torch modules...")
 
     # Locally rebind the layers module's RNG to an unseeded one so this demo's
     # Linear weights differ on every run (the on-screen promise above). The
-    # default in tinytorch.core.layers is seeded for test reproducibility;
+    # default in trentorch.core.layers is seeded for test reproducibility;
     # we only override here, in this milestone script.
-    import tinytorch.core.layers as _layers
+    import trentorch.core.layers as _layers
     _layers.rng = np.random.default_rng()
 
     model = Perceptron(input_size=2, output_size=1)

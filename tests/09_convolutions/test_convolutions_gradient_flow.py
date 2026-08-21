@@ -19,9 +19,9 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
-from tinytorch.core.spatial import Conv2d, MaxPool2d
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
+from trentorch.core.spatial import Conv2d, MaxPool2d
 
 
 def test_conv2d_has_backward_function():

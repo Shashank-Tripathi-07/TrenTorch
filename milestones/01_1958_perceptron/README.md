@@ -4,7 +4,7 @@
 
 Frank Rosenblatt's Perceptron was the **first trainable artificial neural network** that could learn from examples. Demonstrated in 1957 and published in 1958, it sparked the first AI boom and demonstrated that machines could actually learn to recognize patterns, launching the neural network revolution.
 
-This milestone recreates that pivotal moment using YOUR Tiny🔥Torch implementations.
+This milestone recreates that pivotal moment using YOUR Tren🔥Torch implementations.
 
 ## What You're Building
 
@@ -74,7 +74,7 @@ cd milestones/01_1958_perceptron
 # See the problem (run after Module 03)
 python 01_rosenblatt_forward.py
 
-# Or from the TinyTorch project root:
+# Or from the TrenTorch project root:
 tren milestone run 01
 ```
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TinyTorch Dataset Manager
+TrenTorch Dataset Manager
 ========================
 
 Handles dataset downloading and preparation for milestone examples.
@@ -24,7 +24,7 @@ import numpy as np
 rng = np.random.default_rng(7)
 from pathlib import Path
 
-# Add project root for TinyTorch imports
+# Add project root for TrenTorch imports
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
@@ -47,7 +47,7 @@ DATASET_INFO = {
 }
 
 class DatasetManager:
-    """Handles all dataset logistics for TinyTorch milestone examples."""
+    """Handles all dataset logistics for TrenTorch milestone examples."""
 
     def __init__(self, data_dir=None, auto_confirm=False):
         """
@@ -297,7 +297,7 @@ class DatasetManager:
 
 def main():
     """Test dataset manager functionality."""
-    print("🧪 Testing TinyTorch Dataset Manager")
+    print("🧪 Testing TrenTorch Dataset Manager")
     print("=" * 50)
 
     manager = DatasetManager()

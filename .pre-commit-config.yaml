@@ -5,7 +5,7 @@
 # Not merged into the default hook set from the repo root: install with
 # `pre-commit install` still uses only `/.pre-commit-config.yaml`. Run this
 # file when you want TinyTorch-specific checks on top:
-#   cd tinytorch && pre-commit run --config .pre-commit-config.yaml --all-files
+#   cd trentorch && pre-commit run --config .pre-commit-config.yaml --all-files
 # =============================================================================
 
 repos:
@@ -47,11 +47,11 @@ repos:
   #   hooks:
   #     - id: black
   #       name: "Format Python code"
-  #       files: ^(src/|tinytorch/|tools/).*\.py$
+  #       files: ^(src/|trentorch/|tools/).*\.py$
 
   # - repo: https://github.com/pycqa/isort
   #   rev: 5.13.2
   #   hooks:
   #     - id: isort
   #       name: "Sort imports"
-  #       files: ^(src/|tinytorch/|tools/).*\.py$
+  #       files: ^(src/|trentorch/|tools/).*\.py$

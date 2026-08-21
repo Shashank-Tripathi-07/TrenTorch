@@ -25,7 +25,7 @@ class TestAutogradTensorIntegration:
     def test_variable_creation(self):
         """Test Variable can be created from Tensor-like data."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             # Should create Variable from array
             x = Variable(np.array([1.0, 2.0, 3.0]), requires_grad=True)
@@ -39,7 +39,7 @@ class TestAutogradTensorIntegration:
     def test_gradient_computation_basic(self):
         """Test basic gradient computation."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([2.0]), requires_grad=True)
             y = x * x  # y = x²
@@ -63,8 +63,8 @@ class TestAutogradLayerIntegration:
     def test_dense_layer_gradients(self):
         """Test gradients flow through Dense layer."""
         try:
-            from tinytorch.core.autograd import Variable
-            from tinytorch.core.layers import Linear
+            from trentorch.core.autograd import Variable
+            from trentorch.core.layers import Linear
 
             # Create layer
             layer = Linear(2, 1, bias=False)
@@ -88,8 +88,8 @@ class TestAutogradLayerIntegration:
     def test_activation_gradients(self):
         """Test gradients flow through activations."""
         try:
-            from tinytorch.core.autograd import Variable
-            from tinytorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.autograd import Variable
+            from trentorch.core.activations import ReLU, Sigmoid
 
             x = Variable(np.array([1.0, -1.0, 2.0]), requires_grad=True)
 
@@ -115,7 +115,7 @@ class TestAutogradComputationGraph:
     def test_simple_computation_graph(self):
         """Test simple multi-operation graph."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([3.0]), requires_grad=True)
             y = Variable(np.array([2.0]), requires_grad=True)
@@ -138,7 +138,7 @@ class TestAutogradComputationGraph:
     def test_chain_rule(self):
         """Test chain rule works correctly."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([2.0]), requires_grad=True)
 
@@ -164,7 +164,7 @@ class TestAutogradOptimizationIntegration:
     def test_gradient_descent_step(self):
         """Test manual gradient descent step."""
         try:
-            from tinytorch.core.autograd import Variable
+            from trentorch.core.autograd import Variable
 
             # Parameter to optimize
             x = Variable(np.array([5.0]), requires_grad=True)
@@ -192,8 +192,8 @@ class TestAutogradOptimizationIntegration:
     def test_parameter_updates(self):
         """Test parameter updates work correctly."""
         try:
-            from tinytorch.core.autograd import Variable
-            from tinytorch.core.layers import Linear
+            from trentorch.core.autograd import Variable
+            from trentorch.core.layers import Linear
 
             layer = Linear(1, 1)
 

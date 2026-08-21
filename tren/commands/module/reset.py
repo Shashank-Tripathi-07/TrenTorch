@@ -1,5 +1,5 @@
 """
-Module Reset Command for TinyTorch CLI.
+Module Reset Command for TrenTorch CLI.
 
 Simple reset functionality:
 - Reset a specific module to pristine state (recreate notebook from src/)
@@ -204,7 +204,7 @@ class ModuleResetCommand(BaseCommand):
             console.print(
                 Panel(
                     f"[bold green]✅ All {reset_count} modules reset![/bold green]\n\n"
-                    f"You now have a fresh TinyTorch install.\n\n"
+                    f"You now have a fresh TrenTorch install.\n\n"
                     f"[bold]Next steps:[/bold]\n"
                     f"  • [dim]tren module start 01[/dim] - Begin your journey\n"
                     f"  • [dim]tren module status[/dim] - Check status",

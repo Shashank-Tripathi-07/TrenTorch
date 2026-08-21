@@ -1,5 +1,5 @@
 """
-Integration tests for TinyTorch.
+Integration tests for TrenTorch.
 
 These tests validate that multiple modules work together correctly.
 They catch issues that unit tests miss, like:

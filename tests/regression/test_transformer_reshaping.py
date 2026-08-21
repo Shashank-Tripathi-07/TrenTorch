@@ -41,11 +41,11 @@ rng = np.random.default_rng(7)
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.transformers import TransformerBlock, LayerNorm
-from tinytorch.core.embeddings import Embedding, PositionalEncoding
-from tinytorch.core.attention import MultiHeadAttention
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.transformers import TransformerBlock, LayerNorm
+from trentorch.core.embeddings import Embedding, PositionalEncoding
+from trentorch.core.attention import MultiHeadAttention
 
 
 def test_transformer_to_linear_3d_to_2d():
@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
     # Import required modules for testing
     try:
-        from tinytorch.core.attention import MultiHeadAttention
+        from trentorch.core.attention import MultiHeadAttention
     except ImportError:
         # Create a simple mock if not available
         class MultiHeadAttention:

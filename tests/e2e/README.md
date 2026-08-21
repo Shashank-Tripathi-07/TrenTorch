@@ -1,6 +1,6 @@
 # End-to-End User Journey Tests
 
-This directory contains tests that simulate the complete student experience with TinyTorch.
+This directory contains tests that simulate the complete student experience with TrenTorch.
 
 ## Philosophy
 

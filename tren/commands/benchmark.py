@@ -1,5 +1,5 @@
 """
-Tiny🔥Torch Benchmark Commands
+Tren🔥Torch Benchmark Commands
 
 Run baseline and capstone benchmarks, with automatic submission prompts.
 """
@@ -21,7 +21,7 @@ from rich.prompt import Prompt, Confirm
 from rich.console import Console
 
 from .base import BaseCommand
-from ..core.exceptions import TinyTorchCLIError
+from ..core.exceptions import TrenTorchCLIError
 
 
 class BenchmarkCommand(BaseCommand):
@@ -274,7 +274,7 @@ class BenchmarkCommand(BaseCommand):
 
         # Check if Module 20 is available
         try:
-            from tinytorch.perf.benchmarking import Benchmark
+            from trentorch.perf.benchmarking import Benchmark
         except ImportError:
             console.print(Panel(
                 "[red]❌ Module 19 (Benchmarking) not available[/red]\n\n"
@@ -286,13 +286,13 @@ class BenchmarkCommand(BaseCommand):
             return 1
 
         # Check if Module 20 competition code is available. `tren module
-        # complete 20` exports the capstone notebook to tinytorch/olympics.py
+        # complete 20` exports the capstone notebook to trentorch/olympics.py
         # (see tren/commands/module/workflow.py's export path mapping), not
-        # tinytorch/competition/submit.py -- that module has never existed,
+        # trentorch/competition/submit.py -- that module has never existed,
         # so this check previously always failed and reported "Module 20 not
         # complete" even for students who genuinely finished it.
         try:
-            from tinytorch.olympics import generate_submission
+            from trentorch.olympics import generate_submission
         except ImportError:
             console.print(Panel(
                 "[yellow]⚠️  Module 20 (Capstone) not complete[/yellow]\n\n"
@@ -588,9 +588,9 @@ class BenchmarkCommand(BaseCommand):
             console.print("\n[dim]Submission cancelled.[/dim]")
 
     def _get_community_data(self) -> Optional[Dict[str, Any]]:
-        """Get user's community profile from ~/.tinytorch (flat structure)."""
+        """Get user's community profile from ~/.trentorch (flat structure)."""
         from pathlib import Path
-        profile_file = Path.home() / ".tinytorch" / "profile.json"
+        profile_file = Path.home() / ".trentorch" / "profile.json"
         if profile_file.exists():
             try:
                 with open(profile_file, 'r') as f:
@@ -601,11 +601,11 @@ class BenchmarkCommand(BaseCommand):
 
     def _get_config(self) -> Dict[str, Any]:
         """Get community configuration."""
-        config_file = self.config.project_root / ".tinytorch" / "config.json"
+        config_file = self.config.project_root / ".trentorch" / "config.json"
         default_config = {
             "website": {
-                "base_url": "https://tinytorch.ai",
-                "community_map_url": "https://tinytorch.ai/map",
+                "base_url": "https://trentorch.ai",
+                "community_map_url": "https://trentorch.ai/map",
                 "api_url": None,  # Set when API is available
                 "enabled": False  # Set to True when website integration is ready
             },

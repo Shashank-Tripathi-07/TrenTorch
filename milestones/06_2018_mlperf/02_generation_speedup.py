@@ -99,28 +99,28 @@ def main():
     # IMPORT YOUR IMPLEMENTATIONS
     # ========================================================================
 
-    console.print("[bold cyan]📦 Loading YOUR Tiny🔥Torch implementations...[/bold cyan]\n")
+    console.print("[bold cyan]📦 Loading YOUR Tren🔥Torch implementations...[/bold cyan]\n")
 
     try:
         # Core components
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU
         console.print("  [green]✓[/green] Tensor, Linear, ReLU (YOUR Modules 01-03)")
 
         # Embeddings and attention
-        from tinytorch.core.embeddings import Embedding, PositionalEncoding
+        from trentorch.core.embeddings import Embedding, PositionalEncoding
         console.print("  [green]✓[/green] Embedding, PositionalEncoding (YOUR Module 11)")
 
-        from tinytorch.core.attention import MultiHeadAttention
+        from trentorch.core.attention import MultiHeadAttention
         console.print("  [green]✓[/green] MultiHeadAttention (YOUR Module 12)")
 
         # Profiler
-        from tinytorch.perf.profiling import Profiler
+        from trentorch.perf.profiling import Profiler
         console.print("  [green]✓[/green] Profiler (YOUR Module 14)")
 
         # KV Cache
-        from tinytorch.perf.memoization import KVCache
+        from trentorch.perf.memoization import KVCache
         console.print("  [green]✓[/green] KVCache (YOUR Module 18)")
 
     except ImportError as e:

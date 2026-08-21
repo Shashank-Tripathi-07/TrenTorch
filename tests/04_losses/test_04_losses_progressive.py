@@ -34,7 +34,7 @@ class TestEntireFoundationStack:
     def test_tensor_foundation_intact(self):
         """Verify Module 02 (Tensor) foundation is solid."""
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             # Basic tensor functionality
             t = Tensor([1, 2, 3])
@@ -50,8 +50,8 @@ class TestEntireFoundationStack:
     def test_activation_foundation_intact(self):
         """Verify Module 03 (Activations) foundation is solid."""
         try:
-            from tinytorch.core.activations import ReLU, Sigmoid
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
 
             relu = ReLU()
             sigmoid = Sigmoid()
@@ -71,7 +71,7 @@ class TestEntireFoundationStack:
     def test_layer_foundation_intact(self):
         """Verify Module 04 (Layers) foundation is solid."""
         try:
-            from tinytorch.core.layers import Layer
+            from trentorch.core.layers import Layer
 
             # Layer base class should exist
             layer = Layer()
@@ -88,8 +88,8 @@ class TestDenseNetworkCapability:
     def test_dense_layer_creation(self):
         """Test Dense layer works with the foundation."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
 
             # Create Dense layer
             layer = Linear(10, 5)
@@ -110,9 +110,9 @@ class TestDenseNetworkCapability:
     def test_multi_layer_network(self):
         """Test building multi-layer networks."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Sigmoid
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
 
             # Build 3-layer network for XOR
             hidden = Linear(2, 4, bias=True)
@@ -143,9 +143,9 @@ class TestXORProblemSolution:
     def test_xor_network_architecture(self):
         """Test XOR network architecture is possible."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Sigmoid
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
 
             # XOR problem setup
             X = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32))
@@ -180,9 +180,9 @@ class TestXORProblemSolution:
     def test_nonlinear_problem_solvability(self):
         """Test that non-linear problems are now solvable."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
 
             # Create network that can solve non-linear problems
             layer1 = Linear(2, 10)
@@ -215,9 +215,9 @@ class TestFoundationMilestoneReadiness:
     def test_mnist_mlp_architecture_possible(self):
         """Test we can build MNIST MLP architecture."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Softmax
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Softmax
+            from trentorch.core.tensor import Tensor
 
             # MNIST MLP: 784 -> 128 -> 64 -> 10
             layer1 = Linear(784, 128)
@@ -247,9 +247,9 @@ class TestFoundationMilestoneReadiness:
     def test_classification_capability(self):
         """Test basic classification capability."""
         try:
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Softmax
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Softmax
+            from trentorch.core.tensor import Tensor
 
             # Simple classifier: features -> hidden -> classes
             feature_layer = Linear(20, 10)
@@ -280,9 +280,9 @@ class TestCompleteStackValidation:
     def test_end_to_end_neural_network(self):
         """Test complete neural network from scratch."""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Sigmoid
 
             # End-to-end test: Build and run a complete neural network
 
@@ -320,9 +320,9 @@ class TestCompleteStackValidation:
     def test_foundation_stability_under_load(self):
         """Test foundation remains stable under computational load."""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU
 
             # Stress test: Large network
             layer1 = Linear(100, 200)

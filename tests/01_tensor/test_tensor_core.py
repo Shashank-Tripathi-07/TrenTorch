@@ -2,7 +2,7 @@
 Module 01: Tensor - Core Functionality Tests
 =============================================
 
-These tests verify that Tensor, the fundamental data structure of TinyTorch, works correctly.
+These tests verify that Tensor, the fundamental data structure of TrenTorch, works correctly.
 
 WHY TENSORS MATTER:
 ------------------
@@ -30,7 +30,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Import at module level - if this fails, the module isn't complete
-from tinytorch.core.tensor import Tensor
+from trentorch.core.tensor import Tensor
 
 
 class TestTensorCreation:
@@ -46,7 +46,7 @@ class TestTensorCreation:
         WHAT: Create tensors from Python lists.
 
         WHY: Students often start with raw Python data (lists of numbers,
-        nested lists for matrices). TinyTorch must accept this natural input
+        nested lists for matrices). TrenTorch must accept this natural input
         and convert it to the internal NumPy representation.
 
         STUDENT LEARNING: Data can enter the framework in different forms,
@@ -76,9 +76,9 @@ class TestTensorCreation:
         WHAT: Create tensors from NumPy arrays.
 
         WHY: Real ML data comes from NumPy (pandas, scikit-learn, image loaders).
-        TinyTorch must seamlessly accept NumPy arrays.
+        TrenTorch must seamlessly accept NumPy arrays.
 
-        STUDENT LEARNING: TinyTorch uses float32 by default (like PyTorch)
+        STUDENT LEARNING: TrenTorch uses float32 by default (like PyTorch)
         because it's faster and uses half the memory of float64.
         """
         arr = np.array([[1.0, 2.0], [3.0, 4.0]])
@@ -278,7 +278,7 @@ class TestTensorMemory:
         - Gradient corruption during backprop
         - Non-reproducible results
 
-        STUDENT LEARNING: TinyTorch should copy data by default for safety.
+        STUDENT LEARNING: TrenTorch should copy data by default for safety.
         """
         original_data = np.array([1, 2, 3])
         t1 = Tensor(original_data)
@@ -490,7 +490,7 @@ class TestTensorPyTorchCompat:
 
     WHY THESE MATTER: Students transitioning from PyTorch hit AttributeError
     when calling .ndim, .numel(), .view(), .contiguous(), or .masked_fill()
-    on TinyTorch tensors. These additions make the two APIs interchangeable
+    on TrenTorch tensors. These additions make the two APIs interchangeable
     for the patterns that appear in transformer training pipelines.
     """
 

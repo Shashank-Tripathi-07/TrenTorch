@@ -1,14 +1,14 @@
 """
 Environment Setup Validation Tests
 
-These tests verify that the TinyTorch environment is correctly configured
+These tests verify that the TrenTorch environment is correctly configured
 and all dependencies work as expected. Run these after `tren setup` to
-ensure students can actually use TinyTorch.
+ensure students can actually use TrenTorch.
 
 Usage:
     pytest tests/environment/test_setup_validation.py -v
 
-    Or via TITO:
+    Or via TREN:
     tren system health --verify
 """
 
@@ -203,28 +203,28 @@ class TestJupyterEnvironment:
         print(f"✅ Jupytext {jupytext.__version__} available")
 
 
-class TestTinyTorchPackage:
-    """Verify TinyTorch package is correctly installed."""
+class TestTrenTorchPackage:
+    """Verify TrenTorch package is correctly installed."""
 
-    def test_tinytorch_import(self):
-        """TinyTorch package must be importable."""
-        import tinytorch
-        print(f"✅ TinyTorch package imported from {tinytorch.__file__}")
+    def test_trentorch_import(self):
+        """TrenTorch package must be importable."""
+        import trentorch
+        print(f"✅ TrenTorch package imported from {trentorch.__file__}")
 
-    def test_tinytorch_core_import(self):
-        """TinyTorch core modules must be importable."""
-        from tinytorch import core
-        print("✅ TinyTorch core module available")
+    def test_trentorch_core_import(self):
+        """TrenTorch core modules must be importable."""
+        from trentorch import core
+        print("✅ TrenTorch core module available")
 
-    def test_tinytorch_version(self):
-        """TinyTorch must have version info."""
-        import tinytorch
-        assert hasattr(tinytorch, '__version__'), "TinyTorch version not defined"
-        print(f"✅ TinyTorch version: {tinytorch.__version__}")
+    def test_trentorch_version(self):
+        """TrenTorch must have version info."""
+        import trentorch
+        assert hasattr(trentorch, '__version__'), "TrenTorch version not defined"
+        print(f"✅ TrenTorch version: {trentorch.__version__}")
 
-    def test_tinytorch_tensor_import(self):
+    def test_trentorch_tensor_import(self):
         """Tensor class must be importable."""
-        from tinytorch import Tensor
+        from trentorch import Tensor
         assert Tensor is not None, "Tensor class not available"
         print("✅ Tensor class available")
 
@@ -238,17 +238,17 @@ class TestProjectStructure:
         assert project_root.exists(), "Project root not found"
         print(f"✅ Project root: {project_root}")
 
-    def test_tinytorch_package_directory(self):
-        """tinytorch/ package directory must exist."""
-        tinytorch_dir = Path("tinytorch")
-        assert tinytorch_dir.exists(), "tinytorch/ directory not found"
-        assert tinytorch_dir.is_dir(), "tinytorch/ is not a directory"
-        print(f"✅ Package directory: {tinytorch_dir.absolute()}")
+    def test_trentorch_package_directory(self):
+        """trentorch/ package directory must exist."""
+        trentorch_dir = Path("trentorch")
+        assert trentorch_dir.exists(), "trentorch/ directory not found"
+        assert trentorch_dir.is_dir(), "trentorch/ is not a directory"
+        print(f"✅ Package directory: {trentorch_dir.absolute()}")
 
-    def test_tinytorch_init_file(self):
-        """tinytorch/__init__.py must exist."""
-        init_file = Path("tinytorch/__init__.py")
-        assert init_file.exists(), "tinytorch/__init__.py not found"
+    def test_trentorch_init_file(self):
+        """trentorch/__init__.py must exist."""
+        init_file = Path("trentorch/__init__.py")
+        assert init_file.exists(), "trentorch/__init__.py not found"
         print(f"✅ Package init: {init_file.absolute()}")
 
     def test_modules_directory(self):
@@ -276,17 +276,17 @@ class TestProjectStructure:
         print(f"✅ Tests directory: {tests_dir.absolute()}")
 
     def test_tren_cli_exists(self):
-        """TITO CLI must be available."""
+        """TREN CLI must be available."""
         # Try to import tren
         try:
             import tren
-            print(f"✅ TITO CLI available: {tren.__file__}")
+            print(f"✅ TREN CLI available: {tren.__file__}")
         except ImportError:
-            pytest.fail("TITO CLI not importable")
+            pytest.fail("TREN CLI not importable")
 
 
 class TestSystemResources:
-    """Verify system has adequate resources for TinyTorch development."""
+    """Verify system has adequate resources for TrenTorch development."""
 
     def test_disk_space_available(self):
         """At least 1GB disk space should be available."""
@@ -418,7 +418,7 @@ def run_all_validation_tests():
     if exit_code == 0:
         print("\n" + "="*70)
         print("🎉 All validation tests passed!")
-        print("✅ TinyTorch environment is correctly configured")
+        print("✅ TrenTorch environment is correctly configured")
         print("💡 Next: tren module 01")
         print("="*70)
     else:

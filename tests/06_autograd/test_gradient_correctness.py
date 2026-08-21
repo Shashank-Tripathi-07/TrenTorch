@@ -36,11 +36,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Import order matters: autograd must be enabled AFTER all modules are imported
 # so that enable_autograd() can patch their forward methods correctly.
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.activations import ReLU, Sigmoid, Tanh, GELU
-from tinytorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.activations import ReLU, Sigmoid, Tanh, GELU
+from trentorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
+from trentorch.core.autograd import enable_autograd
 
 enable_autograd()
 
@@ -377,7 +377,7 @@ class TestNoGradContext:
     """Verify no_grad() stops gradient tracking."""
 
     def test_no_grad_disables_tracking(self):
-        from tinytorch.core.autograd import no_grad
+        from trentorch.core.autograd import no_grad
 
         x = Tensor(np.array([1.0, 2.0]), requires_grad=True)
         with no_grad():
@@ -388,7 +388,7 @@ class TestNoGradContext:
         )
 
     def test_no_grad_does_not_affect_outside(self):
-        from tinytorch.core.autograd import no_grad
+        from trentorch.core.autograd import no_grad
 
         x = Tensor(np.array([1.0, 2.0]), requires_grad=True)
         with no_grad():

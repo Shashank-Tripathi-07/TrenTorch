@@ -12,7 +12,7 @@ This is where we create reusable building blocks for neural networks.
 - Preparation: Foundation ready for Module 04 (Losses)
 
 💡 FOR STUDENTS: If tests fail, check:
-1. Does your Layer base class exist in tinytorch.core.layers?
+1. Does your Layer base class exist in trentorch.core.layers?
 2. Does Layer have a forward() method?
 3. Is Layer callable (has __call__ method)?
 4. Do layers work with Tensor objects from Module 01?
@@ -90,7 +90,7 @@ class TestPriorModulesStillWork:
         🔧 FIX: Check your tensor implementation, ensure exports are correct
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             # Basic tensor creation
             t = Tensor([1, 2, 3])
@@ -111,7 +111,7 @@ class TestPriorModulesStillWork:
             🔧 HOW TO FIX:
             1. Implement Tensor class in modules/01_tensor/
             2. Export module: tren module complete 01_tensor
-            3. Check tinytorch.core.tensor exists
+            3. Check trentorch.core.tensor exists
             4. Verify Tensor class is exported correctly
 
             📚 EXPECTED STRUCTURE:
@@ -146,8 +146,8 @@ class TestPriorModulesStillWork:
         🔧 FIX: Check activation function implementations
         """
         try:
-            from tinytorch.core.activations import ReLU, Sigmoid
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
 
             # ReLU functionality
             relu = ReLU()
@@ -175,7 +175,7 @@ class TestPriorModulesStillWork:
             🔧 HOW TO FIX:
             1. Implement ReLU and Sigmoid in modules/02_activations/
             2. Export module: tren module complete 02_activations
-            3. Check tinytorch.core.activations exists
+            3. Check trentorch.core.activations exists
             4. Verify activation classes are exported
 
             📚 EXPECTED STRUCTURE:
@@ -219,7 +219,7 @@ class TestModule03LayersCore:
         🚨 IF FAILS: Layer base class doesn't exist or missing methods
         """
         try:
-            from tinytorch.core.layers import Layer
+            from trentorch.core.layers import Layer
 
             # Layer class should exist
             assert hasattr(Layer, 'forward'), \
@@ -287,7 +287,7 @@ class TestModule03LayersCore:
         🎯 DESIGN GOAL: Clean, consistent interface for all layer types
         """
         try:
-            from tinytorch.core.layers import Layer
+            from trentorch.core.layers import Layer
 
             layer = Layer()
 
@@ -349,8 +349,8 @@ class TestModule03LayersCore:
         💡 FOR STUDENTS: This shows how your Linear layer works in Module 03 (Layers)
         """
         try:
-            from tinytorch.core.layers import Layer
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
 
             # Create a simple custom layer for testing
             class TestLayer(Layer):
@@ -421,8 +421,8 @@ class TestProgressiveStackIntegration:
         💡 This is crucial for Module 04 (Losses)
         """
         try:
-            from tinytorch.core.layers import Layer
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
 
             # Create a layer that actually works with tensors
             class IdentityLayer(Layer):
@@ -470,8 +470,8 @@ class TestProgressiveStackIntegration:
             - Preserve tensor properties (shape, data)
 
             🧪 DEBUG TEST:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Layer
 
             t = Tensor([1, 2, 3])
             print(f"Tensor shape: {{t.shape}}")
@@ -490,9 +490,9 @@ class TestProgressiveStackIntegration:
         💡 This is the foundation for neural networks: layer -> activation -> layer
         """
         try:
-            from tinytorch.core.layers import Layer
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU
+            from trentorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU
 
             # Simple layer for testing
             class ScaleLayer(Layer):
@@ -558,9 +558,9 @@ class TestProgressiveStackIntegration:
         """
         try:
             # Import all components
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU, Sigmoid
-            from tinytorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.layers import Layer
 
             # Create complete neural network building blocks
             class LinearLayer(Layer):
@@ -610,7 +610,7 @@ class TestProgressiveStackIntegration:
             🔧 FIX EACH MODULE:
             1. Run individual module tests to isolate the issue
             2. Check exports: tren module complete XX_modulename
-            3. Verify imports work: from tinytorch.core.* import *
+            3. Verify imports work: from trentorch.core.* import *
 
             💡 DEBUGGING STRATEGY:
             Test each component separately:
@@ -640,8 +640,8 @@ class TestNeuralNetworkReadiness:
         💡 This prepares for Dense layer implementation
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Layer
 
             # Test parameter storage and manipulation
             class ParameterizedLayer(Layer):
@@ -710,8 +710,8 @@ class TestNeuralNetworkReadiness:
         💡 Essential for real neural network training
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU
 
             # Test batch processing
             batch_size = 32
@@ -777,9 +777,9 @@ class TestNeuralNetworkReadiness:
         🎯 MILESTONE: Ready for Module 04 (Losses)!
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Layer
-            from tinytorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Layer
+            from trentorch.core.activations import ReLU, Sigmoid
 
             # Simulate complete neural network workflow
             class MockDenseLayer(Layer):
@@ -887,7 +887,7 @@ class TestModuleCompletionReadiness:
 
         try:
             # Check 1: Layer base class
-            from tinytorch.core.layers import Layer
+            from trentorch.core.layers import Layer
             completion_checklist["Layer base class exists"] = True
 
             # Check 2: forward method
@@ -900,7 +900,7 @@ class TestModuleCompletionReadiness:
             completion_checklist["Layer is callable"] = True
 
             # Check 4: works with tensors
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             class TestLayer(Layer):
                 def forward(self, x):
@@ -913,7 +913,7 @@ class TestModuleCompletionReadiness:
             completion_checklist["Layer works with Tensors"] = True
 
             # Check 5: chains with activations
-            from tinytorch.core.activations import ReLU
+            from trentorch.core.activations import ReLU
             relu = ReLU()
             chained_output = relu(output)
             assert isinstance(chained_output, Tensor)

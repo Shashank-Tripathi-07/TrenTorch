@@ -15,8 +15,8 @@ def run_integration_test():
 
         # Test 1: Import validation
         print("1. Import validation...")
-        import tinytorch.tinygpt as tgpt
-        print("   ✅ tinytorch.tinygpt imported successfully")
+        import trentorch.tinygpt as tgpt
+        print("   ✅ trentorch.tinygpt imported successfully")
 
         # Test 2: Component availability
         print("2. Component availability...")
@@ -53,7 +53,7 @@ def run_integration_test():
 
         # Test 4: MultiHeadAttention functionality
         print("4. MultiHeadAttention functionality...")
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
 
         attention = tgpt.MultiHeadAttention(d_model=64, num_heads=8)
         test_input = Tensor(rng.standard_normal((1, 10, 64)))

@@ -1,6 +1,6 @@
 # Capstone Integration Tests - Module 20
 
-Comprehensive integration tests that validate the ENTIRE TinyTorch learning journey.
+Comprehensive integration tests that validate the ENTIRE TrenTorch learning journey.
 
 ## Overview
 

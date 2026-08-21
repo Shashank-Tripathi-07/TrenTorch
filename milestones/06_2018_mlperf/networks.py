@@ -17,7 +17,7 @@ You've already proven you can build them - now let's make them production-ready!
 Usage:
     from networks import DigitMLP, SimpleCNN, MinimalTransformer
 
-    # These use YOUR Tiny🔥Torch implementations under the hood!
+    # These use YOUR Tren🔥Torch implementations under the hood!
     mlp = DigitMLP()       # YOUR Linear, ReLU
     cnn = SimpleCNN()      # YOUR Conv2d, MaxPool2d
     transformer = MinimalTransformer()  # YOUR Attention, Embeddings
@@ -41,7 +41,7 @@ class Perceptron:
     """
 
     def __init__(self, input_size=64, num_classes=10):
-        from tinytorch.core.layers import Linear
+        from trentorch.core.layers import Linear
 
         self.fc = Linear(input_size, num_classes)
         self.layers = [self.fc]
@@ -75,8 +75,8 @@ class DigitMLP:
     """
 
     def __init__(self, input_size=64, hidden_size=32, num_classes=10):
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU
 
         self.fc1 = Linear(input_size, hidden_size)
         self.relu = ReLU()
@@ -119,9 +119,9 @@ class SimpleCNN:
     """
 
     def __init__(self, num_classes=10):
-        from tinytorch.core.spatial import Conv2d, MaxPool2d
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.spatial import Conv2d, MaxPool2d
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU
 
         # Convolutional layers
         self.conv1 = Conv2d(in_channels=1, out_channels=4, kernel_size=3, padding=1)
@@ -183,10 +183,10 @@ class MinimalTransformer:
     """
 
     def __init__(self, vocab_size=27, embed_dim=32, num_heads=2, seq_len=8):
-        from tinytorch.core.embeddings import Embedding, PositionalEncoding
-        from tinytorch.core.attention import MultiHeadAttention
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.embeddings import Embedding, PositionalEncoding
+        from trentorch.core.attention import MultiHeadAttention
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU
 
         self.vocab_size = vocab_size
         self.embed_dim = embed_dim
@@ -264,7 +264,7 @@ def get_network(name: str):
 
 # Import Tensor for residual connection
 try:
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.tensor import Tensor
 except ImportError:
     Tensor = None
 

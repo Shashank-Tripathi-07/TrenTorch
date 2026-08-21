@@ -111,14 +111,14 @@ figures: $(PDFS) ## Convert all SVG diagrams to PDF (for LaTeX embedding).
 # project reads chapters at `../modules/...` — outside its own project
 # root — so Quarto refuses to remove the auxiliary `_files/` directories
 # left behind there. XeLaTeX has already written the PDF by that point,
-# so we mirror the CI pattern (.github/workflows/tinytorch-build-pdfs.yml):
+# so we mirror the CI pattern (.github/workflows/trentorch-build-pdfs.yml):
 # run Quarto, capture its exit code, then *verify the PDF exists* and
 # treat the cleanup error as benign only if it does. If the PDF is
 # missing, fail loudly — that's a real build failure.
 # Quarto writes the rendered book into pdf/_build/ (see `output-dir: _build`
 # in pdf/_quarto.yml) — this matches every other Quarto project in the repo
 # (kits, slides, site, labs, etc. all emit under _build/). CI workflows
-# (tinytorch-build-pdfs.yml, tinytorch-update-pdfs.yml) upload the artifact
+# (trentorch-build-pdfs.yml, trentorch-update-pdfs.yml) upload the artifact
 # directly from pdf/_build/TinyTorch-Guide.pdf. Local dev should also use
 # the _build/ path; there is no duplicate copy.
 PDF_OUT := pdf/_build/TinyTorch-Guide.pdf

@@ -1,8 +1,8 @@
 # =============================================================================
-# TINYTORCH LAB GUIDE — QUARTO BOOK (PDF)
+# TRENTORCH LAB GUIDE — QUARTO BOOK (PDF)
 # =============================================================================
 # Produces the bundled PDF that's injected into the live site as
-# mlsysbook.ai/tinytorch/assets/downloads/TinyTorch-Guide.pdf.
+# mlsysbook.ai/trentorch/assets/downloads/TinyTorch-Guide.pdf.
 #
 # This project lives alongside the website config (quarto/_quarto.yml)
 # and reuses its .qmd chapter files via relative paths. The website is a
@@ -17,13 +17,13 @@
 project:
   type: book
   # Render output goes to the parent's _build/pdf/ so the injection path
-  # in tinytorch-publish-live.yml (assets/downloads/TinyTorch-Guide.pdf)
-  # can stay keyed off vars.TINYTORCH_SITE.
+  # in trentorch-publish-live.yml (assets/downloads/TinyTorch-Guide.pdf)
+  # can stay keyed off vars.TRENTORCH_SITE.
   output-dir: _build
 
 # Pages live one level up (in the website source tree) so we can reuse
 # them without symlinks or copies. Relative paths resolve from this
-# file's directory, i.e., tinytorch/quarto/pdf/.
+# file's directory, i.e., trentorch/quarto/pdf/.
 book:
   title: "TinyTorch Lab Guide"
   subtitle: "Don't just `import torch`. Build it."
@@ -196,7 +196,7 @@ format:
         \definecolor{codebackground}{RGB}{255,248,240} % peachy code-block fill
         \definecolor{accentwarm}{RGB}{255,160,100}     % soft warm accent
         % Legacy placeholder retained in case anything keys off it.
-        \definecolor{tinytorch}{HTML}{D4740C}
+        \definecolor{trentorch}{HTML}{D4740C}
 
         % ── Unicode fallbacks — glyphs TeX Gyre does not cover ──────────
         \usepackage{newunicodechar}
@@ -350,7 +350,7 @@ format:
         \setlength{\headsep}{16pt}
         \renewcommand{\chaptermark}[1]{\markboth{Chapter \thechapter\ · #1}{}}
         \renewcommand{\sectionmark}[1]{\markright{\thesection\ · #1}}
-        \fancypagestyle{tinytorch}{%
+        \fancypagestyle{trentorch}{%
           \fancyhf{}%
           \fancyhead[LE]{\footnotesize\color{torchnavy!60}\scshape\nouppercase{\leftmark}}%
           \fancyhead[RO]{\footnotesize\color{torchnavy!60}\scshape\nouppercase{\rightmark}}%
@@ -372,7 +372,7 @@ format:
             }%
           }%
         }
-        \pagestyle{tinytorch}
+        \pagestyle{trentorch}
         % Chapter-opening pages default to "plain" in the book class.
         % Keep the wordmark + double rule, but drop the chapter/section
         % marks (they'd be redundant — the huge chapter title IS below).

@@ -12,13 +12,13 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.attention import MultiHeadAttention
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.attention import MultiHeadAttention
 
 # Optional import - KV cache may not be implemented yet
 try:
-    from tinytorch.perf.memoization import KVCache, enable_kv_cache
+    from trentorch.perf.memoization import KVCache, enable_kv_cache
     HAS_KV_CACHE = True
 except ImportError:
     pytest.skip(

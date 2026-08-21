@@ -17,9 +17,9 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
-from tinytorch.core.embeddings import Embedding
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
+from trentorch.core.embeddings import Embedding
 
 
 def test_embedding_has_backward_function():
@@ -129,7 +129,7 @@ def test_embedding_in_sequence():
     """Test Embedding as first layer in a sequence model."""
     print("Testing Embedding in sequence model...")
 
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
 
     # Simple sequence model: Embedding → Flatten → Linear
     vocab_size = 20

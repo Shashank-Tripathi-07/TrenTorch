@@ -1,5 +1,5 @@
 """
-nbdev command for TinyTorch CLI: runs nbdev commands for notebook development.
+nbdev command for TrenTorch CLI: runs nbdev commands for notebook development.
 """
 
 import subprocess

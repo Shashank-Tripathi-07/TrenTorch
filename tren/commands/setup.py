@@ -1,11 +1,11 @@
 """
-Setup command for Tiny🔥Torch CLI: First-time environment setup and configuration.
+Setup command for Tren🔥Torch CLI: First-time environment setup and configuration.
 
 This replaces the old 01_setup module with a proper CLI command that handles:
 - Package installation and virtual environment setup
 - Environment validation and compatibility checking
 - User profile creation for development tracking
-- Workspace initialization for Tiny🔥Torch development
+- Workspace initialization for Tren🔥Torch development
 """
 
 import subprocess
@@ -41,7 +41,7 @@ def _print_file_update(console, file_path: Path) -> None:
         console.print(f"[dim]📝 Updated: {file_path}[/dim]")
 
 class SetupCommand(BaseCommand):
-    """First-time setup command for Tiny🔥Torch development environment."""
+    """First-time setup command for Tren🔥Torch development environment."""
 
     @property
     def name(self) -> str:
@@ -54,13 +54,13 @@ class SetupCommand(BaseCommand):
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add setup command arguments."""
         parser.description = (
-            "Set up your Tiny🔥Torch development environment.\n\n"
+            "Set up your Tren🔥Torch development environment.\n\n"
             "This command is idempotent - safe to run multiple times. "
             "It will skip steps that are already complete and only set up what's missing.\n\n"
             "Steps performed:\n"
             "  1. Create virtual environment (.venv)\n"
             "  2. Install required packages (numpy, jupyter, etc.)\n"
-            "  3. Create user profile (~/.tinytorch/profile.json)\n"
+            "  3. Create user profile (~/.trentorch/profile.json)\n"
             "  4. Validate environment"
         )
         parser.add_argument(
@@ -89,7 +89,7 @@ class SetupCommand(BaseCommand):
         venv_paths = [
             self.config.project_root / ".venv",
             self.config.project_root / "venv",
-            self.config.project_root / "tinytorch-env",
+            self.config.project_root / "trentorch-env",
         ]
         for venv_path in venv_paths:
             if venv_path.exists():
@@ -98,7 +98,7 @@ class SetupCommand(BaseCommand):
 
     def get_profile_path(self) -> Path:
         """Return the path to the profile file."""
-        return Path.home() / ".tinytorch" / "profile.json"
+        return Path.home() / ".trentorch" / "profile.json"
 
     def check_existing_setup(self) -> Dict[str, Any]:
         """Check what parts of setup already exist.
@@ -127,8 +127,8 @@ class SetupCommand(BaseCommand):
             return False
 
     def install_packages(self) -> bool:
-        """Install required packages for Tiny🔥Torch development."""
-        # Essential packages for TinyTorch
+        """Install required packages for Tren🔥Torch development."""
+        # Essential packages for TrenTorch
         packages = [
             ("numpy", "numpy>=1.21.0"),
             ("jupyter", "jupyter>=1.0.0"),
@@ -195,14 +195,14 @@ class SetupCommand(BaseCommand):
                         self.console.print(f"[red]Error installing {pkg_spec}: {e}[/red]")
                         return False
 
-        # Install Tiny🔥Torch in development mode
+        # Install Tren🔥Torch in development mode
         # On Windows, 'pip install -e .' fails with WinError 32 (file lock) when
         # tren.exe is already running. Skip reinstall if already installed.
         # Contributed by @adil-mubashir-ch (PR #1169)
         is_windows = platform.system() == "Windows"
-        if is_windows and self._check_package_installed("tinytorch"):
+        if is_windows and self._check_package_installed("trentorch"):
             self.console.print(
-                "[green]✅ Tiny🔥Torch already installed (skipping reinstall on Windows)[/green]"
+                "[green]✅ Tren🔥Torch already installed (skipping reinstall on Windows)[/green]"
             )
         else:
             with Progress(
@@ -210,7 +210,7 @@ class SetupCommand(BaseCommand):
                 TextColumn("[progress.description]{task.description}"),
                 console=self.console
             ) as progress:
-                task = progress.add_task("Installing Tiny🔥Torch in development mode...", total=None)
+                task = progress.add_task("Installing Tren🔥Torch in development mode...", total=None)
 
                 try:
                     result = subprocess.run([
@@ -218,15 +218,15 @@ class SetupCommand(BaseCommand):
                     ], cwd=self.config.project_root, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
 
                     if result.returncode == 0:
-                        progress.update(task, description="[green]✅ Tiny🔥Torch installed[/green]")
+                        progress.update(task, description="[green]✅ Tren🔥Torch installed[/green]")
                     else:
-                        progress.update(task, description="[red]❌ Tiny🔥Torch install failed[/red]")
-                        self.console.print(f"[red]Failed to install Tiny🔥Torch: {result.stderr}[/red]")
+                        progress.update(task, description="[red]❌ Tren🔥Torch install failed[/red]")
+                        self.console.print(f"[red]Failed to install Tren🔥Torch: {result.stderr}[/red]")
                         return False
 
                 except Exception as e:
-                    progress.update(task, description="[red]❌ Tiny🔥Torch error[/red]")
-                    self.console.print(f"[red]Error installing Tiny🔥Torch: {e}[/red]")
+                    progress.update(task, description="[red]❌ Tren🔥Torch error[/red]")
+                    self.console.print(f"[red]Error installing Tren🔥Torch: {e}[/red]")
                     return False
 
         # Register Jupyter kernel so notebooks use this Python environment
@@ -236,18 +236,18 @@ class SetupCommand(BaseCommand):
             result = subprocess.run([
                 sys.executable, "-m", "ipykernel", "install",
                 "--user",
-                "--name", "tinytorch",
-                "--display-name", "TinyTorch (Python 3)"
+                "--name", "trentorch",
+                "--display-name", "TrenTorch (Python 3)"
             ], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
 
             if result.returncode == 0:
-                self.console.print("[green]✅ Jupyter kernel 'tinytorch' registered[/green]")
+                self.console.print("[green]✅ Jupyter kernel 'trentorch' registered[/green]")
                 self.console.print("[dim]   Notebooks will use this Python environment[/dim]")
             else:
                 self.console.print("[red]❌ Jupyter kernel registration failed[/red]")
                 self.console.print(f"[dim]   {result.stderr.strip()}[/dim]")
                 self.console.print("[yellow]   Fix: pip install ipykernel && "
-                                  "python -m ipykernel install --user --name tinytorch[/yellow]")
+                                  "python -m ipykernel install --user --name trentorch[/yellow]")
                 return False
         except FileNotFoundError:
             self.console.print("[red]❌ ipykernel not found — cannot register Jupyter kernel[/red]")
@@ -260,7 +260,7 @@ class SetupCommand(BaseCommand):
         return True
 
     def create_virtual_environment(self, force: bool = False) -> bool:
-        """Create a virtual environment for Tiny🔥Torch development.
+        """Create a virtual environment for Tren🔥Torch development.
 
         Args:
             force: If True, recreate even if venv exists (after user confirmation).
@@ -358,10 +358,10 @@ class SetupCommand(BaseCommand):
         Args:
             force: If True, prompt to update existing profile.
         """
-        # Use .tinytorch directory (flat structure, not nested under community/)
-        tinytorch_dir = Path.home() / ".tinytorch"
-        tinytorch_dir.mkdir(parents=True, exist_ok=True)
-        profile_path = tinytorch_dir / "profile.json"
+        # Use .trentorch directory (flat structure, not nested under community/)
+        trentorch_dir = Path.home() / ".trentorch"
+        trentorch_dir.mkdir(parents=True, exist_ok=True)
+        profile_path = trentorch_dir / "profile.json"
 
         if profile_path.exists():
             import json
@@ -378,11 +378,11 @@ class SetupCommand(BaseCommand):
                 self.console.print("[green]✅ Keeping existing profile[/green]")
                 return existing_profile
 
-        self.console.print("👋 Creating your Tiny🔥Torch development profile...")
+        self.console.print("👋 Creating your Tren🔥Torch development profile...")
 
         # Collect user information
-        name = Prompt.ask("Your name", default="Tiny🔥Torch Developer")
-        email = Prompt.ask("Your email (optional)", default="dev@tinytorch.local")
+        name = Prompt.ask("Your name", default="Tren🔥Torch Developer")
+        email = Prompt.ask("Your email (optional)", default="dev@trentorch.local")
         affiliation = Prompt.ask("Your affiliation (university, company, etc.)", default="Independent")
 
         # Create profile
@@ -413,8 +413,8 @@ class SetupCommand(BaseCommand):
             ("Python version (≥3.10)", self.check_python_version),
             ("NumPy", self.check_numpy),
             ("Jupyter", self.check_jupyter),
-            ("Jupyter kernel (tinytorch)", self.check_jupyter_kernel),
-            ("TinyTorch CLI", self.check_tinytorch_package)
+            ("Jupyter kernel (trentorch)", self.check_jupyter_kernel),
+            ("TrenTorch CLI", self.check_trentorch_package)
         ]
 
         all_passed = True
@@ -472,18 +472,18 @@ class SetupCommand(BaseCommand):
             return False
 
     def check_jupyter_kernel(self) -> bool:
-        """Check if a TinyTorch Jupyter kernel is registered."""
+        """Check if a TrenTorch Jupyter kernel is registered."""
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "jupyter", "kernelspec", "list"],
                 capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
             )
-            return result.returncode == 0 and "tinytorch" in result.stdout
+            return result.returncode == 0 and "trentorch" in result.stdout
         except Exception:
             return False
 
-    def check_tinytorch_package(self) -> bool:
-        """Check if Tiny🔥Torch package is installed (tren CLI)."""
+    def check_trentorch_package(self) -> bool:
+        """Check if Tren🔥Torch package is installed (tren CLI)."""
         try:
             import tren
             return True
@@ -493,7 +493,7 @@ class SetupCommand(BaseCommand):
     def print_success_message(self, profile: Dict[str, Any]) -> None:
         """Print success message with next steps."""
         success_text = Text()
-        success_text.append("🎉 Tiny🔥Torch setup completed successfully!\n\n", style="bold green")
+        success_text.append("🎉 Tren🔥Torch setup completed successfully!\n\n", style="bold green")
         success_text.append(f"👋 Welcome, {profile['name']}!\n", style="bold")
         success_text.append(f"📧 Email: {profile['email']}\n", style="dim")
         success_text.append(f"🏢 Affiliation: {profile['affiliation']}\n", style="dim")
@@ -518,31 +518,31 @@ class SetupCommand(BaseCommand):
 
         self.console.print(Panel(
             success_text,
-            title="🔥 Tiny🔥Torch Setup Complete!",
+            title="🔥 Tren🔥Torch Setup Complete!",
             border_style="green"
         ))
 
     def prompt_community_registration(self) -> None:
-        """Prompt user to join the TinyTorch community."""
+        """Prompt user to join the TrenTorch community."""
         # Check if already logged in
         if is_logged_in():
-             self.console.print("\n[green]✅ You are already connected to the TinyTorch community.[/green]")
+             self.console.print("\n[green]✅ You are already connected to the TrenTorch community.[/green]")
              return
 
         # Unlike install.sh (which honors this for its own prompts), tren setup
         # never checked this env var, so a fully unattended run (CI, scripted
         # setup, no stdin) crashed here with "EOF when reading a line" instead
-        # of skipping the prompt like every other TINYTORCH_NON_INTERACTIVE=1
+        # of skipping the prompt like every other TRENTORCH_NON_INTERACTIVE=1
         # invocation is supposed to.
-        if os.environ.get("TINYTORCH_NON_INTERACTIVE"):
-            self.console.print("\n[dim]Skipping community prompt (TINYTORCH_NON_INTERACTIVE set). "
+        if os.environ.get("TRENTORCH_NON_INTERACTIVE"):
+            self.console.print("\n[dim]Skipping community prompt (TRENTORCH_NON_INTERACTIVE set). "
                                 "You can join anytime with: tren community login[/dim]")
             return
 
         self.console.print()
         self.console.print(Panel.fit(
-            "[bold cyan]🌍 Join the TinyTorch Community[/bold cyan]\n\n"
-            "Connect at [link=https://mlsysbook.ai/tinytorch/community/?action=join]mlsysbook.ai/tinytorch/community/?action=join[/link]\n\n"
+            "[bold cyan]🌍 Join the TrenTorch Community[/bold cyan]\n\n"
+            "Connect at [link=https://mlsysbook.ai/trentorch/community/?action=join]mlsysbook.ai/trentorch/community/?action=join[/link]\n\n"
             "[dim]• See learners worldwide\n"
             "• Leaderboard submissions\n"
             "• Progress syncing[/dim]",
@@ -563,32 +563,32 @@ class SetupCommand(BaseCommand):
                 login_result = login_cmd.run(login_args)
 
                 if login_result == 0:
-                    self.console.print("[green]✅ Successfully connected to the TinyTorch community![/green]")
+                    self.console.print("[green]✅ Successfully connected to the TrenTorch community![/green]")
 
                     # Post-login profile update prompt
                     self.console.print()
                     self.console.print(Panel(
                         "[bold magenta]✨ Update Community Profile ✨[/bold magenta]\n\n"
-                        "Your CLI is now connected. Would you like to update your profile on the TinyTorch community website?",
+                        "Your CLI is now connected. Would you like to update your profile on the TrenTorch community website?",
                         title="Community Profile Update",
                         border_style="magenta",
                         box=box.ROUNDED
                     ))
                     if Confirm.ask("[bold]Update your community profile?[/bold]", default=True):
                         self.console.print("[dim]Opening profile editor...[/dim]")
-                        open_url("https://mlsysbook.ai/tinytorch/community/?action=profile&community=true", self.console, show_manual_fallback=True)
+                        open_url("https://mlsysbook.ai/trentorch/community/?action=profile&community=true", self.console, show_manual_fallback=True)
                 else:
                     self.console.print("[yellow]⚠️  Community connection timed out or was cancelled.[/yellow]")
                     self.console.print("[yellow]💡 You can complete this anytime with:[/yellow] [bold green]tren community login[/bold green]")
             except Exception as e:
                  self.console.print(f"[yellow]⚠️  Error during login: {e}[/yellow]")
         else:
-            self.console.print("[dim]No problem! You can join anytime at mlsysbook.ai/tinytorch/community/[/dim]")
+            self.console.print("[dim]No problem! You can join anytime at mlsysbook.ai/trentorch/community/[/dim]")
 
     def prompt_community_login(self) -> None:
-        """Prompt user to log in to the TinyTorch community via CLI."""
+        """Prompt user to log in to the TrenTorch community via CLI."""
         self.console.print()
-        if Confirm.ask("[bold]Would you like to connect your TinyTorch CLI to the community now (for leaderboard submissions, progress syncing, etc.)?[/bold]", default=True):
+        if Confirm.ask("[bold]Would you like to connect your TrenTorch CLI to the community now (for leaderboard submissions, progress syncing, etc.)?[/bold]", default=True):
             self.console.print("\n[cyan]Starting community login process...[/cyan]")
             login_cmd = LoginCommand(self.config)
 
@@ -599,7 +599,7 @@ class SetupCommand(BaseCommand):
                 login_result = login_cmd.run(login_args)
 
                 if login_result == 0:
-                    self.console.print("[green]✅ Successfully connected to the TinyTorch community![/green]")
+                    self.console.print("[green]✅ Successfully connected to the TrenTorch community![/green]")
                 else:
                     self.console.print("[yellow]⚠️  Community connection timed out or was cancelled.[/yellow]")
                     self.console.print("[yellow]💡 You can complete this anytime with:[/yellow] [bold green]tren community login[/bold green]")
@@ -611,9 +611,9 @@ class SetupCommand(BaseCommand):
     def run(self, args: Namespace) -> int:
         """Execute the setup command."""
         self.console.print(Panel(
-            "🔥 Tiny🔥Torch First-Time Setup\n\n"
+            "🔥 Tren🔥Torch First-Time Setup\n\n"
             "This will configure your development environment for building ML systems from scratch.",
-            title="Welcome to Tiny🔥Torch!",
+            title="Welcome to Tren🔥Torch!",
             border_style="bright_green"
         ))
 

@@ -25,10 +25,10 @@ class TestPriorStackStillWorking:
 
         # Complete pipeline should work
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.dataloader import Dataset, DataLoader
-            from tinytorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.optimizers import SGD
 
             # All components should be available
             layer = Linear(5, 2)
@@ -45,8 +45,8 @@ class TestPriorStackStillWorking:
     def test_optimization_stable(self):
         """Verify Module 07 (Optimizers) still works."""
         try:
-            from tinytorch.core.optimizers import SGD, Adam
-            from tinytorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD, Adam
+            from trentorch.core.layers import Linear
 
             # Optimizers should work
             layer = Linear(3, 1)
@@ -66,10 +66,10 @@ class TestModule08TrainingCore:
     def test_training_loop_creation(self):
         """Test basic training loop functionality."""
         try:
-            from tinytorch.core.training import Trainer
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.training import Trainer
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.dataloader import Dataset, DataLoader
 
             # Create model and optimizer
             model = Linear(10, 3)
@@ -97,7 +97,7 @@ class TestModule08TrainingCore:
             # Create trainer
             trainer = Trainer(model, optimizer, dummy_loss)
 
-            # Should have training methods (TinyTorch uses train_epoch/evaluate)
+            # Should have training methods (TrenTorch uses train_epoch/evaluate)
             assert hasattr(trainer, 'train') or hasattr(trainer, 'fit') or hasattr(trainer, 'train_epoch'), "Trainer broken: No train method"
 
         except ImportError:
@@ -106,8 +106,8 @@ class TestModule08TrainingCore:
     def test_loss_function_support(self):
         """Test loss function integration."""
         try:
-            from tinytorch.core.training import CrossEntropyLoss, MSELoss
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.training import CrossEntropyLoss, MSELoss
+            from trentorch.core.tensor import Tensor
 
             # Test MSE loss
             mse = MSELoss()
@@ -136,8 +136,8 @@ class TestModule08TrainingCore:
     def test_metrics_computation(self):
         """Test training metrics computation."""
         try:
-            from tinytorch.core.training import accuracy, compute_metrics
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.training import accuracy, compute_metrics
+            from trentorch.core.tensor import Tensor
 
             # Test accuracy computation
             predictions = Tensor(np.array([[0.1, 0.9], [0.8, 0.2], [0.3, 0.7]]))
@@ -163,12 +163,12 @@ class TestProgressiveStackIntegration:
     def test_end_to_end_training(self):
         """Test complete end-to-end training process."""
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU, Softmax
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.training import Trainer, CrossEntropyLoss
-            from tinytorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU, Softmax
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.training import Trainer, CrossEntropyLoss
+            from trentorch.core.dataloader import Dataset, DataLoader
 
             # Create complete model
             class SimpleModel:
@@ -237,12 +237,12 @@ class TestProgressiveStackIntegration:
     def test_cnn_training_pipeline(self):
         """Test CNN training with spatial operations."""
         try:
-            from tinytorch.core.spatial import Conv2d as Conv2D, MaxPool2d
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.activations import ReLU
-            from tinytorch.core.optimizers import Adam
-            from tinytorch.core.dataloader import Dataset, DataLoader
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d as Conv2D, MaxPool2d
+            from trentorch.core.layers import Linear
+            from trentorch.core.activations import ReLU
+            from trentorch.core.optimizers import Adam
+            from trentorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.tensor import Tensor
 
             # CNN model
             class SimpleCNN:
@@ -306,10 +306,10 @@ class TestAdvancedTrainingFeatures:
     def test_validation_loop(self):
         """Test validation during training."""
         try:
-            from tinytorch.core.training import Trainer
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.training import Trainer
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.dataloader import Dataset, DataLoader
 
             # Model and optimizer
             model = Linear(5, 2)
@@ -350,9 +350,9 @@ class TestAdvancedTrainingFeatures:
     def test_checkpointing_and_early_stopping(self):
         """Test model checkpointing and early stopping."""
         try:
-            from tinytorch.core.training import Trainer, ModelCheckpoint, EarlyStopping
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
+            from trentorch.core.training import Trainer, ModelCheckpoint, EarlyStopping
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
 
             model = Linear(5, 1)
             optimizer = SGD(model.parameters(), lr=0.01)
@@ -382,9 +382,9 @@ class TestAdvancedTrainingFeatures:
     def test_learning_rate_scheduling(self):
         """Test learning rate scheduling during training."""
         try:
-            from tinytorch.core.training import LRScheduler, StepLR
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.layers import Linear
+            from trentorch.core.training import LRScheduler, StepLR
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.layers import Linear
 
             model = Linear(5, 1)
             optimizer = SGD(model.parameters(), lr=0.1)
@@ -415,9 +415,9 @@ class TestProductionTrainingFeatures:
     def test_distributed_training_support(self):
         """Test distributed training capabilities."""
         try:
-            from tinytorch.core.training import DistributedTrainer
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
+            from trentorch.core.training import DistributedTrainer
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
 
             model = Linear(10, 3)
             optimizer = SGD(model.parameters(), lr=0.01)
@@ -433,9 +433,9 @@ class TestProductionTrainingFeatures:
     def test_mixed_precision_training(self):
         """Test mixed precision training support."""
         try:
-            from tinytorch.core.training import Trainer
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import Adam
+            from trentorch.core.training import Trainer
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import Adam
 
             model = Linear(20, 10)
             optimizer = Adam(model.parameters(), lr=0.001)
@@ -459,9 +459,9 @@ class TestProductionTrainingFeatures:
     def test_gradient_accumulation(self):
         """Test gradient accumulation for large effective batch sizes."""
         try:
-            from tinytorch.core.training import Trainer
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
+            from trentorch.core.training import Trainer
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
 
             model = Linear(10, 3)
             optimizer = SGD(model.parameters(), lr=0.01)
@@ -495,10 +495,10 @@ class TestRegressionPrevention:
 
         # Complete pipeline should still work
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.dataloader import Dataset
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.dataloader import Dataset
 
             # All pipeline components should work
             layer = Linear(3, 2)
@@ -516,9 +516,9 @@ class TestRegressionPrevention:
         import numpy as np  # Import at function scope for proper scoping
 
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.optimizers import SGD, Adam
-            from tinytorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.optimizers import SGD, Adam
+            from trentorch.core.dataloader import Dataset, DataLoader
 
             # Optimizers should still work - use Tensor with requires_grad
             class DummyModule:
@@ -560,9 +560,9 @@ class TestRegressionPrevention:
 
         # Complete ML pipeline level (if available)
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
 
             # Complete training components should work together
             model = Linear(5, 2)
@@ -577,8 +577,8 @@ class TestRegressionPrevention:
 
         # Training level (if available)
         try:
-            from tinytorch.core.training import Trainer
-            from tinytorch.core.tensor import Tensor as _Tensor
+            from trentorch.core.training import Trainer
+            from trentorch.core.tensor import Tensor as _Tensor
 
             class DummyModel:
                 def __init__(self):

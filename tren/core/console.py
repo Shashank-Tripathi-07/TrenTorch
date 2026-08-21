@@ -28,32 +28,32 @@ def get_console() -> Console:
     return _console
 
 def print_banner(compact: bool = False):
-    """Print the TinyTorch banner using Rich with clean block text style."""
+    """Print the TrenTorch banner using Rich with clean block text style."""
     console = get_console()
     if compact:
         print_compact_banner()
     else:
         # Create banner text that matches the clean block text theme
         banner_text = Text()
-        banner_text.append("Tiny", style=Theme.BRAND_ACCENT)
+        banner_text.append("Tren", style=Theme.BRAND_ACCENT)
         banner_text.append("🔥", style=Theme.BRAND_FLAME)
         banner_text.append("TORCH", style=Theme.BRAND_PRIMARY)
         banner_text.append(": Don't import it. Build it.", style=Theme.DIM)
         console.print(Panel(banner_text, style=Theme.BORDER_DEFAULT, padding=(1, 2)))
 
 def print_compact_banner():
-    """Print a compact TinyTorch banner with 'Tiny' above TORCH."""
+    """Print a compact TrenTorch banner with 'Tiny' above TORCH."""
     console = get_console()
     # Create compact banner text
     banner_text = Text()
-    banner_text.append("Tiny", style=Theme.BRAND_ACCENT)
+    banner_text.append("Tren", style=Theme.BRAND_ACCENT)
     banner_text.append("\n🔥", style=Theme.BRAND_FLAME)
     banner_text.append("TORCH", style=Theme.BRAND_PRIMARY)
     banner_text.append(": Don't import it. Build it.", style=Theme.DIM)
     console.print(Panel(banner_text, style=Theme.BORDER_DEFAULT, padding=(1, 2)))
 
 def print_ascii_logo(compact: bool = False):
-    """Print the clean, minimal ASCII art TinyTorch logo."""
+    """Print the clean, minimal ASCII art TrenTorch logo."""
     console = get_console()
 
     if compact:
@@ -64,7 +64,7 @@ def print_ascii_logo(compact: bool = False):
     logo_text = Text()
 
     # ============================================
-    # TINYTORCH LOGO - EDIT HERE!
+    # TRENTORCH LOGO - EDIT HERE!
     # ============================================
     # To edit: Change the ASCII characters in logo_lines
     # Add/remove spaces at the beginning of each line to adjust positioning
@@ -74,9 +74,9 @@ def print_ascii_logo(compact: bool = False):
         "    🔥                                     🔥",
         "    ████████╗ ██████╗ ██████╗  ██████╗██╗  ██╗",
         "    ╚T═██╔══╝██╔═══██╗██╔══██╗██╔════╝██║  ██║",
-        "     I ██║   ██║   ██║██████╔╝██║     ███████║",
-        "     N ██║   ██║   ██║██╔══██╗██║     ██╔══██║",
-        "     Y ██║   ╚██████╔╝██║  ██║╚██████╗██║  ██║",
+        "     R ██║   ██║   ██║██████╔╝██║     ███████║",
+        "     E ██║   ██║   ██║██╔══██╗██║     ██╔══██║",
+        "     N ██║   ╚██████╔╝██║  ██║╚██████╗██║  ██║",
         "       ╚═╝    ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝"
     ]
 
@@ -84,7 +84,7 @@ def print_ascii_logo(compact: bool = False):
     # COLOR CONFIGURATION - Uses Theme constants
     # ============================================
     FLAME_COLOR = Theme.BRAND_FLAME     # Color for 🔥 emoji
-    TINY_COLOR = Theme.BRAND_ACCENT     # Color for "tiny" text
+    TREN_COLOR = Theme.BRAND_ACCENT     # Color for "tren" text
     TORCH_COLOR = Theme.BRAND_PRIMARY   # Color for "TORCH" text
     TAGLINE_COLOR = Theme.BRAND_ACCENT  # Color for tagline
 
@@ -96,7 +96,7 @@ def print_ascii_logo(compact: bool = False):
             # Color individual tiny letters within the line
             for char in line:
                 if char in 'TINY':
-                    logo_text.append(char, style=TINY_COLOR)
+                    logo_text.append(char, style=TREN_COLOR)
                 else:
                     logo_text.append(char, style=TORCH_COLOR)
         else:  # Pure TORCH lines
@@ -121,7 +121,7 @@ def print_ascii_logo(compact: bool = False):
     console.print()
 
 def print_compact_ascii_logo():
-    """Print the compact ASCII art TinyTorch logo - same as main logo now."""
+    """Print the compact ASCII art TrenTorch logo - same as main logo now."""
     # Just use the main logo since it's already compact and clean
     print_ascii_logo(compact=False)
 

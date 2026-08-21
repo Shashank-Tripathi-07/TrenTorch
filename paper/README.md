@@ -1,6 +1,6 @@
-# TinyTorch Research Paper
+# TrenTorch Research Paper
 
-Complete LaTeX source for the TinyTorch research paper.
+Complete LaTeX source for the TrenTorch research paper.
 
 ---
 

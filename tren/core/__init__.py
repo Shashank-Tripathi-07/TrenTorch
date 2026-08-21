@@ -3,7 +3,7 @@ Core CLI functionality and shared utilities.
 """
 
 from .console import get_console
-from .exceptions import TinyTorchCLIError, ValidationError, ExecutionError
+from .exceptions import TrenTorchCLIError, ValidationError, ExecutionError
 from .config import CLIConfig
 from .modules import (
     get_module_mapping,
@@ -18,7 +18,7 @@ from .modules import (
 
 __all__ = [
     'get_console',
-    'TinyTorchCLIError',
+    'TrenTorchCLIError',
     'ValidationError',
     'ExecutionError',
     'CLIConfig',

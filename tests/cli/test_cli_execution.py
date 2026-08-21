@@ -15,7 +15,7 @@ from pathlib import Path
 # Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tren.main import TinyTorchCLI
+from tren.main import TrenTorchCLI
 
 
 class TestCommandExecution:
@@ -23,7 +23,7 @@ class TestCommandExecution:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.cli = TinyTorchCLI()
+        self.cli = TrenTorchCLI()
         self.project_root = Path(__file__).parent.parent.parent
 
     def test_bare_tren_command(self):
@@ -39,7 +39,7 @@ class TestCommandExecution:
         assert result.returncode == 0, f"Bare tren command failed: {result.stderr}"
 
         # Should show welcome message
-        assert "Welcome to Tiny" in result.stdout or "TORCH" in result.stdout
+        assert "Welcome to Tren" in result.stdout or "TORCH" in result.stdout
         assert "Command Groups:" in result.stdout or "Quick Start:" in result.stdout
 
     def test_tren_help(self):
@@ -53,7 +53,7 @@ class TestCommandExecution:
 
         assert result.returncode == 0
         # Custom help displays logo and commands
-        assert "TinyTorch" in result.stdout or "TORCH" in result.stdout
+        assert "TrenTorch" in result.stdout or "TORCH" in result.stdout
         assert "Quick Start" in result.stdout or "module" in result.stdout
 
     def test_tren_version(self):
@@ -66,7 +66,7 @@ class TestCommandExecution:
         )
 
         assert result.returncode == 0
-        assert "Tiny" in result.stdout or "CLI" in result.stdout
+        assert "Tren" in result.stdout or "CLI" in result.stdout
 
     @pytest.mark.parametrize("command", [
         'setup', 'system', 'module', 'dev', 'package', 'nbgrader',

@@ -17,8 +17,8 @@ class TestActivationTensorIntegration:
 
     def test_relu_with_tensor(self):
         """Test ReLU activation with Tensor inputs."""
-        from tinytorch.core.activations import ReLU
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
 
         relu = ReLU()
         x = Tensor(np.array([-2, -1, 0, 1, 2]))
@@ -30,8 +30,8 @@ class TestActivationTensorIntegration:
 
     def test_sigmoid_with_tensor(self):
         """Test Sigmoid activation with Tensor inputs."""
-        from tinytorch.core.activations import Sigmoid
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.activations import Sigmoid
+        from trentorch.core.tensor import Tensor
 
         sigmoid = Sigmoid()
         x = Tensor(np.array([0, 1, -1, 2]))
@@ -44,8 +44,8 @@ class TestActivationTensorIntegration:
 
     def test_tanh_with_tensor(self):
         """Test Tanh activation with Tensor inputs."""
-        from tinytorch.core.activations import Tanh
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.activations import Tanh
+        from trentorch.core.tensor import Tensor
 
         tanh = Tanh()
         x = Tensor(np.array([0, 1, -1]))
@@ -62,8 +62,8 @@ class TestActivationNetworkIntegration:
 
     def test_xor_requires_nonlinearity(self):
         """Test that XOR problem demonstrates need for activations."""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU
 
         # XOR inputs and targets
         X = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]))
@@ -83,8 +83,8 @@ class TestActivationNetworkIntegration:
 
     def test_activation_chaining(self):
         """Test chaining multiple activations."""
-        from tinytorch.core.activations import ReLU, Sigmoid
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.tensor import Tensor
 
         x = Tensor(rng.standard_normal((10, 5)))
         relu = ReLU()
@@ -99,8 +99,8 @@ class TestActivationNetworkIntegration:
 
     def test_activation_with_negative_inputs(self):
         """Test activations handle negative inputs correctly."""
-        from tinytorch.core.activations import ReLU, Sigmoid, Tanh
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU, Sigmoid, Tanh
+        from trentorch.core.tensor import Tensor
 
         x = Tensor(np.array([-5, -1, 0, 1, 5]))
 
@@ -128,8 +128,8 @@ class TestActivationDerivatives:
 
     def test_relu_derivative(self):
         """Test ReLU derivative behavior."""
-        from tinytorch.core.activations import ReLU
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
 
         relu = ReLU()
         x = Tensor(np.array([-1, 0, 1]))
@@ -144,8 +144,8 @@ class TestActivationDerivatives:
 
     def test_sigmoid_derivative_property(self):
         """Test sigmoid has the derivative property: σ'(x) = σ(x)(1-σ(x))."""
-        from tinytorch.core.activations import Sigmoid
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.activations import Sigmoid
+        from trentorch.core.tensor import Tensor
 
         sigmoid = Sigmoid()
         x = Tensor(np.array([0, 1, -1]))

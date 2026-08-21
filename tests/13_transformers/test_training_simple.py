@@ -15,11 +15,11 @@ rng = np.random.default_rng(7)
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.losses import CrossEntropyLoss
-from tinytorch.core.optimizers import Adam
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.tokenization import CharTokenizer
-from tinytorch.core.transformers import GPT
+from trentorch.core.losses import CrossEntropyLoss
+from trentorch.core.optimizers import Adam
+from trentorch.core.tensor import Tensor
+from trentorch.core.tokenization import CharTokenizer
+from trentorch.core.transformers import GPT
 
 
 def test_transformer_memorization():

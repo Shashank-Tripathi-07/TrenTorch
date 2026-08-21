@@ -1,6 +1,6 @@
 # TrenTorch: Contributor Docs
 
-Technical design and implementation documentation for the codebase in this repo. Adapted from the [`cs249r-docs`](https://github.com/Shashank-Tripathi-07/cs249r-docs) project's `tinytorch/` documentation set, which was written for the upstream [`harvard-edge/cs249r_book`](https://github.com/harvard-edge/cs249r_book) monorepo that TinyTorch (and by extension TrenTorch) originates from.
+Technical design and implementation documentation for the codebase in this repo. Adapted from the [`cs249r-docs`](https://github.com/Shashank-Tripathi-07/cs249r-docs) project's `trentorch/` documentation set, which was written for the upstream [`harvard-edge/cs249r_book`](https://github.com/harvard-edge/cs249r_book) monorepo that TrenTorch (and by extension TrenTorch) originates from.
 
 ## What's here
 
@@ -20,8 +20,8 @@ Two upstream docs were dropped rather than adapted:
 - **`ci-workflows.md`**: covered five GitHub Actions workflows (validate, preview, publish, PDF builds) tied to the `harvard-edge/cs249r_book` repository's own secrets and deploy targets. None of that CI/CD exists in this fork.
 - **`perspective.md`**: recorded the upstream maintainer's governance decisions (what gets accepted into core modules, branch/PR policy for that repo). Specific to that project's own maintainership, not this one.
 
-Within the docs that are here, anything describing the **community dashboard, progress sync, or `tren community`/`tren login`** is marked inline as upstream-only: that code shipped with the codebase we forked from, but the backend it talks to (`mlsysbook.ai`, Netlify, Supabase) belongs to the original TinyTorch project, not TrenTorch. It's documented because the code is still physically present, not because it works standalone here.
+Within the docs that are here, anything describing the **community dashboard, progress sync, or `tren community`/`tren login`** is marked inline as upstream-only: that code shipped with the codebase we forked from, but the backend it talks to (`mlsysbook.ai`, Netlify, Supabase) belongs to the original TrenTorch project, not TrenTorch. It's documented because the code is still physically present, not because it works standalone here.
 
-## A note on "TinyTorch" in these docs
+## A note on "TrenTorch" in these docs
 
-These docs still say "TinyTorch" throughout, because that's the actual name of the package, CLI banner text, and class names in this codebase (`import tinytorch`, the `tren` CLI, `src/`, `tinytorch/core/`). That's accurate, not a leftover to clean up. "TrenTorch" is the name of this project and this repo; "TinyTorch" is still the name of the software it builds.
+These docs still say "TrenTorch" throughout, because that's the actual name of the package, CLI banner text, and class names in this codebase (`import trentorch`, the `tren` CLI, `src/`, `trentorch/core/`). That's accurate, not a leftover to clean up. "TrenTorch" is the name of this project and this repo; "TrenTorch" is still the name of the software it builds.

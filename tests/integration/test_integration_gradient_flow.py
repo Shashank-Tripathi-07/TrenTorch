@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Gradient Flow Tests for TinyTorch
+Comprehensive Gradient Flow Tests for TrenTorch
 ================================================
 
 Tests that gradients flow correctly through:
@@ -23,13 +23,13 @@ import pytest
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear, Dropout
-from tinytorch.core.activations import ReLU, Sigmoid, Softmax
-from tinytorch.core.losses import MSELoss, BinaryCrossEntropyLoss, CrossEntropyLoss
-from tinytorch.core.optimizers import SGD, Adam
-from tinytorch.core.spatial import Conv2d, MaxPool2d
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear, Dropout
+from trentorch.core.activations import ReLU, Sigmoid, Softmax
+from trentorch.core.losses import MSELoss, BinaryCrossEntropyLoss, CrossEntropyLoss
+from trentorch.core.optimizers import SGD, Adam
+from trentorch.core.spatial import Conv2d, MaxPool2d
+from trentorch.core.autograd import enable_autograd
 
 # Enable autograd
 enable_autograd()
@@ -402,7 +402,7 @@ def test_gradient_accumulation():
 def main():
     """Run all gradient flow tests"""
     print("\n" + "="*70)
-    print("  TINYTORCH GRADIENT FLOW TEST SUITE")
+    print("  TRENTORCH GRADIENT FLOW TEST SUITE")
     print("="*70)
 
     tests = [
@@ -442,7 +442,7 @@ def main():
     print(f"\nTotal: {passed}/{total} tests passed")
 
     if passed == total:
-        print("\n🎉 ALL TESTS PASSED! Gradients flow correctly through TinyTorch.")
+        print("\n🎉 ALL TESTS PASSED! Gradients flow correctly through TrenTorch.")
         return 0
     else:
         print(f"\n⚠️  {total - passed} tests failed. Please review the errors above.")

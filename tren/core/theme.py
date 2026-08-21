@@ -1,5 +1,5 @@
 """
-TinyTorch CLI Color Theme
+TrenTorch CLI Color Theme
 
 Consistent color palette for all CLI output.
 Logo-inspired but terminal-safe for both dark and light backgrounds.

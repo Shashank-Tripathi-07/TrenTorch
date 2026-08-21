@@ -656,7 +656,7 @@
         function openModal(data) {
             mTitle.textContent = data.title;
             // Make subtitle a link
-            const linkUrl = `${TINYTORCH_AI_URL}/modules/${data.id}${MODULE_PAGE_SUFFIX}`;
+            const linkUrl = `${TRENTORCH_AI_URL}/modules/${data.id}${MODULE_PAGE_SUFFIX}`;
             mSubtitle.innerHTML = `<a href="${linkUrl}" target="_blank" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center;">Module ${data.id}${SVG_ICON_STRING}</a>`;
 
             mYear.textContent = `Concept Era: ${data.year}`;
@@ -1072,7 +1072,7 @@
         const SUPABASE_URL = "https://zrvmjrxhokwwmjacyhpq.supabase.co/functions/v1";
         const NETLIFY_URL = "https://tinytorch.netlify.app";
         const API_BASE_URL = SUPABASE_URL; // Backwards compatibility
-        const TINYTORCH_AI_URL = "https://mlsysbook.ai/tinytorch";
+        const TRENTORCH_AI_URL = "https://mlsysbook.ai/tinytorch";
 
         const MODULE_MAP = {
           "01": { id: "01", title: "Tensor Basics", dir: "01_tensor" },
@@ -1252,7 +1252,7 @@
                      if (currentModuleLink) {
                          // Update content with SVG
                          currentModuleLink.innerHTML = `${idNum} ${m.title}${SVG_ICON_STRING}`;
-                         currentModuleLink.href = `${TINYTORCH_AI_URL}/modules/${m.id}${MODULE_PAGE_SUFFIX}`; // Set the href
+                         currentModuleLink.href = `${TRENTORCH_AI_URL}/modules/${m.id}${MODULE_PAGE_SUFFIX}`; // Set the href
                          currentModuleLink.target = "_blank"; // Open in new tab
                          currentModuleLink.style.pointerEvents = "auto"; // Ensure clickable over canvas
                      }

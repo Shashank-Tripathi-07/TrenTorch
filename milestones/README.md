@@ -1,6 +1,6 @@
-# TinyTorch Milestones
+# TrenTorch Milestones
 
-Milestones are capstone experiences that bring together everything you've built in the TinyTorch modules. Each milestone recreates a pivotal moment in ML history using YOUR implementations.
+Milestones are capstone experiences that bring together everything you've built in the TrenTorch modules. Each milestone recreates a pivotal moment in ML history using YOUR implementations.
 
 ## How Milestones Work
 

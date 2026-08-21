@@ -1,5 +1,5 @@
 """
-Developer build command for TinyTorch CLI.
+Developer build command for TrenTorch CLI.
 
 Wraps site/paper build targets so the VS Code extension and other tools
 can call Tren instead of raw make commands.

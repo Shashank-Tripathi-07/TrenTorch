@@ -1,12 +1,12 @@
-# TinyTorch Lab Guide — Chapter Review Brief
+# TrenTorch Lab Guide — Chapter Review Brief
 
 > Internal working doc for the deep narrative-polish pass on the
-> TinyTorch Lab Guide (PDF + website). One agent reviews one chapter,
+> TrenTorch Lab Guide (PDF + website). One agent reviews one chapter,
 > following this brief end-to-end. Read it twice before editing.
 
 ## 1. Framing — what this book is
 
-TinyTorch is the **canonical lab book** for building a usable ML
+TrenTorch is the **canonical lab book** for building a usable ML
 framework from scratch. It exists in the same conceptual slot as:
 
 - *Structure and Interpretation of Computer Programs* — for Lisp /
@@ -17,7 +17,7 @@ framework from scratch. It exists in the same conceptual slot as:
   Patterson) — for hardware
 - *Crafting Interpreters* — for language implementation
 
-A professor hands TinyTorch to their TA and says *"this is the lab
+A professor hands TrenTorch to their TA and says *"this is the lab
 guide for the course"*. A self-taught engineer downloads it on a
 Friday night and works through it because it actually teaches them
 how PyTorch is built. A researcher cites it because it's the cleanest

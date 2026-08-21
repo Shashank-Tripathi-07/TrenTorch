@@ -6,7 +6,7 @@ These tests verify the capstone submission and reporting system.
 
 WHY THESE TESTS MATTER:
 -----------------------
-The capstone is where students prove their TinyTorch implementation works.
+The capstone is where students prove their TrenTorch implementation works.
 These tests verify:
 1. BenchmarkReport can aggregate all metrics
 2. Submission harness validates student work
@@ -27,9 +27,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.perf.benchmarking import BenchmarkSuite, BenchmarkResult
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.perf.benchmarking import BenchmarkSuite, BenchmarkResult
 
 
 class TestBenchmarkSuite:
@@ -63,7 +63,7 @@ class TestCapstoneValidation:
 
     def test_benchmarking_available(self):
         """Verify benchmarking module is available."""
-        from tinytorch.perf import benchmarking
+        from trentorch.perf import benchmarking
         assert benchmarking is not None
 
     def test_validate_tensor_operations(self):
@@ -90,7 +90,7 @@ class TestCapstoneValidation:
         WHY: This is the core of training. If gradients don't flow,
         the model cannot learn.
         """
-        from tinytorch.core.autograd import enable_autograd
+        from trentorch.core.autograd import enable_autograd
         enable_autograd()
 
         x = Tensor([2.0], requires_grad=True)
@@ -125,10 +125,10 @@ class TestEndToEndIntegration:
         WHAT: Verify a complete training loop works.
 
         WHY: This is the ultimate integration test.
-        If this works, the student's TinyTorch is complete.
+        If this works, the student's TrenTorch is complete.
         """
-        from tinytorch.core.autograd import enable_autograd
-        from tinytorch.core.optimizers import SGD
+        from trentorch.core.autograd import enable_autograd
+        from trentorch.core.optimizers import SGD
         enable_autograd()
 
         # Simple model

@@ -1,5 +1,5 @@
 """
-TinyTorch Module Integration Tests
+TrenTorch Module Integration Tests
 
 Tests that modules work together correctly when integrated.
 These tests focus on inter-module compatibility, not individual module functionality.
@@ -31,8 +31,8 @@ def test_core_module_integration():
 
     try:
         # Test tensor + autograd integration
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.autograd import Variable
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.autograd import Variable
 
         # Create tensor and wrap in Variable
         t = Tensor([1.0, 2.0, 3.0])
@@ -40,7 +40,7 @@ def test_core_module_integration():
         print("✅ Tensor + Autograd integration working")
 
         # Test tensor + layers integration
-        from tinytorch.core.layers import Linear
+        from trentorch.core.layers import Linear
         layer = Linear(3, 2)
 
         # This tests that layers can accept tensor inputs
@@ -60,9 +60,9 @@ def test_training_pipeline_integration():
 
     try:
         # Test data + model integration
-        from tinytorch.utils.data import DataLoader, SimpleDataset
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.optimizers import SGD
+        from trentorch.utils.data import DataLoader, SimpleDataset
+        from trentorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
 
         # Create simple dataset
         dataset = SimpleDataset([(i, i*2) for i in range(10)])
@@ -94,8 +94,8 @@ def test_optimization_module_integration():
 
     try:
         # Test profiler + core modules
-        from tinytorch.core.tensor import Tensor
-        import tinytorch.profiler
+        from trentorch.core.tensor import Tensor
+        import trentorch.profiler
 
         # Test that profiler can analyze core operations
         def tensor_operation():
@@ -107,11 +107,11 @@ def test_optimization_module_integration():
         print("✅ Profiler + Core integration working")
 
         # Test quantization + models (when available)
-        import tinytorch.quantization
-        from tinytorch.core.layers import Linear
+        import trentorch.quantization
+        from trentorch.core.layers import Linear
 
         model = Linear(10, 5)
-        # quantized_model = tinytorch.quantization.quantize(model)  # When implemented
+        # quantized_model = trentorch.quantization.quantize(model)  # When implemented
         print("✅ Quantization + Models integration ready")
 
         return True
@@ -127,16 +127,16 @@ def test_import_compatibility():
 
     try:
         # Test PyTorch-style imports don't conflict with core
-        import tinytorch.profiler
-        import tinytorch.quantization
-        import tinytorch.backends
-        import tinytorch.experimental
-        from tinytorch.nn.utils import prune
+        import trentorch.profiler
+        import trentorch.quantization
+        import trentorch.backends
+        import trentorch.experimental
+        from trentorch.nn.utils import prune
 
         # Test core imports still work
-        from tinytorch.core import tensor, autograd
-        from tinytorch.core.layers import Linear, functional
-        from tinytorch.utils.data import DataLoader
+        from trentorch.core import tensor, autograd
+        from trentorch.core.layers import Linear, functional
+        from trentorch.utils.data import DataLoader
 
         print("✅ All import paths compatible")
         print("✅ No namespace conflicts detected")
@@ -153,9 +153,9 @@ def test_cross_module_data_flow():
     print("-" * 40)
 
     try:
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
-        from tinytorch.utils.data import SimpleDataset
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.utils.data import SimpleDataset
 
         # Create data
         data = [(Tensor([i]), Tensor([i*2])) for i in range(5)]
@@ -177,7 +177,7 @@ def test_cross_module_data_flow():
 
 def run_all_integration_tests():
     """Run all module integration tests"""
-    print("🧪 TINYTORCH MODULE INTEGRATION TESTS")
+    print("🧪 TRENTORCH MODULE INTEGRATION TESTS")
     print("=" * 60)
 
     tests = [

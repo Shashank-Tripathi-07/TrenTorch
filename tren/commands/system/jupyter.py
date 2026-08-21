@@ -1,5 +1,5 @@
 """
-Jupyter command for TinyTorch CLI: starts Jupyter notebook server.
+Jupyter command for TrenTorch CLI: starts Jupyter notebook server.
 """
 
 import subprocess

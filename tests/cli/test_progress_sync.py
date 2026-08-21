@@ -1,7 +1,7 @@
 """
 Regression tests for community progress sync (issue #1849).
 
-These guard the bug where the TinyTorch dashboard did not reflect CLI progress:
+These guard the bug where the TrenTorch dashboard did not reflect CLI progress:
 
 1. Automatic sync was silently skipped on any non-TTY shell (Git Bash / MinTTY
    on Windows, IDE terminals), because the trigger gated on

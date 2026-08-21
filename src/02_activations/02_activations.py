@@ -43,12 +43,12 @@ Let's add intelligence to your tensors!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in modules/02_activations/activations_dev.py
-**Building Side:** Code exports to tinytorch.core.activations
+**Building Side:** Code exports to trentorch.core.activations
 
 ```python
 # Final package structure:
-from tinytorch.core.activations import Sigmoid, ReLU, Tanh, GELU, Softmax  # This module
-from tinytorch.core.tensor import Tensor  # Foundation (Module 01)
+from trentorch.core.activations import Sigmoid, ReLU, Tanh, GELU, Softmax  # This module
+from trentorch.core.tensor import Tensor  # Foundation (Module 01)
 ```
 
 **Why this matters:**
@@ -67,7 +67,7 @@ from tinytorch.core.tensor import Tensor  # Foundation (Module 01)
 **External Dependencies**:
 - `numpy` (for numerical operations)
 
-**TinyTorch Dependencies**:
+**TrenTorch Dependencies**:
 - **Module 01 (Tensor)**: Foundation for all activation computations and data flow
   - Used for: Input/output data structures, shape operations, element-wise operations
   - Required: Yes - activations operate on Tensor objects
@@ -80,7 +80,7 @@ Module 01 (Tensor) → Module 02 (Activations) → Module 03 (Layers)
 ```
 
 **Import Strategy**:
-This module imports directly from the TinyTorch package (`from tinytorch.core.*`).
+This module imports directly from the TrenTorch package (`from trentorch.core.*`).
 **Assumption**: Module 01 (Tensor) has been completed and exported to the package.
 If you see import errors, ensure you've run `tren module complete 01`.
 """
@@ -93,8 +93,8 @@ import numpy as np
 rng = np.random.default_rng(7)
 from typing import Optional
 
-# Import from TinyTorch package (previous modules must be completed and exported)
-from tinytorch.core.tensor import Tensor
+# Import from TrenTorch package (previous modules must be completed and exported)
+from trentorch.core.tensor import Tensor
 
 # Constants for numerical comparisons
 TOLERANCE = 1e-10  # Small tolerance for floating-point comparisons in tests
@@ -866,7 +866,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)

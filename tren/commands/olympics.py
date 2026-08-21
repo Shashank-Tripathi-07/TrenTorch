@@ -1,5 +1,5 @@
 """
-TinyTorch Olympics - Coming Soon!
+TrenTorch Olympics - Coming Soon!
 
 Special competition events where students learn and compete together.
 """
@@ -13,7 +13,7 @@ from rich.console import Group
 from .base import BaseCommand
 
 class OlympicsCommand(BaseCommand):
-    """🏅 TinyTorch Olympics - Future competition events"""
+    """🏅 TrenTorch Olympics - Future competition events"""
 
     @property
     def name(self) -> str:
@@ -70,7 +70,7 @@ class OlympicsCommand(BaseCommand):
         if hasattr(args, 'olympics_command') and args.olympics_command == 'logo':
             console.print(Panel(
                 Align.center(logo),
-                title="⚡ TINYTORCH OLYMPICS ⚡",
+                title="⚡ TRENTORCH OLYMPICS ⚡",
                 border_style="bright_yellow",
                 padding=(1, 2)
             ))
@@ -78,7 +78,7 @@ class OlympicsCommand(BaseCommand):
 
         message = Text()
         message.append("🚧 COMING SOON 🚧\n\n", style="bold yellow")
-        message.append("The TinyTorch Olympics is currently under development.\n\n", style="white")
+        message.append("The TrenTorch Olympics is currently under development.\n\n", style="white")
 
         message.append("🎯 What to Expect:\n\n", style="bold cyan")
         message.append("  • ", style="cyan")
@@ -113,7 +113,7 @@ class OlympicsCommand(BaseCommand):
 
         console.print(Panel(
             content,
-            title="⚡ TINYTORCH OLYMPICS ⚡",
+            title="⚡ TRENTORCH OLYMPICS ⚡",
             border_style="bright_yellow",
             padding=(1, 2)
         ))

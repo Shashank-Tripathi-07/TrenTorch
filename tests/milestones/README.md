@@ -1,4 +1,4 @@
-# TinyTorch Milestone Tests
+# TrenTorch Milestone Tests
 
 This directory validates the historical milestone scripts that students run with
 `tren milestone`.
@@ -18,7 +18,7 @@ pytest tests/milestones/test_milestones_smoke.py -v
 ```
 
 Use these in regular development. They catch API drift between milestone scripts
-and exported TinyTorch modules without downloading data or running training.
+and exported TrenTorch modules without downloading data or running training.
 
 ### Full Milestone Runs
 
@@ -51,7 +51,7 @@ The tests assume the generated package exists:
 tren dev export --all
 ```
 
-If pytest reports that `tinytorch/core/*.py` files are missing, export the modules
+If pytest reports that `trentorch/core/*.py` files are missing, export the modules
 first. Generated notebooks and exported package files are ignored by git.
 
 ## Progress Files

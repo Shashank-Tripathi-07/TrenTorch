@@ -1,5 +1,5 @@
 """
-TinyTorch Test Utilities
+TrenTorch Test Utilities
 
 Shared utilities for integration tests across all modules.
 Provides setup functions and common test helpers.
@@ -15,16 +15,16 @@ def setup_integration_test():
     Set up the environment for integration testing.
 
     This function ensures:
-    1. The TinyTorch package is importable
+    1. The TrenTorch package is importable
     2. NumPy random seed is set for reproducibility
     3. Warning filters are set appropriately
 
-    Call this at the top of integration test files before importing TinyTorch.
+    Call this at the top of integration test files before importing TrenTorch.
     """
     import warnings
     import numpy as np
 
-    # Ensure tinytorch is on the path (from project root)
+    # Ensure trentorch is on the path (from project root)
     project_root = Path(__file__).parent.parent
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
@@ -36,8 +36,8 @@ def setup_integration_test():
     warnings.filterwarnings('ignore', category=DeprecationWarning)
     warnings.filterwarnings('ignore', category=FutureWarning)
 
-    # Set quiet mode for tinytorch imports during tests
-    os.environ['TINYTORCH_QUIET'] = '1'
+    # Set quiet mode for trentorch imports during tests
+    os.environ['TRENTORCH_QUIET'] = '1'
 
 
 def get_project_root() -> Path:
@@ -63,7 +63,7 @@ def create_test_tensor(shape, requires_grad=True, seed=None):
         Tensor with random data
     """
     import numpy as np
-    from tinytorch.core.tensor import Tensor
+    from trentorch.core.tensor import Tensor
 
     rng = np.random.default_rng(seed)  # seed=None gives non-deterministic
 
@@ -102,11 +102,11 @@ def assert_gradients_exist(tensor, msg=""):
         raise AssertionError(f"Tensor has no gradients. {msg}")
 
 
-def skip_if_no_tinytorch():
-    """Pytest skip decorator for when tinytorch isn't available."""
+def skip_if_no_trentorch():
+    """Pytest skip decorator for when trentorch isn't available."""
     import pytest
     try:
-        import tinytorch
-        return pytest.mark.skipif(False, reason="TinyTorch available")
+        import trentorch
+        return pytest.mark.skipif(False, reason="TrenTorch available")
     except ImportError:
-        return pytest.mark.skip(reason="TinyTorch not installed")
+        return pytest.mark.skip(reason="TrenTorch not installed")

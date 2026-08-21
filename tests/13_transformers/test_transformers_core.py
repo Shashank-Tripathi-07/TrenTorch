@@ -26,9 +26,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.autograd import enable_autograd
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.transformers import TransformerBlock
+from trentorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.transformers import TransformerBlock
 
 
 class TestTransformerBlock:

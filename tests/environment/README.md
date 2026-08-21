@@ -1,6 +1,6 @@
 # Environment Validation Tests
 
-Comprehensive tests to ensure TinyTorch environment is correctly configured.
+Comprehensive tests to ensure TrenTorch environment is correctly configured.
 
 ## For Students
 
@@ -27,8 +27,8 @@ Tests 50+ environment checks:
 - **Python Environment**: Version (3.10+), virtual environment, pip
 - **Core Dependencies**: NumPy, Matplotlib, pytest, PyYAML, Rich
 - **Jupyter Environment**: Jupyter, JupyterLab, kernels, Jupytext
-- **TinyTorch Package**: Import, core modules, version
-- **Project Structure**: tinytorch/, modules/, src/, tests/, TITO CLI
+- **TrenTorch Package**: Import, core modules, version
+- **Project Structure**: trentorch/, modules/, src/, tests/, TITO CLI
 - **System Resources**: Disk space, memory
 - **Git Configuration**: Git available, user configured
 

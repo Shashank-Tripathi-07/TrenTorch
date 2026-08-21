@@ -2,7 +2,7 @@
 Developer export command: rebuilds curriculum from source files.
 
 This is a DEVELOPER command for maintainers, NOT for students.
-Workflow: src/*.py → modules/*.ipynb → tinytorch package files
+Workflow: src/*.py → modules/*.ipynb → trentorch package files
 
 Students should use `tren module complete` which only exports their
 notebook work to the package (without overwriting their notebooks).
@@ -41,7 +41,7 @@ class DevExportCommand(BaseCommand):
 
     @property
     def description(self) -> str:
-        return "Rebuild curriculum: src/*.py → modules/*.ipynb → tinytorch package files"
+        return "Rebuild curriculum: src/*.py → modules/*.ipynb → trentorch package files"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add export arguments."""
@@ -92,20 +92,20 @@ class DevExportCommand(BaseCommand):
         ))
         console.print()
 
-        # Guard: Ensure we're in the correct directory (tinytorch project root)
+        # Guard: Ensure we're in the correct directory (trentorch project root)
         # Check for key files that indicate we're in the right place
         cwd = Path.cwd()
-        is_tinytorch_root = (
-            (cwd / "tinytorch" / "__init__.py").exists() or  # Running from repo root
-            (cwd / "src").exists() and (cwd / "pyproject.toml").exists()  # Already in tinytorch/
+        is_trentorch_root = (
+            (cwd / "trentorch" / "__init__.py").exists() or  # Running from repo root
+            (cwd / "src").exists() and (cwd / "pyproject.toml").exists()  # Already in trentorch/
         )
-        if not is_tinytorch_root:
+        if not is_trentorch_root:
             console.print(Panel(
-                "[red]❌ Must run from TinyTorch project directory[/red]\n\n"
+                "[red]❌ Must run from TrenTorch project directory[/red]\n\n"
                 "[dim]Expected structure:[/dim]\n"
-                "[dim]  tinytorch/          ← run from here[/dim]\n"
+                "[dim]  trentorch/          ← run from here[/dim]\n"
                 "[dim]  ├── src/[/dim]\n"
-                "[dim]  ├── tinytorch/      ← package exports here[/dim]\n"
+                "[dim]  ├── trentorch/      ← package exports here[/dim]\n"
                 "[dim]  │   └── __init__.py[/dim]\n"
                 "[dim]  └── pyproject.toml[/dim]",
                 title="Wrong Directory", border_style="red"
@@ -175,7 +175,7 @@ class DevExportCommand(BaseCommand):
             exported_notebooks.append(str(notebook_file))
 
         # Step 2: Export notebooks to package
-        logger.info(f"Exporting {len(exported_notebooks)} notebooks to tinytorch package")
+        logger.info(f"Exporting {len(exported_notebooks)} notebooks to trentorch package")
         return self._run_nbdev_export(exported_notebooks, console)
 
     def _export_all_modules(self, console) -> int:
@@ -206,12 +206,12 @@ class DevExportCommand(BaseCommand):
         console.print(f"✅ Converted {len(converted)} modules: {', '.join(converted)}")
 
         # Step 2: Export all using nbdev Python API
-        console.print("🔄 Exporting all notebooks to tinytorch package...")
+        console.print("🔄 Exporting all notebooks to trentorch package...")
         try:
             from nbdev.export import nb_export
             from pathlib import Path as P
             
-            lib_path = Path.cwd() / "tinytorch"
+            lib_path = Path.cwd() / "trentorch"
             nbs_path = Path.cwd() / "modules"
             
             # Export all notebooks in the modules directory
@@ -259,7 +259,7 @@ class DevExportCommand(BaseCommand):
         """
         from nbdev.export import nb_export
         success_count = 0
-        lib_path = Path.cwd() / "tinytorch"
+        lib_path = Path.cwd() / "trentorch"
 
         for notebook_path_str in notebook_paths:
             try:
@@ -269,9 +269,9 @@ class DevExportCommand(BaseCommand):
                 export_target = self._get_export_target(module_path)
                 notebook_name = notebook_path.name
                 target_display = (
-                    f"tinytorch/{export_target.replace('.', '/')}.py"
+                    f"trentorch/{export_target.replace('.', '/')}.py"
                     if export_target != "unknown"
-                    else "tinytorch/..."
+                    else "trentorch/..."
                 )
                 console.print(f"[dim]🔄 Exporting {notebook_name} → {target_display}[/dim]")
 

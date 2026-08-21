@@ -22,15 +22,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.autograd import enable_autograd
 
 enable_autograd()
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.losses import MSELoss, CrossEntropyLoss
-from tinytorch.core.optimizers import SGD
-from tinytorch.core.training import Trainer, CosineSchedule, clip_grad_norm
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.losses import MSELoss, CrossEntropyLoss
+from trentorch.core.optimizers import SGD
+from trentorch.core.training import Trainer, CosineSchedule, clip_grad_norm
 
 
 # ─────────────────────────────────────────────

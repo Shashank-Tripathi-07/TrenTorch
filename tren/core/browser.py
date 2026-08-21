@@ -1,5 +1,5 @@
 """
-Cross-platform browser opening utility for TinyTorch CLI.
+Cross-platform browser opening utility for TrenTorch CLI.
 Handles WSL, macOS, Linux, and Windows environments gracefully.
 """
 import webbrowser

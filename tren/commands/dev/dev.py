@@ -1,7 +1,7 @@
 """
-Developer command group for TinyTorch CLI.
+Developer command group for TrenTorch CLI.
 
-These commands are for TinyTorch developers and instructors, not students.
+These commands are for TrenTorch developers and instructors, not students.
 Primary command: tren dev test (unified testing)
 """
 
@@ -53,7 +53,7 @@ class DevCommand(BaseCommand):
         # Export subcommand (rebuild curriculum from src/)
         export_parser = subparsers.add_parser(
             'export',
-            help='Rebuild curriculum: src/*.py → modules/*.ipynb → tinytorch package files'
+            help='Rebuild curriculum: src/*.py → modules/*.ipynb → trentorch package files'
         )
         export_cmd = DevExportCommand(self.config)
         export_cmd.add_arguments(export_parser)

@@ -11,7 +11,7 @@ import os
 # Add project root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from tinytorch import Tensor, Linear, MSELoss, BinaryCrossEntropyLoss, CrossEntropyLoss, SGD
+from trentorch import Tensor, Linear, MSELoss, BinaryCrossEntropyLoss, CrossEntropyLoss, SGD
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -70,7 +70,7 @@ def test_bce_loss_gradients():
 
     # Import Sigmoid
     try:
-        from tinytorch import Sigmoid
+        from trentorch import Sigmoid
         activation = Sigmoid()
     except:
         console.print("  [yellow]⚠️  Sigmoid not available, skipping BCE test[/yellow]")
@@ -171,7 +171,7 @@ def test_crossentropy_loss_gradients():
 def main():
     """Run all loss gradient tests."""
     console.print(Panel.fit(
-        "[bold]TinyTorch Loss Function Gradient Tests[/bold]\n\n"
+        "[bold]TrenTorch Loss Function Gradient Tests[/bold]\n\n"
         "Testing which losses have proper autograd integration\n"
         "and can be used for training neural networks.",
         title="🧪 Loss Gradient Tests",

@@ -1,5 +1,5 @@
 """
-Info command for TinyTorch CLI: shows system and environment information.
+Info command for TrenTorch CLI: shows system and environment information.
 """
 
 from argparse import ArgumentParser, Namespace
@@ -32,12 +32,12 @@ def _gather_system_info(venv_path: Path) -> dict:
         hasattr(sys, 'real_prefix')
     )
 
-    # TinyTorch Version
+    # TrenTorch Version
     try:
-        import tinytorch
-        tinytorch_version = getattr(tinytorch, '__version__', 'unknown')
+        import trentorch
+        trentorch_version = getattr(trentorch, '__version__', 'unknown')
     except ImportError:
-        tinytorch_version = "not installed"
+        trentorch_version = "not installed"
 
     # NumPy Version
     try:
@@ -49,7 +49,7 @@ def _gather_system_info(venv_path: Path) -> dict:
     return {
         "python_version": python_version,
         "platform": f"{system_name} {system_release} ({machine})",
-        "tinytorch_version": tinytorch_version,
+        "trentorch_version": trentorch_version,
         "numpy_version": numpy_version,
         "venv_active": in_venv,
     }
@@ -82,7 +82,7 @@ class InfoCommand(BaseCommand):
 
         console.print()
         console.print(Panel(
-            "💻 TinyTorch System & Environment Information",
+            "💻 TrenTorch System & Environment Information",
             title="System Info",
             border_style="bright_cyan"
         ))
@@ -118,16 +118,16 @@ class InfoCommand(BaseCommand):
         if venv_path_str != "N/A":
             info_table.add_row("  └─ Path", venv_path_str)
 
-        # TinyTorch Version
-        if info["tinytorch_version"] != "not installed":
-            info_table.add_row("TinyTorch Version", info["tinytorch_version"])
+        # TrenTorch Version
+        if info["trentorch_version"] != "not installed":
+            info_table.add_row("TrenTorch Version", info["trentorch_version"])
             try:
-                import tinytorch
-                info_table.add_row("  └─ Location", str(Path(tinytorch.__file__).parent))
+                import trentorch
+                info_table.add_row("  └─ Location", str(Path(trentorch.__file__).parent))
             except ImportError:
                 pass
         else:
-            info_table.add_row("TinyTorch Version", "❌ Not Installed")
+            info_table.add_row("TrenTorch Version", "❌ Not Installed")
 
         # NumPy Version
         if info["numpy_version"] != "not installed":

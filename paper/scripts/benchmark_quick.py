@@ -36,7 +36,7 @@ def naive_mm_single():
     return result
 
 tt_mm_time = time_op(naive_mm_single, warmup=1, runs=3)
-print(f"TinyTorch: {tt_mm_time*1000:.0f} ms")
+print(f"TrenTorch: {tt_mm_time*1000:.0f} ms")
 print(f"Ratio: {tt_mm_time/pt_mm_time:.0f}×\n")
 
 # 2. Conv2d benchmark - use tiny batch to estimate
@@ -74,7 +74,7 @@ def naive_conv2d():
 
 tt_conv_time_tiny = time_op(naive_conv2d, warmup=0, runs=1)
 tt_conv_time_full = tt_conv_time_tiny * batch_full
-print(f"TinyTorch (batch={batch_full}): {tt_conv_time_full:.1f} s")
+print(f"TrenTorch (batch={batch_full}): {tt_conv_time_full:.1f} s")
 print(f"Ratio: {tt_conv_time_full/pt_conv_time_full:.0f}×\n")
 
 # 3. Softmax benchmark - pure Python loops
@@ -106,7 +106,7 @@ def pure_python_softmax():
     return result
 
 tt_soft_time = time_op(pure_python_softmax, warmup=1, runs=5)
-print(f"TinyTorch: {tt_soft_time*1000:.0f} ms")
+print(f"TrenTorch: {tt_soft_time*1000:.0f} ms")
 print(f"Ratio: {tt_soft_time/pt_soft_time:.0f}×\n")
 
 # Generate LaTeX table
@@ -115,12 +115,12 @@ print("LaTeX Table:")
 print("="*60)
 print(r"\begin{table}[t]")
 print(r"\centering")
-print(r"\caption{Runtime comparison: TinyTorch vs PyTorch (CPU).}")
+print(r"\caption{Runtime comparison: TrenTorch vs PyTorch (CPU).}")
 print(r"\label{tab:performance}")
 print(r"\small")
 print(r"\begin{tabular}{@{}lrrr@{}}")
 print(r"\toprule")
-print(r"Operation & TinyTorch & PyTorch & Ratio \\")
+print(r"Operation & TrenTorch & PyTorch & Ratio \\")
 print(r"\midrule")
 print(f"\\texttt{{matmul}} (1K$\\times$1K) & {tt_mm_time*1000:.0f} ms & {pt_mm_time*1000:.1f} ms & {tt_mm_time/pt_mm_time:.0f}$\\times$ \\\\")
 print(f"\\texttt{{conv2d}} (CIFAR batch) & {tt_conv_time_full:.1f} s & {pt_conv_time_full*1000:.0f} ms & {tt_conv_time_full/pt_conv_time_full:.0f}$\\times$ \\\\")

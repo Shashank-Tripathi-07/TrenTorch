@@ -1,7 +1,7 @@
 """
-Live E2E integration test for TinyTorch progress submission to Supabase.
+Live E2E integration test for TrenTorch progress submission to Supabase.
 
-This test runs ONLY if TINYTORCH_TEST_EMAIL and TINYTORCH_TEST_PASSWORD are set
+This test runs ONLY if TRENTORCH_TEST_EMAIL and TRENTORCH_TEST_PASSWORD are set
 in the environment or in a local.env file.
 
 It automates the entire flow:
@@ -40,8 +40,8 @@ def load_local_env():
 
 load_local_env()
 
-TEST_EMAIL = os.environ.get("TINYTORCH_TEST_EMAIL")
-TEST_PASSWORD = os.environ.get("TINYTORCH_TEST_PASSWORD")
+TEST_EMAIL = os.environ.get("TRENTORCH_TEST_EMAIL")
+TEST_PASSWORD = os.environ.get("TRENTORCH_TEST_PASSWORD")
 
 # Dynamic retrieval of Supabase Anon Key and Project URL from config.js
 def get_supabase_keys():
@@ -59,7 +59,7 @@ def get_supabase_keys():
         key_match.group(1) if key_match else None
     )
 
-@pytest.mark.skipif(not TEST_EMAIL or not TEST_PASSWORD, reason="Requires TINYTORCH_TEST_EMAIL and TINYTORCH_TEST_PASSWORD in local.env or environment")
+@pytest.mark.skipif(not TEST_EMAIL or not TEST_PASSWORD, reason="Requires TRENTORCH_TEST_EMAIL and TRENTORCH_TEST_PASSWORD in local.env or environment")
 class TestLiveCommunitySync:
     """Live E2E test verifying progress syncing with Supabase Auth & Edge functions."""
 
@@ -91,7 +91,7 @@ class TestLiveCommunitySync:
             project_root=tmp_path,
             assignments_dir=tmp_path / "assignments",
             modules_dir=tmp_path / "src",
-            tinytorch_dir=tmp_path / "tinytorch",
+            trentorch_dir=tmp_path / "trentorch",
             bin_dir=tmp_path / "bin"
         )
         

@@ -1,8 +1,8 @@
 """
-Shared testing infrastructure for TinyTorch modules.
+Shared testing infrastructure for TrenTorch modules.
 
 This module provides a standardized testing framework that ensures consistent
-output format and behavior across all TinyTorch modules.
+output format and behavior across all TrenTorch modules.
 """
 
 import sys
@@ -16,7 +16,7 @@ from rich.text import Text
 
 class ModuleTestRunner:
     """
-    Standardized test runner for TinyTorch modules.
+    Standardized test runner for TrenTorch modules.
 
     Provides consistent output formatting, error handling, and reporting
     across all modules.

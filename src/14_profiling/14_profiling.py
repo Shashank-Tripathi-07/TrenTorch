@@ -41,18 +41,18 @@ Let's build the measurement foundation for ML systems optimization!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in modules/14_profiling/profiling_dev.py
-**Building Side:** Code exports to tinytorch.perf.profiling
+**Building Side:** Code exports to trentorch.perf.profiling
 
 ```python
 # Final package structure:
-from tinytorch.perf.profiling import Profiler, profile_forward_pass, profile_backward_pass
+from trentorch.perf.profiling import Profiler, profile_forward_pass, profile_backward_pass
 ```
 
 **Why this matters:**
 - **Learning:** Complete profiling system for understanding model performance characteristics
 - **Production:** Professional measurement tools like those used in PyTorch, TensorFlow
 - **Consistency:** All profiling and measurement tools in perf.profiling
-- **Integration:** Works with any model built using TinyTorch components
+- **Integration:** Works with any model built using TrenTorch components
 """
 
 # %% nbgrader={"grade": false, "grade_id": "imports", "solution": true}
@@ -69,10 +69,10 @@ from typing import Dict, List, Any, Optional, Tuple
 from collections import defaultdict
 import gc
 
-# Import from TinyTorch package (previous modules must be completed and exported)
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.spatial import Conv2d
+# Import from TrenTorch package (previous modules must be completed and exported)
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.spatial import Conv2d
 
 # Constants for memory and performance measurement
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
@@ -91,10 +91,10 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 - `tracemalloc` (for memory tracking)
 - `gc` (for garbage collection control)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` (Tensor class from Module 01)
-- `tinytorch.core.layers` (Linear layer from Module 03)
-- `tinytorch.core.spatial` (Conv2d from Module 09)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` (Tensor class from Module 01)
+- `trentorch.core.layers` (Linear layer from Module 03)
+- `trentorch.core.spatial` (Conv2d from Module 09)
 
 **Dependency Flow**:
 ```
@@ -1022,7 +1022,7 @@ def test_unit_helper_functions():
     print("🧪 Unit Test: Helper Functions...")
 
     # Test 1: Quick profile function
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     test_model = Linear(16, 8)
     test_input = Tensor(rng.standard_normal((8, 16)))
     profile = quick_profile(test_model, test_input, profiler=Profiler())
@@ -1564,7 +1564,7 @@ def test_unit_memory_measurement():
 
     # Test 1: Basic memory measurement
     test_tensor = Tensor(rng.standard_normal((10, 20)))
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     test_model = Linear(20, 10)
     memory_stats = profiler.measure_memory(test_model, (10, 20))
 
@@ -1580,7 +1580,7 @@ def test_unit_memory_measurement():
     print(f"✅ Basic measurement: {memory_stats['peak_memory_mb']:.3f} MB peak")
 
     # Test 2: Memory scaling with size
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     small_model = Linear(5, 5)
     large_model = Linear(50, 50)
 
@@ -1658,7 +1658,7 @@ def test_unit_latency_measurement():
     profiler = Profiler()
 
     # Test 1: Basic latency measurement
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     test_model = Linear(8, 4)
     test_input = Tensor(rng.standard_normal((4, 8)))
     latency = profiler.measure_latency(test_model, test_input, warmup=2, iterations=5)
@@ -1921,7 +1921,7 @@ def test_unit_advanced_profiling():
 
     # Create profiler and test model
     profiler = Profiler()
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     test_model = Linear(8, 4)
     test_input = Tensor(rng.standard_normal((4, 8)))
 
@@ -2015,7 +2015,7 @@ def analyze_model_scaling():
 
     for size in sizes:
         # Create models of different sizes for comparison
-        from tinytorch.core.layers import Linear
+        from trentorch.core.layers import Linear
         test_model = Linear(size, size)
         input_shape = (32, size)  # Batch of 32
         dummy_input = Tensor(rng.standard_normal(input_shape))
@@ -2074,7 +2074,7 @@ def analyze_batch_size_effects():
     print("-" * 85)
 
     for batch_size in batch_sizes:
-        from tinytorch.core.layers import Linear
+        from trentorch.core.layers import Linear
         test_model = Linear(feature_size, feature_size)
         input_shape = (batch_size, feature_size)
         dummy_input = Tensor(rng.standard_normal(input_shape))
@@ -2161,7 +2161,7 @@ def benchmark_operation_efficiency():
     })
 
     # Matrix operations (compute-bound)
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     matrix_model = Linear(size, size)
     matrix_latency = profiler.measure_latency(matrix_model, input_tensor, iterations=10)
     matrix_flops = size * size * 2  # Matrix multiplication
@@ -2285,7 +2285,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)
@@ -2320,7 +2320,7 @@ def test_module():
     profiler = Profiler()
 
     # Create test model and data
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     test_model = Linear(16, 32)
     test_input = Tensor(rng.standard_normal((8, 16)))
 
@@ -2369,7 +2369,7 @@ def test_module():
     print("4. Testing production profiling scenario...")
 
     # Simulate larger model analysis
-    from tinytorch.core.layers import Linear
+    from trentorch.core.layers import Linear
     large_model = Linear(512, 256)
     large_input = Tensor(rng.standard_normal((32, 512)))  # Larger model input
     large_profile = profiler.profile_forward_pass(large_model, large_input)

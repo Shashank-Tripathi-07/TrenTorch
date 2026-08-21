@@ -1,5 +1,5 @@
 """
-TinyTorch CLI Main Entry Point
+TrenTorch CLI Main Entry Point
 
 A professional command-line interface with proper architecture:
 - Clean separation of concerns
@@ -34,13 +34,13 @@ if sys.platform == "win32" or os.name == "nt":
         if hasattr(_stream, "reconfigure"):
             _stream.reconfigure(encoding="utf-8", errors="replace")
 
-# Set TINYTORCH_QUIET before any tinytorch imports to suppress autograd messages
-os.environ['TINYTORCH_QUIET'] = '1'
+# Set TRENTORCH_QUIET before any trentorch imports to suppress autograd messages
+os.environ['TRENTORCH_QUIET'] = '1'
 
 from .core.config import CLIConfig
 from .core.virtual_env_manager import get_venv_path
 from .core.console import get_console, print_banner, print_error, print_ascii_logo
-from .core.exceptions import TinyTorchCLIError
+from .core.exceptions import TrenTorchCLIError
 from .core.theme import Theme
 from rich.panel import Panel
 from .commands.base import BaseCommand
@@ -86,7 +86,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-class TinyTorchCLI:
+class TrenTorchCLI:
     """Main CLI application class."""
 
     def __init__(self):
@@ -129,8 +129,8 @@ class TinyTorchCLI:
                 (f'[{Theme.CAT_PROGRESS}]tren milestone status[/{Theme.CAT_PROGRESS}]', 'View unlocked capabilities'),
             ],
             'community': [
-                (f'[{Theme.CAT_COMMUNITY}]tren community login[/{Theme.CAT_COMMUNITY}]', 'Log in to TinyTorch'),
-                (f'[{Theme.CAT_COMMUNITY}]tren community logout[/{Theme.CAT_COMMUNITY}]', 'Log out of TinyTorch'),
+                (f'[{Theme.CAT_COMMUNITY}]tren community login[/{Theme.CAT_COMMUNITY}]', 'Log in to TrenTorch'),
+                (f'[{Theme.CAT_COMMUNITY}]tren community logout[/{Theme.CAT_COMMUNITY}]', 'Log out of TrenTorch'),
             ],
             'help_docs': [
                 (f'[{Theme.CAT_HELP}]tren system health[/{Theme.CAT_HELP}]', 'Check environment health'),
@@ -195,7 +195,7 @@ The best way to learn:
         self.console.print()
         self.console.print(Panel(
             welcome_text,
-            title="[bold]Welcome to TinyTorch (Pre-release)[/bold]",
+            title="[bold]Welcome to TrenTorch (Pre-release)[/bold]",
             border_style=Theme.BORDER_WELCOME,
             box=box.ROUNDED
         ))
@@ -240,7 +240,7 @@ The best way to learn:
         """Create the main argument parser."""
         parser = argparse.ArgumentParser(
             prog="tren",
-            description="Tiny🔥Torch CLI - Build ML systems from scratch",
+            description="Tren🔥Torch CLI - Build ML systems from scratch",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog=self._generate_epilog()
         )
@@ -249,7 +249,7 @@ The best way to learn:
         parser.add_argument(
             '--version',
             action='version',
-            version=f'Tiny🔥Torch v{__version__}'
+            version=f'Tren🔥Torch v{__version__}'
         )
         parser.add_argument(
             '--verbose', '-v',
@@ -316,7 +316,7 @@ The best way to learn:
             table.add_row(cmd_name, cmd.description)
 
         self.console.print()
-        self.console.print(f"[{Theme.SECTION}]Tiny🔥Torch CLI[/{Theme.SECTION}] - Build ML systems from scratch")
+        self.console.print(f"[{Theme.SECTION}]Tren🔥Torch CLI[/{Theme.SECTION}] - Build ML systems from scratch")
         self.console.print()
         self.console.print(f"[{Theme.EMPHASIS}]Usage:[/{Theme.EMPHASIS}] [{Theme.INFO}]tren[/{Theme.INFO}] [{Theme.OPTION}]COMMAND[/{Theme.OPTION}] [{Theme.DIM}][OPTIONS][/{Theme.DIM}]")
         self.console.print()
@@ -391,12 +391,12 @@ The best way to learn:
             if parsed_args.command not in ['setup', None]:
                 # Check both sys.prefix (traditional activation) and VIRTUAL_ENV (direnv/PATH-based)
                 in_venv = sys.prefix != sys.base_prefix or os.environ.get("VIRTUAL_ENV") is not None
-                allow_system = os.environ.get("TITO_ALLOW_SYSTEM") == "1"
+                allow_system = os.environ.get("TREN_ALLOW_SYSTEM") == "1"
                 if not in_venv and not allow_system:
                     print_error(
-                        "TinyTorch must run inside a virtual environment.\n"
+                        "TrenTorch must run inside a virtual environment.\n"
                         "Activate your project venv (for example, source .venv/bin/activate) "
-                        "or set TITO_ALLOW_SYSTEM=1 to proceed at your own risk.",
+                        "or set TREN_ALLOW_SYSTEM=1 to proceed at your own risk.",
                         "Virtual Environment Required"
                     )
                     return 1
@@ -435,7 +435,7 @@ The best way to learn:
                 # Generate dynamic welcome message
                 self.console.print(Panel(
                     self._generate_welcome_text(),
-                    title="Welcome to Tiny🔥Torch!",
+                    title="Welcome to Tren🔥Torch!",
                     border_style=Theme.BORDER_WELCOME
                 ))
                 return 0
@@ -452,7 +452,7 @@ The best way to learn:
         except KeyboardInterrupt:
             self.console.print(f"\n[{Theme.WARNING}]Operation cancelled by user[/{Theme.WARNING}]")
             return 130
-        except TinyTorchCLIError as e:
+        except TrenTorchCLIError as e:
             logger.error(f"CLI error: {e}")
             print_error(str(e))
             return 1
@@ -463,7 +463,7 @@ The best way to learn:
 
 def main() -> int:
     """Main entry point for the CLI."""
-    cli = TinyTorchCLI()
+    cli = TrenTorchCLI()
     return cli.run(sys.argv[1:])
 
 if __name__ == "__main__":

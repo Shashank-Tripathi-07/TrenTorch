@@ -3,7 +3,7 @@ requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="tinytorch"
+name="trentorch"
 version = "0.1.13"
 description = "Build ML Systems from Scratch - Educational Deep Learning Framework"
 readme = "README.md"
@@ -57,8 +57,8 @@ docs = [
 ]
 
 [tool.nbdev]
-lib_name = "tinytorch"
-lib_path = "tinytorch"
+lib_name = "trentorch"
+lib_path = "trentorch"
 nbs_path = "modules"
 doc_path = "_docs"
 branch = "main"
@@ -77,7 +77,7 @@ Issues = "https://github.com/harvard-edge/cs249r_book/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["tinytorch*", "tren*"]
+include = ["trentorch*", "tren*"]
 exclude = ["tests*", "modules*", "site*", "docs*", "milestones*", "assignments*"]
 
 # TinyTorch-specific pytest configuration (overrides parent pyproject.toml)

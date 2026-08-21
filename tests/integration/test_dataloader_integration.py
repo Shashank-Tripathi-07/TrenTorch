@@ -13,9 +13,9 @@ import os
 # Add project root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-# Import from TinyTorch package
-from tinytorch import Tensor
-from tinytorch.core.dataloader import Dataset, TensorDataset, DataLoader
+# Import from TrenTorch package
+from trentorch import Tensor
+from trentorch.core.dataloader import Dataset, TensorDataset, DataLoader
 
 
 def test_training_workflow_integration():

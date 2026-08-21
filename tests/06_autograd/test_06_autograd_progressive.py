@@ -40,7 +40,7 @@ class TestAutogradCore:
         ✅ TEST: Tensor supports requires_grad flag
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             # Test creating tensor with requires_grad
             x = Tensor([1.0, 2.0, 3.0], requires_grad=True)
@@ -63,7 +63,7 @@ class TestAutogradCore:
         ✅ TEST: Tensor has grad attribute for storing gradients
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             x = Tensor([1.0, 2.0], requires_grad=True)
             
@@ -81,7 +81,7 @@ class TestAutogradCore:
         ✅ TEST: Tensor has backward() method for gradient computation
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             x = Tensor([2.0], requires_grad=True)
             
@@ -107,7 +107,7 @@ class TestAutogradCore:
         ✅ TEST: Simple gradient computation y = x * 2
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             x = Tensor([3.0], requires_grad=True)
             y = x * 2  # dy/dx = 2
@@ -131,7 +131,7 @@ class TestAutogradCore:
         ✅ TEST: Scalar arithmetic works naturally from either side.
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
 
             def grad_data(tensor):
                 return tensor.grad.data if hasattr(tensor.grad, "data") else tensor.grad
@@ -164,7 +164,7 @@ class TestAutogradCore:
         ✅ TEST: Chain rule: z = (x + y) * 2
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             x = Tensor([1.0], requires_grad=True)
             y = Tensor([2.0], requires_grad=True)
@@ -202,8 +202,8 @@ class TestAutogradWithLayers:
         ✅ TEST: Gradients flow through Linear layer
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
             
             # Create layer
             layer = Linear(4, 2)
@@ -240,8 +240,8 @@ class TestAutogradWithLayers:
         ✅ TEST: Gradients flow through activation functions
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
             
             # Test ReLU gradient
             x = Tensor(np.array([-1.0, 0.0, 1.0, 2.0]), requires_grad=True)
@@ -274,8 +274,8 @@ class TestAutogradWithLayers:
         Tanh was previously missing from enable_autograd()'s patch list,
         so tanh(x).backward() silently failed to populate x.grad.
         """
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.activations import Tanh
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.activations import Tanh
 
         # tanh'(0) = 1 - tanh(0)² = 1 - 0 = 1
         # tanh'(1) = 1 - tanh(1)² ≈ 1 - 0.7616² ≈ 0.4200
@@ -301,8 +301,8 @@ class TestAutogradWithLosses:
         ✅ TEST: Gradients from MSE loss
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.losses import MSELoss
             
             pred = Tensor(np.array([1.0, 2.0, 3.0]), requires_grad=True)
             target = Tensor(np.array([1.5, 2.0, 2.5]))
@@ -338,10 +338,10 @@ class TestAutogradWithDataLoader:
         ✅ TEST: Gradients work with batched data from DataLoader
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
             
             # Create dataset
             data = Tensor(rng.standard_normal((20, 4)))
@@ -389,7 +389,7 @@ class TestRegressionPrevention:
         ✅ TEST: Module 01 (Tensor) still works
         """
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             a = Tensor([1.0, 2.0, 3.0])
             b = Tensor([4.0, 5.0, 6.0])
@@ -408,8 +408,8 @@ class TestRegressionPrevention:
         ✅ TEST: Module 02 (Activations) still works
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.activations import ReLU, Sigmoid
             
             x = Tensor([-1.0, 0.0, 1.0])
             
@@ -429,8 +429,8 @@ class TestRegressionPrevention:
         ✅ TEST: Module 03 (Layers) still works
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
             
             layer = Linear(5, 3)
             x = Tensor(rng.standard_normal((2, 5)))
@@ -446,8 +446,8 @@ class TestRegressionPrevention:
         ✅ TEST: Module 04 (Losses) still works
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.losses import MSELoss
             
             pred = Tensor([[1.0, 2.0], [3.0, 4.0]])
             target = Tensor([[1.5, 2.5], [3.5, 4.5]])
@@ -465,8 +465,8 @@ class TestRegressionPrevention:
         ✅ TEST: Module 05 (DataLoader) still works
         """
         try:
-            from tinytorch.core.tensor import Tensor
-            from tinytorch.core.dataloader import TensorDataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import TensorDataset, DataLoader
             
             data = Tensor(rng.standard_normal((10, 4)))
             targets = Tensor(np.arange(10).astype(float))
@@ -501,7 +501,7 @@ class TestModule06Completion:
         }
         
         try:
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.tensor import Tensor
             
             # Test 1: requires_grad
             try:
@@ -540,7 +540,7 @@ class TestModule06Completion:
             
             # Test 5: layer integration
             try:
-                from tinytorch.core.layers import Linear
+                from trentorch.core.layers import Linear
                 layer = Linear(2, 1)
                 x = Tensor(rng.standard_normal((1, 2)), requires_grad=True)
                 out = layer(x)

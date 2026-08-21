@@ -1,9 +1,9 @@
 """
-Comprehensive status analysis for TinyTorch modules and environment.
+Comprehensive status analysis for TrenTorch modules and environment.
 
 This module provides detailed analysis of:
 - Environment health
-- Module compliance with TinyTorch standards
+- Module compliance with TrenTorch standards
 - Code quality and functionality
 - Testing status
 """
@@ -29,7 +29,7 @@ from rich import box
 
 @dataclass
 class ModuleStatus:
-    """Complete status information for a TinyTorch module"""
+    """Complete status information for a TrenTorch module"""
     name: str
     path: Path
     has_dev_file: bool = False
@@ -93,14 +93,14 @@ class ModuleStatus:
         return "BROKEN"
 
 
-class TinyTorchStatusAnalyzer:
-    """Comprehensive TinyTorch system status analyzer"""
+class TrenTorchStatusAnalyzer:
+    """Comprehensive TrenTorch system status analyzer"""
 
     def __init__(self, repo_path: Optional[Path] = None):
         """Initialize the status analyzer.
 
         Args:
-            repo_path: Path to TinyTorch repository. If None, uses current working directory.
+            repo_path: Path to TrenTorch repository. If None, uses current working directory.
         """
         if repo_path is None:
             repo_path = Path.cwd()
@@ -315,7 +315,7 @@ except Exception as e:
     def generate_comprehensive_report(self, console: Console) -> None:
         """Generate comprehensive status report using rich console"""
         console.print("\n" + "="*80, style="bold")
-        console.print("🔥 TINYTORCH COMPREHENSIVE STATUS DASHBOARD", style="bold red", justify="center")
+        console.print("🔥 TRENTORCH COMPREHENSIVE STATUS DASHBOARD", style="bold red", justify="center")
         console.print("="*80, style="bold")
 
         # Environment Status Panel
@@ -476,7 +476,7 @@ except Exception as e:
             console.print("\n🎉 [bold green]All systems operational! No critical issues found.[/bold green]")
 
     def run_full_analysis(self) -> Dict[str, Any]:
-        """Run complete TinyTorch system analysis"""
+        """Run complete TrenTorch system analysis"""
         # Run all checks
         env_status = self.check_environment()
         tren_status = self.check_tren_health()

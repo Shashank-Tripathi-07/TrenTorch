@@ -32,7 +32,7 @@ class TestTransformerCore:
         ✅ TEST: TransformerBlock class exists
         """
         try:
-            from tinytorch.core.transformers import TransformerBlock
+            from trentorch.core.transformers import TransformerBlock
             
             assert TransformerBlock is not None
             
@@ -44,7 +44,7 @@ class TestTransformerCore:
         ✅ TEST: TransformerBlock can be initialized
         """
         try:
-            from tinytorch.core.transformers import TransformerBlock
+            from trentorch.core.transformers import TransformerBlock
             
             embed_dim = 64
             num_heads = 8
@@ -62,8 +62,8 @@ class TestTransformerCore:
         ✅ TEST: TransformerBlock forward pass
         """
         try:
-            from tinytorch.core.transformers import TransformerBlock
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.transformers import TransformerBlock
+            from trentorch.core.tensor import Tensor
             
             embed_dim = 64
             num_heads = 8
@@ -87,7 +87,7 @@ class TestTransformerCore:
         ✅ TEST: TinyGPT class exists
         """
         try:
-            from tinytorch.core.transformers import TinyGPT
+            from trentorch.core.transformers import TinyGPT
             
             assert TinyGPT is not None
             
@@ -99,7 +99,7 @@ class TestTransformerCore:
         ✅ TEST: TinyGPT can be initialized
         """
         try:
-            from tinytorch.core.transformers import TinyGPT
+            from trentorch.core.transformers import TinyGPT
             
             vocab_size = 1000
             embed_dim = 64
@@ -125,8 +125,8 @@ class TestTransformerCore:
         ✅ TEST: TinyGPT forward pass produces logits
         """
         try:
-            from tinytorch.core.transformers import TinyGPT
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.transformers import TinyGPT
+            from trentorch.core.tensor import Tensor
             
             vocab_size = 100
             embed_dim = 32
@@ -164,8 +164,8 @@ class TestTransformerWithAttention:
         ✅ TEST: TransformerBlock internally uses attention
         """
         try:
-            from tinytorch.core.transformers import TransformerBlock
-            from tinytorch.core.attention import MultiHeadAttention
+            from trentorch.core.transformers import TransformerBlock
+            from trentorch.core.attention import MultiHeadAttention
             
             block = TransformerBlock(64, 8, ff_dim=256)
 
@@ -192,11 +192,11 @@ class TestTransformerWithTraining:
         ✅ TEST: Transformer parameters can be trained
         """
         try:
-            from tinytorch.core.transformers import TransformerBlock
-            from tinytorch.core.layers import Linear
-            from tinytorch.core.losses import MSELoss
-            from tinytorch.core.optimizers import SGD
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.transformers import TransformerBlock
+            from trentorch.core.layers import Linear
+            from trentorch.core.losses import MSELoss
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
             
             embed_dim = 32
             
@@ -238,10 +238,10 @@ class TestTransformerWithTraining:
         ✅ TEST: TinyGPT can execute training step
         """
         try:
-            from tinytorch.core.transformers import TinyGPT
-            from tinytorch.core.losses import CrossEntropyLoss
-            from tinytorch.core.optimizers import Adam
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.transformers import TinyGPT
+            from trentorch.core.losses import CrossEntropyLoss
+            from trentorch.core.optimizers import Adam
+            from trentorch.core.tensor import Tensor
             
             vocab_size = 50
             
@@ -281,14 +281,14 @@ class TestRegressionPrevention:
 
     def test_tensor_still_works(self):
         """✅ Module 01"""
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.tensor import Tensor
         a = Tensor([1, 2, 3])
         assert a.shape == (3,)
 
     def test_activations_still_work(self):
         """✅ Module 02"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU
         relu = ReLU()
         x = Tensor([-1, 0, 1])
         y = relu(x)
@@ -296,8 +296,8 @@ class TestRegressionPrevention:
 
     def test_layers_still_work(self):
         """✅ Module 03"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
         layer = Linear(4, 2)
         x = Tensor(rng.standard_normal((2, 4)))
         y = layer(x)
@@ -305,16 +305,16 @@ class TestRegressionPrevention:
 
     def test_losses_still_work(self):
         """✅ Module 04"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.losses import MSELoss
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.losses import MSELoss
         loss_fn = MSELoss()
         loss = loss_fn(Tensor([[1.0]]), Tensor([[2.0]]))
         assert loss.data.size == 1
 
     def test_dataloader_still_works(self):
         """✅ Module 05"""
-        from tinytorch.core.tensor import Tensor
-        from tinytorch.core.dataloader import TensorDataset, DataLoader
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.dataloader import TensorDataset, DataLoader
         data = Tensor(rng.standard_normal((10, 3)))
         targets = Tensor(np.arange(10).astype(float))
         dataset = TensorDataset(data, targets)
@@ -323,8 +323,8 @@ class TestRegressionPrevention:
 
     def test_optimizers_still_work(self):
         """✅ Module 07"""
-        from tinytorch.core.optimizers import SGD
-        from tinytorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.layers import Linear
         layer = Linear(3, 2)
         opt = SGD(layer.parameters(), lr=0.01)
         assert hasattr(opt, 'step')
@@ -332,8 +332,8 @@ class TestRegressionPrevention:
     def test_convolutions_still_work(self):
         """✅ Module 09"""
         try:
-            from tinytorch.core.spatial import Conv2d
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.spatial import Conv2d
+            from trentorch.core.tensor import Tensor
             conv = Conv2d(3, 8, kernel_size=3, padding=1)
             x = Tensor(rng.standard_normal((2, 3, 8, 8)))
             y = conv(x)
@@ -344,8 +344,8 @@ class TestRegressionPrevention:
     def test_attention_still_works(self):
         """✅ Module 12"""
         try:
-            from tinytorch.core.attention import MultiHeadAttention
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.attention import MultiHeadAttention
+            from trentorch.core.tensor import Tensor
             mha = MultiHeadAttention(32, 4)
             x = Tensor(rng.standard_normal((1, 5, 32)))
             out = mha(x)
@@ -372,8 +372,8 @@ class TestModule13Completion:
         }
         
         try:
-            from tinytorch.core.transformers import TransformerBlock
-            from tinytorch.core.tensor import Tensor
+            from trentorch.core.transformers import TransformerBlock
+            from trentorch.core.tensor import Tensor
             
             # Test 1: TransformerBlock exists
             capabilities["TransformerBlock exists"] = True
@@ -387,7 +387,7 @@ class TestModule13Completion:
             
             # Test 3: TinyGPT
             try:
-                from tinytorch.core.transformers import TinyGPT
+                from trentorch.core.transformers import TinyGPT
                 capabilities["TinyGPT exists"] = True
             except ImportError:
                 pass

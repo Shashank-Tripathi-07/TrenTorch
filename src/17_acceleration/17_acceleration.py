@@ -50,11 +50,11 @@ Let's optimize for speed!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/17_acceleration/acceleration_dev.py`
-**Building Side:** Code exports to `tinytorch.perf.acceleration`
+**Building Side:** Code exports to `trentorch.perf.acceleration`
 
 ```python
 # How to use this module:
-from tinytorch.perf.acceleration import vectorized_matmul, fused_gelu
+from trentorch.perf.acceleration import vectorized_matmul, fused_gelu
 ```
 
 **Why this matters:**
@@ -88,9 +88,9 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 - `numpy` (for array operations and numerical computing)
 - `time` (for performance measurement)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor` (Tensor class from Module 01)
-- `tinytorch.perf.profiling` (Profiler from Module 14)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor` (Tensor class from Module 01)
+- `trentorch.perf.profiling` (Profiler from Module 14)
 
 **Dependency Flow**:
 ```
@@ -100,7 +100,7 @@ Module 01 (Tensor) → Module 14 (Profiling) → Module 17 (Acceleration)
 ```
 
 Students completing this module will have built acceleration techniques
-that work with the complete TinyTorch performance optimization stack.
+that work with the complete TrenTorch performance optimization stack.
 """
 
 # %% [markdown]
@@ -172,8 +172,8 @@ Real-world performance wins:
 
 # %% nbgrader={"grade": false, "grade_id": "tensor-import", "solution": true}
 #| export
-# Import from TinyTorch package (previous modules must be completed and exported)
-from tinytorch.core.tensor import Tensor
+# Import from TrenTorch package (previous modules must be completed and exported)
+from trentorch.core.tensor import Tensor
 
 # %% [markdown]
 """
@@ -1172,7 +1172,7 @@ This is how professional ML engineers work: profile → optimize → measure →
 
 # %% nbgrader={"grade": false, "grade_id": "demo-profiler-acceleration", "solution": true}
 # Import Profiler from Module 14 (Module 17 comes after Module 14)
-from tinytorch.perf.profiling import Profiler
+from trentorch.perf.profiling import Profiler
 
 def explore_acceleration_with_profiler():
     """📊 Demonstrate acceleration gains using Profiler from Module 14."""

@@ -45,11 +45,11 @@ Let's transform scattered data into organized learning batches!
 ## 📦 Where This Code Lives in the Final Package
 
 **Learning Side:** You work in `modules/05_dataloader/dataloader.ipynb`
-**Building Side:** Code exports to `tinytorch.core.dataloader`
+**Building Side:** Code exports to `trentorch.core.dataloader`
 
 ```python
 # How to use this module:
-from tinytorch.core.dataloader import Dataset, DataLoader, TensorDataset
+from trentorch.core.dataloader import Dataset, DataLoader, TensorDataset
 # Note: Dataset download utilities (download_mnist, download_cifar10) will be
 # available in a future release.
 ```
@@ -74,8 +74,8 @@ from typing import Iterator, List, Tuple
 import numpy as np
 rng = np.random.default_rng(7)
 
-# Import real Tensor class from tinytorch package
-from tinytorch.core.tensor import Tensor
+# Import real Tensor class from trentorch package
+from trentorch.core.tensor import Tensor
 
 # %% [markdown]
 """
@@ -89,8 +89,8 @@ from tinytorch.core.tensor import Tensor
 - `abc` (for abstract base class)
 - `typing` (for type hints)
 
-**TinyTorch Dependencies**:
-- `tinytorch.core.tensor.Tensor` (foundation from Module 01)
+**TrenTorch Dependencies**:
+- `trentorch.core.tensor.Tensor` (foundation from Module 01)
 
 **Dependency Flow**:
 ```
@@ -100,7 +100,7 @@ Module 01 (Tensor) → Module 05 (DataLoader)
 ```
 
 Students completing this module will have built the data loading
-infrastructure that powers all training in TinyTorch.
+infrastructure that powers all training in TrenTorch.
 """
 
 # %% [markdown]
@@ -867,7 +867,7 @@ class RandomHorizontalFlip:
             # Determine width axis for HW/CHW/HWC.
             # Convention (matching _pad_image and RandomCrop): check shape[0]
             # for channels-first (C, H, W) where C <= 4. This is the standard
-            # TinyTorch/PyTorch NCHW convention for 3D image tensors.
+            # TrenTorch/PyTorch NCHW convention for 3D image tensors.
             if data.ndim == 2:
                 # (H, W)
                 axis = -1
@@ -1480,9 +1480,9 @@ if __name__ == "__main__":
 
 Now that you've built the DataLoader abstraction, you're ready to use it with real data!
 
-### Using Real Datasets: The TinyTorch Approach
+### Using Real Datasets: The TrenTorch Approach
 
-TinyTorch separates **mechanics** (this module) from **application** (examples/milestones):
+TrenTorch separates **mechanics** (this module) from **application** (examples/milestones):
 
 ```
 Module 05 (DataLoader)          Examples & Milestones
@@ -1536,7 +1536,7 @@ This is what your model sees during training!
 
 ### Quick Start with Real Data
 
-**Tiny Datasets (ships with TinyTorch):**
+**Tiny Datasets (ships with TrenTorch):**
 ```python
 # 8×8 handwritten digits - instant, no downloads!
 import numpy as np
@@ -2017,7 +2017,7 @@ def test_module():
     This final test runs before module summary to ensure:
     - All unit tests pass
     - Functions work together correctly
-    - Module is ready for integration with TinyTorch
+    - Module is ready for integration with TrenTorch
     """
     print("🧪 RUNNING MODULE INTEGRATION TEST")
     print("=" * 50)

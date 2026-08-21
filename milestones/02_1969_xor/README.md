@@ -108,7 +108,7 @@ cd milestones/02_1969_xor
 # Experience the crisis (run after Module 03)
 python 01_xor_crisis.py
 
-# Or from the TinyTorch project root:
+# Or from the TrenTorch project root:
 tren milestone run 02
 
 # See the solution later, after Module 08:

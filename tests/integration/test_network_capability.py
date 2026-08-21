@@ -17,9 +17,9 @@ class TestXORCapability:
 
     def test_xor_network_structure(self):
         """Test building network for XOR problem."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU, Sigmoid
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.tensor import Tensor
 
         # Build XOR network: 2 -> 4 -> 1
         hidden = Linear(2, 4, bias=True)
@@ -41,7 +41,7 @@ class TestXORCapability:
 
     def test_xor_network_expressiveness(self):
         """Test that network has enough capacity for XOR."""
-        from tinytorch.core.layers import Linear
+        from trentorch.core.layers import Linear
 
         # XOR needs at least 2 hidden units
         hidden = Linear(2, 4)  # 4 hidden units is sufficient
@@ -57,9 +57,9 @@ class TestXORCapability:
 
     def test_nonlinearity_required(self):
         """Test that non-linearity is essential for XOR."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
 
         # Without activation, network is just linear
         layer1 = Linear(2, 4)
@@ -83,9 +83,9 @@ class TestMLPCapabilities:
 
     def test_universal_approximation(self):
         """Test that MLPs can approximate continuous functions."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
 
         # Wide hidden layer can approximate any function
         layer1 = Linear(1, 100)  # Wide hidden layer
@@ -106,8 +106,8 @@ class TestMLPCapabilities:
 
     def test_deep_network(self):
         """Test building deep networks."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
 
         # Build 5-layer network
         layers = [

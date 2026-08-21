@@ -22,8 +22,8 @@ import pytest
 from pathlib import Path
 
 
-# Get the tinytorch root directory
-TINYTORCH_ROOT = Path(__file__).parent.parent.parent
+# Get the trentorch root directory
+TRENTORCH_ROOT = Path(__file__).parent.parent.parent
 
 
 def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tuple[int, str, str]:
@@ -39,7 +39,7 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
         (return_code, stdout, stderr)
     """
     # Use the bin/tren script directly
-    tren_script = TINYTORCH_ROOT / "bin" / "tren"
+    tren_script = TRENTORCH_ROOT / "bin" / "tren"
 
     cmd = [
         str(tren_script),
@@ -51,13 +51,13 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
         cmd.extend(["--part", str(part)])
 
     env = os.environ.copy()
-    env["TITO_ALLOW_SYSTEM"] = "1"  # Allow running without venv
-    env["PYTHONPATH"] = str(TINYTORCH_ROOT)
+    env["TREN_ALLOW_SYSTEM"] = "1"  # Allow running without venv
+    env["PYTHONPATH"] = str(TRENTORCH_ROOT)
 
     # Auto-answer prompts by providing 'n' to stdin (decline syncing achievements, etc.)
     result = subprocess.run(
         cmd,
-        cwd=TINYTORCH_ROOT,
+        cwd=TRENTORCH_ROOT,
         capture_output=True,
         text=True,
         timeout=timeout,

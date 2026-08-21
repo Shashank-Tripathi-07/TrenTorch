@@ -87,7 +87,7 @@ def extract_tren_commands(filepath: Path) -> List[Tuple[int, str]]:
 
     # Pattern matches tren commands in code blocks or inline code
     # Must start with ` or be at line start (after optional whitespace/comment chars)
-    # Excludes title-case words that are clearly prose (e.g., "TITO CLI Reference")
+    # Excludes title-case words that are clearly prose (e.g., "TREN CLI Reference")
     code_block_pattern = r'`tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)'
     line_start_pattern = r'^(?:#\s*)?tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)'
 
@@ -182,24 +182,24 @@ def validate_command(cmd: str, valid_commands: Set[str]) -> Tuple[bool, str]:
 def main():
     verbose = "--verbose" in sys.argv or "-v" in sys.argv
 
-    # Find tinytorch root (script is in tinytorch/tools/dev/)
+    # Find trentorch root (script is in trentorch/tools/dev/)
     script_path = Path(__file__).resolve()
-    tinytorch_root = script_path.parent.parent.parent
+    trentorch_root = script_path.parent.parent.parent
 
-    # If tinytorch_root is not actually tinytorch (e.g., we're in a different structure),
+    # If trentorch_root is not actually trentorch (e.g., we're in a different structure),
     # try to find it from current working directory
-    if not (tinytorch_root / "bin" / "tren").exists():
+    if not (trentorch_root / "bin" / "tren").exists():
         cwd = Path.cwd()
-        if (cwd / "tinytorch" / "bin" / "tren").exists():
-            tinytorch_root = cwd / "tinytorch"
+        if (cwd / "trentorch" / "bin" / "tren").exists():
+            trentorch_root = cwd / "trentorch"
         elif (cwd / "bin" / "tren").exists():
-            tinytorch_root = cwd
+            trentorch_root = cwd
 
     if verbose:
-        print(f"Scanning for CLI references in: {tinytorch_root}")
+        print(f"Scanning for CLI references in: {trentorch_root}")
 
     valid_commands = get_valid_command_set()
-    md_files = find_markdown_files(tinytorch_root)
+    md_files = find_markdown_files(trentorch_root)
 
     if verbose:
         print(f"Found {len(md_files)} markdown files to check")
@@ -213,7 +213,7 @@ def main():
             is_valid, error_msg = validate_command(cmd, valid_commands)
 
             if not is_valid:
-                rel_path = md_file.relative_to(tinytorch_root)
+                rel_path = md_file.relative_to(trentorch_root)
                 errors.append((rel_path, line_num, cmd, error_msg))
 
     if errors:

@@ -1,5 +1,5 @@
 """
-Milestone command group for TinyTorch CLI: capability-based learning progression.
+Milestone command group for TrenTorch CLI: capability-based learning progression.
 
 The milestone system transforms module completion into meaningful capability achievements.
 Instead of just finishing modules, students unlock epic milestones that represent
@@ -192,26 +192,26 @@ MILESTONE_ACHIEVEMENT_HIGHLIGHTS = {
 
 
 MODULE_EXPORT_CHECKS = {
-    1: [("tinytorch", "Tensor"), ("tinytorch.core.tensor", "Tensor")],
-    2: [("tinytorch", "ReLU"), ("tinytorch.core.activations", "ReLU")],
-    3: [("tinytorch", "Linear"), ("tinytorch.core.layers", "Linear")],
-    4: [("tinytorch", "CrossEntropyLoss"), ("tinytorch.core.losses", "CrossEntropyLoss")],
-    5: [("tinytorch", "DataLoader"), ("tinytorch.core.dataloader", "DataLoader")],
-    6: [("tinytorch", "enable_autograd"), ("tinytorch.core.autograd", "enable_autograd")],
-    7: [("tinytorch", "SGD"), ("tinytorch.core.optimizers", "SGD")],
-    8: [("tinytorch", "Trainer"), ("tinytorch.core.training", "Trainer")],
-    9: [("tinytorch", "Conv2d"), ("tinytorch.core.spatial", "Conv2d")],
-    10: [("tinytorch", "CharTokenizer"), ("tinytorch.core.tokenization", "CharTokenizer")],
-    11: [("tinytorch", "Embedding"), ("tinytorch.core.embeddings", "Embedding")],
-    12: [("tinytorch", "MultiHeadAttention"), ("tinytorch.core.attention", "MultiHeadAttention")],
-    13: [("tinytorch", "TransformerBlock"), ("tinytorch.core.transformers", "TransformerBlock")],
-    14: [("tinytorch", "Profiler"), ("tinytorch.perf.profiling", "Profiler")],
-    15: [("tinytorch", "Quantizer"), ("tinytorch.perf.quantization", "Quantizer")],
-    16: [("tinytorch", "Compressor"), ("tinytorch.perf.compression", "Compressor")],
-    17: [("tinytorch", "vectorized_matmul"), ("tinytorch.perf.acceleration", "vectorized_matmul")],
-    18: [("tinytorch", "KVCache"), ("tinytorch.perf.memoization", "KVCache")],
-    19: [("tinytorch.perf.benchmarking", "Benchmark")],
-    20: [("tinytorch", "olympics")],
+    1: [("trentorch", "Tensor"), ("trentorch.core.tensor", "Tensor")],
+    2: [("trentorch", "ReLU"), ("trentorch.core.activations", "ReLU")],
+    3: [("trentorch", "Linear"), ("trentorch.core.layers", "Linear")],
+    4: [("trentorch", "CrossEntropyLoss"), ("trentorch.core.losses", "CrossEntropyLoss")],
+    5: [("trentorch", "DataLoader"), ("trentorch.core.dataloader", "DataLoader")],
+    6: [("trentorch", "enable_autograd"), ("trentorch.core.autograd", "enable_autograd")],
+    7: [("trentorch", "SGD"), ("trentorch.core.optimizers", "SGD")],
+    8: [("trentorch", "Trainer"), ("trentorch.core.training", "Trainer")],
+    9: [("trentorch", "Conv2d"), ("trentorch.core.spatial", "Conv2d")],
+    10: [("trentorch", "CharTokenizer"), ("trentorch.core.tokenization", "CharTokenizer")],
+    11: [("trentorch", "Embedding"), ("trentorch.core.embeddings", "Embedding")],
+    12: [("trentorch", "MultiHeadAttention"), ("trentorch.core.attention", "MultiHeadAttention")],
+    13: [("trentorch", "TransformerBlock"), ("trentorch.core.transformers", "TransformerBlock")],
+    14: [("trentorch", "Profiler"), ("trentorch.perf.profiling", "Profiler")],
+    15: [("trentorch", "Quantizer"), ("trentorch.perf.quantization", "Quantizer")],
+    16: [("trentorch", "Compressor"), ("trentorch.perf.compression", "Compressor")],
+    17: [("trentorch", "vectorized_matmul"), ("trentorch.perf.acceleration", "vectorized_matmul")],
+    18: [("trentorch", "KVCache"), ("trentorch.perf.memoization", "KVCache")],
+    19: [("trentorch.perf.benchmarking", "Benchmark")],
+    20: [("trentorch", "olympics")],
 }
 
 
@@ -719,7 +719,7 @@ class MilestoneCommand(BaseCommand):
         total_milestones = len(milestone_system.MILESTONES)
         achievement_progress = (status['total_completed'] / total_milestones) * 100 if total_milestones > 0 else 0
         console.print(Panel(
-            f"[bold cyan]🎮 TinyTorch Milestone Progress[/bold cyan]\n\n"
+            f"[bold cyan]🎮 TrenTorch Milestone Progress[/bold cyan]\n\n"
             f"[bold]Capabilities Unlocked:[/bold] {status['total_unlocked']}/{total_milestones} milestones\n"
             f"[bold]Milestones Achieved:[/bold] {status['total_completed']}/{total_milestones} milestones\n"
             f"[bold]Overall Progress:[/bold] {achievement_progress:.0f}%\n\n"
@@ -895,7 +895,7 @@ class MilestoneCommand(BaseCommand):
         ))
 
         # Create tree structure
-        tree = Tree("🚀 [bold]TinyTorch Mastery Journey[/bold]")
+        tree = Tree("🚀 [bold]TrenTorch Mastery Journey[/bold]")
 
         for milestone_id in sorted(milestone_system.MILESTONES.keys()):
             milestone = status["milestones"][milestone_id]
@@ -1102,7 +1102,7 @@ class MilestoneCommand(BaseCommand):
         console = self.console
 
         console.print(Panel(
-            "[bold cyan]🏆 TinyTorch Milestones[/bold cyan]\n\n"
+            "[bold cyan]🏆 TrenTorch Milestones[/bold cyan]\n\n"
             "[dim]Recreate ML history from 1958 to 2018[/dim]",
             title="Available Milestones",
             border_style="bright_cyan"
@@ -1310,7 +1310,7 @@ class MilestoneCommand(BaseCommand):
             for module_num in required_modules:
                 console.print(f"  [green]✓[/green] Module {module_num:02d} exports available")
 
-            console.print(f"\n[green]✅ YOUR Tiny🔥Torch is ready![/green]\n")
+            console.print(f"\n[green]✅ YOUR Tren🔥Torch is ready![/green]\n")
 
         # Show milestone banner
         scripts_info = ""
@@ -1339,7 +1339,7 @@ class MilestoneCommand(BaseCommand):
             f"[bold]🎯 What You'll Do:[/bold]\n"
             f"{milestone['description']}\n\n"
             f"{scripts_info}\n\n"
-            f"[dim]All code uses YOUR Tiny🔥Torch implementations![/dim]",
+            f"[dim]All code uses YOUR Tren🔥Torch implementations![/dim]",
             title=f"🏆 Milestone {milestone_id} ({milestone['year']})",
             border_style="bright_magenta",
             padding=(1, 2)

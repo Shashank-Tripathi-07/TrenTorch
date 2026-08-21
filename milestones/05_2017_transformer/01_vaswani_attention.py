@@ -110,13 +110,13 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, os.getcwd())
 
-# Import TinyTorch components YOU BUILT!
-from tinytorch import Tensor, Linear, ReLU, CrossEntropyLoss
-from tinytorch.core.optimizers import Adam
-from tinytorch.core.dataloader import Dataset, DataLoader  # Module 05: YOUR DataLoader!
-from tinytorch.core.embeddings import Embedding, PositionalEncoding
-from tinytorch.core.attention import MultiHeadAttention
-from tinytorch.core.transformers import LayerNorm
+# Import TrenTorch components YOU BUILT!
+from trentorch import Tensor, Linear, ReLU, CrossEntropyLoss
+from trentorch.core.optimizers import Adam
+from trentorch.core.dataloader import Dataset, DataLoader  # Module 05: YOUR DataLoader!
+from trentorch.core.embeddings import Embedding, PositionalEncoding
+from trentorch.core.attention import MultiHeadAttention
+from trentorch.core.transformers import LayerNorm
 
 # Rich for beautiful output
 from rich.console import Console
@@ -128,7 +128,7 @@ from rich import box
 console = Console()
 
 # =============================================================================
-# 🎯 YOUR TINYTORCH MODULES IN ACTION
+# 🎯 YOUR TRENTORCH MODULES IN ACTION
 # =============================================================================
 #
 # This milestone showcases YOUR attention and transformer modules:

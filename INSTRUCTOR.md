@@ -1,10 +1,10 @@
-# 👩‍🏫 TinyTorch Instructor Guide
+# 👩‍🏫 TrenTorch Instructor Guide
 
-Complete guide for teaching ML Systems Engineering with TinyTorch.
+Complete guide for teaching ML Systems Engineering with TrenTorch.
 
 ## 🎯 Course Overview
 
-TinyTorch teaches ML systems engineering through building, not just using. Students construct a complete ML framework from tensors to transformers, understanding memory, performance, and scaling at each step.
+TrenTorch teaches ML systems engineering through building, not just using. Students construct a complete ML framework from tensors to transformers, understanding memory, performance, and scaling at each step.
 
 ## 🛠️ Instructor Setup
 
@@ -12,7 +12,7 @@ TinyTorch teaches ML systems engineering through building, not just using. Stude
 ```bash
 # Clone and setup
 git clone https://github.com/harvard-edge/cs249r_book.git
-cd cs249r_book/tinytorch
+cd cs249r_book/trentorch
 
 # Virtual environment (MANDATORY)
 python -m venv .venv
@@ -41,16 +41,16 @@ tren nbgrader
 ## 📝 Assignment Workflow
 
 ### **NBGrader Scope**
-NBGrader is instructor/developer tooling. TinyTorch stages notebooks into nbgrader's expected assignment layout; nbgrader itself handles release notebook generation, collection, autograding, feedback, and grade export.
+NBGrader is instructor/developer tooling. TrenTorch stages notebooks into nbgrader's expected assignment layout; nbgrader itself handles release notebook generation, collection, autograding, feedback, and grade export.
 
-Tren owns TinyTorch-specific staging. It keeps the existing grading policy from source metadata, and it only treats regions delimited by `### BEGIN SOLUTION` / `### END SOLUTION` as removable solution content. Setup, import, demo, and visible-check cells without those markers are kept in the student release and locked when staged.
+Tren owns TrenTorch-specific staging. It keeps the existing grading policy from source metadata, and it only treats regions delimited by `### BEGIN SOLUTION` / `### END SOLUTION` as removable solution content. Setup, import, demo, and visible-check cells without those markers are kept in the student release and locked when staged.
 
 ### **Using NBGrader via Tren**
 We provide `tren nbgrader` commands for grading workflows.
 
 ### **1. Prepare Assignments**
 ```bash
-# Stage instructor source assignment from the generated TinyTorch notebook
+# Stage instructor source assignment from the generated TrenTorch notebook
 tren nbgrader generate 01_tensor
 
 # Create student release notebook with solutions removed
@@ -62,7 +62,7 @@ tren nbgrader release 01_tensor
 ### **2. Distribute to Students**
 ```bash
 # Option A: GitHub Classroom (recommended)
-# 1. Create assignment repository from TinyTorch
+# 1. Create assignment repository from TrenTorch
 # 2. Add the files generated under assignments/release/
 # 3. Students clone and work
 
@@ -582,4 +582,4 @@ ls submitted/*/MODULE/
 
 ---
 
-**Need help? Open an issue or contact the TinyTorch team!**
+**Need help? Open an issue or contact the TrenTorch team!**

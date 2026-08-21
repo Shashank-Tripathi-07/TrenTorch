@@ -1,7 +1,7 @@
-# TinyTorch Regression Tests
+# TrenTorch Regression Tests
 ## Ensuring Core Infrastructure Works Correctly
 
-This directory contains regression tests that ensure TinyTorch's core functionality works correctly so students don't get stuck on infrastructure issues.
+This directory contains regression tests that ensure TrenTorch's core functionality works correctly so students don't get stuck on infrastructure issues.
 
 ---
 
@@ -33,7 +33,7 @@ pytest tests/regression/test_issue_20241125_conv_fc_shapes.py -v
 
 ### Run with Coverage
 ```bash
-pytest tests/regression/ --cov=tinytorch --cov-report=html
+pytest tests/regression/ --cov=trentorch --cov-report=html
 ```
 
 ---

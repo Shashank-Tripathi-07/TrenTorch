@@ -1,5 +1,5 @@
 """
-Tiny🔥Torch Community Commands
+Tren🔥Torch Community Commands
 
 Login, profile, and community status tools.
 """
@@ -17,8 +17,8 @@ from ..core.modules import get_module_mapping
 from ..core.submission import SubmissionHandler
 
 # Community URLs
-URL_COMMUNITY_MAP = "https://mlsysbook.ai/tinytorch/community/community.html"
-URL_COMMUNITY_PROFILE = "https://mlsysbook.ai/tinytorch/community/?action=profile&community=true"
+URL_COMMUNITY_MAP = "https://mlsysbook.ai/trentorch/community/community.html"
+URL_COMMUNITY_PROFILE = "https://mlsysbook.ai/trentorch/community/?action=profile&community=true"
 
 
 class CommunityCommand(BaseCommand):
@@ -43,14 +43,14 @@ class CommunityCommand(BaseCommand):
         # Login command (delegates to LoginCommand)
         login_parser = subparsers.add_parser(
             'login',
-            help='Log in to TinyTorch via web browser'
+            help='Log in to TrenTorch via web browser'
         )
         LoginCommand(self.config).add_arguments(login_parser)
 
         # Logout command (delegates to LogoutCommand)
         logout_parser = subparsers.add_parser(
             'logout',
-            help='Log out of TinyTorch'
+            help='Log out of TrenTorch'
         )
         LogoutCommand(self.config).add_arguments(logout_parser)
 
@@ -75,7 +75,7 @@ class CommunityCommand(BaseCommand):
         # Sync command
         subparsers.add_parser(
             'sync',
-            help='Upload your local progress to the TinyTorch website'
+            help='Upload your local progress to the TrenTorch website'
         )
 
     def _show_status(self) -> int:
@@ -95,7 +95,7 @@ class CommunityCommand(BaseCommand):
 
             self.console.print(Panel(
                 table,
-                title="👤 TinyTorch Community ID",
+                title="👤 TrenTorch Community ID",
                 border_style="green",
                 box=box.ROUNDED
             ))

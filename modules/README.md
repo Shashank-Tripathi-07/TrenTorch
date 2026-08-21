@@ -1,4 +1,4 @@
-# TinyTorch Modules
+# TrenTorch Modules
 
 Your workspace for building ML systems from scratch.
 

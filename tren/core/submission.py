@@ -2,7 +2,7 @@
 Handles data aggregation and submission to the Supabase Edge Function.
 
 This version is refactored into a class-based handler that integrates
-with the TinyTorch CLI's config and console objects, using only standard libraries.
+with the TrenTorch CLI's config and console objects, using only standard libraries.
 """
 import json
 import os
@@ -159,7 +159,7 @@ class SubmissionHandler:
         return payload
 
     def sync_progress(self, total_modules: int = 20, is_retry: bool = False) -> SyncResult:
-        """Assemble local progress and upload it to the TinyTorch backend.
+        """Assemble local progress and upload it to the TrenTorch backend.
 
         Returns a :class:`SyncResult`. Callers should check ``result.ok``;
         ``SyncResult.__bool__`` returns ``result.ok`` so ``if result:`` still
@@ -207,7 +207,7 @@ class SubmissionHandler:
             return SyncResult(ok=False, error=f"payload assembly failed: {e}")
 
         if not is_retry:
-            self.console.print("🚀 Syncing with TinyTorch Cloud...")
+            self.console.print("🚀 Syncing with TrenTorch Cloud...")
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -307,7 +307,7 @@ class SubmissionHandler:
 
 def auto_sync_after_completion(config: CLIConfig, console: Console, *,
                                total_modules: int = 20,
-                               prompt: str = "Sync your progress to the TinyTorch website?") -> Optional[SyncResult]:
+                               prompt: str = "Sync your progress to the TrenTorch website?") -> Optional[SyncResult]:
     """Shared auto-sync used after a module or milestone completes (and on login).
 
     This is the single decision point for *whether* an automatic sync runs, so
@@ -328,7 +328,7 @@ def auto_sync_after_completion(config: CLIConfig, console: Console, *,
         return None
 
     if not auth.is_logged_in():
-        console.print("[dim]💡 Run 'tren community login' to sync your progress to the TinyTorch website.[/dim]")
+        console.print("[dim]💡 Run 'tren community login' to sync your progress to the TrenTorch website.[/dim]")
         return None
 
     if runtime.is_interactive():
@@ -337,6 +337,6 @@ def auto_sync_after_completion(config: CLIConfig, console: Console, *,
             return None
     else:
         # No usable TTY to prompt on, but a logged-in real user -> sync quietly.
-        console.print("[dim]Syncing your progress to the TinyTorch website…[/dim]")
+        console.print("[dim]Syncing your progress to the TrenTorch website…[/dim]")
 
     return SubmissionHandler(config, console).sync_progress(total_modules=total_modules)

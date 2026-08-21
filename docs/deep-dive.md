@@ -1,15 +1,15 @@
-# TinyTorch: How It Actually Works, From First Principles
+# TrenTorch: How It Actually Works, From First Principles
 
-*Every claim in this document is sourced from reading the actual code: `quarto/install.sh`, `bin/tren`, `tren/main.py`, `tren/core/*.py`, `tren/commands/**/*.py`, `pyproject.toml`, `requirements.txt`, and `tinytorch/__init__.py`, cross-checked against a real, install.sh-created TinyTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `install.sh` and `tren` source verbatim, so the mechanics below are still accurate to this fork's code, except that the install URL, the repo it clones, and the community backend it can optionally talk to (Part 6) are still hardcoded to upstream's own infrastructure, not this fork's.*
+*Every claim in this document is sourced from reading the actual code: `quarto/install.sh`, `bin/tren`, `tren/main.py`, `tren/core/*.py`, `tren/commands/**/*.py`, `pyproject.toml`, `requirements.txt`, and `trentorch/__init__.py`, cross-checked against a real, install.sh-created TrenTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `install.sh` and `tren` source verbatim, so the mechanics below are still accurate to this fork's code, except that the install URL, the repo it clones, and the community backend it can optionally talk to (Part 6) are still hardcoded to upstream's own infrastructure, not this fork's.*
 
 ---
 
 ## Part 1: Before Anything Runs, The Install
 
-Nothing about TinyTorch exists on a user's machine until they run one command:
+Nothing about TrenTorch exists on a user's machine until they run one command:
 
 ```text
-curl -sSL mlsysbook.ai/tinytorch/install.sh | bash
+curl -sSL mlsysbook.ai/trentorch/install.sh | bash
 ```
 
 This pipes a single Bash script (`quarto/install.sh`, 874 lines) into a shell. Nothing else is downloaded first. The script itself is small (tens of KB); everything else it does is described below, step by step, matching `main()` at the bottom of the file. **This URL is upstream's**; this fork's copy of the script still points at the upstream repository until it's repointed at TrenTorch's own.
@@ -58,13 +58,13 @@ If a step never finishes and hits its ceiling, the script prints a specific, dia
       │  This is a SPARSE, SHALLOW, BLOB-FILTERED clone: depth 1 means no
       │  git history, --filter=blob:none defers downloading file contents
       │  until sparse-checkout narrows the tree, and --sparse means only
-      │  the tinytorch/ subdirectory of the whole monorepo actually lands
+      │  the trentorch/ subdirectory of the whole monorepo actually lands
       │  on disk. The user never downloads the textbook, the hardware kit
       │  recipes, the labs, or any other sibling project in this repo.
       │
       ▼
-      git sparse-checkout set tinytorch
-      mv <tmp>/repo/tinytorch  ./tinytorch      (or the user's chosen name)
+      git sparse-checkout set trentorch
+      mv <tmp>/repo/trentorch  ./trentorch      (or the user's chosen name)
       rm -rf <tmp>
       │
       │  Then a cleanup pass removes ~20 developer-only paths that a
@@ -76,7 +76,7 @@ If a step never finishes and hits its ceiling, the script prints a specific, dia
       │  modules/ is emptied (populated later by tren, not shipped
       │  pre-built). progress.json and .tren/ are deleted (a student
       │  starts with zero progress, even if the branch being cloned
-      │  happens to have stale tracking files in it). tinytorch/core/*.py
+      │  happens to have stale tracking files in it). trentorch/core/*.py
       │  is deleted except __init__.py. This is the critical one: the
       │  package a student receives has NO implementations in it yet.
       │  Every core/*.py file the package needs is something the student
@@ -107,7 +107,7 @@ If a step never finishes and hits its ceiling, the script prints a specific, dia
 Measured directly on a real installed environment (not estimated):
 
 ```text
-tinytorch/                                          ~339 MB total (after all
+trentorch/                                          ~339 MB total (after all
 ├── .venv/                              ~296 MB     20 modules are built,
 │   └── Lib/site-packages/                          a fresh install before
 │       ├── debugpy/          31.2 MB                any module work is
@@ -128,7 +128,7 @@ tinytorch/                                          ~339 MB total (after all
 │                                                     per module, only when
 │                                                     `tren module start N`
 │                                                     runs (Part 3).
-├── tinytorch/                           ~1 MB       the actual Python
+├── trentorch/                           ~1 MB       the actual Python
 │   ├── core/                                        PACKAGE. At install
 │   │   └── __init__.py   (only this file)           time, core/ has nothing
 │   └── __init__.py                                  but __init__.py files,
@@ -149,7 +149,7 @@ tinytorch/                                          ~339 MB total (after all
 └── README.md, LICENSE
 ```
 
-The `.venv/` directory alone is roughly **87% of the total install size**. The actual curriculum content a student edits (`src/`) is under 2 MB. This is worth internalizing: almost the entire disk footprint is dependency packages (numpy's compiled math libraries, JupyterLab's web frontend, a debugger), not TinyTorch's own code.
+The `.venv/` directory alone is roughly **87% of the total install size**. The actual curriculum content a student edits (`src/`) is under 2 MB. This is worth internalizing: almost the entire disk footprint is dependency packages (numpy's compiled math libraries, JupyterLab's web frontend, a debugger), not TrenTorch's own code.
 
 ### 1.4 Two ways to invoke `tren` (this matters for understanding "how it runs")
 
@@ -172,7 +172,7 @@ Path B: bin/tren (a plain Python script, no pip install required)
 ────────────────────────────────────────────────────────────────────
   python bin/tren <command>
         │
-        │  Explicitly computes tinytorch_root from its own file location
+        │  Explicitly computes trentorch_root from its own file location
         │  (two directories up from bin/tren), inserts it at the FRONT
         │  of sys.path, and os.chdir()'s into it before importing
         │  anything, so `Path.cwd()`-based logic throughout the CLI
@@ -189,7 +189,7 @@ Both paths converge on the exact same `main()`, the difference is only in how `s
 
 ## Part 2: What Happens Every Single Time You Type `tren ...`
 
-Before any subcommand's own logic runs, `tren/main.py`'s `TinyTorchCLI` does the same fixed sequence, every time, regardless of which command was typed.
+Before any subcommand's own logic runs, `tren/main.py`'s `TrenTorchCLI` does the same fixed sequence, every time, regardless of which command was typed.
 
 ```text
                           $ tren module start 01
@@ -206,7 +206,7 @@ Before any subcommand's own logic runs, `tren/main.py`'s `TinyTorchCLI` does the
                                     │
                                     ▼
 ┌───────────────────────────────────────────────────────────────────────┐
-│ 2. TinyTorchCLI() constructed                                          │
+│ 2. TrenTorchCLI() constructed                                          │
 │    - CLIConfig.from_project_root(): walks UP from cwd looking for a    │
 │      pyproject.toml to decide where "the project" is. If none is       │
 │      found anywhere up the tree, falls back to plain cwd.              │
@@ -425,7 +425,7 @@ This is the command that actually turns a student's edited notebook into working
 │   pass; running the plain .py file means this step needs no jupytext   │
 │   conversion and no exported package, it's the fastest possible      │
 │   feedback loop. PYTHONPATH is set to include project_root so the      │
-│   script can import tinytorch.core.* (from anything ALREADY exported   │
+│   script can import trentorch.core.* (from anything ALREADY exported   │
 │   by earlier modules). If this step fails: STOP. Nothing past this     │
 │   point runs.                                                          │
 └────────────────────────────────────────────────────────────────────────┘
@@ -452,12 +452,12 @@ This is the command that actually turns a student's edited notebook into working
 │                                   real code generation]                 │
 │                                                                          │
 │   from nbdev.export import nb_export                                    │
-│   nb_export(modules/01_tensor/tensor.ipynb, lib_path=tinytorch/)        │
+│   nb_export(modules/01_tensor/tensor.ipynb, lib_path=trentorch/)        │
 │                                                                          │
 │   nbdev reads the notebook's cells looking for `#| export` markers      │
 │   (present in every code cell the student is meant to keep) and the    │
 │   `#| default_exp core.tensor` directive at the top of the source, and  │
-│   writes tinytorch/core/tensor.py, REAL PYTHON SOURCE, generated      │
+│   writes trentorch/core/tensor.py, REAL PYTHON SOURCE, generated      │
 │   fresh from the notebook's cell contents, not a copy of anything.      │
 │                                                                          │
 │   Verification (not part of nbdev itself, added on top): confirms the  │
@@ -476,7 +476,7 @@ This is the command that actually turns a student's edited notebook into working
 │                    "-v", "--tb=short"])                                 │
 │                                                                          │
 │   This is the FIRST point in the whole pipeline that imports FROM       │
-│   THE REAL, JUST-EXPORTED tinytorch.core.tensor, Steps 1 and 1.5      │
+│   THE REAL, JUST-EXPORTED trentorch.core.tensor, Steps 1 and 1.5      │
 │   never touch the package at all. Deliberately ordered AFTER export     │
 │   (comment in the code is explicit about this): these tests exist to   │
 │   prove the exported package actually works, not just that the         │
@@ -539,14 +539,14 @@ There are exactly two file-format conversions in this whole system, and they run
 └──────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────┐
-│  CONVERSION B: nbdev (modules/*.ipynb  ->  tinytorch/**/*.py)       │
+│  CONVERSION B: nbdev (modules/*.ipynb  ->  trentorch/**/*.py)       │
 │  ─────────────────────────────────────────────────────────────    │
 │  WHEN:    tren module complete N   (every single time, not just    │
 │           once)                                                     │
 │  RUNS AS: an in-process Python function call (nb_export)           │
 │  READS:   the STUDENT's edited modules/NN_name/name.ipynb          │
-│  WRITES:  tinytorch/core/name.py (or perf/, or olympics/),  the  │
-│           real Python package a student can `import tinytorch`     │
+│  WRITES:  trentorch/core/name.py (or perf/, or olympics/),  the  │
+│           real Python package a student can `import trentorch`     │
 │  PURPOSE: turn the student's notebook cells marked `#| export`     │
 │           into a real, importable module, EVERY time they complete │
 │           the module (so re-running `complete` after a fix         │
@@ -554,7 +554,7 @@ There are exactly two file-format conversions in this whole system, and they run
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-Confusing these two is exactly the mistake the docs call out explicitly: `tren module test N` alone never runs Conversion B, only `tren module complete N` does. A student who tests repeatedly but never runs `complete` never actually gets their work into `tinytorch/`.
+Confusing these two is exactly the mistake the docs call out explicitly: `tren module test N` alone never runs Conversion B, only `tren module complete N` does. A student who tests repeatedly but never runs `complete` never actually gets their work into `trentorch/`.
 
 There is a **third**, separate export path, `tren dev export`, that a developer/maintainer uses to rebuild the *entire curriculum* by running Conversion A for every module (overwriting student notebooks, which `module start`'s version deliberately never does) and then Conversion B for every module. This is explicitly a maintainer tool, not part of the student loop.
 
@@ -645,7 +645,7 @@ The response handling is deliberately stricter than a normal "2xx = success" che
 
 ## Part 7: The Test Gatekeeper, Why `conftest.py` Exists At All
 
-This is the single most important defensive mechanism in the whole codebase, and it exists because of a specific, structural danger in how `tinytorch/__init__.py` is written:
+This is the single most important defensive mechanism in the whole codebase, and it exists because of a specific, structural danger in how `trentorch/__init__.py` is written:
 
 ```python
 try:
@@ -654,19 +654,19 @@ except ImportError:
     Tensor = None
 ```text
 
-Every one of the 20 module imports in `tinytorch/__init__.py` follows this exact pattern. It has to: a student who has only completed 3 of 20 modules needs `import tinytorch` to work at all, not crash because module 15 doesn't exist yet. But the cost of that design is real: **if a module's export is broken or missing, `Tensor` silently becomes `None` instead of raising an error.** A test that does `assert Tensor is not None` correctly catches this, but a test that does something like `x = Tensor([1,2,3])` when `Tensor` is `None` raises a plain `TypeError: 'NoneType' object is not callable`, which is a confusing failure that doesn't point at the real cause. Worse, a badly-written test that doesn't actually exercise the imported symbol can pass vacuously while testing nothing.
+Every one of the 20 module imports in `trentorch/__init__.py` follows this exact pattern. It has to: a student who has only completed 3 of 20 modules needs `import trentorch` to work at all, not crash because module 15 doesn't exist yet. But the cost of that design is real: **if a module's export is broken or missing, `Tensor` silently becomes `None` instead of raising an error.** A test that does `assert Tensor is not None` correctly catches this, but a test that does something like `x = Tensor([1,2,3])` when `Tensor` is `None` raises a plain `TypeError: 'NoneType' object is not callable`, which is a confusing failure that doesn't point at the real cause. Worse, a badly-written test that doesn't actually exercise the imported symbol can pass vacuously while testing nothing.
 
 `tests/conftest.py`'s `pytest_configure` hook runs **before any test in the whole suite**. As of the current `dev` branch, here is exactly what it checks, no more and no less:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ Check 1: do these four specific files exist?                      │
-│   tinytorch/core/tensor.py                                        │
-│   tinytorch/core/activations.py                                   │
-│   tinytorch/core/layers.py                                        │
-│   tinytorch/core/losses.py                                        │
+│   trentorch/core/tensor.py                                        │
+│   trentorch/core/activations.py                                   │
+│   trentorch/core/layers.py                                        │
+│   trentorch/core/losses.py                                        │
 │                                                                     │
-│ Check 2: `from tinytorch import Tensor`, is Tensor None?            │
+│ Check 2: `from trentorch import Tensor`, is Tensor None?            │
 │                                                                     │
 │ Check 3: is Tensor actually instantiable, not just importable?     │
 │   t = Tensor([1, 2, 3])                                            │
@@ -682,7 +682,7 @@ Every one of the 20 module imports in `tinytorch/__init__.py` follows this exact
 
 An open, unmerged pull request (harvard-edge/cs249r_book#2023) proposes replacing this with a full 20-module registry and a two-tier hard/soft strategy (foundational modules 01-04 still hard-fail; modules 05-20 would get a non-blocking stderr warning instead of no check at all). That is a real, reviewed, but not-yet-merged change, described here so it isn't confused with what's actually running today.
 
-This can be bypassed entirely with `TINYTORCH_SKIP_EXPORT_CHECK=1`, used by the codebase's own test suite so that testing other things doesn't trigger this gate recursively.
+This can be bypassed entirely with `TRENTORCH_SKIP_EXPORT_CHECK=1`, used by the codebase's own test suite so that testing other things doesn't trigger this gate recursively.
 
 ---
 
@@ -730,7 +730,7 @@ A direct answer to "what actually uses CPU/memory/disk/network," per command fam
 └────────────────────────┴──────┴────────┴─────────┴──────────────────────────┘
 ```text
 
-Nothing in this system uses a GPU. `numpy` is the only numerical dependency (`requirements.txt`), and every tensor operation a student implements runs on the CPU via NumPy's own (typically multi-threaded, BLAS-backed) array operations, the CPU cost scales with whatever NumPy operations a student's own code calls, not anything TinyTorch adds on top.
+Nothing in this system uses a GPU. `numpy` is the only numerical dependency (`requirements.txt`), and every tensor operation a student implements runs on the CPU via NumPy's own (typically multi-threaded, BLAS-backed) array operations, the CPU cost scales with whatever NumPy operations a student's own code calls, not anything TrenTorch adds on top.
 
 ---
 
@@ -822,7 +822,7 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │                               │<─────────────────────────────── │
   │ [confirms install location]   │                                 │
   ├──────────────────────────────>│                                 │
-  │                               │  git clone --sparse ────────────>│  the tinytorch/
+  │                               │  git clone --sparse ────────────>│  the trentorch/
   │                               │<──────────────────────────────── │  subtree only
   │                               │  rm dev-only files, clear        │
   │                               │  modules/, clear core/*.py       │
@@ -831,7 +831,7 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │                               │  pip install -e .                │
   │                               │  [~300 MB now on disk]           │
   │                               │                                 │
-  │ cd tinytorch && activate       │                                 │
+  │ cd trentorch && activate       │                                 │
   │ tren setup                    │                                 │
   ├──────────────────────────────>│  venv guard PASSES (activated)  │
   │                               │  create profile, verify env      │
@@ -856,7 +856,7 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │                               │  Step 1.5: compile() every code  │
   │                               │  cell in the STUDENT's notebook  │
   │                               │  Step 2: nb_export(), writes   │
-  │                               │  REAL tinytorch/core/tensor.py   │
+  │                               │  REAL trentorch/core/tensor.py   │
   │                               │  from the student's cells        │
   │                               │  Step 3: pytest against the      │
   │                               │  JUST-EXPORTED package           │
@@ -877,14 +877,14 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │                               │  subprocess.run() the actual      │
   │                               │  milestone Python script,         │
   │                               │  importing student's REAL, now-  │
-  │                               │  exported tinytorch package       │
+  │                               │  exported trentorch package       │
   │                               │  update .tren/milestones.json    │
   │                               │                                 │
   │ [after module 20 completes]   │                                 │
   │                               │  20/20 completed, all 6           │
   │                               │  milestones unlockable            │
   │                               │  student now has a real,          │
-  │                               │  importable `tinytorch` package,  │
+  │                               │  importable `trentorch` package,  │
   │                               │  built entirely from their own    │
   │                               │  code, entirely on their own      │
   │                               │  CPU, with zero network calls     │
@@ -901,5 +901,5 @@ Tying every part above into one linear trace, from a user's very first keystroke
 4. **`module complete`**: a strict four-step pipeline (instructor-reference unit tests, notebook syntax check, real `nbdev` export of the student's own cells into a real Python file, then pytest against that just-exported package) where any failure stops everything before progress is ever recorded.
 5. **Two separate conversions** exist and are easy to confuse: `jupytext` runs once, source→notebook, at `start` time; `nbdev` runs every time, notebook→package, at `complete` time.
 6. **Network calls are rare and optional**: install itself, an optional login, an optional progress sync, and an optional update check, the entire 20-module curriculum works completely offline.
-7. **The test gatekeeper exists because of a specific danger**: `tinytorch/__init__.py`'s `try/except ImportError: X = None` pattern means a broken export can silently become `None` instead of an error, so `conftest.py` hard-fails the whole test session if the four foundational modules aren't properly exported before any test runs; modules 05-20 aren't covered by this check yet (a fix that would extend it to all 20 is open, unmerged).
+7. **The test gatekeeper exists because of a specific danger**: `trentorch/__init__.py`'s `try/except ImportError: X = None` pattern means a broken export can silently become `None` instead of an error, so `conftest.py` hard-fails the whole test session if the four foundational modules aren't properly exported before any test runs; modules 05-20 aren't covered by this check yet (a fix that would extend it to all 20 is open, unmerged).
 8. **No GPU is used anywhere**; every operation is either pure Python/JSON bookkeeping, a subprocess (`jupytext`, `pytest`, a plain `python` script, `jupyter lab`), or NumPy math on the CPU.

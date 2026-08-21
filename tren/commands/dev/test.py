@@ -1,5 +1,5 @@
 """
-Unified Developer Test Command for TinyTorch.
+Unified Developer Test Command for TrenTorch.
 
 Simple, explicit test types:
     tren dev test                 # Default: unit tests
@@ -176,7 +176,7 @@ class DevTestCommand(BaseCommand):
                 f"  [bold]-m N[/bold]               Test specific module\n"
                 f"  [bold]--no-build[/bold]         Skip export (assume already built)\n"
                 f"  [bold]--ci[/bold]               JSON output for automation",
-                title="🔥 TinyTorch Developer Tests",
+                title="🔥 TrenTorch Developer Tests",
                 border_style="cyan"
             ))
             console.print()
@@ -312,7 +312,7 @@ class DevTestCommand(BaseCommand):
         try:
             result = subprocess.run(
                 [sys.executable, "-c",
-                 "from tinytorch import Tensor; assert Tensor is not None"],
+                 "from trentorch import Tensor; assert Tensor is not None"],
                 cwd=project_root,
                 capture_output=True,
                 timeout=10
@@ -326,9 +326,9 @@ class DevTestCommand(BaseCommand):
 
         This runs 'tren dev export --all' which:
         1. Converts src/*.py → modules/*.ipynb (jupytext)
-        2. Runs nbdev_export to copy code to tinytorch/core/
+        2. Runs nbdev_export to copy code to trentorch/core/
 
-        This ensures the full tinytorch package is available for testing.
+        This ensures the full trentorch package is available for testing.
         Note: This does NOT run inline tests - use --inline for that.
         """
         start = time.time()
@@ -341,7 +341,7 @@ class DevTestCommand(BaseCommand):
 
         try:
             # Use 'dev export --all' to build the package from src/
-            # This creates notebooks and exports to tinytorch/core/
+            # This creates notebooks and exports to trentorch/core/
             cmd = [sys.executable, str(project_root / "bin" / "tren"), "dev", "export", "--all"]
 
             if ci_mode:
@@ -433,7 +433,7 @@ class DevTestCommand(BaseCommand):
             )
 
         # Set up environment with project root in PYTHONPATH
-        # This allows tests to import from tinytorch.core.*
+        # This allows tests to import from trentorch.core.*
         env = os.environ.copy()
         pythonpath = env.get('PYTHONPATH', '')
         if pythonpath:
@@ -615,7 +615,7 @@ class DevTestCommand(BaseCommand):
         This simulates the student journey:
         1. For each module in order (01 → 20):
            a. Run inline tests from src/XX_module/XX_module.py
-           b. If tests pass, export to tinytorch/core/
+           b. If tests pass, export to trentorch/core/
            c. If tests fail, stop and report
         """
         from ...core.modules import get_module_mapping
@@ -693,7 +693,7 @@ class DevTestCommand(BaseCommand):
                     print("✗ EXPORT TIMEOUT")
                 break
 
-            # Step 2: Run module complete (tests + copy to tinytorch/core/)
+            # Step 2: Run module complete (tests + copy to trentorch/core/)
             try:
                 result = subprocess.run(
                     [sys.executable, str(project_root / "bin" / "tren"),
@@ -821,7 +821,7 @@ class DevTestCommand(BaseCommand):
         """Run full user journey validation (destructive).
 
         This simulates exactly what a user does:
-        1. Reset (clear modules/ and tinytorch/core/) - like fresh install
+        1. Reset (clear modules/ and trentorch/core/) - like fresh install
         2. For each module:
            a. tren module start XX --no-jupyter (creates notebook)
            b. tren module complete XX (tests + exports)
@@ -874,8 +874,8 @@ class DevTestCommand(BaseCommand):
                     if item.is_dir() and item.name[0].isdigit():
                         shutil.rmtree(item)
 
-            # Clear tinytorch/core/ (remove all .py except __init__.py)
-            core_dir = project_root / "tinytorch" / "core"
+            # Clear trentorch/core/ (remove all .py except __init__.py)
+            core_dir = project_root / "trentorch" / "core"
             if core_dir.exists():
                 for py_file in core_dir.glob("*.py"):
                     if py_file.name != "__init__.py":
@@ -956,7 +956,7 @@ class DevTestCommand(BaseCommand):
                     print(f"  └─ MODULE {module_num}: FAILED (start error)")
                 continue
 
-            # Step B: tren module complete (tests + exports notebook to tinytorch/core/)
+            # Step B: tren module complete (tests + exports notebook to trentorch/core/)
             if ci_mode:
                 print(f"  │  → Step 2: tren module complete {module_num}", end=" ", flush=True)
             try:

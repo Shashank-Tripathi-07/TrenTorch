@@ -29,8 +29,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
-from tinytorch.core.tensor import Tensor
+from trentorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
+from trentorch.core.tensor import Tensor
 
 
 class TestReLUActivation:

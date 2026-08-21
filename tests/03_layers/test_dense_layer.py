@@ -17,12 +17,12 @@ class TestLinearExports:
 
     def test_dense_import(self):
         """Test Linear can be imported from correct location."""
-        from tinytorch.core.layers import Linear
+        from trentorch.core.layers import Linear
         assert Linear is not None
 
     def test_dense_creation(self):
         """Test Linear layer can be created."""
-        from tinytorch.core.layers import Linear
+        from trentorch.core.layers import Linear
         layer = Linear(10, 5)
         assert layer.weight.shape == (10, 5)
 
@@ -32,8 +32,8 @@ class TestLinearForward:
 
     def test_forward_shape(self):
         """Test output shape is correct."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
 
         layer = Linear(10, 5)
         x = Tensor(rng.standard_normal((32, 10)))
@@ -43,8 +43,8 @@ class TestLinearForward:
 
     def test_forward_with_bias(self):
         """Test forward pass with bias."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
 
         layer = Linear(10, 5, bias=True)
         x = Tensor(np.zeros((1, 10)))
@@ -55,8 +55,8 @@ class TestLinearForward:
 
     def test_forward_without_bias(self):
         """Test forward pass without bias."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
 
         layer = Linear(10, 5, bias=False)
         x = Tensor(np.zeros((1, 10)))
@@ -71,8 +71,8 @@ class TestLinearIntegration:
 
     def test_dense_with_tensor(self):
         """Test Linear works with Tensor (Module 02)."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
 
         layer = Linear(10, 5)
 
@@ -83,9 +83,9 @@ class TestLinearIntegration:
 
     def test_dense_with_activations(self):
         """Test Linear works with activations (Module 03)."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.activations import ReLU, Sigmoid
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.tensor import Tensor
 
         layer = Linear(10, 5)
         relu = ReLU()
@@ -102,8 +102,8 @@ class TestLinearIntegration:
 
     def test_dense_chain(self):
         """Test chaining multiple Linear layers."""
-        from tinytorch.core.layers import Linear
-        from tinytorch.core.tensor import Tensor
+        from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
 
         layer1 = Linear(784, 128)
         layer2 = Linear(128, 64)

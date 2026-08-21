@@ -1,5 +1,5 @@
 """
-Module Test Command for TinyTorch CLI.
+Module Test Command for TrenTorch CLI.
 
 Provides comprehensive module testing functionality:
 - Run individual module tests with educational output
@@ -14,7 +14,7 @@ TESTING PHILOSOPHY:
 ==================
 When a student runs `tren module test 05`, we want them to understand:
 1. Does my implementation work? (Inline tests)
-2. Does it handle edge cases? (Module tests with --tinytorch)
+2. Does it handle edge cases? (Module tests with --trentorch)
 3. Does it integrate correctly with previous modules? (Integration tests)
 
 Each phase builds confidence and understanding.
@@ -137,7 +137,7 @@ class ModuleTestCommand(BaseCommand):
         """
         Phase 2: Run pytest on module-specific tests with educational output.
 
-        These tests use the --tinytorch flag to provide WHAT/WHY context
+        These tests use the --trentorch flag to provide WHAT/WHY context
         for each test, helping students understand what's being checked.
         """
         console = self.console
@@ -148,12 +148,12 @@ class ModuleTestCommand(BaseCommand):
             return True, "No module-specific tests found"
 
         try:
-            # Run pytest with --tinytorch for educational output
+            # Run pytest with --trentorch for educational output
             # Use --no-cov to avoid root pyproject.toml coverage requirements
             cmd = [
                 sys.executable, "-m", "pytest",
                 str(tests_dir),
-                "--tinytorch",
+                "--trentorch",
                 "-v" if verbose else "-q",
                 "--tb=short",
                 "--no-cov",
@@ -257,7 +257,7 @@ class ModuleTestCommand(BaseCommand):
             cmd = [
                 sys.executable, "-m", "pytest",
                 *relevant_tests,
-                "--tinytorch",
+                "--trentorch",
                 "-v" if verbose else "-q",
                 "--tb=short",
                 "--no-cov",
@@ -475,7 +475,7 @@ class ModuleTestCommand(BaseCommand):
                 Panel(
                     f"[bold green]✅ ALL TESTS PASSED![/bold green]\n\n"
                     f"[green]Passed: {pass_count}/{total} modules[/green]\n\n"
-                    f"[bold]All TinyTorch modules are working correctly![/bold]",
+                    f"[bold]All TrenTorch modules are working correctly![/bold]",
                     title="🎉 Success",
                     border_style="green",
                 )

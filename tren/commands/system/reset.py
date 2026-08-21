@@ -1,9 +1,9 @@
 """
-System Reset Command for TinyTorch CLI.
+System Reset Command for TrenTorch CLI.
 
-Resets the TinyTorch development environment to a pristine state:
+Resets the TrenTorch development environment to a pristine state:
 - Clears modules/ directory (student notebooks)
-- Clears tinytorch/core/ (exported package code)
+- Clears trentorch/core/ (exported package code)
 - Optionally resets progress tracking
 
 This is useful for:
@@ -23,7 +23,7 @@ from ...core.modules import get_module_mapping
 
 
 class SystemResetCommand(BaseCommand):
-    """Command to reset TinyTorch to pristine state."""
+    """Command to reset TrenTorch to pristine state."""
 
     @property
     def name(self) -> str:
@@ -31,7 +31,7 @@ class SystemResetCommand(BaseCommand):
 
     @property
     def description(self) -> str:
-        return "Reset TinyTorch to pristine state"
+        return "Reset TrenTorch to pristine state"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add reset command arguments."""
@@ -63,7 +63,7 @@ class SystemResetCommand(BaseCommand):
                 "[bold red]⚠️  SYSTEM RESET[/bold red]\n\n"
                 "This will remove:\n"
                 "  • [bold]modules/[/bold] - All student notebooks (01_tensor/, 02_activations/, etc.)\n"
-                "  • [bold]tinytorch/core/[/bold] - All exported module code\n"
+                "  • [bold]trentorch/core/[/bold] - All exported module code\n"
                 + ("" if args.keep_progress else "  • [bold]Progress tracking[/bold] - Completion history\n") +
                 "\n"
                 "[dim]The src/ files remain untouched - you can rebuild everything with:[/dim]\n"
@@ -100,8 +100,8 @@ class SystemResetCommand(BaseCommand):
                     except Exception as e:
                         errors.append(f"modules/{item.name}: {e}")
 
-        # 2. Clear tinytorch/core/ (keep __init__.py)
-        core_dir = project_root / "tinytorch" / "core"
+        # 2. Clear trentorch/core/ (keep __init__.py)
+        core_dir = project_root / "trentorch" / "core"
         core_cleared = 0
         if core_dir.exists():
             for py_file in core_dir.glob("*.py"):
@@ -110,12 +110,12 @@ class SystemResetCommand(BaseCommand):
                         py_file.unlink()
                         core_cleared += 1
                     except Exception as e:
-                        errors.append(f"tinytorch/core/{py_file.name}: {e}")
+                        errors.append(f"trentorch/core/{py_file.name}: {e}")
 
         # 3. Reset progress (unless --keep-progress)
         progress_reset = False
         if not args.keep_progress:
-            progress_file = project_root / ".tinytorch" / "progress.json"
+            progress_file = project_root / ".trentorch" / "progress.json"
             if progress_file.exists():
                 try:
                     progress_file.unlink()

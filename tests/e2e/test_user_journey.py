@@ -1,5 +1,5 @@
 """
-End-to-End User Journey Tests for TinyTorch
+End-to-End User Journey Tests for TrenTorch
 
 These tests simulate the complete student experience:
 1. Fresh start (setup)
@@ -34,7 +34,7 @@ def run_tren(args: list, cwd: Optional[Path] = None, timeout: int = 60) -> Tuple
     import os
     cmd = [sys.executable, "-m", "tren.main"] + args
     env = os.environ.copy()
-    env["TITO_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
+    env["TREN_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
     result = subprocess.run(
         cmd,
         cwd=cwd or PROJECT_ROOT,
@@ -80,7 +80,7 @@ class TestQuickVerification:
         """'tren --version' shows version."""
         code, stdout, stderr = run_tren(["--version"])
         assert code == 0
-        assert "Tiny" in stdout or "CLI" in stdout
+        assert "Tren" in stdout or "CLI" in stdout
 
     @pytest.mark.quick
     def test_module_command_help(self):
@@ -139,22 +139,22 @@ class TestQuickVerification:
         assert (milestones_dir / "01_1958_perceptron").exists(), "Milestone 01 missing"
 
     @pytest.mark.quick
-    def test_tinytorch_package_importable(self):
-        """TinyTorch package can be imported."""
+    def test_trentorch_package_importable(self):
+        """TrenTorch package can be imported."""
         code, stdout, stderr = subprocess.run(
-            [sys.executable, "-c", "import tinytorch; print('OK')"],
+            [sys.executable, "-c", "import trentorch; print('OK')"],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True
         ).returncode, "", ""
 
         result = subprocess.run(
-            [sys.executable, "-c", "import tinytorch; print('OK')"],
+            [sys.executable, "-c", "import trentorch; print('OK')"],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True
         )
-        assert result.returncode == 0, f"Cannot import tinytorch: {result.stderr}"
+        assert result.returncode == 0, f"Cannot import trentorch: {result.stderr}"
         assert "OK" in result.stdout
 
 
@@ -328,9 +328,9 @@ class TestFullJourney:
         combined = stdout + stderr
         assert "test" in combined.lower() or "Test" in combined
 
-        # Step 3: Verify tinytorch imports work
+        # Step 3: Verify trentorch imports work
         result = subprocess.run(
-            [sys.executable, "-c", "from tinytorch import Tensor; print('OK')"],
+            [sys.executable, "-c", "from trentorch import Tensor; print('OK')"],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True
@@ -338,7 +338,7 @@ class TestFullJourney:
         # This tests that the package structure is correct
         # If Tensor is not exported, that's a test failure
         assert result.returncode == 0, (
-            f"Tensor not exported from tinytorch. "
+            f"Tensor not exported from trentorch. "
             f"Run 'tren module complete 01' first. Error: {result.stderr}"
         )
 
@@ -352,7 +352,7 @@ class TestFullJourney:
         # Check if prerequisite modules are available
         result = subprocess.run(
             [sys.executable, "-c", """
-from tinytorch import Tensor, ReLU, Linear
+from trentorch import Tensor, ReLU, Linear
 print('OK')
 """],
             cwd=PROJECT_ROOT,
@@ -361,7 +361,7 @@ print('OK')
             timeout=10
         )
         assert result.returncode == 0, (
-            f"Required modules (Tensor, ReLU, Linear) not exported from tinytorch. "
+            f"Required modules (Tensor, ReLU, Linear) not exported from trentorch. "
             f"Complete modules 01-08 first. Error: {result.stderr}"
         )
 

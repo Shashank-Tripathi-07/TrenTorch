@@ -13,10 +13,10 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
-from tinytorch.core.transformers import GPT, MultiHeadAttention, LayerNorm, MLP
-from tinytorch.core.losses import CrossEntropyLoss
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
+from trentorch.core.transformers import GPT, MultiHeadAttention, LayerNorm, MLP
+from trentorch.core.losses import CrossEntropyLoss
 
 
 def test_multihead_attention_gradient_flow():

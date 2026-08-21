@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 import pytest
 import numpy as np
 rng = np.random.default_rng(7)
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+from trentorch.core.autograd import enable_autograd
 
 # Enable autograd
 enable_autograd()
@@ -35,7 +35,7 @@ def test_tokenization_basic():
     print("Testing Module 10: Tokenization...")
 
     try:
-        from tinytorch.core.tokenization import CharacterTokenizer
+        from trentorch.core.tokenization import CharacterTokenizer
 
         tokenizer = CharacterTokenizer()
         text = "Hello World"  # Avoid comma which might not be in vocab
@@ -68,7 +68,7 @@ def test_embedding_gradient_flow():
     """
     print("Testing Module 11: Embedding gradient flow...")
 
-    from tinytorch.core.embeddings import Embedding
+    from trentorch.core.embeddings import Embedding
 
     vocab_size = 10
     embed_dim = 8
@@ -122,7 +122,7 @@ def test_positional_encoding_gradient_flow():
     """
     print("Testing Module 11: PositionalEncoding gradient flow...")
 
-    from tinytorch.core.embeddings import PositionalEncoding
+    from trentorch.core.embeddings import PositionalEncoding
 
     embed_dim = 8
     max_seq_len = 10
@@ -171,7 +171,7 @@ def test_scaled_dot_product_attention_gradient_flow():
     """
     print("Testing Module 12: Scaled dot-product attention gradient flow...")
 
-    from tinytorch.core.attention import scaled_dot_product_attention
+    from trentorch.core.attention import scaled_dot_product_attention
 
     batch_size = 2
     seq_len = 4
@@ -231,7 +231,7 @@ def test_multi_head_attention_gradient_flow():
     """
     print("Testing Module 12: Multi-head attention gradient flow...")
 
-    from tinytorch.core.attention import MultiHeadAttention
+    from trentorch.core.attention import MultiHeadAttention
 
     embed_dim = 16
     num_heads = 4
@@ -293,7 +293,7 @@ def test_layernorm_gradient_flow():
     """
     print("Testing Module 13: LayerNorm gradient flow...")
 
-    from tinytorch.core.transformers import LayerNorm
+    from trentorch.core.transformers import LayerNorm
 
     normalized_shape = 8
     batch_size = 2
@@ -347,7 +347,7 @@ def test_mlp_gradient_flow():
     """
     print("Testing Module 13: MLP gradient flow...")
 
-    from tinytorch.core.transformers import MLP
+    from trentorch.core.transformers import MLP
 
     embed_dim = 16
     hidden_dim = 64
@@ -397,7 +397,7 @@ def test_transformer_block_gradient_flow():
     """
     print("Testing Module 13: TransformerBlock gradient flow...")
 
-    from tinytorch.core.transformers import TransformerBlock
+    from trentorch.core.transformers import TransformerBlock
 
     embed_dim = 16
     num_heads = 4
@@ -460,7 +460,7 @@ def test_full_gpt_model_gradient_flow():
     """
     print("Testing Full GPT Model: End-to-end gradient flow...")
 
-    from tinytorch.core.transformers import GPT
+    from trentorch.core.transformers import GPT
 
     vocab_size = 20
     embed_dim = 16

@@ -1,5 +1,5 @@
 """
-Enhanced Module Workflow for TinyTorch CLI.
+Enhanced Module Workflow for TrenTorch CLI.
 
 Implements the natural workflow:
 1. tren module start 01 → Opens module 01 in Jupyter
@@ -432,7 +432,7 @@ class ModuleWorkflowCommand(BaseCommand):
         """Create a module in modules/ by converting from src/.
 
         Uses the same conversion logic as 'tren dev export' but only creates
-        the student-facing notebook, without exporting to the tinytorch package.
+        the student-facing notebook, without exporting to the trentorch package.
         Full `src/` (including `### BEGIN SOLUTION` ... `### END SOLUTION` blocks) is
         passed through to jupytext so notebooks match the source-of-truth and exports
         remain consistent for `tren module complete` and CI user-journey.
@@ -464,10 +464,10 @@ class ModuleWorkflowCommand(BaseCommand):
         module_path = Path("modules") / module_name
         export_target = get_export_target(module_path)
         if export_target != "unknown":
-            return f"tinytorch/{export_target.replace('.', '/')}.py"
+            return f"trentorch/{export_target.replace('.', '/')}.py"
 
         short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-        return f"tinytorch/core/{short_name}.py"
+        return f"trentorch/core/{short_name}.py"
 
     def _get_primary_export_label(self, module_name: str) -> str:
         """Return a concise user-facing label for the module's exported API."""
@@ -655,7 +655,7 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print()
             self.console.print("[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
             self.console.print()
-            self.console.print("[bold cyan] Step 2/4: Exporting to TinyTorch Package[/bold cyan]")
+            self.console.print("[bold cyan] Step 2/4: Exporting to TrenTorch Package[/bold cyan]")
             self.console.print()
 
             export_result = self.export_module(module_name)
@@ -667,11 +667,11 @@ class ModuleWorkflowCommand(BaseCommand):
                 export_path = self._get_export_path_for_module(module_name)
                 export_label = self._get_primary_export_label(module_name)
                 self.console.print(f"   ✅ Exported: {export_path}")
-                self.console.print(f"   ✅ Updated: tinytorch/__init__.py")
+                self.console.print(f"   ✅ Updated: trentorch/__init__.py")
                 self.console.print()
                 self.console.print(f"   [dim]Your {export_label} implementation is now part of the framework![/dim]")
 
-        # Step 3: Run INTEGRATION tests (AFTER export, since they import from tinytorch.core.*)
+        # Step 3: Run INTEGRATION tests (AFTER export, since they import from trentorch.core.*)
         if not skip_tests and success:
             self.console.print()
             self.console.print("[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
@@ -722,7 +722,7 @@ class ModuleWorkflowCommand(BaseCommand):
             celebration_text = Text()
             celebration_text.append(f"You didn't import {component_name}. You BUILT it.\n\n", style="bold green")
             celebration_text.append("What you can do now:\n", style="bold")
-            celebration_text.append(f"  >>> from tinytorch import {component_name}\n", style="cyan")
+            celebration_text.append(f"  >>> from trentorch import {component_name}\n", style="cyan")
             celebration_text.append(f"  >>> # Use your {component_name} implementation!\n\n", style="dim cyan")
 
             # Next module suggestion
@@ -960,7 +960,7 @@ class ModuleWorkflowCommand(BaseCommand):
             return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
 
         # Set up environment with project root in PYTHONPATH
-        # This allows src files to import from tinytorch.core.*
+        # This allows src files to import from trentorch.core.*
         env = os.environ.copy()
         pythonpath = env.get('PYTHONPATH', '')
         if pythonpath:
@@ -1073,7 +1073,7 @@ class ModuleWorkflowCommand(BaseCommand):
             is_no_tests_collected = result.returncode == 5
             is_progressive_export_gate = (
                 result.returncode == 4
-                and "TINYTORCH PACKAGE NOT EXPORTED" in error_msg
+                and "TRENTORCH PACKAGE NOT EXPORTED" in error_msg
             )
             if not is_no_tests_collected and not is_progressive_export_gate:
                 concise_error = '\n'.join(error_msg.split('\n')[:5]) if error_msg else "pytest exited with an error"
@@ -1272,7 +1272,7 @@ class ModuleWorkflowCommand(BaseCommand):
         return {'ok': True, 'error': None}
 
     def export_module(self, module_name: str) -> int:
-        """Export student's notebook to the TinyTorch package.
+        """Export student's notebook to the TrenTorch package.
         
         This only runs nbdev_export on the existing notebook.
         It does NOT convert from src/*.py (that would overwrite student work).
@@ -1290,7 +1290,7 @@ class ModuleWorkflowCommand(BaseCommand):
             
             if not notebook_path.exists():
                 self.console.print(f"[red]❌ Notebook not found: {notebook_path}[/red]")
-                self.console.print("[dim]Make sure you're in the TinyTorch project root.[/dim]")
+                self.console.print("[dim]Make sure you're in the TrenTorch project root.[/dim]")
                 return 1
             
             # Ensure target file is writable
@@ -1303,13 +1303,13 @@ class ModuleWorkflowCommand(BaseCommand):
             from nbdev.export import nb_export
 
             target_display = (
-                f"tinytorch/{export_target.replace('.', '/')}.py"
+                f"trentorch/{export_target.replace('.', '/')}.py"
                 if export_target != "unknown"
-                else "tinytorch/..."
+                else "trentorch/..."
             )
             self.console.print(f"[dim]📦 Exporting {notebook_path.name} → {target_display}[/dim]")
 
-            lib_path = Path.cwd() / "tinytorch"
+            lib_path = Path.cwd() / "trentorch"
             nb_export(notebook_path, lib_path=lib_path)
 
             # Verify the export actually produced a file
@@ -1330,7 +1330,7 @@ class ModuleWorkflowCommand(BaseCommand):
                     self.console.print("[yellow]   Your notebook's #| export cells may not contain code[/yellow]")
                     return 1
 
-            self.console.print(f"[dim]✅ Your code is now part of the tinytorch package![/dim]")
+            self.console.print(f"[dim]✅ Your code is now part of the trentorch package![/dim]")
             return 0
 
         except ImportError:
@@ -1498,7 +1498,7 @@ class ModuleWorkflowCommand(BaseCommand):
         from rich import box
 
         table = Table(
-            title="📚 Tiny🔥Torch Modules",
+            title="📚 Tren🔥Torch Modules",
             box=box.ROUNDED,
             show_header=True,
             header_style="bold blue"

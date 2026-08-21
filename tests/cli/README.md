@@ -1,6 +1,6 @@
 # CLI Test Suite
 
-Comprehensive test suite for the TinyTorch CLI (`tren`). Ensures all commands are properly registered, documented, and executable.
+Comprehensive test suite for the TrenTorch CLI (`tren`). Ensures all commands are properly registered, documented, and executable.
 
 ## Test Files
 
@@ -88,7 +88,7 @@ pytest tests/cli/ -v -s
 
 ### ✅ Validates
 
-1. **Registration**: All commands in `TinyTorchCLI.commands` dict
+1. **Registration**: All commands in `TrenTorchCLI.commands` dict
 2. **Implementation**: All commands inherit from `BaseCommand`
 3. **Documentation**: All commands have clear descriptions
 4. **Execution**: All commands can run without crashing
@@ -123,14 +123,14 @@ Key patterns used:
 
 When adding a new command:
 
-1. Add to `TinyTorchCLI.commands` dict in [tren/main.py](../../tren/main.py#L74-L99)
+1. Add to `TrenTorchCLI.commands` dict in [tren/main.py](../../tren/main.py#L74-L99)
 2. Create command file in `tren/commands/`
 3. Add to epilog if it's a major command group
 4. Tests will automatically validate it!
 
 When removing a command:
 
-1. Remove from `TinyTorchCLI.commands` dict
+1. Remove from `TrenTorchCLI.commands` dict
 2. Delete command file OR add to `known_internal` in tests
 3. Update epilog/welcome screen
 

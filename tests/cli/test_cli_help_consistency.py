@@ -16,7 +16,7 @@ from pathlib import Path
 # Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tren.main import TinyTorchCLI
+from tren.main import TrenTorchCLI
 
 
 class TestHelpConsistency:
@@ -81,7 +81,7 @@ class TestHelpConsistency:
 
     def test_no_references_to_removed_commands(self):
         """Verify help doesn't reference commands that don't exist."""
-        cli = TinyTorchCLI()
+        cli = TrenTorchCLI()
         registered_commands = set(cli.commands.keys())
 
         # Get main help
@@ -108,7 +108,7 @@ class TestHelpConsistency:
         expected_non_commands = {
             'system', 'module', 'first', 'time', 'complete', 'resume',
             'status', 'progress', 'journey', 'profile', 'timeline',
-            'tinytorch', 'tiny', 'torch', 'cli', 'developer', 'student',
+            'trentorch', 'tiny', 'torch', 'cli', 'developer', 'student',
             'workflow', 'tracking', 'capabilities', 'achievements'
         }
 
@@ -175,7 +175,7 @@ class TestCommandDocumentation:
     def setup_method(self):
         """Set up test fixtures."""
         self.project_root = Path(__file__).parent.parent.parent
-        self.cli = TinyTorchCLI()
+        self.cli = TrenTorchCLI()
 
     def test_all_registered_commands_in_welcome_or_help(self):
         """Verify all registered commands appear in welcome screen or help."""

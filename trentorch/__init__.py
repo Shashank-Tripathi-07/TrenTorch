@@ -1,5 +1,5 @@
 """
-TinyTorch  -  Build ML Systems From First Principles
+TrenTorch  -  Build ML Systems From First Principles
 
 A complete educational ML framework for learning neural network internals
 by implementing everything from scratch.

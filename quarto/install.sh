@@ -18,7 +18,7 @@
 #
 # AFTER INSTALLATION
 # ------------------
-#   cd tinytorch
+#   cd trentorch
 #   source .venv/bin/activate
 #   tito setup                    # First-time profile setup
 #
@@ -58,9 +58,9 @@ set -e  # Exit on any error
 # Configuration
 # ============================================================================
 # These can be overridden via environment variables for testing:
-#   TINYTORCH_BRANCH=dev ./install.sh
-#   TINYTORCH_VERSION=0.1.5 TINYTORCH_BRANCH=feature/foo ./install.sh
-#   TINYTORCH_NON_INTERACTIVE=1 ./install.sh  # Skip all prompts (for CI)
+#   TRENTORCH_BRANCH=dev ./install.sh
+#   TRENTORCH_VERSION=0.1.5 TRENTORCH_BRANCH=feature/foo ./install.sh
+#   TRENTORCH_NON_INTERACTIVE=1 ./install.sh  # Skip all prompts (for CI)
 REPO_URL="https://github.com/Shashank-Tripathi-07/TrenTorch.git"
 REPO_SHORT="Shashank-Tripathi-07/TrenTorch"
 # TrenTorch is currently a private repo, so an anonymous clone/ls-remote of
@@ -74,13 +74,13 @@ else
 fi
 TAGS_API="https://api.github.com/repos/Shashank-Tripathi-07/TrenTorch/tags"
 TAG_PREFIX="tinytorch-v"
-BRANCH="${TINYTORCH_BRANCH:-main}"
-INSTALL_DIR="${TINYTORCH_INSTALL_DIR:-tinytorch}"
+BRANCH="${TRENTORCH_BRANCH:-main}"
+INSTALL_DIR="${TRENTORCH_INSTALL_DIR:-trentorch}"
 # Non-interactive mode: skip prompts, use defaults (for CI/testing)
-NON_INTERACTIVE="${TINYTORCH_NON_INTERACTIVE:-}"
+NON_INTERACTIVE="${TRENTORCH_NON_INTERACTIVE:-}"
 # Version is fetched from GitHub tags (single source of truth)
-# Can be overridden for testing: TINYTORCH_VERSION=0.1.5 ./install.sh
-TINYTORCH_VERSION="${TINYTORCH_VERSION:-}"
+# Can be overridden for testing: TRENTORCH_VERSION=0.1.5 ./install.sh
+TRENTORCH_VERSION="${TRENTORCH_VERSION:-}"
 
 # ============================================================================
 # Timeouts
@@ -146,7 +146,7 @@ spin() {
 
 print_banner() {
     echo ""
-    echo -e "  ${BOLD}Tiny${NC}${YELLOW}🔥Torch${NC} ${DIM}v${TINYTORCH_VERSION}${NC}"
+    echo -e "  ${BOLD}Tiny${NC}${YELLOW}🔥Torch${NC} ${DIM}v${TRENTORCH_VERSION}${NC}"
     echo -e "  ${DIM}Don't import it. Build it.${NC}"
     echo ""
 }
@@ -184,10 +184,10 @@ run_with_timeout() {
 }
 
 # Fetch latest version from GitHub tags API (single source of truth)
-# Sets TINYTORCH_VERSION global variable
+# Sets TRENTORCH_VERSION global variable
 fetch_latest_version() {
     # Skip if already set via environment variable
-    if [ -n "$TINYTORCH_VERSION" ]; then
+    if [ -n "$TRENTORCH_VERSION" ]; then
         return 0
     fi
 
@@ -201,7 +201,7 @@ fetch_latest_version() {
             local tag_name
             tag_name=$(echo "$response" | grep -o "\"name\": *\"${TAG_PREFIX}[^\"]*\"" | head -1 | sed 's/.*"name": *"\([^"]*\)".*/\1/')
             if [ -n "$tag_name" ]; then
-                TINYTORCH_VERSION="${tag_name#$TAG_PREFIX}"
+                TRENTORCH_VERSION="${tag_name#$TAG_PREFIX}"
                 return 0
             fi
         fi
@@ -216,14 +216,14 @@ fetch_latest_version() {
             local version
             version=$(echo "$pyproject" | grep -E "^version" | head -1 | sed 's/.*= *"\([^"]*\)".*/\1/')
             if [ -n "$version" ]; then
-                TINYTORCH_VERSION="$version"
+                TRENTORCH_VERSION="$version"
                 return 0
             fi
         fi
     fi
 
     # Final fallback: unknown version (will still work, just won't show version)
-    TINYTORCH_VERSION="latest"
+    TRENTORCH_VERSION="latest"
 }
 
 # Check if Python version is 3.10+

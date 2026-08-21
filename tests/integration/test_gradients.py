@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Gradient Flow Validation Tests for TinyTorch
+Gradient Flow Validation Tests for TrenTorch
 =============================================
 Ensures gradients propagate correctly through all architectures.
 Critical for verifying that models can actually learn.
@@ -23,13 +23,13 @@ import pytest
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 sys.path.insert(0, project_root)
 
-from tinytorch.core.tensor import Tensor
-from tinytorch.core.layers import Linear
-from tinytorch.core.activations import ReLU, Sigmoid, Tanh
-from tinytorch.core.losses import MSELoss, CrossEntropyLoss
-from tinytorch.core.optimizers import SGD, Adam
-from tinytorch.core.spatial import Conv2d
-from tinytorch.core.transformers import TransformerBlock
+from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.activations import ReLU, Sigmoid, Tanh
+from trentorch.core.losses import MSELoss, CrossEntropyLoss
+from trentorch.core.optimizers import SGD, Adam
+from trentorch.core.spatial import Conv2d
+from trentorch.core.transformers import TransformerBlock
 
 class Sequential:
     """Simple sequential container for testing."""
@@ -50,11 +50,11 @@ class F:
     """Functional interface for testing."""
     @staticmethod
     def relu(x):
-        from tinytorch.core.activations import ReLU
+        from trentorch.core.activations import ReLU
         return ReLU()(x)
     @staticmethod
     def max_pool2d(x, kernel_size):
-        from tinytorch.core.spatial import MaxPool2d
+        from trentorch.core.spatial import MaxPool2d
         return MaxPool2d(kernel_size)(x)
     @staticmethod
     def flatten(x, start_dim=1):

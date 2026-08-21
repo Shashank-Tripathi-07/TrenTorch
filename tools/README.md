@@ -1,6 +1,6 @@
 # Development Tools
 
-This directory contains tools for TinyTorch maintainers and contributors.
+This directory contains tools for TrenTorch maintainers and contributors.
 
 ## Structure
 

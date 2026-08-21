@@ -6,7 +6,7 @@ name: '⚡ TrenTorch · ✅ Validate'
 #
 # Runs the same 7-stage progressive test suite TinyTorch runs against its own
 # dev branch, adapted for this repo: content lives at the repo root here
-# (no tinytorch/ subdirectory), and main is the only long-lived branch.
+# (no trentorch/ subdirectory), and main is the only long-lived branch.
 #
 # Flow:
 #   1. INLINE_BUILD     — Build package from src/ modules
@@ -27,7 +27,7 @@ name: '⚡ TrenTorch · ✅ Validate'
 #   - Manual trigger can select: linux, windows, or all
 #   - Windows uses Git Bash (shell: bash) for cross-platform compatibility
 #
-# Adapted from harvard-edge/cs249r_book's tinytorch-validate-dev.yml. Not
+# Adapted from harvard-edge/cs249r_book's trentorch-validate-dev.yml. Not
 # included here: the upstream link-check stage (depended on a reusable
 # workflow and shared config from that monorepo that don't exist in this
 # repo) and the publish/preview/PDF workflows (deploy to infrastructure —
@@ -71,7 +71,7 @@ concurrency:
 
 env:
   TITO_ALLOW_SYSTEM: "1"
-  TINYTORCH_QUIET: "1"
+  TRENTORCH_QUIET: "1"
   PYTHONIOENCODING: "utf-8"  # Required for Windows emoji support in Rich
   PYTHONUTF8: "1"            # Force UTF-8 for all Python I/O (subprocess pipes)
 
@@ -216,7 +216,7 @@ jobs:
         with:
           name: built-package-${{ matrix.os }}
           path: |
-            tinytorch/
+            trentorch/
             modules/
           retention-days: 1
 

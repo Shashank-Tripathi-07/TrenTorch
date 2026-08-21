@@ -1,5 +1,5 @@
 # =============================================================================
-# ANNOUNCEMENT BAR CONFIGURATION - TINYTORCH
+# ANNOUNCEMENT BAR CONFIGURATION - TRENTORCH
 # =============================================================================
 # Unifying template (shared across all nine Quarto sites, 2026-04):
 #   Line 1  — identity + primary CTA (what is THIS site)
@@ -14,7 +14,7 @@
 # the v0.1.10 publish merge (commit 0009f55a9 on 2026-04-22) and again
 # by the v0.1.11 publish on 2026-05-11 (this file). Release news belongs
 # in a changelog, not in the always-visible nav bar — restored to the
-# ecosystem template here. The tinytorch-publish-live workflow has been
+# ecosystem template here. The trentorch-publish-live workflow has been
 # updated to append a transient `release_note` line above the ecosystem
 # content instead of replacing the whole file, so future releases stop
 # stomping this template.

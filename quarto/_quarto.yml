@@ -1,8 +1,8 @@
 # =============================================================================
-# TINYTORCH WEBSITE CONFIGURATION (Quarto)
+# TRENTORCH WEBSITE CONFIGURATION (Quarto)
 # =============================================================================
 # Educational ML framework: "Build Your Own ML Framework From Scratch"
-# Part of the MLSysBook ecosystem: mlsysbook.ai/tinytorch/
+# Part of the MLSysBook ecosystem: mlsysbook.ai/trentorch/
 # =============================================================================
 
 project:
@@ -13,13 +13,13 @@ project:
   #   - assets/downloads/**  PDF viewer asset (loaded from inside a `{=html}`
   #                          script, which Quarto cannot statically resolve)
   #                          and workflow-injected Guide / Paper PDFs.
-  #   - install.sh           Served at mlsysbook.ai/tinytorch/install.sh —
+  #   - install.sh           Served at mlsysbook.ai/trentorch/install.sh —
   #                          users pipe it to bash for installation.
   #   - community/**         Static community dashboard (HTML + JS), served
-  #                          at mlsysbook.ai/tinytorch/community/.
-  # install.sh and community/ moved here from the retired tinytorch/site/
+  #                          at mlsysbook.ai/trentorch/community/.
+  # install.sh and community/ moved here from the retired trentorch/site/
   # (Jupyter Book) tree so this quarto tree is the only source for
-  # anything published under /tinytorch/.
+  # anything published under /trentorch/.
   resources:
     - assets/downloads/**
     - install.sh
@@ -31,17 +31,17 @@ website:
     An interactive course for building machine learning systems from the ground up.
     Learn by implementing your own PyTorch-style framework with hands-on coding,
     real datasets, and production-ready practices.
-  site-url: https://mlsysbook.ai/tinytorch/
+  site-url: https://mlsysbook.ai/trentorch/
   favicon: assets/images/favicon.svg
 
   # Open Graph / Social Media metadata
   open-graph:
     locale: en_US
     site-name: "Machine Learning Systems"
-    image: assets/images/logos/logo-tinytorch.png
+    image: assets/images/logos/logo-trentorch.png
   twitter-card:
     card-style: summary_large_image
-    image: assets/images/logos/logo-tinytorch.png
+    image: assets/images/logos/logo-trentorch.png
 
   page-navigation: true
   reader-mode: false
@@ -87,7 +87,7 @@ website:
           - text: "---"
           # Guide and paper PDFs live next to the site they document, not
           # in the shared Build menu. Both filenames match the artifacts
-          # injected by tinytorch-publish-live.yml during deploy.
+          # injected by trentorch-publish-live.yml during deploy.
           - icon: file-pdf
             text: "TinyTorch Guide (PDF)"
             href: assets/downloads/TinyTorch-Guide.pdf
@@ -101,7 +101,7 @@ website:
     - id: main
       style: "floating"
       background: light
-      logo: "assets/images/logos/logo-tinytorch-transparent.png"
+      logo: "assets/images/logos/logo-trentorch-transparent.png"
       collapse-level: 2
       contents:
         - text: "TinyTorch Home"
@@ -143,7 +143,7 @@ website:
         # to communicate. They remain fully accessible via:
         #   1. The top navbar's "Historical Milestones" entry (line 80 above)
         #      which routes to milestones/index.qmd (the hub page).
-        #   2. The PDF build (tinytorch/quarto/pdf/_quarto.yml), which
+        #   2. The PDF build (trentorch/quarto/pdf/_quarto.yml), which
         #      interleaves them as separate `part:` blocks — that's the
         #      intended reading experience in print.
         # Do not restore milestone sections to the HTML sidebar without
@@ -269,13 +269,13 @@ format:
     include-in-header:
       - file: ../../shared/config/site-head.html
       - text: |
-          <link rel="apple-touch-icon" href="/assets/images/logos/logo-tinytorch.png">
+          <link rel="apple-touch-icon" href="/assets/images/logos/logo-trentorch.png">
           <meta name="theme-color" content="#D4740C">
           <!-- Release identity (rendered into the footer pill below).
                The publish workflow drops release-manifest.json at
-               /tinytorch/release-manifest.json before deploy; preview
+               /trentorch/release-manifest.json before deploy; preview
                and local renders silently no-op. -->
-          <meta name="release-manifest" content="/tinytorch/release-manifest.json">
+          <meta name="release-manifest" content="/trentorch/release-manifest.json">
     include-after-body:
       - file: assets/scripts/subscribe-modal.js
       - file: assets/scripts/ml-timeline.js
