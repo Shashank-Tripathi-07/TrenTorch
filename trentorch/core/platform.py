@@ -115,7 +115,7 @@ class TrenTorchModuleLoader(importlib.abc.Loader):
         self.ext = ext
 
     def exec_module(self, module):
-        from tools.export_sanitizer import to_sandbox_code
+        from ..export_sanitizer import to_sandbox_code
         with open(self.filename, "r", encoding="utf-8") as f:
             raw_content = f.read()
 

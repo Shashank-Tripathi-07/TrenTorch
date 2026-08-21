@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tren = "tren.cli:main"
+tren = "tren.main:main"
 
 [project.optional-dependencies]
 dev = [

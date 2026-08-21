@@ -13,7 +13,7 @@ import os
 import sys
 from pathlib import Path
 
-from tools.export_sanitizer import (
+from trentorch.export_sanitizer import (
     to_qmd,
     to_ipynb,
     to_sandbox_code,
