@@ -3,13 +3,15 @@ requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name="tinytorch"
+name = "trentorch"
 version = "0.1.13"
-description = "Build ML Systems from Scratch - Educational Deep Learning Framework"
+description = "TrenTorch - Machine Learning Systems Engineering Framework from Scratch"
 readme = "README.md"
-requires-python=">=3.10"
+requires-python = ">=3.10"
 authors = [
-    {name = "Vijay Janapa Reddi", email = "vj@eecs.harvard.edu"}
+    {name = "Shashank Tripathi"},
+    {name = "Shivtej Gaikwad"},
+    {name = "Aadityansha Verma"},
 ]
 license = {text = "MIT"}
 classifiers = [
@@ -20,8 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Topic :: Education",
+    "Topic :: Engineering :: Intelligent Systems",
 ]
 dependencies = [
     "numpy>=2.2.6,<3.0.0",
@@ -32,6 +33,7 @@ dependencies = [
 ]
 
 [project.scripts]
+tren = "tren.cli:main"
 tito = "tito.main:main"
 
 [project.optional-dependencies]
@@ -70,14 +72,14 @@ doc_host = "https://tinytorch.github.io"
 doc_baseurl = "/TinyTorch/"
 
 [project.urls]
-Homepage = "https://mlsysbook.ai/tinytorch"
-Repository = "https://github.com/harvard-edge/cs249r_book"
-Documentation = "https://mlsysbook.ai/tinytorch"
-Issues = "https://github.com/harvard-edge/cs249r_book/issues"
+Homepage = "https://trentorch.vercel.app"
+Repository = "https://github.com/Shashank-Tripathi-07/TrenTorch"
+Documentation = "https://github.com/ShivtejG236/docs4TrenTorch"
+Issues = "https://github.com/Shashank-Tripathi-07/TrenTorch/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["tinytorch*", "tito*"]
+include = ["trentorch*", "tinytorch*", "tren*", "tito*"]
 exclude = ["tests*", "modules*", "site*", "docs*", "milestones*", "assignments*"]
 
 # TinyTorch-specific pytest configuration (overrides parent pyproject.toml)
@@ -91,5 +93,5 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "quick: marks tests as quick",
 ]
-# No coverage in TinyTorch tests - we don't need coverage for educational code
+# No coverage in TrenTorch tests - we don't need coverage for educational code
 addopts = ["--strict-markers"]

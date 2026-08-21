@@ -1,0 +1,126 @@
+"""
+TrenTorch Platform Detection and Runtime Adapter.
+
+Automatically identifies the current execution environment (Jupyter, Kaggle, Colab,
+DeepML, LeetCode, LeetGPU, CLI) and sets up platform-specific hooks.
+"""
+
+import importlib.abc
+import importlib.machinery
+import os
+import sys
+from pathlib import Path
+from typing import Optional
+
+
+class PlatformDetector:
+    """Detects the active runtime platform."""
+
+    @staticmethod
+    def get_platform() -> str:
+        """
+        Returns one of:
+        - 'colab': Google Colaboratory
+        - 'kaggle': Kaggle Kernels
+        - 'sandbox': DeepML / LeetCode / LeetGPU isolated sandboxes
+        - 'jupyter': Jupyter Notebook / JupyterLab / IPython
+        - 'standard': Standard Python script / CLI execution
+        """
+        if "google.colab" in sys.modules:
+            return "colab"
+        
+        if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or "kaggle_gcp" in sys.modules:
+            return "kaggle"
+
+        if os.environ.get("LEETGPU_ENV") or os.environ.get("DEEPML_SANDBOX") or os.environ.get("LEETCODE_ENV"):
+            return "sandbox"
+
+        # Check for IPython / Jupyter environment
+        try:
+            get_ipython()  # type: ignore # noqa: F821
+            return "jupyter"
+        except NameError:
+            pass
+
+        return "standard"
+
+    @classmethod
+    def is_interactive(cls) -> bool:
+        return cls.get_platform() in {"jupyter", "colab", "kaggle"}
+
+    @classmethod
+    def is_sandbox(cls) -> bool:
+        return cls.get_platform() == "sandbox"
+
+
+class TrenTorchImportHook(importlib.abc.MetaPathFinder):
+    """
+    Import hook enabling transparent, dynamic loading of TrenTorch modules
+    from raw Jupytext .py, .qmd, or .yaml source definitions.
+    """
+
+    def find_spec(self, fullname: str, path: Optional[list] = None, target: Optional[object] = None):
+        if not (fullname.startswith("trentorch.modules") or fullname.startswith("tinytorch.modules")):
+            return None
+
+        module_name = fullname.split(".")[-1]
+        project_root = Path(__file__).resolve().parents[2]
+        
+        # Search for module definition
+        candidate_dirs = [
+            project_root / "src" / module_name,
+            project_root / "src" / f"{module_name}"
+        ]
+        
+        # Find matches with module numbers e.g. 01_tensor
+        if not any(d.exists() for d in candidate_dirs):
+            for d in (project_root / "src").iterdir():
+                if d.is_dir() and d.name.endswith(module_name) or d.name == module_name:
+                    candidate_dirs.append(d)
+                    break
+
+        for dir_path in candidate_dirs:
+            if dir_path.exists():
+                for ext in [".py", ".qmd", ".yaml"]:
+                    fpath = dir_path / f"{dir_path.name}{ext}"
+                    if fpath.exists():
+                        return importlib.machinery.ModuleSpec(
+                            fullname,
+                            TrenTorchModuleLoader(str(fpath), ext)
+                        )
+        return None
+
+
+class TrenTorchModuleLoader(importlib.abc.Loader):
+    """Dynamically loads and sanitizes TrenTorch modules from source files."""
+
+    def __init__(self, filename: str, ext: str):
+        self.filename = filename
+        self.ext = ext
+
+    def exec_module(self, module):
+        from tools.export_sanitizer import to_sandbox_code
+        with open(self.filename, "r", encoding="utf-8") as f:
+            raw_content = f.read()
+
+        sanitized_code = to_sandbox_code(raw_content)
+        exec(sanitized_code, module.__dict__)
+
+
+def setup_platform_runtime():
+    """Initializes platform-specific optimizations, rich display hooks, and import interceptors."""
+    platform = PlatformDetector.get_platform()
+
+    # Register import hook if not already present
+    if not any(isinstance(finder, TrenTorchImportHook) for finder in sys.meta_path):
+        sys.meta_path.insert(0, TrenTorchImportHook())
+
+    # Set up notebook-specific formatters if interactive
+    if PlatformDetector.is_interactive():
+        try:
+            # Setup rich display hooks if available
+            pass
+        except Exception:
+            pass
+
+    return platform

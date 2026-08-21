@@ -41,7 +41,6 @@ TinyTorch teaches the fundamentals. TrenTorch takes those same bricks and adds t
 No black boxes. No `import torch`. Just the machinery, exposed.
 
 
-
 ---
 
 ## What You'll Build
