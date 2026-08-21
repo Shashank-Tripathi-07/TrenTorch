@@ -117,16 +117,22 @@ print(f'✓ Loaded {len(data[\"images\"])} training images')
 "
 
 # Step 5: Run milestone 01 (Perceptron - simplest)
+# No --non-interactive flag: `tito milestone run` doesn't have one, and
+# doesn't need one -- it already checks sys.stdin/stdout.isatty() itself
+# and skips its "Press Enter to begin" / "Continue to next part?" prompts
+# automatically whenever it isn't attached to a real terminal, which is
+# always true here (piped/CI). Passing --non-interactive just makes
+# argparse reject the whole command before any of that logic runs.
 echo ""
 echo "▶ Step 5: Running Milestone 01 (Perceptron)..."
-timeout 120 tito milestone run 01 --non-interactive || {
+timeout 120 tito milestone run 01 || {
     echo "⚠ Milestone 01 did not complete (may need module implementations)"
 }
 
 # Step 6: Run milestone 03 (MLP with TinyDigits - the one that caught the LFS bug)
 echo ""
 echo "▶ Step 6: Running Milestone 03 (MLP/TinyDigits)..."
-timeout 180 tito milestone run 03 --non-interactive || {
+timeout 180 tito milestone run 03 || {
     echo "⚠ Milestone 03 did not complete (may need module implementations)"
 }
 
