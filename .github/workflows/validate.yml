@@ -445,6 +445,14 @@ jobs:
             scripts/test-fresh-install.sh
 
       - name: Run Fresh Install Test (Docker)
+        env:
+          # TrenTorch is currently a private repo: install.sh downloads
+          # itself from raw.githubusercontent.com and then clones the repo,
+          # both of which 404/fail anonymously against a private repo.
+          # GITHUB_TOKEN is scoped to this repo only and expires with the
+          # job; both the script and install.sh already know to use it
+          # when set.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x scripts/test-fresh-install.sh
           # For PRs, github.ref_name is the merge ref (e.g. "12/merge") which doesn't

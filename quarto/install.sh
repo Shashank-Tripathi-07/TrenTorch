@@ -63,6 +63,15 @@ set -e  # Exit on any error
 #   TINYTORCH_NON_INTERACTIVE=1 ./install.sh  # Skip all prompts (for CI)
 REPO_URL="https://github.com/Shashank-Tripathi-07/TrenTorch.git"
 REPO_SHORT="Shashank-Tripathi-07/TrenTorch"
+# TrenTorch is currently a private repo, so an anonymous clone/ls-remote of
+# REPO_URL 404s. If GITHUB_TOKEN is set (GitHub injects one automatically
+# inside this repo's own CI), use it to authenticate instead. Does nothing
+# extra once/if the repo is public.
+if [ -n "$GITHUB_TOKEN" ]; then
+    EFFECTIVE_REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_SHORT}.git"
+else
+    EFFECTIVE_REPO_URL="$REPO_URL"
+fi
 TAGS_API="https://api.github.com/repos/Shashank-Tripathi-07/TrenTorch/tags"
 TAG_PREFIX="tinytorch-v"
 BRANCH="${TINYTORCH_BRANCH:-main}"
@@ -407,7 +416,7 @@ check_internet() {
     # leave this hanging for minutes with no feedback. Bound it so a dead
     # network produces a clear message quickly instead of an installer
     # that just appears to be stuck.
-    if ! run_with_timeout "$NETWORK_CHECK_TIMEOUT" git ls-remote --exit-code "$REPO_URL" >/dev/null 2>&1; then
+    if ! run_with_timeout "$NETWORK_CHECK_TIMEOUT" git ls-remote --exit-code "$EFFECTIVE_REPO_URL" >/dev/null 2>&1; then
         print_error "Cannot reach GitHub"
         echo "  This usually means one of:"
         echo "    - Your internet connection is down or very slow"
@@ -607,7 +616,7 @@ do_install() {
     # than leave the spinner running forever with no way to tell it apart
     # from a slow-but-working download.
     run_with_timeout "$CLONE_TIMEOUT" git clone --depth 1 --branch "$BRANCH" \
-        "$REPO_URL" "$TEMP_DIR/repo" >/dev/null 2>&1 &
+        "$EFFECTIVE_REPO_URL" "$TEMP_DIR/repo" >/dev/null 2>&1 &
     local clone_pid=$!
     spin $clone_pid "Cloning repository..."
     wait $clone_pid

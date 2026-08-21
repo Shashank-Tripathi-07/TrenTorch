@@ -22,7 +22,6 @@ set -e
 # Defaults
 BRANCH="main"
 CI_MODE=false
-INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/Shashank-Tripathi-07/TrenTorch/main/quarto/install.sh"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -71,10 +70,22 @@ echo ""
 echo "▶ Step 1: Running install script (branch: $BRANCH)..."
 export TINYTORCH_BRANCH="$BRANCH"
 export TINYTORCH_NON_INTERACTIVE=1
-curl -fsSL "https://raw.githubusercontent.com/Shashank-Tripathi-07/TrenTorch/${BRANCH}/quarto/install.sh" -o /tmp/install.sh || {
+# TrenTorch is currently a private repo: raw.githubusercontent.com 404s an
+# anonymous request the same way it would for a nonexistent file, so this
+# needs GITHUB_TOKEN (present automatically in this repo's own CI) passed
+# as a bearer token. install.sh's own internal git clone needs the same
+# token, which it already reads from this same env var -- exported above
+# via TINYTORCH_BRANCH and here via GITHUB_TOKEN, which stays in the
+# environment for `bash /tmp/install.sh` below to inherit.
+CURL_AUTH=()
+if [ -n "$GITHUB_TOKEN" ]; then
+    CURL_AUTH=(-H "Authorization: token $GITHUB_TOKEN")
+fi
+curl -fsSL "${CURL_AUTH[@]}" "https://raw.githubusercontent.com/Shashank-Tripathi-07/TrenTorch/${BRANCH}/quarto/install.sh" -o /tmp/install.sh || {
     echo "✗ Failed to download install script for branch: $BRANCH"
     echo "  URL: https://raw.githubusercontent.com/Shashank-Tripathi-07/TrenTorch/${BRANCH}/quarto/install.sh"
     echo "  Hint: Does the branch '${BRANCH}' exist and contain quarto/install.sh?"
+    [ -z "$GITHUB_TOKEN" ] && echo "  Also: TrenTorch is a private repo and no GITHUB_TOKEN was set -- that alone would 404 here."
     exit 1
 }
 bash /tmp/install.sh
@@ -173,6 +184,7 @@ else
     # Run in Docker - note: no git-lfs installed, just like a typical student machine
     docker run --rm \
         -e DEBIAN_FRONTEND=noninteractive \
+        -e GITHUB_TOKEN="$GITHUB_TOKEN" \
         python:3.11-slim \
         bash -c "
             apt-get update && apt-get install -y git curl xxd > /dev/null 2>&1
