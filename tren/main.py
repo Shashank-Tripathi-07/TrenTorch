@@ -79,7 +79,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('tito-cli.log'),
+        logging.FileHandler('tren-cli.log'),
         logging.StreamHandler(sys.stderr)
     ]
 )

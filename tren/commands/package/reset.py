@@ -142,12 +142,14 @@ class ResetCommand(BaseCommand):
         reset_text = Text()
         reset_text.append("🗑️  Removing all exported files:\n", style="bold red")
 
-        # Simple approach: remove all .py files except __init__.py
+        # Simple approach: remove all generated .py files except __init__.py
+        # and hand-written, non-generated files (platform.py, export_sanitizer.py)
+        NON_GENERATED = {"__init__.py", "core/platform.py", "export_sanitizer.py"}
         files_removed = 0
         for py_file in tinytorch_path.rglob("*.py"):
-            if py_file.name != "__init__.py":
+            rel_path = py_file.relative_to(tinytorch_path)
+            if str(rel_path).replace("\\", "/") not in NON_GENERATED and py_file.name != "__init__.py":
                 try:
-                    rel_path = py_file.relative_to(tinytorch_path)
                     reset_text.append(f"  🗑️  trentorch/{rel_path}\n", style="red")
                     py_file.unlink()
                     files_removed += 1

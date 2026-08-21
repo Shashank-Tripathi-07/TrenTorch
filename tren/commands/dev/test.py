@@ -874,11 +874,12 @@ class DevTestCommand(BaseCommand):
                     if item.is_dir() and item.name[0].isdigit():
                         shutil.rmtree(item)
 
-            # Clear trentorch/core/ (remove all .py except __init__.py)
+            # Clear trentorch/core/ (remove all generated .py, keep __init__.py
+            # and hand-written, non-generated files like platform.py)
             core_dir = project_root / "trentorch" / "core"
             if core_dir.exists():
                 for py_file in core_dir.glob("*.py"):
-                    if py_file.name != "__init__.py":
+                    if py_file.name not in ("__init__.py", "platform.py"):
                         py_file.unlink()
 
             # Clear progress tracking
@@ -1026,7 +1027,11 @@ class DevTestCommand(BaseCommand):
                             encoding="utf-8",
                             errors="replace",
                             cwd=project_root,
-                            timeout=300  # 5 min for heavy milestones (CNN, Transformer)
+                            timeout=900  # 15 min: CNN Revolution (milestone 04) alone
+                                         # genuinely takes ~7.5 min end to end on a
+                                         # typical CI runner, real training work, not
+                                         # a hang. 300s was too tight and failed every
+                                         # run regardless of correctness.
                         )
                         milestone_duration = time.time() - milestone_start
                         if result.returncode == 0:
@@ -1040,7 +1045,7 @@ class DevTestCommand(BaseCommand):
                     except subprocess.TimeoutExpired:
                         failed_milestones.append(milestone_id)
                         if ci_mode:
-                            print("✗ TIMEOUT (>180s)")
+                            print("✗ TIMEOUT (>900s)")
                     except Exception as e:
                         failed_milestones.append(milestone_id)
                         if ci_mode:

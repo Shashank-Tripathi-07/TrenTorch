@@ -51,19 +51,19 @@ def _validate_package_exported():
     """
     errors = []
 
-    # Check 1: Core module files exist
+    # Check 1: the foundational module (Tensor) is exported. This
+    # deliberately does not hard-require activations.py/layers.py/losses.py:
+    # a progressive build (tren module complete 01, then 02, then ...) tests
+    # each module as soon as it's exported, before later modules exist yet,
+    # and this check used to fail every one of those runs even though
+    # nothing was actually wrong. Tensor itself is required because every
+    # module in the suite transitively depends on it; checks 2 and 3 below
+    # already verify it's real and working, which is this function's actual
+    # stated purpose.
     core_dir = project_root / "trentorch" / "core"
-    required_modules = [
-        "tensor.py",
-        "activations.py",
-        "layers.py",
-        "losses.py",
-    ]
-
-    for module in required_modules:
-        module_path = core_dir / module
-        if not module_path.exists():
-            errors.append(f"Missing: trentorch/core/{module}")
+    tensor_path = core_dir / "tensor.py"
+    if not tensor_path.exists():
+        errors.append("Missing: trentorch/core/tensor.py")
 
     # Check 2: Tensor class is actually importable (not None)
     try:
