@@ -69,7 +69,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-bin/
 include/
 lib/
 lib64/
