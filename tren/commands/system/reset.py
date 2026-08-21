@@ -100,12 +100,12 @@ class SystemResetCommand(BaseCommand):
                     except Exception as e:
                         errors.append(f"modules/{item.name}: {e}")
 
-        # 2. Clear trentorch/core/ (keep __init__.py)
+        # 2. Clear trentorch/core/ (keep __init__.py and hand-written, non-generated files)
         core_dir = project_root / "trentorch" / "core"
         core_cleared = 0
         if core_dir.exists():
             for py_file in core_dir.glob("*.py"):
-                if py_file.name != "__init__.py":
+                if py_file.name not in ("__init__.py", "platform.py"):
                     try:
                         py_file.unlink()
                         core_cleared += 1

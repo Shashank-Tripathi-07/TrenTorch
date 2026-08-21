@@ -145,12 +145,12 @@ Thumbs.db
 .ai/
 
 # Project specific
-tito-cli.log
+tren-cli.log
 COMMIT_LOG.txt
 run-community.sh
 
-# Tito CLI user state and cache (local to each user)
-.tito/
+# Tren CLI user state and cache (local to each user)
+.tren/
 
 # Downloaded datasets (not source-controlled, too large)
 data/
@@ -233,4 +233,4 @@ tinytorch/perf/*
 !tinytorch/README.md
 
 # Generated benchmark outputs
-.tito/benchmarks/
+.tren/benchmarks/
