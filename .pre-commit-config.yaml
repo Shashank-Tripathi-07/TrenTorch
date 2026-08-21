@@ -1,0 +1,57 @@
+# TinyTorch Pre-commit Configuration
+# =============================================================================
+# CLI and module validation hooks for TinyTorch (markdown collapse, CLI docs).
+#
+# Not merged into the default hook set from the repo root: install with
+# `pre-commit install` still uses only `/.pre-commit-config.yaml`. Run this
+# file when you want TinyTorch-specific checks on top:
+#   cd tinytorch && pre-commit run --config .pre-commit-config.yaml --all-files
+# =============================================================================
+
+repos:
+  # ===========================================================================
+  # MARKDOWN FORMATTING
+  # ===========================================================================
+
+  - repo: local
+    hooks:
+      - id: collapse-blank-lines
+        name: "TinyTorch: Collapse extra blank lines"
+        description: "Replace 2+ consecutive blank lines with single blank line"
+        entry: python3 tools/dev/collapse_blank_lines.py
+        language: python
+        files: \.(md|py)$
+        pass_filenames: true
+
+  # ===========================================================================
+  # CLI DOCUMENTATION VALIDATORS
+  # ===========================================================================
+
+  - repo: local
+    hooks:
+      - id: validate-cli-docs
+        name: "TinyTorch: Validate CLI documentation"
+        description: "Ensure tito commands in docs match actual CLI"
+        entry: python3 tools/dev/validate_cli_docs.py
+        language: python
+        files: \.md$
+        pass_filenames: false
+
+  # ===========================================================================
+  # PYTHON CODE QUALITY
+  # ===========================================================================
+
+  # Uncomment to enable Python linting/formatting
+  # - repo: https://github.com/psf/black
+  #   rev: 24.4.2
+  #   hooks:
+  #     - id: black
+  #       name: "Format Python code"
+  #       files: ^(src/|tinytorch/|tools/).*\.py$
+
+  # - repo: https://github.com/pycqa/isort
+  #   rev: 5.13.2
+  #   hooks:
+  #     - id: isort
+  #       name: "Sort imports"
+  #       files: ^(src/|tinytorch/|tools/).*\.py$
