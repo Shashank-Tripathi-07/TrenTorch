@@ -123,6 +123,18 @@ class DevTestCommand(BaseCommand):
             action="store_true",
             help="Skip package build (assumes already exported)"
         )
+        parser.add_argument(
+            "--parallel",
+            action="store_true",
+            help=(
+                "Run pytest with -n auto (pytest-xdist) for CLI and E2E tests. "
+                "Not applied to --unit or --integration: measured neutral-to-slower "
+                "for unit (many small tests, worker spawn overhead dominates) and "
+                "surfaced an order-dependent failure under integration that didn't "
+                "occur serially. CLI (-43%% wall time) and E2E (-29%%) measured "
+                "clean with identical pass/fail results as serial."
+            )
+        )
 
     def run(self, args: Namespace) -> int:
         """Run the test suite."""
@@ -252,7 +264,7 @@ class DevTestCommand(BaseCommand):
         if run_cli:
             if not args.ci:
                 console.print("[bold]Running: CLI Tests[/bold]")
-            result = self._run_cli_tests(project_root, args.verbose, args.ci)
+            result = self._run_cli_tests(project_root, args.verbose, args.ci, args.parallel)
             results.append(result)
             if not args.ci:
                 self._print_result(result)
@@ -270,7 +282,7 @@ class DevTestCommand(BaseCommand):
         if run_e2e:
             if not args.ci:
                 console.print("[bold]Running: E2E Tests[/bold]")
-            result = self._run_e2e_tests(project_root, args.verbose, args.ci)
+            result = self._run_e2e_tests(project_root, args.verbose, args.ci, args.parallel)
             results.append(result)
             if not args.ci:
                 self._print_result(result)
@@ -791,19 +803,31 @@ class DevTestCommand(BaseCommand):
             ci_mode=ci_mode
         )
 
-    def _run_cli_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:
+    def _run_cli_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False, parallel: bool = False) -> TestResult:
         """Run CLI tests."""
-        return self._run_pytest(project_root, "tests/cli", "CLI tests", verbose, timeout=120, ci_mode=ci_mode)
+        extra_args = ["-n", "auto"] if parallel else None
+        return self._run_pytest(project_root, "tests/cli", "CLI tests", verbose, timeout=120, extra_args=extra_args, ci_mode=ci_mode)
 
     def _run_integration_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:
-        """Run integration tests."""
+        """Run integration tests.
+
+        Not parallelized: a local -n auto run surfaced an order-dependent
+        failure (test_deep_network_gradient_chain) that didn't occur
+        serially, while unrelated re-runs of the same file also showed
+        pre-existing seed-sensitive flakiness independent of parallelism.
+        Needs the flaky tests fixed and reproducibility confirmed before
+        this is safe to parallelize.
+        """
         return self._run_pytest(project_root, "tests/integration", "Integration tests", verbose, ci_mode=ci_mode)
 
-    def _run_e2e_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:
+    def _run_e2e_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False, parallel: bool = False) -> TestResult:
         """Run E2E tests."""
+        extra_args = ["-m", "quick"]
+        if parallel:
+            extra_args += ["-n", "auto"]
         return self._run_pytest(
             project_root, "tests/e2e", "E2E tests", verbose,
-            timeout=600, extra_args=["-m", "quick"], ci_mode=ci_mode
+            timeout=600, extra_args=extra_args, ci_mode=ci_mode
         )
 
     def _run_milestone_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:

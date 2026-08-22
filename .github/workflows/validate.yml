@@ -255,7 +255,7 @@ jobs:
     uses: ./.github/workflows/run-test-stage.yml
     with:
       os_matrix: ${{ needs.configure.outputs.os_matrix }}
-      test_flag: '--cli'
+      test_flag: '--cli --parallel'
       step_label: '💻 Stage 4 · CLI Tests'
       download_package: ${{ needs.configure.outputs.run_inline }}
       timeout_minutes: 15
@@ -276,7 +276,7 @@ jobs:
     uses: ./.github/workflows/run-test-stage.yml
     with:
       os_matrix: ${{ needs.configure.outputs.os_matrix }}
-      test_flag: '--e2e'
+      test_flag: '--e2e --parallel'
       step_label: '🌐 Stage 5 · E2E Tests'
       download_package: ${{ needs.configure.outputs.run_inline }}
       timeout_minutes: 15
@@ -351,129 +351,81 @@ jobs:
     if: always()
 
     steps:
-      - name: Generate Summary
+      # Builds the results table and the pass/fail gate from one stage list
+      # instead of two separate hand-maintained bash blocks (one per stage,
+      # times two). Adding a stage now means adding one entry to STAGES
+      # below, not hand-editing a table row here and a separate if-check
+      # there and hoping the two stay in sync. needs.*.result is passed in
+      # as JSON via an env var rather than interpolated per-field into the
+      # script, matching the same untrusted-expression-into-env-var pattern
+      # used for Stage 6's BRANCH value.
+      - name: Generate summary and check for failures
+        env:
+          NEEDS_JSON: ${{ toJson(needs) }}
         run: |
-          echo "## ⚡ TrenTorch CI Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Test Type** | \`${{ needs.configure.outputs.test_type }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Trigger** | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import sys
 
-          echo "### Test Progression (Sequential)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Stage | Test | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|------|--------|" >> $GITHUB_STEP_SUMMARY
+          needs = json.loads(os.environ["NEEDS_JSON"])
+          cfg = needs.get("configure", {}).get("outputs", {})
 
-          if [ "${{ needs.configure.outputs.run_inline }}" = "true" ]; then
-            case "${{ needs.stage-1-inline.result }}" in
-              success) echo "| 1 | 📝 Inline Build | ✅ Passed |" >> $GITHUB_STEP_SUMMARY ;;
-              failure) echo "| 1 | 📝 Inline Build | ❌ Failed |" >> $GITHUB_STEP_SUMMARY ;;
-              *) echo "| 1 | 📝 Inline Build | ⏭️ ${{ needs.stage-1-inline.result }} |" >> $GITHUB_STEP_SUMMARY ;;
-            esac
-          else
-            echo "| 1 | 📝 Inline Build | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
-          fi
+          # (job id, display number, label, configure-output flag that gates it)
+          STAGES = [
+              ("stage-1-inline",        1, "📝 Inline Build",  "run_inline"),
+              ("stage-2-unit",          2, "🧪 Unit Tests",    "run_unit"),
+              ("stage-3-integration",   3, "🔗 Integration",   "run_integration"),
+              ("stage-4-cli",           4, "💻 CLI Tests",     "run_cli"),
+              ("stage-5-e2e",           5, "🌐 E2E Tests",     "run_e2e"),
+              ("stage-6-fresh-install", 6, "📦 Fresh Install", "run_e2e_or_release"),
+              ("stage-7-user-journey",  7, "🎓 User Journey",  "run_release"),
+          ]
 
-          if [ "${{ needs.configure.outputs.run_unit }}" = "true" ]; then
-            case "${{ needs.stage-2-unit.result }}" in
-              success) echo "| 2 | 🧪 Unit Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY ;;
-              failure) echo "| 2 | 🧪 Unit Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY ;;
-              *) echo "| 2 | 🧪 Unit Tests | ⏭️ ${{ needs.stage-2-unit.result }} |" >> $GITHUB_STEP_SUMMARY ;;
-            esac
-          else
-            echo "| 2 | 🧪 Unit Tests | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
-          fi
+          def is_enabled(flag):
+              if flag == "run_e2e_or_release":
+                  return cfg.get("run_e2e") == "true" or cfg.get("run_release") == "true"
+              return cfg.get(flag) == "true"
 
-          if [ "${{ needs.configure.outputs.run_integration }}" = "true" ]; then
-            case "${{ needs.stage-3-integration.result }}" in
-              success) echo "| 3 | 🔗 Integration | ✅ Passed |" >> $GITHUB_STEP_SUMMARY ;;
-              failure) echo "| 3 | 🔗 Integration | ❌ Failed |" >> $GITHUB_STEP_SUMMARY ;;
-              *) echo "| 3 | 🔗 Integration | ⏭️ ${{ needs.stage-3-integration.result }} |" >> $GITHUB_STEP_SUMMARY ;;
-            esac
-          else
-            echo "| 3 | 🔗 Integration | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
-          fi
+          lines = [
+              "## ⚡ TrenTorch CI Results",
+              "",
+              "| Property | Value |",
+              "|----------|-------|",
+              f"| **Test Type** | `{cfg.get('test_type', '')}` |",
+              f"| **Trigger** | {os.environ.get('GITHUB_EVENT_NAME', '')} |",
+              f"| **Branch** | `{os.environ.get('GITHUB_REF_NAME', '')}` |",
+              "",
+              "### Test Progression (Sequential)",
+              "",
+              "| Stage | Test | Status |",
+              "|-------|------|--------|",
+          ]
 
-          if [ "${{ needs.configure.outputs.run_cli }}" = "true" ]; then
-            case "${{ needs.stage-4-cli.result }}" in
-              success) echo "| 4 | 💻 CLI Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY ;;
-              failure) echo "| 4 | 💻 CLI Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY ;;
-              *) echo "| 4 | 💻 CLI Tests | ⏭️ ${{ needs.stage-4-cli.result }} |" >> $GITHUB_STEP_SUMMARY ;;
-            esac
-          else
-            echo "| 4 | 💻 CLI Tests | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
-          fi
+          failed_stages = []
+          for job_id, num, label, flag in STAGES:
+              result = needs.get(job_id, {}).get("result", "skipped")
+              if not is_enabled(flag):
+                  status = "⏭️ Skipped"
+              elif result == "success":
+                  status = "✅ Passed"
+              elif result == "failure":
+                  status = "❌ Failed"
+                  failed_stages.append((num, label))
+              else:
+                  status = f"⏭️ {result.capitalize()}"
+              lines.append(f"| {num} | {label} | {status} |")
 
-          if [ "${{ needs.configure.outputs.run_e2e }}" = "true" ]; then
-            case "${{ needs.stage-5-e2e.result }}" in
-              success) echo "| 5 | 🌐 E2E Tests | ✅ Passed |" >> $GITHUB_STEP_SUMMARY ;;
-              failure) echo "| 5 | 🌐 E2E Tests | ❌ Failed |" >> $GITHUB_STEP_SUMMARY ;;
-              *) echo "| 5 | 🌐 E2E Tests | ⏭️ ${{ needs.stage-5-e2e.result }} |" >> $GITHUB_STEP_SUMMARY ;;
-            esac
-          else
-            echo "| 5 | 🌐 E2E Tests | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
-          fi
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write("\n".join(lines) + "\n")
 
-          if [ "${{ needs.configure.outputs.run_e2e }}" = "true" ] || [ "${{ needs.configure.outputs.run_release }}" = "true" ]; then
-            case "${{ needs.stage-6-fresh-install.result }}" in
-              success) echo "| 6 | 📦 Fresh Install | ✅ Passed |" >> $GITHUB_STEP_SUMMARY ;;
-              failure) echo "| 6 | 📦 Fresh Install | ❌ Failed |" >> $GITHUB_STEP_SUMMARY ;;
-              *) echo "| 6 | 📦 Fresh Install | ⏭️ ${{ needs.stage-6-fresh-install.result }} |" >> $GITHUB_STEP_SUMMARY ;;
-            esac
-          else
-            echo "| 6 | 📦 Fresh Install | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
-          fi
+          if failed_stages:
+              print()
+              for num, label in failed_stages:
+                  print(f"❌ Stage {num} ({label}) failed")
+              print()
+              print("❌ CI FAILED - See above for details")
+              sys.exit(1)
 
-          if [ "${{ needs.configure.outputs.run_release }}" = "true" ]; then
-            case "${{ needs.stage-7-user-journey.result }}" in
-              success) echo "| 7 | 🎓 User Journey | ✅ Passed |" >> $GITHUB_STEP_SUMMARY ;;
-              failure) echo "| 7 | 🎓 User Journey | ❌ Failed |" >> $GITHUB_STEP_SUMMARY ;;
-              *) echo "| 7 | 🎓 User Journey | ⏭️ ${{ needs.stage-7-user-journey.result }} |" >> $GITHUB_STEP_SUMMARY ;;
-            esac
-          else
-            echo "| 7 | 🎓 User Journey | ⏭️ Skipped |" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Check for failures
-        run: |
-          FAILED=false
-
-          if [ "${{ needs.configure.outputs.run_inline }}" = "true" ] && [ "${{ needs.stage-1-inline.result }}" = "failure" ]; then
-            echo "❌ Stage 1 (Inline Build) failed"
-            FAILED=true
-          fi
-          if [ "${{ needs.configure.outputs.run_unit }}" = "true" ] && [ "${{ needs.stage-2-unit.result }}" = "failure" ]; then
-            echo "❌ Stage 2 (Unit Tests) failed"
-            FAILED=true
-          fi
-          if [ "${{ needs.configure.outputs.run_integration }}" = "true" ] && [ "${{ needs.stage-3-integration.result }}" = "failure" ]; then
-            echo "❌ Stage 3 (Integration) failed"
-            FAILED=true
-          fi
-          if [ "${{ needs.configure.outputs.run_cli }}" = "true" ] && [ "${{ needs.stage-4-cli.result }}" = "failure" ]; then
-            echo "❌ Stage 4 (CLI Tests) failed"
-            FAILED=true
-          fi
-          if [ "${{ needs.configure.outputs.run_e2e }}" = "true" ] && [ "${{ needs.stage-5-e2e.result }}" = "failure" ]; then
-            echo "❌ Stage 5 (E2E Tests) failed"
-            FAILED=true
-          fi
-          if { [ "${{ needs.configure.outputs.run_e2e }}" = "true" ] || [ "${{ needs.configure.outputs.run_release }}" = "true" ]; } && [ "${{ needs.stage-6-fresh-install.result }}" = "failure" ]; then
-            echo "❌ Stage 6 (Fresh Install) failed"
-            FAILED=true
-          fi
-          if [ "${{ needs.configure.outputs.run_release }}" = "true" ] && [ "${{ needs.stage-7-user-journey.result }}" = "failure" ]; then
-            echo "❌ Stage 7 (User Journey) failed"
-            FAILED=true
-          fi
-
-          if [ "$FAILED" = "true" ]; then
-            echo ""
-            echo "❌ CI FAILED - See above for details"
-            exit 1
-          else
-            echo "✅ All enabled tests passed"
-          fi
+          print("✅ All enabled tests passed")
+          PYEOF
