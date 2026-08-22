@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Actions are pinned to commit SHAs (see .github/workflows/ and
+    # .github/actions/setup-trentorch/) rather than mutable tags, so this
+    # is what keeps those pins current without hand-resolving new SHAs
+    # every time an action ships a security fix.
+    commit-message:
+      prefix: "ci"

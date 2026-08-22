@@ -38,7 +38,23 @@ name: '⚡ TrenTorch · ✅ Validate'
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'quarto/**'
+      - 'binder/**'
+      - 'dev/vscode-ext/**'
+      - 'dev/etc/**'
+      - '.github/assets/**'
+      - '**/*.md'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'quarto/**'
+      - 'binder/**'
+      - 'dev/vscode-ext/**'
+      - 'dev/etc/**'
+      - '.github/assets/**'
+      - '**/*.md'
   workflow_dispatch:
     inputs:
       test_type:
@@ -191,20 +207,11 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      - name: Set up TrenTorch
+        uses: ./.github/actions/setup-trentorch
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: requirements.txt
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          os: ${{ matrix.os }}
+          download-package: 'false'
 
       - name: Run Inline Tests (Progressive Build)
         run: |
@@ -220,7 +227,7 @@ jobs:
       # duplicated work to zero without skipping or altering any test.
       - name: Upload built package
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: built-package-${{ matrix.os }}
           path: |
@@ -252,27 +259,11 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      - name: Set up TrenTorch
+        uses: ./.github/actions/setup-trentorch
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: requirements.txt
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Download built package from Stage 1
-        if: needs.configure.outputs.run_inline == 'true'
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: built-package-${{ matrix.os }}
+          os: ${{ matrix.os }}
+          download-package: ${{ needs.configure.outputs.run_inline }}
 
       - name: Run Unit Tests
         run: |
@@ -302,27 +293,11 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      - name: Set up TrenTorch
+        uses: ./.github/actions/setup-trentorch
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: requirements.txt
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Download built package from Stage 1
-        if: needs.configure.outputs.run_inline == 'true'
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: built-package-${{ matrix.os }}
+          os: ${{ matrix.os }}
+          download-package: ${{ needs.configure.outputs.run_inline }}
 
       - name: Run Integration Tests
         run: |
@@ -352,27 +327,11 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      - name: Set up TrenTorch
+        uses: ./.github/actions/setup-trentorch
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: requirements.txt
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Download built package from Stage 1
-        if: needs.configure.outputs.run_inline == 'true'
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: built-package-${{ matrix.os }}
+          os: ${{ matrix.os }}
+          download-package: ${{ needs.configure.outputs.run_inline }}
 
       - name: Run CLI Tests
         run: |
@@ -404,27 +363,11 @@ jobs:
         shell: bash
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      - name: Set up TrenTorch
+        uses: ./.github/actions/setup-trentorch
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: requirements.txt
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Download built package from Stage 1
-        if: needs.configure.outputs.run_inline == 'true'
-        continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: built-package-${{ matrix.os }}
+          os: ${{ matrix.os }}
+          download-package: ${{ needs.configure.outputs.run_inline }}
 
       - name: Run E2E Tests
         run: |
@@ -447,7 +390,7 @@ jobs:
 
     steps:
       - name: Checkout (for test script only)
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           sparse-checkout: |
             dev/scripts/test-fresh-install.sh
@@ -461,12 +404,15 @@ jobs:
           # job; both the script and install.sh already know to use it
           # when set.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          chmod +x dev/scripts/test-fresh-install.sh
           # For PRs, github.ref_name is the merge ref (e.g. "12/merge") which doesn't
           # exist as a real branch on raw.githubusercontent.com. Use head_ref (the actual
-          # source branch) for PRs, falling back to ref_name for push events.
-          BRANCH="${{ github.head_ref || github.ref_name }}"
+          # source branch) for PRs, falling back to ref_name for push events. Passed as
+          # an env var rather than interpolated into the script below: a branch name is
+          # attacker-influenced input, and substituting a GitHub expression directly into
+          # a shell string is exactly the injection pattern env vars exist to avoid.
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          chmod +x dev/scripts/test-fresh-install.sh
           ./dev/scripts/test-fresh-install.sh --branch "$BRANCH"
 
   # ===========================================================================
@@ -483,20 +429,11 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      - name: Set up TrenTorch
+        uses: ./.github/actions/setup-trentorch
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: requirements.txt
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          os: ubuntu-latest
+          download-package: 'false'
 
       - name: Run User Journey Validation
         run: |
