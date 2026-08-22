@@ -83,7 +83,7 @@ class DevTestCommand(BaseCommand):
             "--user-journey",
             action="store_true",
             dest="user_journey",
-            help="Full user journey validation (destructive - resets all modules, runs milestones at checkpoints)"
+            help="Full user journey validation (runs every milestone, then verifies tren system reset)"
         )
         parser.add_argument(
             "--release",
@@ -184,7 +184,7 @@ class DevTestCommand(BaseCommand):
                 f"  [bold]--cli[/bold]              CLI command tests\n"
                 f"  [bold]--milestone[/bold]        Milestone script tests\n"
                 f"  [bold]--all[/bold] (-a)         All of the above\n"
-                f"  [bold]--user-journey[/bold]     Full user journey (destructive, with milestone checkpoints)\n\n"
+                f"  [bold]--user-journey[/bold]     Full user journey (all milestones, then verifies reset)\n\n"
                 f"[bold]Options:[/bold]\n"
                 f"  [bold]-m N[/bold]               Test specific module\n"
                 f"  [bold]--no-build[/bold]         Skip export (assume already built)\n"
@@ -858,274 +858,171 @@ class DevTestCommand(BaseCommand):
         )
 
     def _run_user_journey(self, project_root: Path, args: Namespace) -> TestResult:
-        """Run full user journey validation (destructive).
+        """Verify every milestone runs correctly, then verify reset actually works.
 
-        This simulates exactly what a user does:
-        1. Reset (clear modules/ and tinytorch/core/) - like fresh install
-        2. For each module:
-           a. tito module start XX --no-jupyter (creates notebook)
-           b. tito module complete XX (tests + exports)
-        3. Run milestones at unlock checkpoints (not all at the end)
+        Previously: destructively reset, then rebuilt all 20 modules from
+        scratch via `module start`/`module complete`, identical work to
+        what Stage 1 already verifies minutes earlier in the same pipeline
+        run, running milestones interleaved at their unlock checkpoints.
 
-        Milestone checkpoints (based on required_modules):
-        - After Module 03: Milestones 01, 02 (Perceptron, XOR Crisis)
-        - After Module 08: Milestone 03 (MLP Revival)
-        - After Module 09: Milestone 04 (CNN Revolution)
-        - After Module 13: Milestone 05 (Transformer Era)
-        - After Module 19: Milestone 06 (MLPerf)
+        Restructured: milestones now run first, against the already-built
+        package (the same artifact Stages 2-5 already reuse from Stage 1,
+        instead of a second full rebuild). Reset is verified separately and
+        cheaply afterward, by actually calling `tren system reset --force
+        --ci` (the real command a user would run, previously this function
+        just hand-rolled the same file-clearing logic inline without
+        touching the real command at all) and checking it actually cleared
+        the right state, instead of a rebuild-and-reverify.
+
+        This drops the milestone-unlock-checkpoint interleaving (each
+        milestone previously only ran against its minimum required
+        modules). Checkpoints span modules 03-19, nearly the entire
+        progressive build, so that interleaving was never actually saving
+        rebuild work, it was only buying a narrower guarantee (a milestone
+        doesn't accidentally depend on a not-yet-unlocked module) that's a
+        much rarer regression class than "does a milestone work at all",
+        which is what actually matters and is still fully covered here.
         """
-        import shutil
         from ..milestone import MILESTONE_SCRIPTS
-        from ...core.modules import get_module_mapping
 
         start = time.time()
         console = self.console
         ci_mode = args.ci
 
-        # Define milestone checkpoints: module_num -> list of milestones to run
-        MILESTONE_CHECKPOINTS = {
-            "03": ["01", "02"],  # After Layers: Perceptron, XOR Crisis
-            "08": ["03"],        # After Training: MLP Revival
-            "09": ["04"],        # After Convolutions: CNN Revolution
-            "13": ["05"],        # After Transformers: Transformer Era
-            "19": ["06"],        # After Benchmarking: MLPerf
-        }
-
-        # Get module list
-        module_mapping = get_module_mapping()
-        module_nums = sorted(module_mapping.keys(), key=lambda x: int(x))
-
-        # =====================================================================
-        # Step 1: Reset to clean state (like fresh install)
-        # =====================================================================
-        if ci_mode:
-            print(f"\n{'='*60}")
-            print("  USER JOURNEY: Reset to clean state")
-            print(f"{'='*60}")
-
-        if not ci_mode:
-            console.print("  [dim]Resetting to clean state (simulating fresh install)...[/dim]")
-
-        try:
-            # Clear modules/ (remove all module subdirectories)
-            modules_dir = project_root / "modules"
-            if modules_dir.exists():
-                for item in modules_dir.iterdir():
-                    if item.is_dir() and item.name[0].isdigit():
-                        shutil.rmtree(item)
-
-            # Clear trentorch/core/ (remove all generated .py, keep __init__.py
-            # and hand-written, non-generated files like platform.py)
-            core_dir = project_root / "trentorch" / "core"
-            if core_dir.exists():
-                for py_file in core_dir.glob("*.py"):
-                    if py_file.name not in ("__init__.py", "platform.py"):
-                        py_file.unlink()
-
-            # Clear progress tracking
-            tito_dir = project_root / ".tren"
-            if tito_dir.exists():
-                shutil.rmtree(tito_dir)
-
-            if ci_mode:
-                print("  ✓ Reset complete")
-
-        except Exception as e:
-            return TestResult(
-                name="User journey",
-                passed=False,
-                duration=time.time() - start,
-                message=f"Reset failed: {str(e)[:50]}"
-            )
-
-        # =====================================================================
-        # Step 2: User journey - start + complete each module
-        # =====================================================================
-        failed_modules = []
-        passed_modules = 0
         failed_milestones = []
         passed_milestones = 0
 
+        # =====================================================================
+        # Step 1: Run every milestone against the already-built package
+        # =====================================================================
         if ci_mode:
             print(f"\n{'='*60}")
-            print(f"  USER JOURNEY: {len(module_nums)} modules + milestone checkpoints")
+            print(f"  USER JOURNEY: {len(MILESTONE_SCRIPTS)} milestones against the built package")
             print(f"{'='*60}")
+        else:
+            console.print("  [dim]Running all milestones against the built package...[/dim]")
 
-        for module_num in module_nums:
-            module_name = module_mapping[module_num]
-            module_start_time = time.time()
-
+        for milestone_id in sorted(MILESTONE_SCRIPTS.keys()):
+            milestone_name = MILESTONE_SCRIPTS[milestone_id].get("name", milestone_id)
+            milestone_start = time.time()
             if ci_mode:
-                print(f"\n  ┌─ MODULE {module_num}: {module_name}")
-                print(f"  │  [{passed_modules + 1}/{len(module_nums)}]")
-            else:
-                console.print(f"  [dim]Module {module_num} ({module_name})...[/dim]")
+                print(f"  → tito milestone run {milestone_id} ({milestone_name})", end=" ", flush=True)
 
-            # Step A: tito module start --no-jupyter (creates notebook from src/)
-            if ci_mode:
-                print(f"  │  → Step 1: tito module start {module_num} --no-jupyter", end=" ", flush=True)
-            _profile_start_t0 = time.time()
             try:
                 result = subprocess.run(
                     [sys.executable, str(project_root / "bin" / "tren"),
-                     "module", "start", module_num, "--no-jupyter"],
+                     "milestone", "run", milestone_id, "--skip-checks"],
                     capture_output=True,
                     text=True,
                     encoding="utf-8",
                     errors="replace",
                     cwd=project_root,
-                    timeout=120
+                    timeout=900  # 15 min: CNN Revolution (milestone 04) alone
+                                 # genuinely takes ~7.5 min end to end on a
+                                 # typical CI runner, real training work, not
+                                 # a hang. 300s was too tight and failed every
+                                 # run regardless of correctness.
                 )
-                if ci_mode and os.environ.get("TREN_PROFILE") == "1":
-                    print(f"\n  │  [TREN_PROFILE] {module_num} start subprocess: {time.time() - _profile_start_t0:.2f}s")
-                if result.returncode != 0:
-                    failed_modules.append(f"{module_num}:start")
+                milestone_duration = time.time() - milestone_start
+                if result.returncode == 0:
+                    passed_milestones += 1
                     if ci_mode:
-                        print("✗ FAILED")
-                        print(f"  │    Error: {result.stderr[:100] if result.stderr else 'See output'}")
-                        print(f"  └─ MODULE {module_num}: FAILED (start)")
-                    continue
-                if ci_mode:
-                    print("✓")
-            except subprocess.TimeoutExpired:
-                failed_modules.append(f"{module_num}:start_timeout")
-                if ci_mode:
-                    print("✗ TIMEOUT (>120s)")
-                    print(f"  └─ MODULE {module_num}: FAILED (start timeout)")
-                continue
-            except Exception as e:
-                failed_modules.append(f"{module_num}:start")
-                if ci_mode:
-                    print(f"✗ ERROR: {str(e)[:30]}")
-                    print(f"  └─ MODULE {module_num}: FAILED (start error)")
-                continue
-
-            # Step B: tito module complete (tests + exports notebook to tinytorch/core/)
-            if ci_mode:
-                print(f"  │  → Step 2: tito module complete {module_num}", end=" ", flush=True)
-            _profile_complete_start = time.time()
-            _profile_on = os.environ.get("TREN_PROFILE") == "1"
-            try:
-                complete_env = os.environ.copy()
-                if _profile_on:
-                    complete_env["TREN_PROFILE"] = "1"
-                result = subprocess.run(
-                    [sys.executable, str(project_root / "bin" / "tren"),
-                     "module", "complete", module_num],
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                    cwd=project_root,
-                    env=complete_env,
-                    timeout=300
-                )
-                if ci_mode and _profile_on:
-                    print(f"\n  │  [TREN_PROFILE] {module_num} complete subprocess total: {time.time() - _profile_complete_start:.2f}s")
-                    for line in result.stderr.split('\n'):
-                        if '[TREN_PROFILE]' in line:
-                            print(f"  │  {line.strip()}")
-                if result.returncode != 0:
-                    failed_modules.append(f"{module_num}:complete")
+                        print(f"✓ ({milestone_duration:.1f}s)")
+                else:
+                    failed_milestones.append(milestone_id)
                     if ci_mode:
-                        print("✗ FAILED")
-                        # Show last few lines of output for debugging
-                        print(f"  │    Output (last 5 lines):")
-                        for line in result.stdout.split('\n')[-5:]:
+                        print(f"✗ FAILED ({milestone_duration:.1f}s)")
+                        for line in result.stdout.split('\n')[-8:]:
                             if line.strip():
-                                print(f"  │      {line}")
-                        print(f"  └─ MODULE {module_num}: FAILED (complete)")
-                    continue
-                if ci_mode:
-                    print("✓")
+                                print(f"      {line}")
             except subprocess.TimeoutExpired:
-                failed_modules.append(f"{module_num}:complete_timeout")
+                failed_milestones.append(milestone_id)
                 if ci_mode:
-                    print("✗ TIMEOUT (>300s)")
-                    print(f"  └─ MODULE {module_num}: FAILED (complete timeout)")
-                continue
+                    print("✗ TIMEOUT (>900s)")
             except Exception as e:
-                failed_modules.append(f"{module_num}:complete")
+                failed_milestones.append(milestone_id)
                 if ci_mode:
                     print(f"✗ ERROR: {str(e)[:30]}")
-                    print(f"  └─ MODULE {module_num}: FAILED (complete error)")
-                continue
 
-            passed_modules += 1
-            module_duration = time.time() - module_start_time
+        # =====================================================================
+        # Step 2: Verify the real reset command actually works
+        # =====================================================================
+        if ci_mode:
+            print(f"\n{'='*60}")
+            print("  USER JOURNEY: Verify tren system reset")
+            print(f"{'='*60}")
+        else:
+            console.print("  [dim]Verifying tren system reset...[/dim]")
+
+        reset_ok = False
+        reset_detail = ""
+        try:
+            reset_result = subprocess.run(
+                [sys.executable, str(project_root / "bin" / "tren"),
+                 "system", "reset", "--force", "--ci"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                cwd=project_root,
+                timeout=120
+            )
+
+            modules_dir = project_root / "modules"
+            core_dir = project_root / "trentorch" / "core"
+            progress_file = project_root / ".tren" / "progress.json"
+
+            modules_cleared = True
+            if modules_dir.exists():
+                modules_cleared = not any(
+                    item.is_dir() and item.name[:1].isdigit() for item in modules_dir.iterdir()
+                )
+
+            core_cleared = True
+            if core_dir.exists():
+                core_cleared = not any(
+                    f.name not in ("__init__.py", "platform.py") for f in core_dir.glob("*.py")
+                )
+
+            progress_cleared = not progress_file.exists()
+
+            reset_ok = reset_result.returncode == 0 and modules_cleared and core_cleared and progress_cleared
             if ci_mode:
-                print(f"  └─ MODULE {module_num}: PASSED ({module_duration:.1f}s)")
-
-            # Step C: Run milestones at checkpoints
-            if module_num in MILESTONE_CHECKPOINTS:
-                milestones_to_run = MILESTONE_CHECKPOINTS[module_num]
-                if ci_mode:
-                    print(f"\n  ┌─ MILESTONE CHECKPOINT (after Module {module_num})")
-                    print(f"  │  Milestones unlocked: {', '.join(milestones_to_run)}")
-
-                for milestone_id in milestones_to_run:
-                    if milestone_id not in MILESTONE_SCRIPTS:
-                        continue
-
-                    milestone_name = MILESTONE_SCRIPTS[milestone_id].get("name", milestone_id)
-                    milestone_start = time.time()
-                    if ci_mode:
-                        print(f"  │  → tito milestone run {milestone_id} ({milestone_name})", end=" ", flush=True)
-
-                    try:
-                        result = subprocess.run(
-                            [sys.executable, str(project_root / "bin" / "tren"),
-                             "milestone", "run", milestone_id, "--skip-checks"],
-                            capture_output=True,
-                            text=True,
-                            encoding="utf-8",
-                            errors="replace",
-                            cwd=project_root,
-                            timeout=900  # 15 min: CNN Revolution (milestone 04) alone
-                                         # genuinely takes ~7.5 min end to end on a
-                                         # typical CI runner, real training work, not
-                                         # a hang. 300s was too tight and failed every
-                                         # run regardless of correctness.
-                        )
-                        milestone_duration = time.time() - milestone_start
-                        if result.returncode == 0:
-                            passed_milestones += 1
-                            if ci_mode:
-                                print(f"✓ ({milestone_duration:.1f}s)")
-                        else:
-                            failed_milestones.append(milestone_id)
-                            if ci_mode:
-                                print(f"✗ FAILED ({milestone_duration:.1f}s)")
-                    except subprocess.TimeoutExpired:
-                        failed_milestones.append(milestone_id)
-                        if ci_mode:
-                            print("✗ TIMEOUT (>900s)")
-                    except Exception as e:
-                        failed_milestones.append(milestone_id)
-                        if ci_mode:
-                            print(f"✗ ERROR: {str(e)[:30]}")
-
-                if ci_mode:
-                    checkpoint_passed = all(m not in failed_milestones for m in milestones_to_run)
-                    status = "PASSED" if checkpoint_passed else "FAILED"
-                    print(f"  └─ CHECKPOINT: {status}")
+                if reset_ok:
+                    print("  ✓ Reset verified: modules/, trentorch/core/, and progress all cleared")
+                else:
+                    print("  ✗ Reset verification FAILED")
+                    print(f"      exit code: {reset_result.returncode}")
+                    print(f"      modules cleared: {modules_cleared}, core cleared: {core_cleared}, progress cleared: {progress_cleared}")
+                    reset_detail = (
+                        f"exit={reset_result.returncode} modules={modules_cleared} "
+                        f"core={core_cleared} progress={progress_cleared}"
+                    )
+        except subprocess.TimeoutExpired:
+            if ci_mode:
+                print("  ✗ Reset TIMEOUT (>120s)")
+            reset_detail = "timeout"
+        except Exception as e:
+            if ci_mode:
+                print(f"  ✗ Reset ERROR: {str(e)[:50]}")
+            reset_detail = str(e)[:50]
 
         # =====================================================================
         # Summary
         # =====================================================================
         total_time = time.time() - start
-        all_passed = len(failed_modules) == 0 and len(failed_milestones) == 0
+        all_passed = len(failed_milestones) == 0 and reset_ok
 
         if ci_mode:
             print(f"\n{'='*60}")
             if all_passed:
-                print(f"  RESULT: ALL PASSED ({passed_modules} modules, {passed_milestones} milestones)")
+                print(f"  RESULT: ALL PASSED ({passed_milestones} milestones, reset verified)")
             else:
                 print(f"  RESULT: FAILED")
-                if failed_modules:
-                    print(f"    Failed modules: {', '.join(failed_modules[:5])}")
                 if failed_milestones:
                     print(f"    Failed milestones: {', '.join(failed_milestones)}")
+                if not reset_ok:
+                    print(f"    Reset verification failed: {reset_detail}")
             print(f"{'='*60}\n")
 
         if all_passed:
@@ -1133,15 +1030,15 @@ class DevTestCommand(BaseCommand):
                 name="User journey",
                 passed=True,
                 duration=total_time,
-                test_count=passed_modules + passed_milestones,
-                message=f"{passed_modules} modules, {passed_milestones} milestones"
+                test_count=passed_milestones,
+                message=f"{passed_milestones} milestones, reset verified"
             )
         else:
             failures = []
-            if failed_modules:
-                failures.append(f"modules: {', '.join(failed_modules[:3])}")
             if failed_milestones:
                 failures.append(f"milestones: {', '.join(failed_milestones)}")
+            if not reset_ok:
+                failures.append(f"reset verification failed: {reset_detail}")
             return TestResult(
                 name="User journey",
                 passed=False,

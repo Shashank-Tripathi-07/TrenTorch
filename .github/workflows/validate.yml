@@ -338,7 +338,10 @@ jobs:
       os_matrix: '["ubuntu-latest"]'
       test_flag: '--user-journey'
       step_label: '🎓 Stage 7 · User Journey'
-      download_package: 'false'
+      # Restructured to run milestones against Stage 1's already-built
+      # package instead of rebuilding all 20 modules from scratch a second
+      # time, so it now needs that artifact downloaded, same as Stages 2-5.
+      download_package: ${{ needs.configure.outputs.run_inline }}
       timeout_minutes: 45
 
   # ===========================================================================
