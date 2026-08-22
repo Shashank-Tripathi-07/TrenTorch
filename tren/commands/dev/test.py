@@ -964,6 +964,7 @@ class DevTestCommand(BaseCommand):
             # Step A: tito module start --no-jupyter (creates notebook from src/)
             if ci_mode:
                 print(f"  │  → Step 1: tito module start {module_num} --no-jupyter", end=" ", flush=True)
+            _profile_start_t0 = time.time()
             try:
                 result = subprocess.run(
                     [sys.executable, str(project_root / "bin" / "tren"),
@@ -975,6 +976,8 @@ class DevTestCommand(BaseCommand):
                     cwd=project_root,
                     timeout=120
                 )
+                if ci_mode and os.environ.get("TREN_PROFILE") == "1":
+                    print(f"\n  │  [TREN_PROFILE] {module_num} start subprocess: {time.time() - _profile_start_t0:.2f}s")
                 if result.returncode != 0:
                     failed_modules.append(f"{module_num}:start")
                     if ci_mode:
@@ -1000,7 +1003,12 @@ class DevTestCommand(BaseCommand):
             # Step B: tito module complete (tests + exports notebook to tinytorch/core/)
             if ci_mode:
                 print(f"  │  → Step 2: tito module complete {module_num}", end=" ", flush=True)
+            _profile_complete_start = time.time()
+            _profile_on = os.environ.get("TREN_PROFILE") == "1"
             try:
+                complete_env = os.environ.copy()
+                if _profile_on:
+                    complete_env["TREN_PROFILE"] = "1"
                 result = subprocess.run(
                     [sys.executable, str(project_root / "bin" / "tren"),
                      "module", "complete", module_num],
@@ -1009,8 +1017,14 @@ class DevTestCommand(BaseCommand):
                     encoding="utf-8",
                     errors="replace",
                     cwd=project_root,
+                    env=complete_env,
                     timeout=300
                 )
+                if ci_mode and _profile_on:
+                    print(f"\n  │  [TREN_PROFILE] {module_num} complete subprocess total: {time.time() - _profile_complete_start:.2f}s")
+                    for line in result.stderr.split('\n'):
+                        if '[TREN_PROFILE]' in line:
+                            print(f"  │  {line.strip()}")
                 if result.returncode != 0:
                     failed_modules.append(f"{module_num}:complete")
                     if ci_mode:
