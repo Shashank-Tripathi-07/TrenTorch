@@ -10,6 +10,7 @@ Implements the natural workflow:
 import os
 import subprocess
 import sys
+import time
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Dict, Optional
@@ -35,6 +36,18 @@ from ...core.modules import (
     module_exists,
     get_all_module_metadata,
 )
+
+# One-off diagnostic instrumentation for finding out why some modules take
+# far longer than others in `module complete` (e.g. Stage 1/Stage 7 in CI).
+# Opt-in via TREN_PROFILE=1 so it never affects normal output; prints to
+# stderr so it doesn't interleave with the CLI's own captured stdout.
+_PROFILE = os.environ.get("TREN_PROFILE") == "1"
+
+
+def _profile(module_name: str, step: str, duration: float) -> None:
+    if _PROFILE:
+        print(f"[TREN_PROFILE] {module_name} {step}: {duration:.2f}s", file=sys.stderr, flush=True)
+
 
 class ModuleWorkflowCommand(BaseCommand):
     """Enhanced module command with natural workflow."""
@@ -628,7 +641,9 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print("[bold cyan] Step 1/4: Running Unit Tests[/bold cyan]")
             self.console.print()
 
+            _t0 = time.time()
             unit_result = self._run_inline_unit_tests(module_name, verbose=True)
+            _profile(module_name, "step1_unit_tests", time.time() - _t0)
             unit_test_count = unit_result['passed']
 
             if unit_result['failed'] > 0:
@@ -658,7 +673,9 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print("[bold cyan] Step 2/4: Exporting to TinyTorch Package[/bold cyan]")
             self.console.print()
 
+            _t0 = time.time()
             export_result = self.export_module(module_name)
+            _profile(module_name, "step2_export", time.time() - _t0)
             if export_result != 0:
                 self.console.print(f"[red]   ❌ Export failed for {module_name}[/red]")
                 self.console.print("   💡 Fix the issues and try again")
@@ -679,7 +696,9 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print("[bold cyan] Step 3/4: Running Integration Tests[/bold cyan]")
             self.console.print()
 
+            _t0 = time.time()
             integration_result = self._run_integration_tests(module_name, verbose=True)
+            _profile(module_name, "step3_integration_tests", time.time() - _t0)
             integration_test_count = integration_result['passed']
 
             if integration_result['failed'] > 0:
@@ -700,8 +719,10 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print("[bold cyan] Step 4/4: Tracking Progress[/bold cyan]")
         self.console.print()
 
+        _t0 = time.time()
         progress = self.get_progress_data()
         self.update_progress(normalized, module_name)
+        _profile(module_name, "step4_progress_tracking", time.time() - _t0)
 
         new_progress = self.get_progress_data()
         completed_count = len(new_progress.get('completed_modules', []))

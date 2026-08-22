@@ -12,6 +12,7 @@ Simple, explicit test types:
 Think like PyTorch: explicit, predictable, one way to do things.
 """
 
+import os
 import subprocess
 import sys
 import time
@@ -672,6 +673,7 @@ class DevTestCommand(BaseCommand):
                 console.print(f"  [dim]Module {module_num} ({module_name})...[/dim]")
 
             # Step 1: Export notebook from src/ to modules/
+            _profile_export_start = time.time()
             try:
                 export_result = subprocess.run(
                     [sys.executable, str(project_root / "bin" / "tren"),
@@ -683,6 +685,8 @@ class DevTestCommand(BaseCommand):
                     cwd=project_root,
                     timeout=120  # 2 min for export
                 )
+                if ci_mode and os.environ.get("TREN_PROFILE") == "1":
+                    print(f"\n      [TREN_PROFILE] {module_num} export subprocess: {time.time() - _profile_export_start:.2f}s")
                 if export_result.returncode != 0:
                     failed_module = f"{module_num}:export"
                     if ci_mode:
@@ -706,7 +710,12 @@ class DevTestCommand(BaseCommand):
                 break
 
             # Step 2: Run module complete (tests + copy to tinytorch/core/)
+            _profile_complete_start = time.time()
+            _profile_on = os.environ.get("TREN_PROFILE") == "1"
             try:
+                complete_env = os.environ.copy()
+                if _profile_on:
+                    complete_env["TREN_PROFILE"] = "1"
                 result = subprocess.run(
                     [sys.executable, str(project_root / "bin" / "tren"),
                      "module", "complete", module_num],
@@ -715,8 +724,15 @@ class DevTestCommand(BaseCommand):
                     encoding="utf-8",
                     errors="replace",
                     cwd=project_root,
+                    env=complete_env,
                     timeout=300  # 5 min per module
                 )
+
+                if ci_mode and _profile_on:
+                    print(f"      [TREN_PROFILE] {module_num} complete subprocess total: {time.time() - _profile_complete_start:.2f}s")
+                    for line in result.stderr.split('\n'):
+                        if '[TREN_PROFILE]' in line:
+                            print(f"      {line.strip()}")
 
                 if result.returncode == 0:
                     passed_modules += 1
