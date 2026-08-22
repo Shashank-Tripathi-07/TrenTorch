@@ -52,11 +52,6 @@ env:
   TRENTORCH_QUIET: "1"
   PYTHONIOENCODING: "utf-8"  # Required for Windows emoji support in Rich
   PYTHONUTF8: "1"            # Force UTF-8 for all Python I/O (subprocess pipes)
-  # Temporary diagnostic: prints per-module, per-step wall-clock timing for
-  # `tren dev test --inline`, to find out why Modules 02/08/09 are
-  # consistently 5-8x slower than every other module in Stage 1/Stage 7.
-  # Remove once that's root-caused.
-  TREN_PROFILE: "1"
 
 jobs:
   run:
