@@ -7,10 +7,14 @@ Implements the natural workflow:
 3. tito module complete 01 → Tests, exports, updates progress
 """
 
+import contextlib
+import io
 import os
+import runpy
 import subprocess
 import sys
 import time
+import traceback
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Dict, Optional
@@ -970,7 +974,23 @@ class ModuleWorkflowCommand(BaseCommand):
         return 0
 
     def _run_inline_unit_tests(self, module_name: str, verbose: bool) -> Dict[str, int]:
-        """Run inline unit tests and parse output for detailed display."""
+        """Run inline unit tests and parse output for detailed display.
+
+        Runs the module's src/*.py file in-process via runpy (as if it were
+        `python file.py`, so its `if __name__ == "__main__"` test blocks
+        still fire) instead of spawning a new Python interpreter subprocess
+        per module. A prior version of this tried the same change and was
+        reverted after Module 10 appeared to hang: it was never actually a
+        hang, direct profiling showed it stuck in real, expensive BPE
+        computation inside an analyze_*() demo block (not a correctness
+        check) that CI now skips entirely via the CI=true guard added to
+        those blocks. With that guard in place, this is safe to retry: the
+        thing that made it look like a state-leak-induced hang no longer
+        runs under CI at all, and the remaining correctness-check code is
+        fast. Each module's globals are still isolated per run (runpy
+        builds a fresh namespace per call), matching subprocess isolation
+        for the common case.
+        """
         project_root = Path.cwd()
         src_dir = project_root / "src" / module_name
         dev_file = src_dir / f"{module_name}.py"
@@ -980,28 +1000,36 @@ class ModuleWorkflowCommand(BaseCommand):
                 self.console.print(f"   [dim yellow]No source file found: {dev_file}[/dim yellow]")
             return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
 
-        # Set up environment with project root in PYTHONPATH
-        # This allows src files to import from tinytorch.core.*
-        env = os.environ.copy()
-        pythonpath = env.get('PYTHONPATH', '')
-        if pythonpath:
-            env['PYTHONPATH'] = f"{project_root}{os.pathsep}{pythonpath}"
-        else:
-            env['PYTHONPATH'] = str(project_root)
+        # Matches the old subprocess's PYTHONPATH=project_root: makes
+        # `from trentorch.core.* import ...` resolve the same way.
+        project_root_str = str(project_root)
+        path_was_added = project_root_str not in sys.path
+        if path_was_added:
+            sys.path.insert(0, project_root_str)
 
-        # Run the module file (which triggers if __name__ == "__main__" tests)
-        result = subprocess.run(
-            [sys.executable, str(dev_file.absolute())],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=project_root,
-            env=env
-        )
+        stdout_buffer = io.StringIO()
+        stderr_buffer = io.StringIO()
+        returncode = 0
+        try:
+            with contextlib.redirect_stdout(stdout_buffer), contextlib.redirect_stderr(stderr_buffer):
+                runpy.run_path(str(dev_file.absolute()), run_name="__main__")
+        except SystemExit as exc:
+            returncode = exc.code if isinstance(exc.code, int) else (1 if exc.code else 0)
+        except Exception:
+            returncode = 1
+            stderr_buffer.write(traceback.format_exc())
+        finally:
+            if path_was_added:
+                try:
+                    sys.path.remove(project_root_str)
+                except ValueError:
+                    pass
+
+        stdout_text = stdout_buffer.getvalue()
+        stderr_text = stderr_buffer.getvalue()
 
         # Parse output to extract individual test results
-        tests_run = self._parse_test_output(result.stdout, result.stderr, result.returncode)
+        tests_run = self._parse_test_output(stdout_text, stderr_text, returncode)
 
         if verbose:
             for test in tests_run:
@@ -1022,7 +1050,7 @@ class ModuleWorkflowCommand(BaseCommand):
             'passed': passed,
             'failed': failed,
             'tests': tests_run,
-            'returncode': result.returncode
+            'returncode': returncode
         }
 
     def _run_integration_tests(self, module_name: str, verbose: bool) -> Dict[str, int]:
