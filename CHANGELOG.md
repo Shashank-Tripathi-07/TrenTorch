@@ -36,3 +36,14 @@
 | 2026-08-22 | Redesigned CONTRIBUTORS.md as an avatar grid, no emoji contribution-key | Rocky | Rocky | Rocky |
 | 2026-08-22 | Used Rocky's custom avatar instead of the GitHub profile picture everywhere it appears | Rocky | Rocky | Rocky |
 | 2026-08-22 | Added CHANGELOG.md covering full commit and merge history | Rocky | Rocky | Rocky |
+| 2026-08-22 | SHA-pinned every third-party GitHub Action and added path filters to skip full CI runs on doc-only changes | Rocky | Rocky | Rocky |
+| 2026-08-22 | Replaced duplicated per-stage checkout and setup steps across 6 jobs with one reusable workflow | Rocky | Rocky | Rocky |
+| 2026-08-22 | Fixed a shell injection pattern in Stage 6 by moving a branch name out of an inline script and into an env var | Rocky | Rocky | Rocky |
+| 2026-08-22 | Added Dependabot config for the github-actions ecosystem, then merged the 5 version-bump PRs it opened | Rocky | Rocky | Rocky |
+| 2026-08-22 | Cached installed pip dependencies across CI jobs; first attempt broke jupyter by only caching site-packages, fixed by caching the scripts directory too | Rocky | Rocky | Rocky |
+| 2026-08-22 | Scoped pytest-xdist parallelism to CLI and E2E tests only, after measuring no benefit for unit tests and a new failure under parallel integration tests | Rocky | Rocky | Rocky |
+| 2026-08-22 | Restructured Stage 7 to stop rebuilding all 20 modules a second time and instead run milestones against Stage 1's already-built package | Rocky | Rocky | Rocky |
+| 2026-08-22 | Fixed tren system reset silently never clearing progress, a leftover from the incomplete tito to tren rename | Rocky | Rocky | Rocky |
+| 2026-08-22 | Decoupled Stages 5, 6, and 7 from Stages 2 to 4 so they run in parallel instead of waiting on the slowest of the three | Rocky | Rocky | Rocky |
+| 2026-08-22 | Guarded 37 expensive analyze and benchmark demo blocks across 17 modules behind a CI check, kept full output for anyone running a module file directly | Rocky | Rocky | Rocky |
+| 2026-08-22 | Ran module unit tests in process instead of spawning a subprocess per module, cutting Stage 1's real subprocess overhead | Rocky | Rocky | Rocky |
