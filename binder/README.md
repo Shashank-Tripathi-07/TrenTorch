@@ -2,6 +2,8 @@
 
 This directory contains configuration files for running TrenTorch in cloud environments via [Binder](https://mybinder.org) and [Google Colab](https://colab.research.google.com).
 
+> **Currently non-functional**: TrenTorch is a private repo, and neither Binder nor Colab can clone a private GitHub repo. These launch buttons will start working the moment the repo goes public; no other setup is needed at that point.
+
 ## Files
 
 - **`requirements.txt`**: Python dependencies for the Binder environment
@@ -24,7 +26,7 @@ When users click the "Launch Binder" button on any notebook page in the TrenTorc
 
 **Binder URL Format:**
 ```
-https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main
+https://mybinder.org/v2/gh/Shashank-Tripathi-07/TrenTorch/main
 ```
 
 ### Google Colab
@@ -36,7 +38,7 @@ Colab launch buttons automatically:
 
 **Colab URL Format:**
 ```
-https://colab.research.google.com/github/harvard-edge/cs249r_book/blob/main/trentorch/path/to/notebook.ipynb
+https://colab.research.google.com/github/Shashank-Tripathi-07/TrenTorch/blob/main/modules/path/to/notebook.ipynb
 ```
 
 ## Testing
@@ -45,9 +47,9 @@ To test your Binder setup:
 
 1. **Test Binder Build:**
    ```bash
-   # Visit: https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main
+   # Visit: https://mybinder.org/v2/gh/Shashank-Tripathi-07/TrenTorch/main
    # Or use the badge:
-   [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main)
+   [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Shashank-Tripathi-07/TrenTorch/main)
    ```
 
 2. **Verify Installation:**
@@ -61,7 +63,6 @@ To test your Binder setup:
    ```python
    import os
    print("Modules:", os.listdir("modules"))
-   print("Assignments:", os.listdir("assignments"))
    print("Milestones:", os.listdir("milestones"))
    ```
 
@@ -71,7 +72,7 @@ To test your Binder setup:
 
 - Check `binder/requirements.txt` for syntax errors
 - Verify `binder/postBuild` has execute permissions (`chmod +x binder/postBuild`)
-- Review Binder build logs at: https://mybinder.org/v2/gh/harvard-edge/cs249r_book/main?urlpath=lab/tree/logs%2Fbuild.log
+- Review Binder build logs at: https://mybinder.org/v2/gh/Shashank-Tripathi-07/TrenTorch/main?urlpath=lab/tree/logs%2Fbuild.log
 
 ### Colab Import Errors
 
@@ -87,7 +88,7 @@ To test your Binder setup:
 
 ## Deployment Environments
 
-As documented in the TrenTorch paper, three deployment environments are supported:
+Three deployment environments are supported:
 
 1. **JupyterHub** (institutional server)
    - 8-core/32GB supports ~50 students
@@ -107,8 +108,7 @@ When updating dependencies:
 
 1. Update `requirements.txt` (root) - for local development
 2. Update `binder/requirements.txt` - for Binder/Colab
-3. Update `docs/requirements.txt` - for documentation builds
-4. Keep versions synchronized where possible
+3. Keep versions synchronized where possible
 
 ## References
 
