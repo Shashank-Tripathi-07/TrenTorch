@@ -102,6 +102,7 @@ def get_import_name(package_name: str) -> str:
         'python-dateutil': 'dateutil',
         'attrs': 'attr',
         'beautifulsoup4': 'bs4',
+        'pytest-xdist': 'xdist',
     }
 
     package_lower = package_name.lower()
