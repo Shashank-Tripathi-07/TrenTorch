@@ -1,0 +1,110 @@
+name: '🔧 Reusable · Run Test Stage'
+
+# Backs Stages 1-5 and 7 of validate.yml. A reusable workflow (job-level
+# reuse via workflow_call) rather than a composite action (step-level
+# reuse): a composite action still needs the calling job to check out the
+# repo itself before `uses: ./local-path` can even be resolved, which
+# leaves one checkout step duplicated in every caller. A reusable workflow
+# owns the whole job, checkout included, so the caller in validate.yml is
+# reduced to a single `uses:` + `with:` block per stage.
+#
+# Called workflows don't inherit the caller's top-level `env:` context, so
+# the shared env vars are redeclared here rather than in validate.yml.
+
+on:
+  workflow_call:
+    inputs:
+      os_matrix:
+        description: 'JSON array of runner OS values, e.g. ["ubuntu-latest","windows-2022"]'
+        required: true
+        type: string
+      test_flag:
+        description: 'Flag passed to `tren dev test`, e.g. --unit, --integration'
+        required: true
+        type: string
+      step_label:
+        description: 'Human-readable label for the job name, e.g. "Stage 2 · Unit Tests"'
+        required: true
+        type: string
+      download_package:
+        description: 'Whether to download the Stage 1 built-package artifact first'
+        required: false
+        type: string
+        default: 'true'
+      upload_package:
+        description: 'Whether to upload trentorch/ and modules/ as the built-package artifact after'
+        required: false
+        type: string
+        default: 'false'
+      timeout_minutes:
+        description: 'Per-job timeout'
+        required: false
+        type: number
+        default: 30
+      advisory_windows:
+        description: 'Whether a Windows-leg failure is advisory (continue-on-error) rather than blocking'
+        required: false
+        type: string
+        default: 'true'
+
+env:
+  TITO_ALLOW_SYSTEM: "1"
+  TRENTORCH_QUIET: "1"
+  PYTHONIOENCODING: "utf-8"  # Required for Windows emoji support in Rich
+  PYTHONUTF8: "1"            # Force UTF-8 for all Python I/O (subprocess pipes)
+
+jobs:
+  run:
+    name: ${{ inputs.step_label }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    continue-on-error: ${{ inputs.advisory_windows == 'true' && contains(matrix.os, 'windows') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(inputs.os_matrix) }}
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Setup Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download built package from Stage 1
+        if: inputs.download_package == 'true'
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: built-package-${{ matrix.os }}
+
+      - name: Run tests
+        run: ./bin/tren dev test ${{ inputs.test_flag }} --ci
+
+      # Only Stage 1 sets this: Stages 2-5 each need the exported package
+      # present to skip their own redundant `tren dev export --all` (see
+      # tren/commands/dev/test.py's _check_imports/_build_package). Sharing
+      # Stage 1's already-built output cuts that duplicated work to zero
+      # without skipping or altering any test.
+      - name: Upload built package
+        if: inputs.upload_package == 'true' && success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: built-package-${{ matrix.os }}
+          path: |
+            trentorch/
+            modules/
+          retention-days: 1
