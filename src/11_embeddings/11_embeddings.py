@@ -59,6 +59,7 @@ from trentorch.core.embeddings import Embedding, PositionalEncoding, create_sinu
 #| default_exp core.embeddings
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 import math
@@ -1636,7 +1637,11 @@ def analyze_embedding_memory_scaling():
     print("• Sinusoidal PE saves memory and allows longer sequences")
 
 # Run analysis when developing/testing this module
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_embedding_memory_scaling()
 
 # %%
@@ -1692,7 +1697,11 @@ def analyze_embedding_performance():
     print("• Cache locality important for repeated token patterns")
 
 # Run analysis when developing/testing this module
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_embedding_performance()
 
 # %%
@@ -1766,7 +1775,11 @@ def analyze_positional_encoding_strategies():
     print(f"  - May be suboptimal for highly position-dependent tasks")
 
 # Run analysis when developing/testing this module
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_positional_encoding_strategies()
 
 # %% [markdown]

@@ -62,6 +62,7 @@ from trentorch.core.attention import scaled_dot_product_attention, MultiHeadAtte
 # %% nbgrader={"grade": false, "grade_id": "imports", "solution": true}
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 import math
@@ -1105,7 +1106,11 @@ def analyze_attention_complexity():
     print(f"🚀 For seq_len=1024, attention matrix alone needs {(1024*1024*4)/1024/1024:.1f} MB")
 
 # Run the analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_attention_complexity()
 
 # %%
@@ -1147,7 +1152,11 @@ def analyze_attention_timing():
     print(f"🚀 This is why attention efficiency techniques are an active area of research")
 
 # Run the analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_attention_timing()
 
 # %%
@@ -1181,7 +1190,11 @@ def analyze_attention_memory_overhead():
     print(f"🚀 For GPT-3 (96 layers, 2048 context): ~6GB just for attention gradients!")
 
 # Run the analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_attention_memory_overhead()
 
 # %% [markdown]

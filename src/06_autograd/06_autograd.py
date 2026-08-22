@@ -3205,7 +3205,11 @@ def analyze_computation_graph_memory():
     print("\n" + "=" * 60)
 
 # Run the systems analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_computation_graph_memory()
 
 # %% [markdown]

@@ -60,6 +60,7 @@ from trentorch.perf.memoization import KVCache, enable_kv_cache
 #| default_exp perf.memoization
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 import time
@@ -1796,7 +1797,11 @@ def analyze_kvcache_speedup():
     print("   • This optimization makes conversational AI possible!")
 
 # Run analysis when developing this module
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_kvcache_memory()
     analyze_kvcache_speedup()
 

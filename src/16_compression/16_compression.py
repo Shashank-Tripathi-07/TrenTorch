@@ -60,6 +60,7 @@ from trentorch.perf.compression import magnitude_prune, structured_prune, measur
 #| default_exp perf.compression
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 import copy
@@ -1536,7 +1537,11 @@ def analyze_compression_techniques():
     print("   • Larger models compress more effectively")
     print("   • Compression ratio = 1 / (1 - sparsity)")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_compression_techniques()
 
 # %% [markdown]
@@ -1577,7 +1582,11 @@ def analyze_distillation_effectiveness():
     print("   Deploy small student models on edge devices")
     print("   Train expensive teacher once, distill many students")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_distillation_effectiveness()
 
 # %% [markdown]

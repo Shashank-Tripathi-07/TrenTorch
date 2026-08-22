@@ -62,6 +62,7 @@ from trentorch.core.transformers import LayerNorm, MLP, TransformerBlock, GPT
 # %% nbgrader={"grade": false, "grade_id": "imports", "solution": true}
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 
@@ -1789,7 +1790,11 @@ def analyze_parameter_scaling():
     print("💡 Parameter scaling is roughly quadratic with embedding dimension")
     print("🚀 Real GPT-3 has 175B parameters, requiring ~350GB memory!")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_parameter_scaling()
 
 # %% nbgrader={"grade": false, "grade_id": "analyze-attention-memory", "solution": true}
@@ -1823,7 +1828,11 @@ def analyze_attention_memory():
     print("💡 Attention memory grows quadratically with sequence length")
     print("🚀 This is why attention efficiency techniques are crucial for long sequences")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_attention_memory()
 
 # %% [markdown]

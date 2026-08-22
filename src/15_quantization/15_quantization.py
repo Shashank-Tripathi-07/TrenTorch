@@ -60,6 +60,7 @@ from trentorch.perf.quantization import quantize_int8, QuantizedLinear, quantize
 
 # %% nbgrader={"grade": false, "grade_id": "imports", "solution": true}
 #| export
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 import time
@@ -1853,7 +1854,11 @@ def analyze_quantization_memory():
     print("\nKey Insight: Memory reduction is consistent at 4x across all model sizes")
     print("This enables deployment on memory-constrained devices")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_quantization_memory()
 
 # %%
@@ -1878,7 +1883,11 @@ def analyze_quantization_accuracy():
     print("\nKey Insight: Overall model accuracy retention: ~98-99% typical")
     print("Output layers most sensitive to quantization")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_quantization_accuracy()
 
 # %% [markdown]

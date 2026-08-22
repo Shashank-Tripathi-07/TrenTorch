@@ -3719,7 +3719,11 @@ def analyze_benchmark_variance():
     print("   • 20-50 samples typically sufficient for <10% error")
     print("   • Statistical rigor requires measuring variance, not just mean")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_benchmark_variance()
 
 # %%
@@ -3761,7 +3765,11 @@ def analyze_optimization_tradeoffs():
     print("   • Choose based on deployment constraints (memory vs speed vs accuracy)")
     print("   • Pareto frontier reveals non-dominated solutions")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_optimization_tradeoffs()
 
 # %% [markdown]

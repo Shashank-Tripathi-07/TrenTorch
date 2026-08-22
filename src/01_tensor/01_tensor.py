@@ -59,6 +59,7 @@ Let's get started!
 #| default_exp core.tensor
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 
@@ -1685,7 +1686,11 @@ def analyze_memory_layout():
     print("\n" + "=" * 60)
 
 # Run the systems analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_memory_layout()
 
 

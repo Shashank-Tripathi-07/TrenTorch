@@ -2096,7 +2096,11 @@ def analyze_batch_size_effects():
     print("Larger batches typically improve throughput but increase memory usage")
 
 # Run the analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_model_scaling()
     analyze_batch_size_effects()
 
@@ -2265,7 +2269,11 @@ def analyze_profiling_overhead():
         print("High overhead - use sparingly in production")
 
 # Run optimization analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     benchmark_operation_efficiency()
     analyze_profiling_overhead()
 

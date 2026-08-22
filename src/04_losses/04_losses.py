@@ -96,6 +96,7 @@ If you see import errors, make sure you've run `tren module complete` for each p
 #| default_exp core.losses
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 from typing import Optional
@@ -1069,7 +1070,11 @@ def analyze_loss_sensitivity():
     print("   - Both encourage correct predictions but with different curvatures")
 
 # Run integration analysis when developing
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_loss_behaviors()
     analyze_loss_sensitivity()
 
@@ -1225,7 +1230,11 @@ def analyze_loss_memory():
     print(f"   - For batch=1024, CE needs {ce_memory:.1f}MB just for loss computation")
 
 # Run systems analysis when developing
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_numerical_stability()
     analyze_loss_memory()
 
@@ -1329,7 +1338,11 @@ def analyze_production_patterns():
     print("   - Loss computation is often <5% of total training time")
 
 # Run production analysis when developing
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_production_patterns()
 
 # %% [markdown]

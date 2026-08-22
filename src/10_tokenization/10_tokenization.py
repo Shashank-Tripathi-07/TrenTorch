@@ -62,6 +62,7 @@ from trentorch.core.tokenization import Tokenizer, CharTokenizer, BPETokenizer
 from collections import Counter
 from typing import Dict, List, Optional, Set, Tuple
 
+import os
 import numpy as np
 
 # Constants for memory calculations
@@ -1558,7 +1559,11 @@ def analyze_tokenization_strategies():
     print("\n" + "=" * 60)
 
 # Run the systems analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_tokenization_strategies()
 
 # %% [markdown]
@@ -1623,7 +1628,11 @@ def analyze_tokenization_memory():
     print("- BPE merge rules add overhead (list of tuples)")
     print("\n🚀 Production: Use memory-mapped vocabularies for 50K+ token models")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_tokenization_memory()
 
 # %% [markdown]
@@ -1684,7 +1693,11 @@ def benchmark_tokenization_speed():
     print("\n🚀 Production: Use Rust-based tokenizers (Hugging Face tokenizers library)")
     print("   Compiled tokenizers can be 10-100× faster than pure Python!")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     benchmark_tokenization_speed()
 
 # %% [markdown]
@@ -1742,7 +1755,11 @@ def analyze_bpe_scaling():
     print("   - Use incremental training with checkpointing")
     print("   - Cache pair frequency counts between iterations")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_bpe_scaling()
 
 # %% [markdown]

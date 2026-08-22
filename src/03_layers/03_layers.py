@@ -61,6 +61,7 @@ from trentorch.core.activations import ReLU, Sigmoid  # Module 02 - intelligence
 #| default_exp core.layers
 #| export
 
+import os
 import numpy as np
 # Module-level RNG is seeded so Linear weight init is deterministic by default.
 # This is what the integration test suite (and any cross-run reproducibility)
@@ -1171,7 +1172,11 @@ def analyze_layer_memory():
         print(f"Hidden={hidden_size:4d}: {total_params:7,} params = {memory_mb:5.1f} MB")
 
 # Run the analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_layer_memory()
 
 # %% nbgrader={"grade": false, "grade_id": "analyze-layer-performance", "solution": true}
@@ -1228,7 +1233,11 @@ def analyze_layer_performance():
     print("🚀 Larger batches amortize overhead, improving throughput efficiency")
 
 # Run the analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_layer_performance()
 
 # %% [markdown]

@@ -67,6 +67,7 @@ from trentorch.perf.acceleration import vectorized_matmul, fused_gelu
 # %% nbgrader={"grade": false, "grade_id": "imports", "solution": true}
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 import time
@@ -844,7 +845,11 @@ def analyze_vectorization_scaling():
     print(f"   • BLAS libraries automatically optimize for each size regime")
     print("🚀 Vectorization effectiveness depends on problem size and hardware")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_vectorization_scaling()
 
 # %% nbgrader={"grade": false, "grade_id": "analyze-arithmetic-intensity", "solution": true}
@@ -933,7 +938,11 @@ def analyze_arithmetic_intensity():
     print(f"   ⚡ Element-wise ops ({add_ai:.3f} AI) need memory optimization")
     print("🚀 Design algorithms with high arithmetic intensity for performance")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_arithmetic_intensity()
 
 # %% [markdown]
@@ -992,7 +1001,11 @@ def analyze_memory_efficiency():
     print("   • Fusion reduces memory allocations by 4-5×")
     print("🚀 Memory efficiency critical for large batch sizes and limited GPU memory")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_memory_efficiency()
 
 # %% [markdown]
@@ -1158,7 +1171,11 @@ def analyze_acceleration_decision_framework():
     print(f"   🔄 Iterate: Optimization is an ongoing process, not one-time")
     print("🚀 Systematic acceleration beats random optimization")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_acceleration_decision_framework()
 
 # %% [markdown]

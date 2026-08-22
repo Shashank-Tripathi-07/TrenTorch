@@ -1609,7 +1609,11 @@ def demonstrate_complete_training_pipeline():
     print("   • Checkpointing for training persistence")
     print("   • Evaluation mode for model assessment")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     demonstrate_complete_training_pipeline()
 
 # %% [markdown]
@@ -1779,7 +1783,11 @@ def analyze_checkpoint_overhead():
     print("- Use checkpoint frequency wisely in production (memory vs fault tolerance)")
 
 # Run the systems analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_training_memory()
     analyze_checkpoint_overhead()
 

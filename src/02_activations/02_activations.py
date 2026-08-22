@@ -89,6 +89,7 @@ If you see import errors, ensure you've run `tren module complete 01`.
 #| default_exp core.activations
 #| export
 
+import os
 import numpy as np
 rng = np.random.default_rng(7)
 from typing import Optional
@@ -1106,7 +1107,11 @@ def analyze_activation_performance():
     print("=" * 60)
 
 # Run the analysis
-if __name__ == "__main__":
+if __name__ == "__main__" and os.environ.get("CI") != "true":
+    # Skipped under CI: this is a performance demo/analysis, not a
+    # correctness check, and some of these (e.g. BPE scaling, large-N
+    # benchmarks) take multiple minutes of real computation. Run this
+    # file directly (not through CI) to see the full analysis.
     analyze_activation_performance()
 
 # %% [markdown]
