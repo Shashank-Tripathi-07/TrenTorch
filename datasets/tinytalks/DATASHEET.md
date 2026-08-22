@@ -308,7 +308,7 @@ Yes:
 - **Issues**: Report errors or suggest enhancements
 - **Forks**: Create derivative datasets (with attribution)
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](../../docs/CONTRIBUTING.md) for guidelines.
 
 ---
 

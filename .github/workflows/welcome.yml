@@ -26,9 +26,9 @@ jobs:
           issue-message: >
             Thanks for opening your first issue on TrenTorch! 🎉
             Someone will take a look soon. In the meantime, check
-            [CONTRIBUTORS.md](../blob/main/CONTRIBUTORS.md) — once this gets
+            [CONTRIBUTORS.md](../blob/main/docs/CONTRIBUTORS.md) — once this gets
             some activity, you'll show up there automatically.
           pr-message: >
             Thanks for contributing to TrenTorch! 🎉 A maintainer will review
             this shortly. Once it merges, you'll be added to
-            [CONTRIBUTORS.md](../blob/main/CONTRIBUTORS.md) automatically.
+            [CONTRIBUTORS.md](../blob/main/docs/CONTRIBUTORS.md) automatically.

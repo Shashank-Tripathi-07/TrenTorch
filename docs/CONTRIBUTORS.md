@@ -1,6 +1,6 @@
 # Contributors
 
-Thanks to everyone who's helped build TrenTorch. Kept up to date automatically — every new issue, PR, and merge updates the relevant entry via [`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml).
+Thanks to everyone who's helped build TrenTorch. Kept up to date automatically — every new issue, PR, and merge updates the relevant entry via [`.github/workflows/update-contributors.yml`](../.github/workflows/update-contributors.yml).
 
 <table width="100%" style="width:100%">
   <tbody>

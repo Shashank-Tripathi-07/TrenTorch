@@ -706,7 +706,7 @@ class PreflightCommand(BaseCommand):
         doc_files = [
             ("README.md", "Main README"),
             ("docs/getting-started.md", "Getting Started"),
-            ("CONTRIBUTING.md", "Contributing Guide"),
+            ("docs/CONTRIBUTING.md", "Contributing Guide"),
         ]
 
         for file_path, name in doc_files:

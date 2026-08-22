@@ -61,7 +61,7 @@ Everything TrenTorch uses, what it is, and why it's the right tool for this proj
 |---|---|---|
 | Quarto | A publishing system for technical documents, built on Pandoc. | Builds the public docs site at `mlsysbook.ai/tinytorch/` from hand-authored `.qmd` pages under `tinytorch/quarto/`, and separately builds a PDF course guide via a second Quarto book project. |
 | TinyTeX and Mermaid CLI | A minimal LaTeX distribution, and a diagram-rendering CLI. | Used in CI to render the Quarto-based PDF guide, including any Mermaid diagrams it contains. |
-| LaTeX (via `xu-cheng/latex-action`) | A typesetting system. | Compiles the separate TrenTorch research paper (`trentorch/paper/paper.tex`) to PDF in CI, independent of the Quarto-based guide. |
+| LaTeX (via `xu-cheng/latex-action`) | A typesetting system. | Used upstream to compile a separate research paper to PDF in CI. This fork removed that standalone `paper/` LaTeX document; only the Quarto-based guide remains. |
 | GitHub Pages (`gh-pages` branch) | Static site hosting built into GitHub. | Hosts the upstream project's production docs site. This fork doesn't currently deploy the site anywhere; the Quarto source still builds locally. |
 
 ### Community and progress tracking (optional layer, upstream-only)
@@ -146,7 +146,7 @@ Students can optionally create an account and opt into a social layer: `tren com
 
 Upstream's public docs site (`mlsysbook.ai/tinytorch/`) is a Quarto project rooted at `tinytorch/quarto/`; this fork has the same source but doesn't deploy it anywhere yet. Each module has a corresponding hand-authored `.qmd` page under `quarto/modules/` (for example `01_tensor.qmd`), but this is not generated from the module notebook. It's independent prose that links out to the actual notebook (a Binder launch URL) and the actual source file (a GitHub link), so the three representations of a module (source, notebook, docs page) are maintained separately and can drift out of sync with each other.
 
-A separate Quarto book project under `quarto/pdf/` reuses those same `.qmd` chapter files to render a downloadable PDF course guide via LaTeX. The TrenTorch research paper is a fully independent LaTeX document (`paper/paper.tex`), compiled separately and not derived from the Quarto content at all.
+A separate Quarto book project under `quarto/pdf/` reuses those same `.qmd` chapter files to render a downloadable PDF course guide via LaTeX. Upstream also kept a fully independent LaTeX research paper alongside this; this fork removed that standalone `paper/` document.
 
 ### Deployment environments
 

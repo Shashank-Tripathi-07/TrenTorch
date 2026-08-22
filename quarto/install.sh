@@ -661,8 +661,7 @@ do_install() {
     #
     # REMOVE (dev-only):
     # -------------------------------------------------------------------------
-    rm -rf "$INSTALL_DIR/paper" \
-           "$INSTALL_DIR/instructor" \
+    rm -rf "$INSTALL_DIR/instructor" \
            "$INSTALL_DIR/site" \
            "$INSTALL_DIR/scripts" \
            "$INSTALL_DIR/tools" \
@@ -678,15 +677,15 @@ do_install() {
            "$INSTALL_DIR/activate.sh" \
            "$INSTALL_DIR/setup-dev.sh" \
            "$INSTALL_DIR/setup-environment.sh" \
-           "$INSTALL_DIR/CONTRIBUTING.md" \
-           "$INSTALL_DIR/INSTRUCTOR.md" \
+           "$INSTALL_DIR/docs/CONTRIBUTING.md" \
+           "$INSTALL_DIR/docs/INSTRUCTOR.md" \
+           "$INSTALL_DIR/docs/NBGRADER_RELEASE_TIERS.md" \
            "$INSTALL_DIR/MANIFEST.in" \
            "$INSTALL_DIR/.pre-commit-config.yaml" \
            "$INSTALL_DIR/.shared-ai-rules.md" \
            "$INSTALL_DIR/.tinyrc" \
            "$INSTALL_DIR/.editorconfig" \
            "$INSTALL_DIR/.gitattributes" \
-           "$INSTALL_DIR/settings.json" \
            "$INSTALL_DIR/.tinytorch" \
            2>/dev/null || true
 

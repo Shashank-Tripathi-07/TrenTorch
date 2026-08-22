@@ -22,7 +22,7 @@ from pathlib import Path
 
 REPO = "Shashank-Tripathi-07/TrenTorch"
 ROOT = Path(__file__).resolve().parent.parent.parent
-CONTRIBUTORS_FILE = ROOT / "CONTRIBUTORS.md"
+CONTRIBUTORS_FILE = ROOT / "docs" / "CONTRIBUTORS.md"
 README_FILE = ROOT / "README.md"
 DEFAULT_INTRO = "New to TrenTorch — say hi and add a real intro!"
 COLUMNS = 5
@@ -39,7 +39,7 @@ AVATAR_OVERRIDES = {
 # contributor count (no auth to a private repo) -- this badge is a static
 # image whose count this script keeps in sync manually instead.
 BADGE_RE = re.compile(
-    r"\[!\[Contributors\]\(https://img\.shields\.io/badge/contributors-\d+-orange\.svg\)\]\(CONTRIBUTORS\.md\)"
+    r"\[!\[Contributors\]\(https://img\.shields\.io/badge/contributors-\d+-orange\.svg\)\]\(docs/CONTRIBUTORS\.md\)"
 )
 
 CELL_RE = re.compile(
@@ -147,7 +147,7 @@ def update_readme_badge(count: int) -> bool:
     content = README_FILE.read_text(encoding="utf-8")
     new_badge = (
         f"[![Contributors](https://img.shields.io/badge/contributors-{count}-orange.svg)]"
-        f"(CONTRIBUTORS.md)"
+        f"(docs/CONTRIBUTORS.md)"
     )
     new_content, n = BADGE_RE.subn(new_badge, content)
     if n == 0 or new_content == content:
@@ -167,7 +167,7 @@ def main():
         "Thanks to everyone who's helped build TrenTorch. Kept up to date "
         "automatically — every new issue, PR, and merge updates the "
         "relevant entry via "
-        "[`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml).\n\n"
+        "[`.github/workflows/update-contributors.yml`](../.github/workflows/update-contributors.yml).\n\n"
     )
     footer = (
         "\n\n---\n\n"

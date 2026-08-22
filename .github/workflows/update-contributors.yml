@@ -38,7 +38,7 @@ jobs:
       - name: Check for changes
         id: diff
         run: |
-          if git diff --quiet -- CONTRIBUTORS.md README.md; then
+          if git diff --quiet -- docs/CONTRIBUTORS.md README.md; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -53,7 +53,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$BRANCH"
-          git add CONTRIBUTORS.md README.md
+          git add docs/CONTRIBUTORS.md README.md
           git commit -m "Update CONTRIBUTORS.md"
           git push origin "$BRANCH"
           gh pr create --title "Update CONTRIBUTORS.md" \

@@ -360,7 +360,7 @@ We welcome contributions! Ways to help:
 - No offensive or biased content
 - Appropriate for all ages (G-rated)
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) for details.
+See [CONTRIBUTING.md](../../docs/CONTRIBUTING.md) for details.
 
 ---
 

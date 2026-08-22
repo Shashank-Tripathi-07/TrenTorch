@@ -68,9 +68,9 @@ If a step never finishes and hits its ceiling, the script prints a specific, dia
       rm -rf <tmp>
       │
       │  Then a cleanup pass removes ~20 developer-only paths that a
-      │  learner doesn't need: paper/, instructor/, site/, scripts/,
-      │  tools/, binder/, .claude/, .cursor/, .vscode/, CONTRIBUTING.md,
-      │  INSTRUCTOR.md, .pre-commit-config.yaml, and more (see the
+      │  learner doesn't need: instructor/, site/, scripts/,
+      │  tools/, binder/, .claude/, .cursor/, .vscode/, docs/CONTRIBUTING.md,
+      │  docs/INSTRUCTOR.md, .pre-commit-config.yaml, and more (see the
       │  REMOVE list in install.sh, lines 664-693).
       │
       │  modules/ is emptied (populated later by tren, not shipped

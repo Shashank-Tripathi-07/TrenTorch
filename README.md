@@ -6,7 +6,7 @@
 
 
 [![Validate](https://github.com/Shashank-Tripathi-07/TrenTorch/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/Shashank-Tripathi-07/TrenTorch/actions/workflows/validate.yml)
-[![Contributors](https://img.shields.io/badge/contributors-3-orange.svg)](CONTRIBUTORS.md)
+[![Contributors](https://img.shields.io/badge/contributors-3-orange.svg)](docs/CONTRIBUTORS.md)
 [![Python](https://img.shields.io/badge/python-3.10+-3776ab?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Built From Scratch](https://img.shields.io/badge/dependencies-just%20NumPy-D4740C?logo=numpy&logoColor=white)](#what-youll-build)
@@ -109,7 +109,7 @@ A **complete ML framework**, built from zero. No single finish line, a set of mi
 
 **Want to explore the code?** [Browse the repository structure](#repository-structure).
 
-**Adventurous?** Local installation works, but bring a spotter. See the setup notes in [INSTRUCTOR.md](INSTRUCTOR.md).
+**Adventurous?** Local installation works, but bring a spotter. See the setup notes in [INSTRUCTOR.md](docs/INSTRUCTOR.md).
 
 ---
 

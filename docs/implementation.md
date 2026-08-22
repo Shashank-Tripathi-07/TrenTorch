@@ -25,13 +25,13 @@ cs249r_book/
     tren/                # The `tren` CLI package
     milestones/          # Six historical-ML reproduction exercises
     quarto/              # Docs site source (mlsysbook.ai/tinytorch/) + PDF guide + community dashboard
-    paper/               # Independent LaTeX research paper
+    docs/                # Design docs, contributor docs (CONTRIBUTING.md, INSTRUCTOR.md, NBGRADER_RELEASE_TIERS.md)
     vscode-ext/           # "TrenTorch Workbench" VS Code extension
     binder/               # mybinder.org / Colab launch configuration
     scripts/              # Build/release helper scripts
     benchmark_results/    # Local artifact output from Module 19's BenchmarkSuite
     pyproject.toml, settings.ini, MANIFEST.in, requirements.txt
-    CONTRIBUTING.md, INSTRUCTOR.md, NBGRADER_RELEASE_TIERS.md, CHANGELOG.md
+    README.md, LICENSE, CHANGELOG.md
   .github/workflows/
     tinytorch-validate-dev.yml
     tinytorch-preview-dev.yml
@@ -205,7 +205,7 @@ Each milestone directory (for example `milestones/01_1958_perceptron/`) contains
 
 ### 5.2 The PDF guide and the paper
 
-`quarto/pdf/` is a second, separate Quarto book project that reuses the same `.qmd` chapter files from `quarto/modules/` (one directory up) to render a downloadable PDF course guide via LaTeX, built with `make pdf` from `quarto/Makefile`. The TrenTorch research paper (`paper/paper.tex`) is a fully independent LaTeX document, unrelated to the Quarto content, compiled separately via `xu-cheng/latex-action` in CI.
+`quarto/pdf/` is a second, separate Quarto book project that reuses the same `.qmd` chapter files from `quarto/modules/` (one directory up) to render a downloadable PDF course guide via LaTeX, built with `make pdf` from `quarto/Makefile`. Upstream also kept a fully independent LaTeX research paper, compiled separately via `xu-cheng/latex-action` in CI; this fork removed that standalone `paper/` document.
 
 ### 5.3 The community dashboard
 
