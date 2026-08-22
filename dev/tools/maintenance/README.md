@@ -11,5 +11,5 @@ Scripts for repository maintenance and cleanup.
 
 ```bash
 # From project root
-./tools/maintenance/cleanup_history.sh
+./dev/tools/maintenance/cleanup_history.sh
 ```

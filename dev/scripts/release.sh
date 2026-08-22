@@ -5,8 +5,8 @@
 #
 # USAGE
 # -----
-#   ./scripts/release.sh 0.1.5
-#   ./scripts/release.sh 0.1.5 --dry-run
+#   ./dev/scripts/release.sh 0.1.5
+#   ./dev/scripts/release.sh 0.1.5 --dry-run
 #
 # WHAT THIS SCRIPT DOES
 # ---------------------

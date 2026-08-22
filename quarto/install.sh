@@ -663,10 +663,8 @@ do_install() {
     # -------------------------------------------------------------------------
     rm -rf "$INSTALL_DIR/instructor" \
            "$INSTALL_DIR/site" \
-           "$INSTALL_DIR/scripts" \
-           "$INSTALL_DIR/tools" \
+           "$INSTALL_DIR/dev" \
            "$INSTALL_DIR/binder" \
-           "$INSTALL_DIR/etc" \
            "$INSTALL_DIR/assignments" \
            "$INSTALL_DIR/benchmark_results" \
            "$INSTALL_DIR/.git-hooks" \

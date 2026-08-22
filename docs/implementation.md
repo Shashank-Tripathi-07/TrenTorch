@@ -10,7 +10,7 @@
 | The `tren` CLI itself | The same as above. `tren` is a plain Python package (`tren/`) installed alongside `trentorch/` from the same `pyproject.toml`. |
 | The docs site or PDF guide | The above, plus Quarto, and for PDF builds specifically, a LaTeX distribution (CI uses TinyTeX) and the Mermaid CLI for diagrams. |
 | The community dashboard (`quarto/community/`) | Node.js and npm for its Playwright test suite; the dashboard itself is plain HTML/CSS/JS with no build step. |
-| The VS Code extension (`vscode-ext/`) | Node.js, npm, and the VS Code extension development tools. |
+| The VS Code extension (`dev/vscode-ext/`) | Node.js, npm, and the VS Code extension development tools. |
 | Instructor grading workflows | The above, plus `nbgrader` installed (`pip install nbgrader`), per `INSTRUCTOR.md`. |
 
 ## Repository layout
@@ -26,9 +26,8 @@ cs249r_book/
     milestones/          # Six historical-ML reproduction exercises
     quarto/              # Docs site source (mlsysbook.ai/tinytorch/) + PDF guide + community dashboard
     docs/                # Design docs, contributor docs (CONTRIBUTING.md, INSTRUCTOR.md, NBGRADER_RELEASE_TIERS.md)
-    vscode-ext/           # "TrenTorch Workbench" VS Code extension
-    binder/               # mybinder.org / Colab launch configuration
-    scripts/              # Build/release helper scripts
+    binder/               # mybinder.org / Colab launch configuration (must stay at repo root)
+    dev/                  # Dev-only support tooling: scripts/, tools/, etc/ (jupyter config), vscode-ext/
     benchmark_results/    # Local artifact output from Module 19's BenchmarkSuite
     pyproject.toml, settings.ini, MANIFEST.in, requirements.txt
     README.md, LICENSE, CHANGELOG.md
@@ -197,7 +196,7 @@ Each milestone directory (for example `milestones/01_1958_perceptron/`) contains
 
 `quarto/_quarto.yml` is the main website Quarto project. Upstream publishes it at `mlsysbook.ai/tinytorch/`; this fork doesn't currently deploy it anywhere, but the site still builds locally via `quarto render`. Structure:
 
-- `quarto/modules/01_tensor.qmd` through `20_capstone.qmd`: one hand-authored chapter per module. These are prose pages that link out to the actual notebook (a Binder launch URL pointing at `modules/<NN>/<slug>.ipynb`) and the actual source (a GitHub link to `src/<NN>/<NN>.py`); they are not generated from either. There is no notebook-to-docs conversion script anywhere in the project (confirmed by searching `tren/` and `scripts/` for `nbconvert` or similar, with no matches).
+- `quarto/modules/01_tensor.qmd` through `20_capstone.qmd`: one hand-authored chapter per module. These are prose pages that link out to the actual notebook (a Binder launch URL pointing at `modules/<NN>/<slug>.ipynb`) and the actual source (a GitHub link to `src/<NN>/<NN>.py`); they are not generated from either. There is no notebook-to-docs conversion script anywhere in the project (confirmed by searching `tren/` and `dev/scripts/` for `nbconvert` or similar, with no matches).
 - `quarto/milestones/` and `quarto/tiers/`: narrative pages for the six milestones and the three curriculum tiers (Foundation, Architecture, Optimization).
 - `quarto/tito/`: CLI reference documentation (not yet renamed to match the `tren` CLI, still lives at this path on disk).
 - `quarto/config/announcement.yml`: the site's announcement banner configuration, upstream-specific (links to sibling mlsysbook.ai projects that don't apply to this fork).
@@ -267,7 +266,7 @@ For instructor-side grading workflows specifically, `INSTRUCTOR.md` documents th
 ## 10. Known-broken or inaccurate as of this document
 
 - `CONTRIBUTING.md`'s "Release Process" section claims the release workflow "deploys to tinytorch.org" and "publishes to PyPI." Neither matches the actual `tinytorch-publish-live.yml` workflow, which deploys to `mlsysbook.ai/tinytorch/` via `gh-pages` and has no PyPI step at all.
-- `trentorch/scripts/build-docs.sh` references a defunct Jupyter Book pipeline (`docs/_build/html`, `website/docs/`) that predates the current Quarto site, and is not called from any current CI workflow.
+- `dev/scripts/build-docs.sh` references a defunct Jupyter Book pipeline (`docs/_build/html`, `website/docs/`) that predates the current Quarto site, and is not called from any current CI workflow.
 - `tests/integration/test_module_integration.py` is fully disabled (`pytest.mark.skip`) with a comment that it targets stale package paths.
 - `settings.ini` and `pyproject.toml` specify different dependency version floors for the same package; nothing currently enforces they stay consistent beyond the manual version-bump step in the publish workflow.
 - `CHANGELOG.md`'s newest entry is `[0.1.10]` (dated 2026-04, marked "planned"); `pyproject.toml`'s actual `version` is `0.1.13` as of this document, at least three releases with no changelog entry.

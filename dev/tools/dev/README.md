@@ -10,5 +10,5 @@ Tools for setting up and maintaining the development environment.
 
 ```bash
 # From project root
-./tools/dev/setup.sh
+./dev/tools/dev/setup.sh
 ```

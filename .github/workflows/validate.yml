@@ -450,7 +450,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           sparse-checkout: |
-            scripts/test-fresh-install.sh
+            dev/scripts/test-fresh-install.sh
 
       - name: Run Fresh Install Test (Docker)
         env:
@@ -462,12 +462,12 @@ jobs:
           # when set.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          chmod +x scripts/test-fresh-install.sh
+          chmod +x dev/scripts/test-fresh-install.sh
           # For PRs, github.ref_name is the merge ref (e.g. "12/merge") which doesn't
           # exist as a real branch on raw.githubusercontent.com. Use head_ref (the actual
           # source branch) for PRs, falling back to ref_name for push events.
           BRANCH="${{ github.head_ref || github.ref_name }}"
-          ./scripts/test-fresh-install.sh --branch "$BRANCH"
+          ./dev/scripts/test-fresh-install.sh --branch "$BRANCH"
 
   # ===========================================================================
   # STAGE 7: USER JOURNEY - Destructive full journey (after all stages)

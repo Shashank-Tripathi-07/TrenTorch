@@ -11,7 +11,7 @@ There's a `.pre-commit-config.yaml` at the repo root (`pre-commit run --all-file
 #   hooks:
 #     - id: black
 #       name: "Format Python code"
-#       files: ^(src/|trentorch/|tools/).*\.py$
+#       files: ^(src/|trentorch/|dev/tools/).*\.py$
 ```
 
 That file's own two active hooks are content checks, not code style: `collapse_blank_lines.py` (markdown/Python, collapses 2+ blank lines to one) and `validate_cli_docs.py` (checks that documented `tren` commands match the real CLI).
