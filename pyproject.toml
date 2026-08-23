@@ -59,7 +59,7 @@ docs = [
 [tool.nbdev]
 lib_name = "trentorch"
 lib_path = "trentorch"
-nbs_path = "modules"
+nbs_path = "data/modules"
 doc_path = "_docs"
 branch = "main"
 recursive = true
@@ -78,7 +78,7 @@ Issues = "https://github.com/Shashank-Tripathi-07/TrenTorch/issues"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["trentorch*", "tinytorch*", "tren*"]
-exclude = ["tests*", "modules*", "site*", "docs*", "milestones*", "assignments*"]
+exclude = ["tests*", "data*", "site*", "docs*", "milestones*", "assignments*"]
 
 # TinyTorch-specific pytest configuration (overrides parent pyproject.toml)
 [tool.pytest.ini_options]

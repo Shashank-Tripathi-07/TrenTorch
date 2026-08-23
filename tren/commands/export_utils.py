@@ -10,8 +10,100 @@ import json
 import re
 import stat
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Dict, List, Optional
+
+# ---------------------------------------------------------------------------
+# Stub / solution variant splitting
+#
+# src/<NN>/<NN>.py holds paired cells: a stub cell (raises NotImplementedError,
+# no #| export) immediately followed by its solution cell (tags=["solution"],
+# has #| export). Two things get generated from that single source:
+#
+#   - stub variant   -> data/modules/   (student-facing; the solution cell is
+#                        dropped entirely, and #| export is added back onto
+#                        the stub so a student's own filled-in code is what
+#                        gets picked up by nbdev once they solve it)
+#   - solution variant -> data/solutions/ (maintainer/CI-only reference; the
+#                        stub cell is dropped, solution cell kept as-is -- this
+#                        is exactly what src/<NN>/<NN>.py looked like before
+#                        the stub/solution split)
+# ---------------------------------------------------------------------------
+
+_CELL_SPLIT = re.compile(r"(?=^# %%)", re.MULTILINE)
+_EXPORT_DIRECTIVE = "#| export"
+
+
+def _cell_header(cell_text: str) -> str:
+    return cell_text.split("\n", 1)[0]
+
+
+def _is_solution_cell(cell_text: str) -> bool:
+    header = _cell_header(cell_text)
+    return 'tags=["solution"]' in header or "tags=['solution']" in header
+
+
+def _split_directives(cell_text: str):
+    """Return (header_line, directive_lines, body) for one cell's text.
+
+    Tolerates blank lines between the `# %%` header and the first `#|`
+    directive line (a real pattern found in src/05_dataloader/05_dataloader.py
+    that a stricter, no-blank-line version of this function once silently
+    mishandled, leaving a stray #| export sitting unrecognized in a cell's
+    body instead of its directive list -- which meant nbdev never exported
+    that cell at all).
+    """
+    lines = cell_text.split("\n")
+    header_line = lines[0]
+    idx = 1
+    while idx < len(lines) and lines[idx].strip() == "":
+        idx += 1
+    directive_lines = []
+    while idx < len(lines) and lines[idx].startswith("#|"):
+        directive_lines.append(lines[idx])
+        idx += 1
+    body = "\n".join(lines[idx:])
+    return header_line, directive_lines, body
+
+
+def make_stub_variant(source: str) -> str:
+    """Student-facing source: solution cells dropped, stub cells gain #| export."""
+    cells = _CELL_SPLIT.split(source)
+    out = []
+    i = 0
+    while i < len(cells):
+        cell = cells[i]
+        if i + 1 < len(cells) and _is_solution_cell(cells[i + 1]):
+            header_line, directive_lines, body = _split_directives(cell)
+            if not any(d.strip() == _EXPORT_DIRECTIVE for d in directive_lines):
+                directive_lines = directive_lines + [_EXPORT_DIRECTIVE]
+            new_cell = header_line + "\n"
+            if directive_lines:
+                new_cell += "\n".join(directive_lines) + "\n"
+            new_cell += body
+            out.append(new_cell)
+            i += 2  # skip the paired solution cell
+        else:
+            out.append(cell)
+            i += 1
+    return "".join(out)
+
+
+def make_solution_variant(source: str) -> str:
+    """Maintainer/CI-only source: stub cells dropped, solution cells kept."""
+    cells = _CELL_SPLIT.split(source)
+    out = []
+    i = 0
+    while i < len(cells):
+        cell = cells[i]
+        if i + 1 < len(cells) and _is_solution_cell(cells[i + 1]):
+            out.append(cells[i + 1])
+            i += 2
+        else:
+            out.append(cell)
+            i += 1
+    return "".join(out)
 
 # Mapping from generated package paths back to source files
 # Keys are (subpackage, module) tuples matching default_exp directives
@@ -42,7 +134,9 @@ SOURCE_MAPPINGS = {
 def get_export_target(module_path: Path) -> str:
     """Read export target from #| default_exp in the source file."""
     module_name = module_path.name
-    source_path = Path("src") / module_name if "modules" in str(module_path) else module_path
+    path_str = str(module_path)
+    in_generated_dir = "data/modules" in path_str or "data/solutions" in path_str or "data\\modules" in path_str or "data\\solutions" in path_str
+    source_path = Path("src") / module_name if in_generated_dir else module_path
     dev_file = source_path / f"{module_name}.py"
     if not dev_file.exists():
         return "unknown"
@@ -136,8 +230,29 @@ def validate_notebook_integrity(notebook_path: Path) -> Dict:
         }
 
 
-def convert_py_to_notebook(module_path: Path, venv_path: Path, console) -> bool:
-    """Convert src/<module>.py to modules/<module>.ipynb using jupytext."""
+def _resolve_jupytext_path(venv_path: Path, console) -> str:
+    from ..core.virtual_env_manager import get_venv_bin_dir
+    jupytext_path = "jupytext"
+    venv_jupytext = get_venv_bin_dir(venv_path) / "jupytext"
+
+    if venv_jupytext.exists():
+        test_result = subprocess.run([str(venv_jupytext), "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        if test_result.returncode == 0:
+            console.print(f"[dim]🔧 Using venv jupytext: {venv_jupytext}[/dim]")
+            return str(venv_jupytext)
+        console.print("[dim]⚠️  Venv jupytext has issues, falling back to system[/dim]")
+    console.print(f"[dim]🔧 Using system jupytext: {jupytext_path}[/dim]")
+    return jupytext_path
+
+
+def convert_py_to_notebook(module_path: Path, venv_path: Path, console, variant: str = "stub", target_root: str = "data/modules") -> bool:
+    """Convert src/<module>.py to <target_root>/<module>.ipynb using jupytext.
+
+    variant selects which cell content the notebook gets:
+      - "stub": solution cells dropped, stub cells gain #| export (data/modules/)
+      - "solution": stub cells dropped, solution cells kept (data/solutions/)
+      - "full": no filtering, exactly what src/<module>.py contains
+    """
     project_root = Path(__file__).resolve().parents[2]  # tinytorch project root
     module_path = module_path if module_path.is_absolute() else project_root / module_path
     module_name = module_path.name
@@ -147,33 +262,35 @@ def convert_py_to_notebook(module_path: Path, venv_path: Path, console) -> bool:
         return False
 
     short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-    modules_dir = project_root / "modules" / module_name
-    modules_dir.mkdir(parents=True, exist_ok=True)
-    notebook_file = modules_dir / f"{short_name}.ipynb"
+    target_dir = project_root / target_root / module_name
+    target_dir.mkdir(parents=True, exist_ok=True)
+    notebook_file = target_dir / f"{short_name}.ipynb"
+
+    source = dev_file.read_text(encoding="utf-8")
+    if variant == "stub":
+        transformed = make_stub_variant(source)
+    elif variant == "solution":
+        transformed = make_solution_variant(source)
+    else:
+        transformed = source
 
     rel_notebook = notebook_file.relative_to(project_root)
     console.print(f"[dim]📄 Source: {dev_file.name} → Target: {rel_notebook}[/dim]")
     console.print("[dim]🔄 Overwriting existing notebook (Python file is source of truth)[/dim]" if notebook_file.exists() else "[dim]✨ Creating new notebook from Python file[/dim]")
 
+    tmp_source = None
     try:
-        from ..core.virtual_env_manager import get_venv_bin_dir
-        jupytext_path = "jupytext"
-        venv_jupytext = get_venv_bin_dir(venv_path) / "jupytext"
+        jupytext_path = _resolve_jupytext_path(venv_path, console)
 
-        if venv_jupytext.exists():
-            test_result = subprocess.run([str(venv_jupytext), "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace")
-            if test_result.returncode == 0:
-                jupytext_path = str(venv_jupytext)
-                console.print(f"[dim]🔧 Using venv jupytext: {venv_jupytext}[/dim]")
-            else:
-                console.print("[dim]⚠️  Venv jupytext has issues, falling back to system[/dim]")
-                console.print(f"[dim]🔧 Using system jupytext: {jupytext_path}[/dim]")
-        else:
-            console.print(f"[dim]🔧 Using system jupytext: {jupytext_path}[/dim]")
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=f"_{module_name}.py", delete=False, encoding="utf-8", dir=str(project_root)
+        ) as tmp:
+            tmp.write(transformed)
+            tmp_source = Path(tmp.name)
 
-        console.print(f"[dim]⚙️  Running: {jupytext_path} --to ipynb {dev_file.name} --output {notebook_file}[/dim]")
+        console.print(f"[dim]⚙️  Running: {jupytext_path} --to ipynb ({variant} variant) --output {notebook_file}[/dim]")
         result = subprocess.run(
-            [jupytext_path, "--to", "ipynb", str(dev_file), "--output", str(notebook_file)],
+            [jupytext_path, "--to", "ipynb", str(tmp_source), "--output", str(notebook_file)],
             capture_output=True,
             text=True, encoding="utf-8", errors="replace",
             cwd=project_root,
@@ -210,14 +327,20 @@ def convert_py_to_notebook(module_path: Path, venv_path: Path, console) -> bool:
     except Exception as e:
         console.print(f"[red]❌ Conversion error: {e}[/red]")
         return False
+    finally:
+        if tmp_source is not None:
+            try:
+                tmp_source.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
-def convert_all_modules(venv_path: Path, console) -> List[str]:
-    """Convert all src modules to notebooks."""
+def convert_all_modules(venv_path: Path, console, variant: str = "stub", target_root: str = "data/modules") -> List[str]:
+    """Convert all src modules to notebooks of the given variant."""
     converted = []
     for module_name in discover_modules():
         module_path = Path("src") / module_name
-        if convert_py_to_notebook(module_path, venv_path, console):
+        if convert_py_to_notebook(module_path, venv_path, console, variant=variant, target_root=target_root):
             converted.append(module_name)
     return converted
 
@@ -271,7 +394,7 @@ def add_autogenerated_warnings(console) -> None:
 # ║  🛡️ STUDENT PROTECTION: This file contains optimized implementations.        ║
 # ║     Editing it directly may break module functionality and training.         ║
 # ║                                                                               ║
-# ║  🎓 LEARNING TIP: Work in src/ (developers) or modules/ (learners)           ║
+# ║  🎓 LEARNING TIP: Work in src/ (developers) or data/modules/ (learners)      ║
 # ║     The trentorch/ directory is generated code - edit source files instead!  ║
 # ╚═══════════════════════════════════════════════════════════════════════════════╝
 """

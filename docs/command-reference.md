@@ -26,9 +26,9 @@ Environment and configuration tooling. Dispatcher: `tren/commands/system/system.
 | `info` | `system/info.py` | Show system/environment info (Python version, platform, venv status, TrenTorch/NumPy versions, disk space, memory). `--json` for machine-readable output. |
 | `health` | `system/health.py` | Quick environment health check (status-only table, no version numbers). No arguments. |
 | `jupyter` | `system/jupyter.py` | Start a Jupyter server. `--notebook` (classic) or `--lab` (JupyterLab, otherwise classic notebook is default); `--port N` (default 8888). |
-| `update` | `system/update.py` | Check GitHub for a newer `tinytorch-v*` tag and update in place. `--check` (check only, don't install), `--yes`/`-y` (skip confirmation). Preserves `modules/`, `trentorch/core/`, `.tren/`, `.venv/`; overwrites `src/`, `tren/`, `tests/`, `milestones/`, `datasets/`, `bin/`, and a few root files. **As inherited, this still points at the upstream repo's tags**, not this fork's, so it would check/update against the wrong project until repointed. |
+| `update` | `system/update.py` | Check GitHub for a newer `tinytorch-v*` tag and update in place. `--check` (check only, don't install), `--yes`/`-y` (skip confirmation). Preserves `data/modules/`, `trentorch/core/`, `.tren/`, `.venv/`; overwrites `src/`, `tren/`, `tests/`, `milestones/`, `data/datasets/`, `bin/`, and a few root files. **As inherited, this still points at the upstream repo's tags**, not this fork's, so it would check/update against the wrong project until repointed. |
 | `logo` | `system/logo.py` | Explains the TrenTorch logo's symbolism. `--image` shows the path to the actual logo PNG. |
-| `reset` | `system/reset.py` | Reset TrenTorch to a pristine state: clears `modules/` and `trentorch/core/*.py`, optionally resets progress. `--force`/`-f` (skip confirmation), `--keep-progress` (only reset code, not tracking), `--ci` (no prompts, plain-text `RESET OK`/`RESET FAILED` output for automation). |
+| `reset` | `system/reset.py` | Reset TrenTorch to a pristine state: clears `data/modules/` and `trentorch/core/*.py`, optionally resets progress. `--force`/`-f` (skip confirmation), `--keep-progress` (only reset code, not tracking), `--ci` (no prompts, plain-text `RESET OK`/`RESET FAILED` output for automation). |
 
 Running `tren system` with no subcommand prints a summary panel rather than an error.
 
@@ -87,7 +87,7 @@ With no flags, defaults to unit tests only.
 | `--verbose`/`-v` | Show commands as they execute |
 
 ### `tren dev export`
-`tren/commands/dev/export.py`. **Developer-only**, rebuilds the whole curriculum: `src/*.py` → `modules/*.ipynb` → `trentorch` package files. This overwrites student notebooks; students should use `tren module complete` instead, which never touches the notebook file itself.
+`tren/commands/dev/export.py`. **Developer-only**, rebuilds the whole curriculum: `src/*.py` → `data/modules/*.ipynb` (stub-only) + `data/solutions/*.ipynb` (reference) → `trentorch` package files, built from `data/solutions/` so the package always reflects fully-working code. This overwrites student notebooks; students should use `tren module complete` instead, which never touches the notebook file itself, tests the student's own filled-in code, and never reads `data/solutions/`.
 
 | Argument/Flag | Effect |
 |---|---|

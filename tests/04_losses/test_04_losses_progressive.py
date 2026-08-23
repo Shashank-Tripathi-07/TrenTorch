@@ -25,7 +25,7 @@ class TestEntireFoundationStack:
 
         # Project structure
         project_root = Path(__file__).parent.parent.parent
-        assert (project_root / "modules").exists(), "Foundation broken: Module structure"
+        assert (project_root / "data" / "modules").exists(), "Foundation broken: Module structure"
 
         # Dependencies
         import numpy as np

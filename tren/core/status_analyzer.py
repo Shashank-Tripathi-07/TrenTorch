@@ -105,7 +105,7 @@ class TinyTorchStatusAnalyzer:
         if repo_path is None:
             repo_path = Path.cwd()
         self.repo_path = Path(repo_path)
-        self.modules_path = self.repo_path / "modules" / "source"
+        self.modules_path = self.repo_path / "data" / "modules" / "source"
         self.modules: Dict[str, ModuleStatus] = {}
         self.environment_status = {}
         self.tito_status = {}

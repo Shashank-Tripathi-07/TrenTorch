@@ -25,7 +25,7 @@ class TestModule01StillWorking:
 
         # Project structure should remain intact
         project_root = Path(__file__).parent.parent.parent
-        assert (project_root / "modules").exists(), "Module 01: Module structure broken"
+        assert (project_root / "data" / "modules").exists(), "Module 01: Module structure broken"
         assert (project_root / "trentorch").exists(), "Module 01: Package structure broken"
 
     def test_tensor_functionality_stable(self):

@@ -362,12 +362,12 @@ class ModuleWorkflowCommand(BaseCommand):
                 return 1
 
         # Prerequisites met! Check if module needs to be created from src/
-        # Notebooks are in modules/ directory, not src/ (which is modules_dir in config).
+        # Notebooks are in data/modules/ directory, not src/ (which is modules_dir in config).
         # Check for the notebook file itself, not just the directory: a directory
         # can exist but be empty if a previous conversion attempt failed partway
         # (e.g. jupytext wasn't on PATH yet), and directory-existence alone would
         # then make this look already done, silently skipping regeneration.
-        module_dir = self.config.project_root / "modules" / module_name
+        module_dir = self.config.project_root / "data" / "modules" / module_name
         short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
         notebook_file = module_dir / f"{short_name}.ipynb"
         if not notebook_file.exists():
@@ -452,11 +452,11 @@ class ModuleWorkflowCommand(BaseCommand):
             return 1
 
         module_name = module_mapping[normalized]
-        # Notebooks are in modules/ directory, not src/ (which is modules_dir in config).
+        # Notebooks are in data/modules/ directory, not src/ (which is modules_dir in config).
         # Check for the notebook file itself, not just the directory: see the
         # matching comment in start_module for why directory-existence alone is
         # not a reliable signal that a notebook actually exists.
-        module_dir = self.config.project_root / "modules" / module_name
+        module_dir = self.config.project_root / "data" / "modules" / module_name
         short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
         notebook_file = module_dir / f"{short_name}.ipynb"
 
@@ -468,7 +468,7 @@ class ModuleWorkflowCommand(BaseCommand):
         return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
 
     def _create_module_from_src(self, module_name: str) -> bool:
-        """Create a module in modules/ by converting from src/.
+        """Create a module in data/modules/ by converting from src/.
 
         Uses the same conversion logic as 'tito dev export' but only creates
         the student-facing notebook, without exporting to the tinytorch package.
@@ -482,7 +482,7 @@ class ModuleWorkflowCommand(BaseCommand):
         if not src_path.exists():
             return False
 
-        # Convert src/*.py to modules/*.ipynb using jupytext
+        # Convert src/*.py to data/modules/*.ipynb using jupytext
         return convert_py_to_notebook(src_path, self.venv_path, self.console)
 
     def _get_milestone_for_module(self, module_num: int) -> Optional[tuple]:
@@ -500,7 +500,7 @@ class ModuleWorkflowCommand(BaseCommand):
         """Return the generated package path for a module based on default_exp."""
         from ..export_utils import get_export_target
 
-        module_path = Path("modules") / module_name
+        module_path = Path("data") / "modules" / module_name
         export_target = get_export_target(module_path)
         if export_target != "unknown":
             return f"trentorch/{export_target.replace('.', '/')}.py"
@@ -745,7 +745,7 @@ class ModuleWorkflowCommand(BaseCommand):
         - Students who want to export everything they've built
         - Rebuilding the full package from existing notebooks
 
-        Note: This expects notebooks to exist in modules/. For rebuilding
+        Note: This expects notebooks to exist in data/modules/. For rebuilding
         from src/, use 'tito dev export --all' instead.
         """
         from rich import box
@@ -773,7 +773,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
             # Check if notebook exists
             short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-            notebook_path = self.config.project_root / "modules" / module_name / f"{short_name}.ipynb"
+            notebook_path = self.config.project_root / "data" / "modules" / module_name / f"{short_name}.ipynb"
 
             if not notebook_path.exists():
                 console.print(f"  [dim]⏭️  Module {module_num}: {module_name} (no notebook)[/dim]")
@@ -863,14 +863,21 @@ class ModuleWorkflowCommand(BaseCommand):
         
         Developers who want to rebuild from src/ should use: tito dev export
         """
+        import os
         import subprocess
         from pathlib import Path
         from ..export_utils import get_export_target, ensure_writable_target
-        
+        from .test_runner import VERIFY_SOLUTION_ENV
+
         try:
-            # Find the notebook in modules/
+            # Normally exports the student's own notebook in data/modules/.
+            # Under the maintainer verification loop (tren dev test --inline),
+            # TREN_DEV_VERIFY_SOLUTION is set and nobody's notebook is solved,
+            # so export from data/solutions/ (the reference implementation)
+            # instead -- matching run_inline_unit_tests' own source switch.
             short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-            notebook_path = Path("modules") / module_name / f"{short_name}.ipynb"
+            target_root = "solutions" if os.environ.get(VERIFY_SOLUTION_ENV) == "1" else "modules"
+            notebook_path = Path("data") / target_root / module_name / f"{short_name}.ipynb"
             
             if not notebook_path.exists():
                 self.console.print(f"[red]❌ Notebook not found: {notebook_path}[/red]")
@@ -1125,7 +1132,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
         if notebook:
             slug = folder.split("_", 1)[1] if "_" in folder else folder
-            target = project_root / "modules" / folder / f"{slug}.ipynb"
+            target = project_root / "data" / "modules" / folder / f"{slug}.ipynb"
         elif source:
             target = project_root / "src" / folder / f"{folder}.py"
         else:

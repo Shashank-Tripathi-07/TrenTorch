@@ -338,8 +338,8 @@ class DevTestCommand(BaseCommand):
         """Build package by exporting all modules from src/.
 
         This runs 'tito dev export --all' which:
-        1. Converts src/*.py → modules/*.ipynb (jupytext)
-        2. Runs nbdev_export to copy code to tinytorch/core/
+        1. Converts src/*.py → data/modules/*.ipynb (stub) + data/solutions/*.ipynb (jupytext)
+        2. Runs nbdev_export from data/solutions/ to copy working code to tinytorch/core/
 
         This ensures the full tinytorch package is available for testing.
         Note: This does NOT run inline tests - use --inline for that.
@@ -672,7 +672,7 @@ class DevTestCommand(BaseCommand):
             else:
                 console.print(f"  [dim]Module {module_num} ({module_name})...[/dim]")
 
-            # Step 1: Export notebook from src/ to modules/
+            # Step 1: Export notebook from src/ to data/modules/ + data/solutions/
             _profile_export_start = time.time()
             try:
                 export_result = subprocess.run(
@@ -714,6 +714,11 @@ class DevTestCommand(BaseCommand):
             _profile_on = os.environ.get("TREN_PROFILE") == "1"
             try:
                 complete_env = os.environ.copy()
+                # No student notebook has been solved in this maintainer
+                # verification loop -- test/export the reference
+                # implementation in data/solutions/ instead (see
+                # tren/commands/module/test_runner.py's VERIFY_SOLUTION_ENV).
+                complete_env["TREN_DEV_VERIFY_SOLUTION"] = "1"
                 if _profile_on:
                     complete_env["TREN_PROFILE"] = "1"
                 result = subprocess.run(
@@ -968,7 +973,7 @@ class DevTestCommand(BaseCommand):
                 timeout=120
             )
 
-            modules_dir = project_root / "modules"
+            modules_dir = project_root / "data" / "modules"
             core_dir = project_root / "trentorch" / "core"
             progress_file = project_root / ".tren" / "progress.json"
 

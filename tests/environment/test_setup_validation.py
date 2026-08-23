@@ -252,10 +252,10 @@ class TestProjectStructure:
         print(f"✅ Package init: {init_file.absolute()}")
 
     def test_modules_directory(self):
-        """modules/ directory must exist for student work."""
-        modules_dir = Path("modules")
-        assert modules_dir.exists(), "modules/ directory not found"
-        assert modules_dir.is_dir(), "modules/ is not a directory"
+        """data/modules/ directory must exist for student work."""
+        modules_dir = Path("data") / "modules"
+        assert modules_dir.exists(), "data/modules/ directory not found"
+        assert modules_dir.is_dir(), "data/modules/ is not a directory"
         print(f"✅ Modules directory: {modules_dir.absolute()}")
 
     def test_src_directory(self):

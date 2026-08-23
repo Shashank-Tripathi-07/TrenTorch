@@ -1058,8 +1058,6 @@ Why? During evaluation, we want consistent, reproducible predictions. Augmentati
 
 # %% nbgrader={"grade": false, "grade_id": "augmentation-transforms", "solution": true}
 
-#| export
-
 class RandomHorizontalFlip:
     """
     Randomly flip images horizontally with given probability.
@@ -1121,9 +1119,8 @@ class RandomHorizontalFlip:
         ### END SOLUTION
 
 # %% tags=["solution"]
-# Solution
-
 #| export
+# Solution
 
 class RandomHorizontalFlip:
     """

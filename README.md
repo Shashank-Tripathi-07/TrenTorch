@@ -251,8 +251,11 @@ TrenTorch/
 │   ├── 19_benchmarking/        # Module 19: Performance measurement
 │   └── 20_capstone/            # Module 20: Complete ML systems
 │
-├── modules/                    # 📓 Generated notebooks (learn here)
-│   └── ...                     # (20 module directories)
+├── data/
+│   ├── modules/                # 📓 Generated notebooks (learn here -- stub-only)
+│   │   └── ...                 # (20 module directories)
+│   ├── solutions/               # 🔒 Reference implementations (maintainer/CI-only)
+│   └── datasets/                # 🗂️ Curated training data (tinydigits, tinytalks)
 │
 ├── milestones/                 # 🏆 Historical ML evolution - prove what you built
 │   ├── 01_1958_perceptron/

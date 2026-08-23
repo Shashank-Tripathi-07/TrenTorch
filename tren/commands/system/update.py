@@ -5,7 +5,7 @@ Check for updates using GitHub API and perform in-place updates.
 Uses tinytorch-v* tags to determine latest version.
 
 IMPORTANT: This command preserves student work during updates:
-- modules/          (student notebooks in progress)
+- data/modules/     (student notebooks in progress)
 - tinytorch/core/   (student implementations)
 - .tren/            (progress tracking)
 - .venv/            (virtual environment)
@@ -41,7 +41,7 @@ class UpdateCommand(BaseCommand):
         "tito",          # CLI tool
         "tests",         # Test suites
         "milestones",    # Milestone scripts
-        "datasets",      # Sample datasets
+        "data/datasets", # Sample datasets
         "bin",           # Entry point scripts
     ]
     UPDATE_FILES = [
@@ -53,7 +53,8 @@ class UpdateCommand(BaseCommand):
 
     # Directories/files to PRESERVE (never overwrite)
     PRESERVE_DIRS = [
-        "modules",       # Student work in progress
+        "data/modules",  # Student work in progress
+        "data/solutions", # Maintainer/CI-only reference notebooks
         ".venv",         # Virtual environment
         ".tren",         # Progress tracking
     ]
@@ -401,7 +402,7 @@ class UpdateCommand(BaseCommand):
             self.console.print()
             self.console.print(Panel(
                 "[bold]This will update TinyTorch while preserving your work.[/bold]\n\n"
-                "[green]Preserved:[/green] modules/, tinytorch/core/, progress\n"
+                "[green]Preserved:[/green] data/modules/, tinytorch/core/, progress\n"
                 "[yellow]Updated:[/yellow] src/, tito/, tests/, milestones/",
                 title="Warning",
                 border_style="yellow"
@@ -423,7 +424,7 @@ class UpdateCommand(BaseCommand):
             self.console.print(Panel(
                 f"[green]✅ TinyTorch updated successfully[/green]\n\n"
                 f"Now at version: [cyan]v{latest_version}[/cyan]\n\n"
-                f"[dim]Your work in modules/ was preserved.[/dim]",
+                f"[dim]Your work in data/modules/ was preserved.[/dim]",
                 border_style="green"
             ))
             return 0

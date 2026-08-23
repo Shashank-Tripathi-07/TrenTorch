@@ -125,8 +125,8 @@ All contributions must pass:
 ### Module Development
 
 **For Students** (using the framework):
-- **File Format**: Work in `modules/NN_name/name.ipynb` notebooks in Jupyter Lab
-- **Location**: Notebooks are in `modules/NN_name/` directories (e.g., `modules/01_tensor/tensor.ipynb`)
+- **File Format**: Work in `data/modules/NN_name/name.ipynb` notebooks in Jupyter Lab
+- **Location**: Notebooks are in `data/modules/NN_name/` directories (e.g., `data/modules/01_tensor/tensor.ipynb`)
 - **Testing**: Run tests inline as you build
 - **Export**: Use `tren module complete N` to export to package
 

@@ -61,7 +61,7 @@ class TestPriorModulesStillWork:
 
             # Project structure
             project_root = Path(__file__).parent.parent.parent
-            assert (project_root / "modules").exists(), \
+            assert (project_root / "data" / "modules").exists(), \
                 "❌ Project structure broken. Missing 'modules' directory."
 
         except Exception as e:

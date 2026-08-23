@@ -202,8 +202,8 @@ def load_digit_dataset():
 
     # Load from TinyDigits dataset (shipped with TrenTorch)
     project_root = Path(__file__).parent.parent.parent
-    train_path = project_root / "datasets" / "tinydigits" / "train.pkl"
-    test_path = project_root / "datasets" / "tinydigits" / "test.pkl"
+    train_path = project_root / "data" / "datasets" / "tinydigits" / "train.pkl"
+    test_path = project_root / "data" / "datasets" / "tinydigits" / "test.pkl"
 
     if not train_path.exists() or not test_path.exists():
         console.print(f"[red]✗ TinyDigits dataset not found![/red]")

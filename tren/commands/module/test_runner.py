@@ -16,19 +16,63 @@ later, not addressed by this file's existence.
 
 import contextlib
 import io
+import json
+import os
 import runpy
 import subprocess
 import sys
+import tempfile
 import traceback
 from pathlib import Path
 from typing import Dict, Optional
+
+#: Set by the maintainer curriculum-verification loop (`tren dev test
+#: --inline`, via `tren/commands/dev/test.py`) so that `tren module
+#: complete` -- which it shells out to per module -- tests and exports
+#: the known-working reference implementation instead of a student's
+#: (here, nobody's) notebook. Never set for a real student run.
+VERIFY_SOLUTION_ENV = "TREN_DEV_VERIFY_SOLUTION"
+
+
+def _extract_notebook_source(notebook_path: Path) -> str:
+    """Concatenate a notebook's code cells into one executable script.
+
+    Drops IPython magics/shell escapes (not valid plain Python), same
+    filtering as check_notebook_syntax below. Cell order is preserved,
+    so a trailing `if __name__ == "__main__":` self-test cell still
+    fires when the result is run with run_name="__main__".
+    """
+    nb = json.loads(notebook_path.read_text(encoding="utf-8"))
+    blocks = []
+    for cell in nb.get("cells", []):
+        if cell.get("cell_type") != "code":
+            continue
+        source = cell.get("source", "")
+        if isinstance(source, list):
+            source = "".join(source)
+        code = "\n".join(
+            ln for ln in source.splitlines()
+            if not ln.lstrip().startswith(("%", "!"))
+        )
+        if code.strip():
+            blocks.append(code)
+    return "\n\n".join(blocks)
 
 
 def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> Dict[str, int]:
     """Run inline unit tests and parse output for detailed display.
 
-    Runs the module's src/*.py file in-process via runpy (as if it were
-    `python file.py`, so its `if __name__ == "__main__"` test blocks
+    By default (the real student flow), this runs the student's own
+    notebook (data/modules/<module>/<name>.ipynb) -- their filled-in
+    code is what gets tested, matching a real stub-only assignment: an
+    unsolved stub fails here with a clear NotImplementedError, not a
+    silent pass. When TREN_DEV_VERIFY_SOLUTION is set (the maintainer
+    curriculum-verification loop, where no student notebook has been
+    solved), it runs the instructor's src/*.py file directly instead,
+    exactly as this always worked before the stub/solution split.
+
+    Either way, the code is executed in-process via runpy (as if it
+    were `python file.py`, so `if __name__ == "__main__"` test blocks
     still fire) instead of spawning a new Python interpreter subprocess
     per module. A prior version of this tried the same change and was
     reverted after Module 10 appeared to hang: it was never actually a
@@ -43,13 +87,30 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> D
     for the common case.
     """
     project_root = Path.cwd()
-    src_dir = project_root / "src" / module_name
-    dev_file = src_dir / f"{module_name}.py"
+    verify_solution = os.environ.get(VERIFY_SOLUTION_ENV) == "1"
 
-    if not dev_file.exists():
-        if verbose:
-            console.print(f"   [dim yellow]No source file found: {dev_file}[/dim yellow]")
-        return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
+    tmp_source: Optional[Path] = None
+    if verify_solution:
+        run_target = project_root / "src" / module_name / f"{module_name}.py"
+        if not run_target.exists():
+            if verbose:
+                console.print(f"   [dim yellow]No source file found: {run_target}[/dim yellow]")
+            return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
+    else:
+        short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
+        notebook_path = project_root / "data" / "modules" / module_name / f"{short_name}.ipynb"
+        if not notebook_path.exists():
+            if verbose:
+                console.print(f"   [dim yellow]No notebook found: {notebook_path}[/dim yellow]")
+            return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
+        source = _extract_notebook_source(notebook_path)
+        tmp = tempfile.NamedTemporaryFile(
+            mode="w", suffix=f"_{module_name}.py", delete=False, encoding="utf-8", dir=str(project_root)
+        )
+        tmp.write(source)
+        tmp.close()
+        tmp_source = Path(tmp.name)
+        run_target = tmp_source
 
     # Matches the old subprocess's PYTHONPATH=project_root: makes
     # `from trentorch.core.* import ...` resolve the same way.
@@ -63,7 +124,7 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> D
     returncode = 0
     try:
         with contextlib.redirect_stdout(stdout_buffer), contextlib.redirect_stderr(stderr_buffer):
-            runpy.run_path(str(dev_file.absolute()), run_name="__main__")
+            runpy.run_path(str(run_target.absolute()), run_name="__main__")
     except SystemExit as exc:
         returncode = exc.code if isinstance(exc.code, int) else (1 if exc.code else 0)
     except Exception:
@@ -74,6 +135,11 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> D
             try:
                 sys.path.remove(project_root_str)
             except ValueError:
+                pass
+        if tmp_source is not None:
+            try:
+                tmp_source.unlink(missing_ok=True)
+            except OSError:
                 pass
 
     stdout_text = stdout_buffer.getvalue()
@@ -327,9 +393,9 @@ def _extract_pytest_error(stdout: str, stderr: str, test_path: str) -> Optional[
 
 def check_notebook_syntax(config, module_name: str) -> dict:
     """Compile each code cell of the student notebook to catch syntax errors
-    before export. Unit tests run against the instructor ``src/`` file, while
-    export runs nbdev on the student notebook, so a SyntaxError in the
-    notebook would otherwise slip silently into a broken package.
+    before export, with a precise cell/line number -- a faster, clearer
+    signal than the one runpy would eventually raise while actually running
+    the notebook in run_inline_unit_tests.
 
     Returns ``{'ok': bool, 'error': Optional[str]}``. A missing notebook is
     not an error; some flows have nothing to check yet.
@@ -337,7 +403,8 @@ def check_notebook_syntax(config, module_name: str) -> dict:
     import json
 
     short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-    notebook_path = config.project_root / "modules" / module_name / f"{short_name}.ipynb"
+    target_root = "solutions" if os.environ.get(VERIFY_SOLUTION_ENV) == "1" else "modules"
+    notebook_path = config.project_root / "data" / target_root / module_name / f"{short_name}.ipynb"
     if not notebook_path.exists():
         return {'ok': True, 'error': None}
     try:

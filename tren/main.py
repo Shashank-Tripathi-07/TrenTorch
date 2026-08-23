@@ -169,12 +169,13 @@ class TrenTorchCLI:
 
         welcome_text = f"""[{Theme.EMPHASIS}]🎓 LEARNING APPROACH[/{Theme.EMPHASIS}]
 
-Solutions are included in the notebooks. [bold]This is intentional![/bold]
+Each notebook is stub-only: you write the real code. [bold]No solutions included![/bold]
 
 The best way to learn:
-  [{Theme.SUCCESS}]1.[/{Theme.SUCCESS}] Read the module and run the code
-  [{Theme.SUCCESS}]2.[/{Theme.SUCCESS}] Study how the solutions work
-  [{Theme.SUCCESS}]3.[/{Theme.SUCCESS}] Try implementing from scratch
+  [{Theme.SUCCESS}]1.[/{Theme.SUCCESS}] Read the module's docstrings and hints closely
+  [{Theme.SUCCESS}]2.[/{Theme.SUCCESS}] Implement each stub yourself -- match PyTorch's own
+     API names where a hint suggests one, so your code stays portable
+  [{Theme.SUCCESS}]3.[/{Theme.SUCCESS}] Run [{Theme.INFO}]tren module complete[/{Theme.INFO}] -- your own code is what gets tested and exported
      [{Theme.DIM}](reset with: tren module reset)[/{Theme.DIM}]
 
 [{Theme.WARNING}]🐛 PRE-RELEASE:[/{Theme.WARNING}] We're looking for bugs and feedback!

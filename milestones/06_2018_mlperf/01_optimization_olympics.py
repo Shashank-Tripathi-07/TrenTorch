@@ -109,7 +109,7 @@ console = Console()
 def load_tinydigits_arrays(project_root=None):
     """Load TinyDigits arrays shipped with TrenTorch."""
     root = Path(project_root) if project_root is not None else Path(__file__).parent.parent.parent
-    data_dir = root / "datasets" / "tinydigits"
+    data_dir = root / "data" / "datasets" / "tinydigits"
     train_path = data_dir / "train.pkl"
     test_path = data_dir / "test.pkl"
 

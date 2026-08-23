@@ -128,7 +128,7 @@ def open_jupyter(config, console, module_name: str, notebook: bool = False, lab:
     """
     try:
         classic_notebook = resolve_jupyter_ui(notebook, lab)
-        module_dir = config.project_root / "modules" / module_name
+        module_dir = config.project_root / "data" / "modules" / module_name
         if not module_dir.exists():
             console.print(f"[yellow]⚠️  Module directory not found: {module_name}[/yellow]")
             return 1

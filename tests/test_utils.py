@@ -47,7 +47,7 @@ def get_project_root() -> Path:
 
 def get_test_data_path() -> Path:
     """Return the path to test data directory."""
-    return get_project_root() / "datasets"
+    return get_project_root() / "data" / "datasets"
 
 
 def create_test_tensor(shape, requires_grad=True, seed=None):

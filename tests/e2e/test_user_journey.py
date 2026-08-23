@@ -121,8 +121,8 @@ class TestQuickVerification:
     @pytest.mark.quick
     def test_modules_directory_exists(self):
         """Modules directory structure exists."""
-        modules_dir = PROJECT_ROOT / "modules"
-        assert modules_dir.exists(), "modules/ directory missing"
+        modules_dir = PROJECT_ROOT / "data" / "modules"
+        assert modules_dir.exists(), "data/modules/ directory missing"
 
         # Check first few modules exist
         for num in ["01", "02", "03"]:

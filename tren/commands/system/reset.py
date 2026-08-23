@@ -2,7 +2,7 @@
 System Reset Command for TinyTorch CLI.
 
 Resets the TinyTorch development environment to a pristine state:
-- Clears modules/ directory (student notebooks)
+- Clears data/modules/ directory (student notebooks)
 - Clears tinytorch/core/ (exported package code)
 - Optionally resets progress tracking
 
@@ -62,7 +62,7 @@ class SystemResetCommand(BaseCommand):
             console.print(Panel(
                 "[bold red]⚠️  SYSTEM RESET[/bold red]\n\n"
                 "This will remove:\n"
-                "  • [bold]modules/[/bold] - All student notebooks (01_tensor/, 02_activations/, etc.)\n"
+                "  • [bold]data/modules/[/bold] - All student notebooks (01_tensor/, 02_activations/, etc.)\n"
                 "  • [bold]tinytorch/core/[/bold] - All exported module code\n"
                 + ("" if args.keep_progress else "  • [bold]Progress tracking[/bold] - Completion history\n") +
                 "\n"
@@ -87,8 +87,8 @@ class SystemResetCommand(BaseCommand):
         # Perform reset
         errors = []
 
-        # 1. Clear modules/ directory
-        modules_dir = project_root / "modules"
+        # 1. Clear data/modules/ directory
+        modules_dir = project_root / "data" / "modules"
         modules_cleared = 0
         if modules_dir.exists():
             module_mapping = get_module_mapping()
@@ -98,7 +98,7 @@ class SystemResetCommand(BaseCommand):
                         shutil.rmtree(item)
                         modules_cleared += 1
                     except Exception as e:
-                        errors.append(f"modules/{item.name}: {e}")
+                        errors.append(f"data/modules/{item.name}: {e}")
 
         # 2. Clear trentorch/core/ (keep __init__.py and hand-written, non-generated files)
         core_dir = project_root / "trentorch" / "core"

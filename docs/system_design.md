@@ -17,7 +17,7 @@ A student's work has to move through three representations before it counts as c
 | `nbdev>=3.0.15,<3.0.16` (dev group) | Does the actual export: turns notebook cells into real files inside the `trentorch/` package. Called in-process via `nbdev.export.nb_export`, not as a subprocess. |
 | `jupytext>=1.19.3` (dev group) | Converts a module's plain-Python dev file into the `.ipynb` a student opens in Jupyter, run as a subprocess. |
 
-One dependency direction is worth stating precisely: `tren` depends on the `trentorch/` project tree (reads and writes `src/`, `modules/`, `milestones/*.yml`, `.tren/progress.json`) and, in exactly one place, imports the generated `trentorch` package itself to confirm an export actually produced a real, working symbol rather than an empty file. The `trentorch` package has no dependency on `tren` at all. It is a plain importable library once exported.
+One dependency direction is worth stating precisely: `tren` depends on the `trentorch/` project tree (reads and writes `src/`, `data/modules/`, `milestones/*.yml`, `.tren/progress.json`) and, in exactly one place, imports the generated `trentorch` package itself to confirm an export actually produced a real, working symbol rather than an empty file. The `trentorch` package has no dependency on `tren` at all. It is a plain importable library once exported.
 
 ## 3. Full system diagram
 
@@ -97,7 +97,7 @@ The four components that matter most for a system-design understanding:
    validates the notebook before export proceeds
                     |
 5. export_module(module_name)
-   reads modules/<module>/<name>.ipynb
+   reads data/modules/<module>/<name>.ipynb
    nb_export(notebook, lib_path=trentorch/)
    -> writes a real file, e.g. trentorch/core/tensor.py
                     |

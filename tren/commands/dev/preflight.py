@@ -273,7 +273,7 @@ class PreflightCommand(BaseCommand):
 
         # Required directories
         required_dirs = [
-            ("modules/", "Module notebooks directory"),
+            ("data/modules/", "Module notebooks directory"),
             ("src/", "Source files directory"),
             ("milestones/", "Milestone scripts"),
             ("tests/", "Test directory"),
@@ -346,7 +346,7 @@ class PreflightCommand(BaseCommand):
 
         # Check module count
         start = time.time()
-        modules_dir = project_root / "modules"
+        modules_dir = project_root / "data" / "modules"
         if modules_dir.exists():
             module_count = len([d for d in modules_dir.iterdir() if d.is_dir() and d.name[0].isdigit()])
             if module_count >= 15:
