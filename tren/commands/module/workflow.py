@@ -7,17 +7,12 @@ Implements the natural workflow:
 3. tito module complete 01 → Tests, exports, updates progress
 """
 
-import contextlib
-import io
 import os
-import runpy
-import subprocess
 import sys
 import time
-import traceback
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from rich.panel import Panel
 from rich.text import Text
@@ -26,6 +21,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from ..base import BaseCommand
 from .reset import ModuleResetCommand
 from .test import ModuleTestCommand
+from .test_runner import run_inline_unit_tests, run_integration_tests, check_notebook_syntax
 from ..jupyter import open_jupyter
 from ..milestone import check_and_run_milestone_unlocks
 from ...core.exceptions import ModuleNotFoundError
@@ -613,7 +609,7 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print()
 
             _t0 = time.time()
-            unit_result = self._run_inline_unit_tests(module_name, verbose=True)
+            unit_result = run_inline_unit_tests(self.config, self.console, module_name, verbose=True)
             _profile(module_name, "step1_unit_tests", time.time() - _t0)
             unit_test_count = unit_result['passed']
 
@@ -629,7 +625,7 @@ class ModuleWorkflowCommand(BaseCommand):
         # against the instructor src/ file, so a SyntaxError in the student
         # notebook would otherwise slip through to a silent, broken export.
         if not skip_export:
-            syntax_check = self._check_notebook_syntax(module_name)
+            syntax_check = check_notebook_syntax(self.config, module_name)
             if not syntax_check['ok']:
                 self.console.print()
                 self.console.print(f"[red]   ❌ {syntax_check['error']}[/red]")
@@ -668,7 +664,7 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print()
 
             _t0 = time.time()
-            integration_result = self._run_integration_tests(module_name, verbose=True)
+            integration_result = run_integration_tests(self.config, self.console, module_name, verbose=True)
             _profile(module_name, "step3_integration_tests", time.time() - _t0)
             integration_test_count = integration_result['passed']
 
@@ -830,13 +826,13 @@ class ModuleWorkflowCommand(BaseCommand):
         """
         # Run unit tests
         if not skip_tests:
-            unit_result = self._run_inline_unit_tests(module_name, verbose=False)
+            unit_result = run_inline_unit_tests(self.config, self.console, module_name, verbose=False)
             if unit_result['failed'] > 0:
                 return 1
 
         # Catch notebook syntax errors before export (see complete_module Step 1.5)
         if not skip_export:
-            syntax_check = self._check_notebook_syntax(module_name)
+            syntax_check = check_notebook_syntax(self.config, module_name)
             if not syntax_check['ok']:
                 self.console.print(f"[red]❌ {syntax_check['error']}[/red]")
                 return 1
@@ -849,7 +845,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
         # Run integration tests (after export)
         if not skip_tests:
-            integration_result = self._run_integration_tests(module_name, verbose=False)
+            integration_result = run_integration_tests(self.config, self.console, module_name, verbose=False)
             if integration_result['failed'] > 0:
                 return 1
 
@@ -858,415 +854,6 @@ class ModuleWorkflowCommand(BaseCommand):
         self.update_progress(module_num, module_name)
 
         return 0
-
-    def run_module_tests(self, module_name: str, verbose: bool = True) -> int:
-        """
-        Run comprehensive tests for a module:
-        1. Inline unit tests (from src/XX_modulename/XX_modulename.py)
-        2. Progressive integration tests (from tests/XX_modulename/test_XX_modulename_progressive.py)
-        """
-        from rich.table import Table
-        from rich import box
-
-        project_root = Path.cwd()
-        total_passed = 0
-        total_failed = 0
-
-        # Phase 1: Run inline unit tests
-        if verbose:
-            self.console.print("[bold cyan]Phase 1: Unit Tests[/bold cyan] [dim](inline tests from module)[/dim]")
-            self.console.print()
-
-        unit_result = self._run_inline_unit_tests(module_name, verbose)
-        total_passed += unit_result['passed']
-        total_failed += unit_result['failed']
-
-        if unit_result['failed'] > 0:
-            self.console.print(f"\n[red]❌ Unit tests failed ({unit_result['failed']} failures)[/red]")
-            self.console.print()
-            return 1
-
-        if verbose and unit_result['passed'] > 0:
-            self.console.print(f"[green]✅ Unit tests: {unit_result['passed']}/{unit_result['passed']} passed[/green]")
-            self.console.print()
-
-        # Phase 2: Run integration tests
-        if verbose:
-            self.console.print("[bold cyan]Phase 2: Integration Tests[/bold cyan] [dim](progressive integration)[/dim]")
-            self.console.print()
-
-        integration_result = self._run_integration_tests(module_name, verbose)
-        total_passed += integration_result['passed']
-        total_failed += integration_result['failed']
-
-        if integration_result['failed'] > 0:
-            self.console.print(f"\n[red]❌ Integration tests failed ({integration_result['failed']} failures)[/red]")
-            self.console.print()
-            return 1
-
-        if verbose and integration_result['passed'] > 0:
-            self.console.print(f"[green]✅ Integration tests: {integration_result['passed']}/{integration_result['passed']} passed[/green]")
-            self.console.print()
-
-        # Summary panel
-        if verbose and total_passed > 0:
-            self.console.print(Panel(
-                f"[bold green]✅ All tests passed ({total_passed}/{total_passed})[/bold green]\n\n"
-                f"Unit tests: {unit_result['passed']}  •  Integration tests: {integration_result['passed']}",
-                title="Test Results",
-                border_style="green",
-                box=box.ROUNDED
-            ))
-            self.console.print()
-
-        return 0
-
-    def _run_inline_unit_tests(self, module_name: str, verbose: bool) -> Dict[str, int]:
-        """Run inline unit tests and parse output for detailed display.
-
-        Runs the module's src/*.py file in-process via runpy (as if it were
-        `python file.py`, so its `if __name__ == "__main__"` test blocks
-        still fire) instead of spawning a new Python interpreter subprocess
-        per module. A prior version of this tried the same change and was
-        reverted after Module 10 appeared to hang: it was never actually a
-        hang, direct profiling showed it stuck in real, expensive BPE
-        computation inside an analyze_*() demo block (not a correctness
-        check) that CI now skips entirely via the CI=true guard added to
-        those blocks. With that guard in place, this is safe to retry: the
-        thing that made it look like a state-leak-induced hang no longer
-        runs under CI at all, and the remaining correctness-check code is
-        fast. Each module's globals are still isolated per run (runpy
-        builds a fresh namespace per call), matching subprocess isolation
-        for the common case.
-        """
-        project_root = Path.cwd()
-        src_dir = project_root / "src" / module_name
-        dev_file = src_dir / f"{module_name}.py"
-
-        if not dev_file.exists():
-            if verbose:
-                self.console.print(f"   [dim yellow]No source file found: {dev_file}[/dim yellow]")
-            return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
-
-        # Matches the old subprocess's PYTHONPATH=project_root: makes
-        # `from trentorch.core.* import ...` resolve the same way.
-        project_root_str = str(project_root)
-        path_was_added = project_root_str not in sys.path
-        if path_was_added:
-            sys.path.insert(0, project_root_str)
-
-        stdout_buffer = io.StringIO()
-        stderr_buffer = io.StringIO()
-        returncode = 0
-        try:
-            with contextlib.redirect_stdout(stdout_buffer), contextlib.redirect_stderr(stderr_buffer):
-                runpy.run_path(str(dev_file.absolute()), run_name="__main__")
-        except SystemExit as exc:
-            returncode = exc.code if isinstance(exc.code, int) else (1 if exc.code else 0)
-        except Exception:
-            returncode = 1
-            stderr_buffer.write(traceback.format_exc())
-        finally:
-            if path_was_added:
-                try:
-                    sys.path.remove(project_root_str)
-                except ValueError:
-                    pass
-
-        stdout_text = stdout_buffer.getvalue()
-        stderr_text = stderr_buffer.getvalue()
-
-        # Parse output to extract individual test results
-        tests_run = self._parse_test_output(stdout_text, stderr_text, returncode)
-
-        if verbose:
-            for test in tests_run:
-                icon = "✅" if test['passed'] else "❌"
-                color = "green" if test['passed'] else "red"
-                self.console.print(f"   [{color}]{icon} {test['name']}[/{color}]")
-                if not test['passed'] and test.get('error'):
-                    # Show error on next line with indentation
-                    error_lines = test['error'].split('\n')
-                    for error_line in error_lines[:3]:  # Show first 3 lines of error
-                        if error_line.strip():
-                            self.console.print(f"      [dim red]{error_line.strip()}[/dim red]")
-
-        passed = sum(1 for t in tests_run if t['passed'])
-        failed = sum(1 for t in tests_run if not t['passed'])
-
-        return {
-            'passed': passed,
-            'failed': failed,
-            'tests': tests_run,
-            'returncode': returncode
-        }
-
-    def _run_integration_tests(self, module_name: str, verbose: bool) -> Dict[str, int]:
-        """Run progressive integration tests using pytest."""
-        project_root = Path.cwd()
-
-        # Find integration test file(s). Most modules are named
-        # tests/<module>/test_<module>_progressive.py (e.g. test_01_tensor_progressive.py),
-        # so match that first and fall back to any test_*_progressive.py in the dir.
-        # Some modules (e.g. 15_quantization, 16_compression, 17_acceleration,
-        # 19_benchmarking, 20_capstone) instead use test_<topic>_core.py /
-        # test_<topic>_integration.py naming with no "_progressive" in the name at
-        # all, so if neither of the above match anything, fall back further to
-        # every test_*.py file in the module's test directory.
-        module_test_dir = project_root / "tests" / module_name
-        integration_test_targets = []
-        primary_test_file = module_test_dir / f"test_{module_name}_progressive.py"
-        if primary_test_file.exists():
-            integration_test_targets = [primary_test_file]
-        elif module_test_dir.exists():
-            matches = sorted(module_test_dir.glob("test_*_progressive.py"))
-            if matches:
-                integration_test_targets = matches
-            else:
-                integration_test_targets = sorted(module_test_dir.glob("test_*.py"))
-
-        if not integration_test_targets:
-            # No integration tests for this module yet
-            if verbose:
-                self.console.print(f"   [dim yellow]No integration tests found: {primary_test_file}[/dim yellow]")
-            return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
-
-        # Run pytest with verbose output
-        result = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-                *[str(f) for f in integration_test_targets],
-                "-v",
-                "--tb=short",
-                "-o",
-                "addopts=",
-            ],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            cwd=project_root
-        )
-
-        # Parse pytest output
-        tests_run = self._parse_pytest_output(result.stdout, result.stderr)
-
-        if not tests_run and result.returncode != 0:
-            # pytest itself errored (e.g. a collection-time import failure in
-            # the exported package) rather than legitimately having zero
-            # tests. Surface this as a failure instead of silently reporting
-            # "no integration tests for this module" -- except for two cases
-            # that are not real collection failures:
-            #   - exit code 5: pytest's own "no tests collected" signal
-            #   - exit code 4: a pytest.UsageError, which conftest.py raises
-            #     from _validate_package_exported() when core modules that
-            #     come *later* in the build order haven't been exported yet.
-            #     That check is unconditional (it requires every core file to
-            #     exist, not just the one under test), so it legitimately
-            #     trips for early modules during a progressive build.
-            error_msg = (result.stderr or result.stdout).strip()
-            is_no_tests_collected = result.returncode == 5
-            is_progressive_export_gate = (
-                result.returncode == 4
-                and "TINYTORCH PACKAGE NOT EXPORTED" in error_msg
-            )
-            if not is_no_tests_collected and not is_progressive_export_gate:
-                concise_error = '\n'.join(error_msg.split('\n')[:5]) if error_msg else "pytest exited with an error"
-                tests_run = [{
-                    'name': 'pytest_collection',
-                    'passed': False,
-                    'error': concise_error,
-                }]
-
-        if verbose:
-            for test in tests_run:
-                icon = "✅" if test['passed'] else "❌"
-                color = "green" if test['passed'] else "red"
-                self.console.print(f"   [{color}]{icon} {test['name']}[/{color}]")
-                if not test['passed'] and test.get('error'):
-                    # Show error on next line with indentation
-                    error_lines = test['error'].split('\n')
-                    for error_line in error_lines[:3]:  # Show first 3 lines of error
-                        if error_line.strip():
-                            self.console.print(f"      [dim red]{error_line.strip()}[/dim red]")
-
-        passed = sum(1 for t in tests_run if t['passed'])
-        failed = sum(1 for t in tests_run if not t['passed'])
-
-        return {
-            'passed': passed,
-            'failed': failed,
-            'tests': tests_run,
-            'returncode': result.returncode
-        }
-
-    def _parse_test_output(self, stdout: str, stderr: str, returncode: int) -> list:
-        """
-        Parse inline test output to extract individual test results.
-        Looks for patterns like:
-        - ✅ test_function_name
-        - ❌ test_function_name: AssertionError
-        """
-        tests = []
-        lines = stdout.split('\n')
-
-        for line in lines:
-            line_stripped = line.strip()
-            # Look for test result markers
-            if line_stripped.startswith('✅') or line_stripped.startswith('❌'):
-                passed = line_stripped.startswith('✅')
-                # Extract test name and error
-                if ':' in line_stripped:
-                    parts = line_stripped.split(':', 1)
-                    name = parts[0][2:].strip()  # Remove emoji
-                    error = parts[1].strip() if len(parts) > 1 else None
-                else:
-                    name = line_stripped[2:].strip()  # Remove emoji
-                    error = None
-
-                tests.append({
-                    'name': name,
-                    'passed': passed,
-                    'error': error
-                })
-
-        # If no explicit test markers found, infer from return code
-        if not tests:
-            if returncode == 0:
-                # Tests passed (or no tests)
-                if stdout.strip() or stderr.strip():
-                    tests.append({
-                        'name': 'module_execution',
-                        'passed': True,
-                        'error': None
-                    })
-            else:
-                # Tests failed
-                # Try to extract error from stderr or stdout
-                error_msg = stderr.strip() if stderr.strip() else stdout.strip()
-                # Get just the first few lines of error
-                error_lines = error_msg.split('\n')
-                concise_error = '\n'.join(error_lines[:5]) if error_lines else "Test execution failed"
-
-                tests.append({
-                    'name': 'module_execution',
-                    'passed': False,
-                    'error': concise_error
-                })
-
-        return tests
-
-    def _parse_pytest_output(self, stdout: str, stderr: str) -> list:
-        """
-        Parse pytest verbose output to extract individual test results.
-        Looks for patterns like:
-        - tests/02_activations/test_progressive_integration.py::TestClass::test_method PASSED
-        """
-        tests = []
-        lines = stdout.split('\n')
-        seen_tests = set()  # Avoid duplicates
-
-        for line in lines:
-            if '::' in line and ('PASSED' in line or 'FAILED' in line):
-                passed = 'PASSED' in line
-
-                # Extract test path and status
-                parts = line.split()
-                if len(parts) >= 2:
-                    test_path = parts[0]
-
-                    # Skip if already seen
-                    if test_path in seen_tests:
-                        continue
-                    seen_tests.add(test_path)
-
-                    # Format: file.py::Class::method -> "Class: method"
-                    path_parts = test_path.split('::')
-                    if len(path_parts) >= 3:
-                        class_name = path_parts[1].replace('Test', '').replace('Module', 'Module ')
-                        method_name = path_parts[2].replace('test_', '').replace('_', ' ').title()
-                        display_name = f"{class_name}: {method_name}"
-                    elif len(path_parts) >= 2:
-                        method_name = path_parts[1].replace('test_', '').replace('_', ' ').title()
-                        display_name = method_name
-                    else:
-                        display_name = test_path
-
-                    tests.append({
-                        'name': display_name,
-                        'passed': passed,
-                        'error': None if passed else self._extract_pytest_error(stdout, stderr, test_path)
-                    })
-
-        return tests
-
-    def _extract_pytest_error(self, stdout: str, stderr: str, test_path: str) -> Optional[str]:
-        """Extract error message for a specific failed test from pytest output."""
-        lines = stdout.split('\n')
-        for i, line in enumerate(lines):
-            if test_path in line and 'FAILED' in line:
-                # Look ahead for error details (typically in next 5-10 lines)
-                for j in range(i+1, min(i+15, len(lines))):
-                    error_line = lines[j].strip()
-                    if 'AssertionError' in error_line or 'Error:' in error_line or 'assert' in error_line:
-                        return error_line
-
-        # Fallback: check stderr
-        if stderr:
-            stderr_lines = stderr.split('\n')
-            for line in stderr_lines:
-                if 'Error' in line or 'assert' in line:
-                    return line.strip()
-
-        return "Test failed (see output for details)"
-
-    def _check_notebook_syntax(self, module_name: str) -> dict:
-        """Compile each code cell of the student notebook to catch syntax errors
-        before export. Unit tests run against the instructor ``src/`` file, while
-        export runs nbdev on the student notebook, so a SyntaxError in the
-        notebook would otherwise slip silently into a broken package.
-
-        Returns ``{'ok': bool, 'error': Optional[str]}``. A missing notebook is
-        not an error; some flows have nothing to check yet.
-        """
-        import json
-
-        short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-        notebook_path = self.config.project_root / "modules" / module_name / f"{short_name}.ipynb"
-        if not notebook_path.exists():
-            return {'ok': True, 'error': None}
-        try:
-            nb = json.loads(notebook_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError) as e:
-            return {'ok': False, 'error': f"Could not read {notebook_path.name}: {e}"}
-
-        for idx, cell in enumerate(nb.get("cells", [])):
-            if cell.get("cell_type") != "code":
-                continue
-            source = cell.get("source", "")
-            if isinstance(source, list):
-                source = "".join(source)
-            # Drop IPython magics and shell escapes, which are not valid Python
-            # and would otherwise raise a spurious SyntaxError.
-            code = "\n".join(
-                ln for ln in source.splitlines()
-                if not ln.lstrip().startswith(("%", "!"))
-            )
-            if not code.strip():
-                continue
-            try:
-                compile(code, f"{notebook_path.name}[cell {idx}]", "exec")
-            except SyntaxError as e:
-                return {
-                    'ok': False,
-                    'error': (
-                        f"SyntaxError in {notebook_path.name} cell {idx}"
-                        f" (line {e.lineno}): {e.msg}"
-                    ),
-                }
-        return {'ok': True, 'error': None}
 
     def export_module(self, module_name: str) -> int:
         """Export student's notebook to the TinyTorch package.
