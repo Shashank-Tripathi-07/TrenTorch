@@ -22,12 +22,13 @@ from typing import Dict, Optional
 from rich.panel import Panel
 from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.prompt import Confirm
+from rich.prompt import Confirm, Prompt
 
 from ..base import BaseCommand
 from .reset import ModuleResetCommand
 from .test import ModuleTestCommand
 from ...core.exceptions import ModuleNotFoundError
+from ...core.runtime import is_interactive
 from ...core.modules import (
     get_module_mapping,
     get_module_name,
@@ -110,7 +111,12 @@ class ModuleWorkflowCommand(BaseCommand):
         start_parser.add_argument(
             '--notebook',
             action='store_true',
-            help='Open in the classic Jupyter Notebook UI instead of Jupyter Lab'
+            help='Open in the classic Jupyter Notebook UI (skips the prompt)'
+        )
+        start_parser.add_argument(
+            '--lab',
+            action='store_true',
+            help='Open in Jupyter Lab (skips the prompt)'
         )
 
         # VIEW command - just open the notebook
@@ -125,7 +131,12 @@ class ModuleWorkflowCommand(BaseCommand):
         view_parser.add_argument(
             '--notebook',
             action='store_true',
-            help='Open in the classic Jupyter Notebook UI instead of Jupyter Lab'
+            help='Open in the classic Jupyter Notebook UI (skips the prompt)'
+        )
+        view_parser.add_argument(
+            '--lab',
+            action='store_true',
+            help='Open in Jupyter Lab (skips the prompt)'
         )
 
         # RESUME command - continue working on a module
@@ -141,7 +152,12 @@ class ModuleWorkflowCommand(BaseCommand):
         resume_parser.add_argument(
             '--notebook',
             action='store_true',
-            help='Open in the classic Jupyter Notebook UI instead of Jupyter Lab'
+            help='Open in the classic Jupyter Notebook UI (skips the prompt)'
+        )
+        resume_parser.add_argument(
+            '--lab',
+            action='store_true',
+            help='Open in Jupyter Lab (skips the prompt)'
         )
 
         # COMPLETE command - finish and validate a module
@@ -268,14 +284,14 @@ class ModuleWorkflowCommand(BaseCommand):
 
     # Module mapping and normalization now imported from core.modules
 
-    def start_module(self, module_number: str, no_jupyter: bool = False, classic_notebook: bool = False) -> int:
+    def start_module(self, module_number: str, no_jupyter: bool = False, notebook: bool = False, lab: bool = False) -> int:
         """Start working on a module with prerequisite checking and visual feedback.
 
         Args:
             module_number: The module to start (e.g., "01", "02")
             no_jupyter: If True, create notebook but don't open Jupyter (for CI/testing)
-            classic_notebook: If True, open via the classic Jupyter Notebook UI
-                instead of Jupyter Lab
+            notebook: --notebook was passed explicitly; open the classic UI, no prompt
+            lab: --lab was passed explicitly; open Jupyter Lab, no prompt
         """
         from rich import box
         from rich.table import Table
@@ -428,9 +444,9 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print("   3. Run: [bold cyan]tito module complete " + normalized + "[/bold cyan]")
         self.console.print()
 
-        return self._open_jupyter(module_name, classic_notebook=classic_notebook)
+        return self._open_jupyter(module_name, notebook=notebook, lab=lab)
 
-    def view_module(self, module_number: str, classic_notebook: bool = False) -> int:
+    def view_module(self, module_number: str, notebook: bool = False, lab: bool = False) -> int:
         """Open a module notebook in Jupyter without any status ceremony."""
         module_mapping = get_module_mapping()
         normalized = normalize_module_number(module_number)
@@ -453,7 +469,7 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print(f"💡 Run: [bold cyan]tito module start {normalized}[/bold cyan]")
             return 1
 
-        return self._open_jupyter(module_name, classic_notebook=classic_notebook)
+        return self._open_jupyter(module_name, notebook=notebook, lab=lab)
 
     def _create_module_from_src(self, module_name: str) -> bool:
         """Create a module in modules/ by converting from src/.
@@ -501,7 +517,7 @@ class ModuleWorkflowCommand(BaseCommand):
         module_num = module_name.split("_", 1)[0]
         return self.PRIMARY_EXPORT_LABELS.get(module_num, module_name.split("_", 1)[-1].title())
 
-    def resume_module(self, module_number: Optional[str] = None, classic_notebook: bool = False) -> int:
+    def resume_module(self, module_number: Optional[str] = None, notebook: bool = False, lab: bool = False) -> int:
         """Resume working on a module (continue previous work)."""
         module_mapping = get_module_mapping()
 
@@ -537,10 +553,33 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print("💡 Continue your work, then run:")
         self.console.print(f"   [bold cyan]tito module complete {normalized}[/bold cyan]")
 
-        return self._open_jupyter(module_name, classic_notebook=classic_notebook)
+        return self._open_jupyter(module_name, notebook=notebook, lab=lab)
 
-    def _open_jupyter(self, module_name: str, classic_notebook: bool = False) -> int:
-        """Open a module's notebook in Jupyter Lab, reusing one shared server.
+    def _resolve_jupyter_ui(self, notebook: bool, lab: bool) -> bool:
+        """Return True for the classic Notebook UI, False for Lab.
+
+        An explicit --notebook or --lab always wins, no prompt. With
+        neither, ask when there's a real terminal to ask on (Notebook
+        recommended, since that's the closer match to the single-document
+        editing a module is); in CI or any other non-interactive context,
+        fall back to Lab without prompting rather than hang waiting for
+        an answer nobody can give.
+        """
+        if notebook:
+            return True
+        if lab:
+            return False
+        if not is_interactive():
+            return False
+        choice = Prompt.ask(
+            "Open in [cyan]Notebook[/cyan] or [cyan]Lab[/cyan]? (notebook recommended)",
+            choices=["notebook", "lab"],
+            default="notebook",
+        )
+        return choice == "notebook"
+
+    def _open_jupyter(self, module_name: str, notebook: bool = False, lab: bool = False) -> int:
+        """Open a module's notebook in Jupyter, reusing one shared server.
 
         Every module used to spawn its own `jupyter lab` process rooted in
         that module's own directory, an untracked process per `tren module
@@ -550,6 +589,7 @@ class ModuleWorkflowCommand(BaseCommand):
         terminal is only needed once, to bring the server up.
         """
         try:
+            classic_notebook = self._resolve_jupyter_ui(notebook, lab)
             module_dir = self.config.project_root / "modules" / module_name
             if not module_dir.exists():
                 self.console.print(f"[yellow]⚠️  Module directory not found: {module_name}[/yellow]")
@@ -1854,17 +1894,20 @@ class ModuleWorkflowCommand(BaseCommand):
                 return self.start_module(
                     args.module_number,
                     no_jupyter=getattr(args, 'no_jupyter', False),
-                    classic_notebook=getattr(args, 'notebook', False)
+                    notebook=getattr(args, 'notebook', False),
+                    lab=getattr(args, 'lab', False)
                 )
             elif args.module_command == 'view':
                 return self.view_module(
                     args.module_number,
-                    classic_notebook=getattr(args, 'notebook', False)
+                    notebook=getattr(args, 'notebook', False),
+                    lab=getattr(args, 'lab', False)
                 )
             elif args.module_command == 'resume':
                 return self.resume_module(
                     getattr(args, 'module_number', None),
-                    classic_notebook=getattr(args, 'notebook', False)
+                    notebook=getattr(args, 'notebook', False),
+                    lab=getattr(args, 'lab', False)
                 )
             elif args.module_command == 'complete':
                 # Check for --all flag
