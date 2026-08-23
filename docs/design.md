@@ -13,8 +13,8 @@ TrenTorch is a hands-on systems course structured as 20 progressive modules in w
 - 20 progressive modules, each with a clear prerequisite chain, taking a student from a bare `Tensor` class (Module 01) to a working, trainable CNN and GPT-style transformer (by Module 13), then into systems-level optimization: profiling, quantization, compression, acceleration, memoization, and benchmarking (Modules 14 through 19), ending in a capstone competition (Module 20).
 - A framework built entirely from scratch on top of NumPy, with no dependency on PyTorch or TensorFlow, so every operation a student uses was implemented by that same student.
 - Historical-ML "milestones": six standalone exercises (from the 1958 Perceptron through 2018 MLPerf-style benchmarking) that recreate pivotal moments in ML history using the student's own module implementations, gated on having completed the modules each milestone depends on.
-- A single CLI, `tren`, that is the primary interface for the whole course: starting and testing modules, running milestones, and benchmarking a finished framework.
-- Multiple ways to run the course with no local setup required: mybinder.org, Google Colab, and an institutional JupyterHub, in addition to a local `pip install`-based workflow.
+- A single CLI, `tren`, that is the primary interface for the whole course: starting and testing modules, running milestones, and benchmarking a finished framework, plus a `%tren` magic (`tren/jupyter_magic.py`) that runs the same commands from inside a Jupyter cell, no terminal round-trip required.
+- A local `pip install`-based workflow, running on a CLI-managed Jupyter server (Lab or classic Notebook, a learner's choice, `tren module start` asks) or a plain terminal. Deliberately not multi-cloud: mybinder.org, Google Colab, and third-party judge-sandbox support (DeepML/LeetCode/LeetGPU) were removed 2026-08-23, see Non-goals.
 - Free and open source (MIT license for the `trentorch`/`tren` packages), deployable and forkable by anyone.
 
 ## Non-goals
@@ -23,6 +23,7 @@ TrenTorch is a hands-on systems course structured as 20 progressive modules in w
 - No GPU acceleration. Everything runs on NumPy on the CPU; that's a deliberate simplicity choice, not a missing feature.
 - The "Olympics" competitive leaderboard (`tren olympics`) is not a working feature yet. As of this document it is a "coming soon" placeholder that prints planned tracks (speed, compression, accuracy, and similar) and does nothing else. Don't confuse it with `trentorch.olympics`, the actual Python module students build in the Module 20 capstone; that part is real and functional.
 - No grading or multi-student release pipeline. `tren nbgrader` and its solution-stripping (built on nbgrader) have been removed: this fork is a self-use install with no other students to grade, so that infrastructure was dead weight, not a working feature scoped out. Every module's `### BEGIN SOLUTION` / `### END SOLUTION` markers still exist in `src/` as an authoring convention, but nothing in the codebase acts on them anymore.
+- No zero-install or third-party-cloud runtime. `binder/` (the mybinder.org launch config) is removed, and `trentorch/core/platform.py`'s runtime detection no longer recognizes Colab, Kaggle, or the DeepML/LeetCode/LeetGPU judge sandboxes it used to special-case, along with the import hook (`TrenTorchImportHook`) that let `trentorch.modules.*` load directly from raw `src/` files for those sandboxes, all removed 2026-08-23 since this fork is CLI-and-local-Jupyter-first, not a multi-platform one, and none of it had a real caller left once traced.
 - Server-side benchmark submission is not fully wired up. `tren benchmark` computes real local scores and can offer to submit them, but the actual submission call is a stub; results are only ever saved locally as of this document.
 
 ## Technology stack
@@ -53,12 +54,11 @@ Everything TrenTorch uses, what it is, and why it's the right tool for this proj
 | `argparse` (Python standard library) | Python's built-in command-line argument parser. | `tren` is built entirely on `argparse`, with two levels of subcommands (for example `tren module test`), rather than a third-party CLI framework like Click or Typer. |
 | pytest | Python's standard test framework. | Runs every category of test in the project: per-module unit tests, integration tests, CLI tests, end-to-end tests, environment checks, and regression tests. `tren module test` and `tren dev test` are wrappers around pytest invocations. |
 
-### Editor tooling and cloud environments
+### Editor tooling
 
 | Technology | What it is | How TrenTorch uses it |
 |---|---|---|
-| mybinder.org and Google Colab | Free, browser-based hosted Jupyter environments. | Let students run TrenTorch with no local installation at all. A `binder/postBuild` script installs the package and regenerates every module notebook from source at environment build time. |
-| Docker | A containerization tool. | Used in CI (`tinytorch-validate-dev.yml`'s fresh-install stage) to simulate a brand-new student machine installing the package from scratch. |
+| Docker | A containerization tool. | Used in CI (Stage 6, Fresh Install) to simulate a brand-new student machine installing the package from scratch. |
 
 ## Architecture
 
@@ -124,7 +124,7 @@ Upstream maintains a public docs site (`mlsysbook.ai/tinytorch/`) and a PDF cour
 
 ### Deployment environments
 
-TrenTorch is designed to run in four different ways with no code changes: a local `pip install` (the default contributor workflow), mybinder.org (a `binder/postBuild` script installs the package and regenerates every module notebook from source at environment build time, since generated notebooks aren't committed to git), Google Colab, and an institutional JupyterHub for classroom deployment.
+TrenTorch runs via a local `pip install` (the only supported path), either as a plain CLI or against a CLI-managed local Jupyter server. It no longer targets mybinder.org, Google Colab, or a hosted JupyterHub; `binder/` and the platform-detection code that special-cased those environments were removed 2026-08-23 (see Non-goals).
 
 ### CI/CD (upstream-only, not present in this fork)
 

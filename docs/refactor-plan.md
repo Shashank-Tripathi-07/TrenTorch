@@ -10,7 +10,7 @@ Four layers, each with one job:
 
 - **Data**: the curriculum's source of truth, content that a person authors or a learner produces. No computation lives here, only what gets computed on.
 - **Process**: the transformations that turn data into other data, or into a working package. Every process is a pure function of its inputs, given the same `src/`, it produces the same `trentorch/`.
-- **Platform**: where a process actually executes, and what that execution environment forces you to account for (GitHub Actions runners, PyPI's install contract, a learner's Colab notebook, Docker for fresh-install verification).
+- **Platform**: where a process actually executes, and what that execution environment forces you to account for (GitHub Actions runners, PyPI's install contract, a learner's local Jupyter server, Docker for fresh-install verification).
 - **Other systems**: everything that supports the above three but isn't itself curriculum, transformation, or execution target, docs site, community backend, contributor tooling, dev-experience scripts.
 
 The point of naming these explicitly is that "make it faster/cheaper/more reproducible" is a different job depending on which layer you're touching. A process is sped up by doing less redundant work (this is what the CI optimization pass already did to Stage 7, see [`CHANGELOG.md`](../CHANGELOG.md)). A platform is sped up or made cheaper by choosing a cheaper runner or caching its install contract. Data isn't "sped up" at all, it's made *smaller* or *more consistent*. Collapsing these into one undifferentiated "the codebase is slow" complaint is why the last optimization pass took real profiling work to even locate the actual bottlenecks.
@@ -46,11 +46,11 @@ The point of naming these explicitly is that "make it faster/cheaper/more reprod
 
 | Current location | What it covers |
 |---|---|
-| `trentorch/core/platform.py` | Runtime detection at *import* time: Colab, Kaggle, sandbox (DeepML/LeetCode/LeetGPU), Jupyter, standard CLI. Drives platform-specific hooks for the package itself. |
+| `trentorch/core/platform.py` | Runtime detection at *import* time. As of 2026-08-23, only two targets: `jupyter` or `standard` (CLI/script). Colab, Kaggle, and third-party judge-sandbox detection (DeepML/LeetCode/LeetGPU), plus the import hook that let `trentorch.modules.*` load from raw `src/` files for those sandboxes, were removed the same day, see [`design.md`](design.md) Non-goals. |
 | `.github/workflows/validate.yml` matrix (`ubuntu-latest`, `windows-latest`) | CI execution platforms. Windows is billed at a multiplier by GitHub Actions and doubles most stage costs; this is a live cost lever noted but not yet acted on (tracked in issue #20's "left on the table" section). |
 | Stage 6 (Fresh Install, Docker) | Install-time platform: verifies the package installs cleanly in a container that isn't the dev environment. |
 | `pyproject.toml` `[project.scripts]`, PyPI packaging | The distribution platform: how `tren` becomes a real installed command on a learner's machine. |
-| `binder/` | MyBinder as a zero-install execution platform for learners. |
+| `tren/jupyter_magic.py` + one shared, CLI-managed Jupyter server | The Jupyter runtime platform: `tren module start/view/resume` launches (or reuses) one server rooted at the project root; `%tren` and `%exit` run inside it, in-process, no second CLI process. |
 
 **Gap**: `trentorch/core/platform.py` only handles *runtime* platform (where imported code executes). It has no relationship to the CI matrix or Docker verification, which are also "platform" concerns but live entirely in YAML and shell. A unified platform layer would let "what does this cost/take on platform X" be answered by looking in one place instead of cross-referencing a Python file, a workflow matrix, and a Dockerfile.
 
@@ -80,8 +80,9 @@ These don't need to move, they need to stop being implicitly bundled into "the c
 5. **Decide the Platform matrix deliberately.** Bring the Windows-coverage-vs-cost tradeoff (from the CI issue's "left on the table" list) to an actual decision instead of leaving it as a comment. This is the highest-leverage remaining cost lever now that the Process-layer redundancy is mostly cut.
 6. **Isolate Other Systems' build/test cost from the core pipeline's numbers.** Confirm `quarto/community`'s Playwright tests don't run inside the stages being measured for the 7-7.5 minute target, if they do, the core pipeline's numbers are being inflated by a layer that was never supposed to be in scope.
 7. **Cut dead surface area.** The VS Code extension (`dev/vscode-ext/`) has been removed, and the unused nbdev PyPI publish metadata in `settings.ini` has been stripped, neither had any real user or CI dependency once traced. `pyproject.toml`'s actual install machinery (`[project.scripts]`, Stage 6's fresh-install verification) stays: that's not PyPI publishing, it's how a learner gets a working `tren` command.
+8. **Narrow the Platform layer to what's actually shipped.** Done 2026-08-23: `trentorch/core/platform.py` no longer detects Colab, Kaggle, or judge sandboxes, and the import hook that existed only to support those is gone; `binder/` (mybinder.org launch config) is removed. This fork is CLI-and-local-Jupyter-first, not multi-cloud, and none of that had a real caller left once traced. The CLI side of local Jupyter got *more* capable in the same window, not less: `tren/jupyter_magic.py`'s `%tren`/`%exit` magics and one shared, CLI-managed Jupyter server (reused across every module instead of one spawned per `tren module start`) replaced the old CLI-to-browser-and-back workflow.
 
 ## 5. Open decisions that need a call, not an assumption
 
-- Should `trentorch/` stop being a committed artifact entirely, or stay committed with a drift check? Stopping commits is the cleaner data/process split but changes the local install flow.
+- Should `trentorch/` stop being a committed artifact entirely, or stay committed with a drift check? Stopping commits is the cleaner data/process split but changes the local install flow. Deliberately deferred: this is a real decision, not forgotten, just not the current priority after the recent CI-budget work.
 - Is the Windows CI leg staying, dropping from PR runs only, or dropping entirely? This was already flagged as "not something to decide unilaterally" in the CI work; it applies just as much here.

@@ -64,8 +64,7 @@ def discover_requirements_files() -> List[Path]:
     Discover the main requirements.txt file in the project.
 
     Only checks the main requirements.txt, not ancillary files like
-    binder/requirements.txt or site/requirements.txt which are for
-    different deployment contexts.
+    site/requirements.txt which are for different deployment contexts.
 
     Returns:
         List of Path objects for requirements files

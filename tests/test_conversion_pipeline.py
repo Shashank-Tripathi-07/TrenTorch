@@ -110,9 +110,8 @@ def test_to_platform_yaml():
 
 def test_platform_detector():
     platform = PlatformDetector.get_platform()
-    assert platform in {"colab", "kaggle", "sandbox", "jupyter", "standard"}
+    assert platform in {"jupyter", "standard"}
     assert isinstance(PlatformDetector.is_interactive(), bool)
-    assert isinstance(PlatformDetector.is_sandbox(), bool)
 
 
 def test_real_module_conversion():

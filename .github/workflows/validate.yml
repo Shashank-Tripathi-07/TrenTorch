@@ -40,14 +40,12 @@ on:
     branches: [main]
     paths-ignore:
       - 'docs/**'
-      - 'binder/**'
       - 'dev/etc/**'
       - '.github/assets/**'
       - '**/*.md'
   pull_request:
     paths-ignore:
       - 'docs/**'
-      - 'binder/**'
       - 'dev/etc/**'
       - '.github/assets/**'
       - '**/*.md'

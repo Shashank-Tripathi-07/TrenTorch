@@ -21,7 +21,6 @@ cs249r_book/
     tren/                # The `tren` CLI package
     milestones/          # Six historical-ML reproduction exercises
     docs/                # Design docs, contributor docs (CONTRIBUTING.md)
-    binder/               # mybinder.org / Colab launch configuration (must stay at repo root)
     dev/                  # Dev-only support tooling: scripts/, tools/, etc/ (jupyter config)
     benchmark_results/    # Local artifact output from Module 19's BenchmarkSuite
     pyproject.toml, settings.ini, MANIFEST.in, requirements.txt

@@ -92,7 +92,7 @@ A **complete ML framework**, built from zero. No single finish line, a set of mi
     <tr>
       <td>✅ Module, CLI, integration, and milestone tests</td>
       <td>🔧 Edge case hardening</td>
-      <td>📅 Binder/Colab support</td>
+      <td>📅 More milestone exercises</td>
     </tr>
     <tr>
       <td>✅ <code>tren</code> CLI for workflows</td>
