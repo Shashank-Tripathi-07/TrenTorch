@@ -107,6 +107,11 @@ class ModuleWorkflowCommand(BaseCommand):
             action='store_true',
             help='Create notebook but skip opening Jupyter (for CI/testing)'
         )
+        start_parser.add_argument(
+            '--notebook',
+            action='store_true',
+            help='Open in the classic Jupyter Notebook UI instead of Jupyter Lab'
+        )
 
         # VIEW command - just open the notebook
         view_parser = subparsers.add_parser(
@@ -116,6 +121,11 @@ class ModuleWorkflowCommand(BaseCommand):
         view_parser.add_argument(
             'module_number',
             help='Module number to view (01, 02, 03, etc.)'
+        )
+        view_parser.add_argument(
+            '--notebook',
+            action='store_true',
+            help='Open in the classic Jupyter Notebook UI instead of Jupyter Lab'
         )
 
         # RESUME command - continue working on a module
@@ -127,6 +137,11 @@ class ModuleWorkflowCommand(BaseCommand):
             'module_number',
             nargs='?',
             help='Module number to resume (01, 02, 03, etc.) - defaults to last worked'
+        )
+        resume_parser.add_argument(
+            '--notebook',
+            action='store_true',
+            help='Open in the classic Jupyter Notebook UI instead of Jupyter Lab'
         )
 
         # COMPLETE command - finish and validate a module
@@ -253,12 +268,14 @@ class ModuleWorkflowCommand(BaseCommand):
 
     # Module mapping and normalization now imported from core.modules
 
-    def start_module(self, module_number: str, no_jupyter: bool = False) -> int:
+    def start_module(self, module_number: str, no_jupyter: bool = False, classic_notebook: bool = False) -> int:
         """Start working on a module with prerequisite checking and visual feedback.
-        
+
         Args:
             module_number: The module to start (e.g., "01", "02")
             no_jupyter: If True, create notebook but don't open Jupyter (for CI/testing)
+            classic_notebook: If True, open via the classic Jupyter Notebook UI
+                instead of Jupyter Lab
         """
         from rich import box
         from rich.table import Table
@@ -411,9 +428,9 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print("   3. Run: [bold cyan]tito module complete " + normalized + "[/bold cyan]")
         self.console.print()
 
-        return self._open_jupyter(module_name)
+        return self._open_jupyter(module_name, classic_notebook=classic_notebook)
 
-    def view_module(self, module_number: str) -> int:
+    def view_module(self, module_number: str, classic_notebook: bool = False) -> int:
         """Open a module notebook in Jupyter without any status ceremony."""
         module_mapping = get_module_mapping()
         normalized = normalize_module_number(module_number)
@@ -436,7 +453,7 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print(f"💡 Run: [bold cyan]tito module start {normalized}[/bold cyan]")
             return 1
 
-        return self._open_jupyter(module_name)
+        return self._open_jupyter(module_name, classic_notebook=classic_notebook)
 
     def _create_module_from_src(self, module_name: str) -> bool:
         """Create a module in modules/ by converting from src/.
@@ -484,7 +501,7 @@ class ModuleWorkflowCommand(BaseCommand):
         module_num = module_name.split("_", 1)[0]
         return self.PRIMARY_EXPORT_LABELS.get(module_num, module_name.split("_", 1)[-1].title())
 
-    def resume_module(self, module_number: Optional[str] = None) -> int:
+    def resume_module(self, module_number: Optional[str] = None, classic_notebook: bool = False) -> int:
         """Resume working on a module (continue previous work)."""
         module_mapping = get_module_mapping()
 
@@ -520,66 +537,142 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print("💡 Continue your work, then run:")
         self.console.print(f"   [bold cyan]tito module complete {normalized}[/bold cyan]")
 
-        return self._open_jupyter(module_name)
+        return self._open_jupyter(module_name, classic_notebook=classic_notebook)
 
-    def _open_jupyter(self, module_name: str) -> int:
-        """Open Jupyter Lab for a module."""
-        import time
+    def _open_jupyter(self, module_name: str, classic_notebook: bool = False) -> int:
+        """Open a module's notebook in Jupyter Lab, reusing one shared server.
 
+        Every module used to spawn its own `jupyter lab` process rooted in
+        that module's own directory, an untracked process per `tren module
+        start` that left the CLI with no idea what was still running (see
+        deep-dive.md). One server rooted at the project root, reused across
+        every module and every `%tren` call inside it, replaces that: the
+        terminal is only needed once, to bring the server up.
+        """
         try:
-            # Notebooks are in modules/ directory, not src/ (which is modules_dir in config)
             module_dir = self.config.project_root / "modules" / module_name
             if not module_dir.exists():
                 self.console.print(f"[yellow]⚠️  Module directory not found: {module_name}[/yellow]")
                 return 1
 
-            # Find the notebook file to open directly
-            # Notebook uses short name (e.g., "tensor.ipynb" not "01_tensor.ipynb")
             short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
             notebook_path = module_dir / f"{short_name}.ipynb"
             if not notebook_path.exists():
-                # Fallback: look for any .ipynb file
                 notebooks = list(module_dir.glob("*.ipynb"))
-                if notebooks:
-                    notebook_path = notebooks[0]
-                else:
-                    notebook_path = None
+                notebook_path = notebooks[0] if notebooks else None
 
-            self.console.print(f"\n[cyan]🚀 Opening Jupyter Lab for module {module_name}...[/cyan]")
+            base_url, token = self._find_running_jupyter_server()
+            if base_url is None:
+                self.console.print("[cyan]🚀 Starting a shared Jupyter Lab server...[/cyan]")
+                if not self._start_jupyter_server():
+                    self.console.print("[yellow]⚠️  Jupyter Lab not found. Install with:[/yellow]")
+                    self.console.print("[dim]pip install jupyterlab[/dim]")
+                    return 1
+                base_url, token = self._find_running_jupyter_server()
+            else:
+                self.console.print("[cyan]🔗 Reusing the already-running Jupyter Lab server...[/cyan]")
 
-            # Launch Jupyter Lab with the notebook file directly
-            cmd = ["jupyter", "lab"]
+            if base_url is None:
+                self.console.print("[yellow]⚠️  Jupyter Lab started but its URL couldn't be detected.[/yellow]")
+                self.console.print("[dim]Check the terminal output above for the URL and token.[/dim]")
+                return 1
+
+            # One jupyter_server backend serves both UIs; /tree is the classic
+            # Notebook interface (Notebook 7, requires the `notebook` package
+            # alongside jupyterlab), /lab/tree is Jupyter Lab. Same running
+            # server either way, just a different frontend path.
+            ui_path = "tree" if classic_notebook else "lab/tree"
             if notebook_path and notebook_path.exists():
-                cmd.append(str(notebook_path))
+                relative = notebook_path.relative_to(self.config.project_root)
+                url = f"{base_url}{ui_path}/{relative.as_posix()}"
+            else:
+                url = f"{base_url}{'tree' if classic_notebook else 'lab'}"
+            if token:
+                url += f"?token={token}"
 
-            process = subprocess.Popen(
-                cmd,
-                cwd=str(module_dir),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding="utf-8",
-                errors="replace"
-            )
+            import webbrowser
+            webbrowser.open(url)
 
-            # Give Jupyter a moment to start and capture the URL
-            time.sleep(2)
-
-            self.console.print("[green]✅ Jupyter Lab started![/green]")
-            self.console.print(f"[dim]Working directory: {module_dir}[/dim]")
+            ui_name = "Jupyter Notebook" if classic_notebook else "Jupyter Lab"
+            self.console.print(f"[green]✅ Opened in {ui_name}[/green]")
+            self.console.print(f"[dim]If it didn't open automatically: {url}[/dim]")
             self.console.print()
-            self.console.print("[bold]If Jupyter doesn't open automatically:[/bold]")
-            self.console.print("  Open [cyan]http://localhost:8888[/cyan] in your browser")
-            self.console.print("  [dim]Or check the terminal for the full URL with token[/dim]")
+            module_number = module_name.split("_", 1)[0]
+            self.console.print("[bold]From inside a notebook cell, no need to come back here:[/bold]")
+            self.console.print(f"  [cyan]%tren module complete {module_number}[/cyan]")
             return 0
 
         except FileNotFoundError:
             self.console.print("[yellow]⚠️  Jupyter Lab not found. Install with:[/yellow]")
             self.console.print("[dim]pip install jupyterlab[/dim]")
             return 1
-        except Exception as e:
-            self.console.print(f"[red]❌ Failed to launch Jupyter: {e}[/red]")
-            return 1
+
+    def _find_running_jupyter_server(self):
+        """Return (base_url, token) for a Jupyter server already rooted at
+        the project root, or (None, None) if none is running there.
+
+        Reads live state from `jupyter server list` rather than tracking a
+        PID ourselves, so it self-heals if the server was closed outside
+        tren's control.
+        """
+        import re
+
+        try:
+            result = subprocess.run(
+                ["jupyter", "server", "list"],
+                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15
+            )
+        except FileNotFoundError:
+            return None, None
+        if result.returncode != 0:
+            return None, None
+
+        project_root = str(self.config.project_root.resolve())
+        for line in result.stdout.splitlines():
+            match = re.match(r"^(https?://\S+?/)(?:\?token=(\S+))?\s*::\s*(.+)$", line.strip())
+            if not match:
+                continue
+            url, token, root_dir = match.groups()
+            if os.path.normcase(os.path.normpath(root_dir.strip())) == os.path.normcase(os.path.normpath(project_root)):
+                return url, token
+        return None, None
+
+    def _start_jupyter_server(self) -> bool:
+        """Spawn one Jupyter Lab server rooted at the project root.
+
+        Detached so it outlives this `tren` process; every subsequent
+        `tren module start/view/resume` finds and reuses it via
+        `_find_running_jupyter_server` instead of starting another.
+        """
+        import time
+
+        try:
+            cmd = [
+                "jupyter", "lab",
+                "--no-browser",
+                f"--notebook-dir={self.config.project_root}",
+            ]
+            detach_kwargs = (
+                {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS}
+                if sys.platform == "win32"
+                else {"start_new_session": True}
+            )
+            subprocess.Popen(
+                cmd,
+                cwd=str(self.config.project_root),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                **detach_kwargs,
+            )
+        except FileNotFoundError:
+            return False
+
+        for _ in range(20):
+            time.sleep(0.5)
+            base_url, _ = self._find_running_jupyter_server()
+            if base_url is not None:
+                return True
+        return True
 
     def complete_module(self, module_number: Optional[str] = None, skip_tests: bool = False, skip_export: bool = False) -> int:
         """Complete a module with enhanced visual feedback and celebration."""
@@ -1760,12 +1853,19 @@ class ModuleWorkflowCommand(BaseCommand):
             if args.module_command == 'start':
                 return self.start_module(
                     args.module_number,
-                    no_jupyter=getattr(args, 'no_jupyter', False)
+                    no_jupyter=getattr(args, 'no_jupyter', False),
+                    classic_notebook=getattr(args, 'notebook', False)
                 )
             elif args.module_command == 'view':
-                return self.view_module(args.module_number)
+                return self.view_module(
+                    args.module_number,
+                    classic_notebook=getattr(args, 'notebook', False)
+                )
             elif args.module_command == 'resume':
-                return self.resume_module(getattr(args, 'module_number', None))
+                return self.resume_module(
+                    getattr(args, 'module_number', None),
+                    classic_notebook=getattr(args, 'notebook', False)
+                )
             elif args.module_command == 'complete':
                 # Check for --all flag
                 if getattr(args, 'all', False):
