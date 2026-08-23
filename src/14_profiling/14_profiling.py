@@ -278,7 +278,474 @@ Profiler Class Structure:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "profiler_class", "solution": true}
+
+class Profiler:
+    """
+    Professional-grade ML model profiler for performance analysis.
+
+    Measures parameters, FLOPs, memory usage, and latency with statistical rigor.
+    Used for optimization guidance and deployment planning.
+    """
+
+    def __init__(self):
+        """
+        Initialize profiler with measurement state.
+
+        TODO: Set up profiler tracking structures
+
+        APPROACH:
+        1. Create empty measurements dictionary
+        2. Initialize operation counters
+        3. Set up memory tracking state
+
+        EXAMPLE:
+        >>> profiler = Profiler()
+        >>> profiler.measurements
+        {}
+
+        HINTS:
+        - Use defaultdict(int) for operation counters
+        - measurements dict will store timing results
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.__init__")
+        ### END SOLUTION
+
+    def __enter__(self):
+        """Start timing for use as a context manager."""
+        self._context_start = time.perf_counter()
+        return self
+
+    def __exit__(self, *args):
+        """Stop timing and store elapsed time in milliseconds."""
+        self.elapsed = (time.perf_counter() - self._context_start) * 1000
+
+    def _count_layer_parameters(self, layer) -> int:
+        """
+        Count parameters in a single layer by inspecting weight and bias attributes.
+
+        Handles the fundamental unit of parameter counting: a single layer
+        with weight and optional bias tensors.
+
+        ```
+        Single Layer Parameter Count:
+        ┌─────────────────────────────────────────┐
+        │ layer.weight.data.size  (e.g., 128×64)  │
+        │ + layer.bias.data.size  (e.g., 64)      │
+        │ = total layer parameters (e.g., 8256)    │
+        └─────────────────────────────────────────┘
+        ```
+
+        Args:
+            layer: A layer object with .weight (and optionally .bias)
+
+        Returns:
+            int: Total parameter count for this layer
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._count_layer_parameters")
+        ### END SOLUTION
+
+    def count_parameters(self, model) -> int:
+        """
+        Count total trainable parameters in a model.
+
+        TODO: Implement parameter counting for any model with parameters() method
+
+        APPROACH:
+        1. Get all parameters from model.parameters() if available
+        2. For single layers, use _count_layer_parameters() helper
+        3. Sum total element count across all parameter tensors
+
+        EXAMPLE:
+        >>> linear = Linear(128, 64)  # 128*64 + 64 = 8256 parameters
+        >>> profiler = Profiler()
+        >>> count = profiler.count_parameters(linear)
+        >>> print(count)
+        8256
+
+        HINTS:
+        - Use _count_layer_parameters() for single layers
+        - Use parameter.data.size for tensor element count
+        - Handle models with and without parameters() method
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.count_parameters")
+        ### END SOLUTION
+
+    def _count_linear_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+        """
+        Count FLOPs for a Linear layer forward pass.
+
+        ```
+        Linear FLOP Formula:
+        FLOPs = in_features × out_features × 2
+                     ↑              ↑          ↑
+              Input dimension  Output dimension  Multiply + Add
+        ```
+
+        Args:
+            model: A Linear layer with .weight attribute
+            input_shape: Input tensor shape (batch, in_features)
+
+        Returns:
+            int: FLOP count for one forward pass (batch-independent)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._count_linear_flops")
+        ### END SOLUTION
+
+    def _count_conv_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+        """
+        Count FLOPs for a Conv2d layer forward pass.
+
+        ```
+        Conv2d FLOP Formula:
+        FLOPs = out_H × out_W × kernel_H × kernel_W × in_C × out_C × 2
+                  ↑       ↑        ↑          ↑         ↑       ↑      ↑
+              Output spatial    Kernel spatial     Channel dims   Mul+Add
+        ```
+
+        Args:
+            model: A Conv2d layer with kernel_size, in_channels, out_channels
+            input_shape: Input tensor shape (batch, channels, height, width)
+
+        Returns:
+            int: FLOP count for one forward pass
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._count_conv_flops")
+        ### END SOLUTION
+
+    def _count_sequential_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+        """
+        Count FLOPs for a Sequential model by summing per-layer FLOPs.
+
+        ```
+        Sequential FLOP Accumulation:
+        Layer 1 FLOPs + Layer 2 FLOPs + ... + Layer N FLOPs = Total FLOPs
+             ↓               ↓                    ↓
+          Shape propagated through each layer
+        ```
+
+        Args:
+            model: A model with .layers attribute (list of layers)
+            input_shape: Input tensor shape for the first layer
+
+        Returns:
+            int: Total FLOP count across all layers
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._count_sequential_flops")
+        ### END SOLUTION
+
+    def count_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+        """
+        Count FLOPs (Floating Point Operations) for one forward pass.
+
+        TODO: Implement FLOP counting by dispatching to per-layer-type helpers
+
+        APPROACH:
+        1. Identify model type by class name
+        2. Dispatch to _count_linear_flops, _count_conv_flops, or _count_sequential_flops
+        3. Fall back to 1 FLOP per element for activations
+
+        EXAMPLE:
+        >>> linear = Linear(128, 64)
+        >>> profiler = Profiler()
+        >>> flops = profiler.count_flops(linear, (1, 128))
+        >>> print(flops)  # 128 * 64 * 2 = 16384
+        16384
+
+        HINT: Use model.__class__.__name__ to identify layer type
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.count_flops")
+        ### END SOLUTION
+
+    def _calculate_parameter_memory(self, model) -> float:
+        """
+        Calculate memory used by model parameters in megabytes.
+
+        ```
+        Parameter Memory Formula:
+        Memory (MB) = parameter_count × 4 bytes / (1024 × 1024)
+                           ↑              ↑
+                     From count_parameters  FP32 size
+        ```
+
+        Args:
+            model: Model to analyze
+
+        Returns:
+            float: Parameter memory in megabytes
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._calculate_parameter_memory")
+        ### END SOLUTION
+
+    def _calculate_memory_efficiency(self, useful_memory_mb: float, peak_memory_mb: float) -> float:
+        """
+        Calculate memory efficiency as ratio of useful to total memory.
+
+        ```
+        Efficiency = useful_memory / peak_memory
+                         ↑               ↑
+              Parameters + Activations   tracemalloc peak
+
+        Ideal: 1.0 (all memory is useful)
+        Typical: 0.3-0.8 (overhead from allocator, fragmentation)
+        ```
+
+        Args:
+            useful_memory_mb: Sum of parameter + activation memory
+            peak_memory_mb: Peak memory observed by tracemalloc
+
+        Returns:
+            float: Efficiency ratio clamped to [0, 1]
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._calculate_memory_efficiency")
+        ### END SOLUTION
+
+    def measure_memory(self, model, input_shape: Tuple[int, ...]) -> Dict[str, float]:
+        """
+        Measure memory usage during forward pass.
+
+        TODO: Implement memory tracking using tracemalloc and helper methods
+
+        APPROACH:
+        1. Use _calculate_parameter_memory() for parameter bytes
+        2. Use tracemalloc to track peak allocation during forward pass
+        3. Use _calculate_memory_efficiency() for efficiency ratio
+
+        EXAMPLE:
+        >>> linear = Linear(1024, 512)
+        >>> profiler = Profiler()
+        >>> memory = profiler.measure_memory(linear, (32, 1024))
+        >>> print(f"Parameters: {memory['parameter_memory_mb']:.1f} MB")
+        Parameters: 2.1 MB
+
+        HINT: tracemalloc.start() / get_traced_memory() / stop() lifecycle
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.measure_memory")
+        ### END SOLUTION
+
+    def measure_latency(self, model, input_tensor, warmup: int = 10, iterations: int = 100) -> float:
+        """
+        Measure model inference latency with statistical rigor.
+
+        TODO: Implement accurate latency measurement
+
+        APPROACH:
+        1. Run warmup iterations to stabilize performance
+        2. Measure multiple iterations for statistical accuracy
+        3. Calculate median latency to handle outliers
+        4. Return latency in milliseconds
+
+        PARAMETERS:
+        - warmup: Number of warmup runs (default 10)
+        - iterations: Number of measurement runs (default 100)
+
+        EXAMPLE:
+        >>> linear = Linear(128, 64)
+        >>> input_tensor = Tensor(rng.standard_normal((1, 128)))
+        >>> profiler = Profiler()
+        >>> latency = profiler.measure_latency(linear, input_tensor)
+        >>> print(f"Latency: {latency:.2f} ms")
+        Latency: 0.15 ms
+
+        HINTS:
+        - Use time.perf_counter() for high precision
+        - Use median instead of mean for robustness against outliers
+        - Handle different model interfaces (forward, __call__)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.measure_latency")
+        ### END SOLUTION
+
+    def profile_layer(self, layer, input_shape: Tuple[int, ...]) -> Dict[str, Any]:
+        """
+        Profile a single layer comprehensively.
+
+        TODO: Implement layer-wise profiling
+
+        APPROACH:
+        1. Count parameters for this layer
+        2. Count FLOPs for this layer
+        3. Measure memory usage
+        4. Measure latency
+        5. Return comprehensive layer profile
+
+        EXAMPLE:
+        >>> linear = Linear(256, 128)
+        >>> profiler = Profiler()
+        >>> profile = profiler.profile_layer(linear, (32, 256))
+        >>> print(f"Layer uses {profile['parameters']} parameters")
+        Layer uses 32896 parameters
+
+        HINTS:
+        - Use existing profiler methods (count_parameters, count_flops, etc.)
+        - Create dummy input for latency measurement
+        - Include layer type information in profile
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.profile_layer")
+        ### END SOLUTION
+
+    def _compute_derived_metrics(self, flops: int, latency_ms: float,
+                                  peak_memory_mb: float) -> Dict[str, float]:
+        """
+        Compute throughput and efficiency metrics from raw measurements.
+
+        ```
+        Derived Metrics Pipeline:
+        FLOPs + Latency → GFLOP/s (throughput)
+        Memory + Latency → MB/s (bandwidth)
+        GFLOP/s / Peak → Efficiency (utilization)
+        ```
+
+        Args:
+            flops: Total floating point operations
+            latency_ms: Measured latency in milliseconds
+            peak_memory_mb: Peak memory usage in megabytes
+
+        Returns:
+            dict with gflops_per_second, memory_bandwidth_mbs, computational_efficiency
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._compute_derived_metrics")
+        ### END SOLUTION
+
+    def _analyze_bottleneck(self, gflops_per_second: float,
+                            memory_bandwidth_mbs: float) -> Dict[str, Any]:
+        """
+        Identify whether workload is memory-bound or compute-bound.
+
+        ```
+        Bottleneck Decision:
+        If bandwidth >> GFLOP/s × 100 → Memory-bound (data movement dominates)
+        Otherwise                      → Compute-bound (arithmetic dominates)
+        ```
+
+        Args:
+            gflops_per_second: Compute throughput
+            memory_bandwidth_mbs: Memory bandwidth in MB/s
+
+        Returns:
+            dict with is_memory_bound, is_compute_bound, bottleneck label
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._analyze_bottleneck")
+        ### END SOLUTION
+
+    def profile_forward_pass(self, model, input_tensor) -> Dict[str, Any]:
+        """
+        Comprehensive profiling of a model's forward pass.
+
+        TODO: Gather measurements, then use _compute_derived_metrics and _analyze_bottleneck
+
+        APPROACH:
+        1. Gather raw measurements (parameters, FLOPs, memory, latency)
+        2. Use _compute_derived_metrics() for throughput and efficiency
+        3. Use _analyze_bottleneck() for bottleneck identification
+
+        EXAMPLE:
+        >>> model = Linear(256, 128)
+        >>> input_data = Tensor(rng.standard_normal((32, 256)))
+        >>> profiler = Profiler()
+        >>> profile = profiler.profile_forward_pass(model, input_data)
+        >>> print(f"Throughput: {profile['gflops_per_second']:.2f} GFLOP/s")
+        Throughput: 2.45 GFLOP/s
+
+        HINT: Compose helper outputs with ** unpacking into return dict
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.profile_forward_pass")
+        ### END SOLUTION
+
+    def _estimate_backward_costs(self, forward_flops: int,
+                                  forward_latency_ms: float) -> Dict[str, float]:
+        """
+        Estimate backward pass compute costs from forward pass measurements.
+
+        ```
+        Backward Pass Cost Estimation:
+        Backward FLOPs   = Forward FLOPs × 2   (gradient computation)
+        Backward Latency = Forward Latency × 2 (more complex operations)
+
+        Why 2×? Each operation needs:
+        1. Gradient w.r.t. weights (same cost as forward)
+        2. Gradient w.r.t. inputs (same cost as forward)
+        ```
+
+        Args:
+            forward_flops: FLOP count from forward pass
+            forward_latency_ms: Latency from forward pass
+
+        Returns:
+            dict with backward_flops and backward_latency_ms
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._estimate_backward_costs")
+        ### END SOLUTION
+
+    def _estimate_optimizer_memory(self, gradient_memory_mb: float) -> Dict[str, float]:
+        """
+        Estimate additional memory required by different optimizers.
+
+        ```
+        Optimizer Memory Requirements:
+        ┌───────────┬────────────────────────────────────┐
+        │ Optimizer │ Extra Memory                       │
+        ├───────────┼────────────────────────────────────┤
+        │ SGD       │ 0× (no state)                      │
+        │ Adam      │ 2× gradient memory (m + v)         │
+        │ AdamW     │ 2× gradient memory (m + v)         │
+        └───────────┴────────────────────────────────────┘
+        ```
+
+        Args:
+            gradient_memory_mb: Memory for gradient storage in MB
+
+        Returns:
+            dict mapping optimizer name to extra memory in MB
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._estimate_optimizer_memory")
+        ### END SOLUTION
+
+    def profile_backward_pass(self, model, input_tensor, _loss_fn=None) -> Dict[str, Any]:
+        """
+        Profile both forward and backward passes for training analysis.
+
+        TODO: Use _estimate_backward_costs and _estimate_optimizer_memory helpers
+
+        APPROACH:
+        1. Profile forward pass with profile_forward_pass()
+        2. Use _estimate_backward_costs() for backward FLOPs and latency
+        3. Use _estimate_optimizer_memory() for optimizer memory estimates
+        4. Combine into total training iteration metrics
+
+        EXAMPLE:
+        >>> model = Linear(128, 64)
+        >>> input_data = Tensor(rng.standard_normal((16, 128)))
+        >>> profiler = Profiler()
+        >>> profile = profiler.profile_backward_pass(model, input_data)
+        >>> print(f"Training iteration: {profile['total_latency_ms']:.2f} ms")
+        Training iteration: 0.45 ms
+
+        HINT: Gradient memory equals parameter memory (one gradient per parameter)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.profile_backward_pass")
+        ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Profiler:
     """
     Professional-grade ML model profiler for performance analysis.

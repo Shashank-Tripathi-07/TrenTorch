@@ -269,7 +269,35 @@ Both give the same result, but the stable version never overflows!
 """
 
 # %% nbgrader={"grade": false, "grade_id": "log-softmax", "solution": true}
+
+def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
+    """
+    Compute log-softmax with numerical stability.
+
+    TODO: Implement numerically stable log-softmax using the log-sum-exp trick
+
+    APPROACH:
+    1. Find maximum along dimension (for stability)
+    2. Subtract max from input (prevents overflow)
+    3. Compute log(sum(exp(shifted_input)))
+    4. Return input - max - log_sum_exp
+
+    EXAMPLE:
+    >>> logits = Tensor([[1.0, 2.0, 3.0], [0.1, 0.2, 0.9]])
+    >>> result = log_softmax(logits, dim=-1)
+    >>> print(result.shape)
+    (2, 3)
+
+    HINT: Use np.max(x.data, axis=dim, keepdims=True) to preserve dimensions
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement log_softmax")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
     """
     Compute log-softmax with numerical stability.
@@ -409,7 +437,58 @@ Error Sensitivity Comparison:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "mse-loss", "solution": true}
+
+class MSELoss:
+    """Mean Squared Error loss for regression tasks."""
+
+    def __init__(self):
+        """Initialize MSE loss function."""
+        pass
+
+    def forward(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        """
+        Compute mean squared error between predictions and targets.
+
+        TODO: Implement MSE loss calculation
+
+        APPROACH:
+        1. Compute difference: predictions - targets
+        2. Square the differences: diff²
+        3. Take mean across all elements
+
+        EXAMPLE:
+        >>> loss_fn = MSELoss()
+        >>> predictions = Tensor([1.0, 2.0, 3.0])
+        >>> targets = Tensor([1.5, 2.5, 2.8])
+        >>> loss = loss_fn(predictions, targets)
+        >>> print(f"MSE Loss: {loss.data:.4f}")
+        MSE Loss: 0.1800
+
+        HINTS:
+        - Use (predictions.data - targets.data) for element-wise difference
+        - Square with **2 or np.power(diff, 2)
+        - Use np.mean() to average over all elements
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MSELoss.forward")
+        ### END SOLUTION
+
+    def __call__(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        """Allows the loss function to be called like a function."""
+        return self.forward(predictions, targets)
+
+    def backward(self) -> Tensor:
+        """
+        Compute gradients (placeholder — gradient computation is separate).
+
+        For now, this is a stub that students can ignore.
+        """
+        pass
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class MSELoss:
     """Mean Squared Error loss for regression tasks."""
 
@@ -597,7 +676,58 @@ Uses: CrossEntropyLoss            Uses: BinaryCrossEntropyLoss
 """
 
 # %% nbgrader={"grade": false, "grade_id": "cross-entropy-loss", "solution": true}
+
+class CrossEntropyLoss:
+    """Cross-entropy loss for multi-class classification."""
+
+    def __init__(self):
+        """Initialize cross-entropy loss function."""
+        pass
+
+    def forward(self, logits: Tensor, targets: Tensor) -> Tensor:
+        """
+        Compute cross-entropy loss between logits and target class indices.
+
+        TODO: Implement cross-entropy loss with numerical stability
+
+        APPROACH:
+        1. Compute log-softmax of logits (numerically stable)
+        2. Select log-probabilities for correct classes
+        3. Return negative mean of selected log-probabilities
+
+        EXAMPLE:
+        >>> loss_fn = CrossEntropyLoss()
+        >>> logits = Tensor([[2.0, 1.0, 0.1], [0.5, 1.5, 0.8]])  # 2 samples, 3 classes
+        >>> targets = Tensor([0, 1])  # First sample is class 0, second is class 1
+        >>> loss = loss_fn(logits, targets)
+        >>> print(f"Cross-Entropy Loss: {loss.data:.4f}")
+
+        HINTS:
+        - Use log_softmax() for numerical stability
+        - targets.data.astype(int) ensures integer indices
+        - Use np.arange(batch_size) for row indexing: log_probs[np.arange(batch_size), targets]
+        - Return negative mean: -np.mean(selected_log_probs)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement CrossEntropyLoss.forward")
+        ### END SOLUTION
+
+    def __call__(self, logits: Tensor, targets: Tensor) -> Tensor:
+        """Allows the loss function to be called like a function."""
+        return self.forward(logits, targets)
+
+    def backward(self) -> Tensor:
+        """
+        Compute gradients (placeholder — gradient computation is separate).
+
+        For now, this is a stub that students can ignore.
+        """
+        pass
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class CrossEntropyLoss:
     """Cross-entropy loss for multi-class classification."""
 
@@ -810,7 +940,57 @@ Message: "Be confident about positive class, uncertain is okay,
 """
 
 # %% nbgrader={"grade": false, "grade_id": "binary-cross-entropy-loss", "solution": true}
+
+class BinaryCrossEntropyLoss:
+    """Binary cross-entropy loss for binary classification."""
+
+    def __init__(self):
+        """Initialize binary cross-entropy loss function."""
+        pass
+
+    def forward(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        """
+        Compute binary cross-entropy loss.
+
+        TODO: Implement binary cross-entropy with numerical stability
+
+        APPROACH:
+        1. Clamp predictions to avoid log(0) and log(1)
+        2. Compute: -(targets * log(predictions) + (1-targets) * log(1-predictions))
+        3. Return mean across all samples
+
+        EXAMPLE:
+        >>> loss_fn = BinaryCrossEntropyLoss()
+        >>> predictions = Tensor([0.9, 0.1, 0.7, 0.3])  # Probabilities between 0 and 1
+        >>> targets = Tensor([1.0, 0.0, 1.0, 0.0])      # Binary labels
+        >>> loss = loss_fn(predictions, targets)
+        >>> print(f"Binary Cross-Entropy Loss: {loss.data:.4f}")
+
+        HINTS:
+        - Use np.clip(predictions.data, 1e-7, 1-1e-7) to prevent log(0)
+        - Binary cross-entropy: -(targets * log(preds) + (1-targets) * log(1-preds))
+        - Use np.mean() to average over all samples
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement BinaryCrossEntropyLoss.forward")
+        ### END SOLUTION
+
+    def __call__(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        """Allows the loss function to be called like a function."""
+        return self.forward(predictions, targets)
+
+    def backward(self) -> Tensor:
+        """
+        Compute gradients (placeholder — gradient computation is separate).
+
+        For now, this is a stub that students can ignore.
+        """
+        pass
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class BinaryCrossEntropyLoss:
     """Binary cross-entropy loss for binary classification."""
 

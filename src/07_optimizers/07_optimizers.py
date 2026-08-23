@@ -222,7 +222,78 @@ AdamW (proper weight decay)
 """
 
 # %% nbgrader={"grade": false, "grade_id": "optimizer-base", "solution": true}
+
+class Optimizer:
+    """
+    Base class for all optimizers.
+
+    This class defines the common interface that all optimizers must implement:
+    - zero_grad(): Clear gradients from parameters
+    - step(): Update parameters based on gradients
+    """
+
+    def __init__(self, params: List[Tensor]):
+        """
+        Initialize optimizer with parameters to optimize.
+
+        TODO: Set up the parameter list for optimization
+
+        APPROACH:
+        1. Store parameters as a list for iteration
+        2. Validate that all parameters require gradients
+        3. Initialize step counter for algorithms that need it
+
+        EXAMPLE:
+        >>> linear = Linear(784, 128)
+        >>> optimizer = SGD(linear.parameters(), lr=0.01)
+
+        HINT: Store parameters for iteration during optimization steps
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Optimizer.__init__")
+        ### END SOLUTION
+
+    def zero_grad(self):
+        """
+        Clear gradients from all parameters.
+
+        TODO: Reset all parameter gradients to None
+
+        APPROACH:
+        1. Iterate through all parameters
+        2. Set each parameter's grad to None
+
+        EXAMPLE:
+        >>> optimizer.zero_grad()  # Clears all gradients
+        >>> assert param.grad is None for param in optimizer.params
+
+        WHY: Gradients accumulate by default, so we need to clear them between batches
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Optimizer.zero_grad")
+        ### END SOLUTION
+
+    def step(self):
+        """
+        Update parameters based on gradients.
+
+        This is abstract - each optimizer implements its own update rule.
+        """
+        raise NotImplementedError(
+            f"Abstract method step() not implemented\n"
+            f"  ❌ {self.__class__.__name__} inherits from Optimizer but doesn't define step()\n"
+            f"  💡 Each optimizer must implement its own update rule (SGD, Adam, etc.)\n"
+            f"  🔧 Override step() in your optimizer subclass:\n"
+            f"      def step(self):\n"
+            f"          for param in self.params:\n"
+            f"              if param.grad is not None:\n"
+            f"                  param.data -= self.lr * param.grad.data"
+        )
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Optimizer:
     """
     Base class for all optimizers.
@@ -324,7 +395,43 @@ all share the same extraction logic.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "extract-gradient", "solution": true}
+
+class _ExtractGradientMixin:
+    """Mixin added to Optimizer for gradient extraction."""
+    def _extract_gradient(self, param: Tensor) -> np.ndarray:
+        """
+        Extract gradient data as a NumPy array from a parameter.
+
+        Gradients can be stored as either a Tensor (with .data attribute)
+        or as a raw NumPy array (from autograd). This helper normalizes
+        both cases to a plain NumPy array for optimizer math.
+
+        TODO: Return the gradient's underlying NumPy array
+
+        APPROACH:
+        1. Get param.grad
+        2. If it's a Tensor, return its .data attribute
+        3. If it's already a NumPy array, return it directly
+
+        EXAMPLE:
+        >>> param = Tensor([1.0, 2.0], requires_grad=True)
+        >>> param.grad = Tensor([0.1, 0.2])
+        >>> optimizer._extract_gradient(param)
+        array([0.1, 0.2])
+
+        HINT: Use isinstance(grad, Tensor) to check the type
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement _ExtractGradientMixin._extract_gradient")
+        ### END SOLUTION
+
+# Attach _extract_gradient to Optimizer so all subclasses inherit it
+Optimizer._extract_gradient = _ExtractGradientMixin._extract_gradient
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class _ExtractGradientMixin:
     """Mixin added to Optimizer for gradient extraction."""
     def _extract_gradient(self, param: Tensor) -> np.ndarray:
@@ -534,7 +641,142 @@ starting position
 """
 
 # %% nbgrader={"grade": false, "grade_id": "sgd-optimizer", "solution": true}
+
+class SGD(Optimizer):
+    """
+    Stochastic Gradient Descent with momentum.
+
+    SGD is the foundational optimization algorithm that moves parameters
+    in the direction opposite to gradients. With momentum, it remembers
+    previous updates to reduce oscillations and accelerate convergence.
+    """
+
+    def __init__(self, params: List[Tensor], lr: float = DEFAULT_LEARNING_RATE_SGD, momentum: float = 0.0, weight_decay: float = 0.0):
+        """
+        Initialize SGD optimizer.
+
+        TODO: Set up SGD with momentum and weight decay
+
+        APPROACH:
+        1. Call parent constructor to set up parameters
+        2. Store learning rate, momentum, and weight decay
+        3. Initialize momentum buffers for each parameter
+
+        EXAMPLE:
+        >>> optimizer = SGD(model.parameters(), lr=0.01, momentum=0.9)
+
+        HINTS:
+        - Momentum buffers should be initialized as None
+        - They'll be created lazily on first step
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement SGD.__init__")
+        ### END SOLUTION
+
+    def has_momentum(self) -> bool:
+        """
+        Check if this optimizer uses momentum.
+
+        This explicit API method replaces the need for hasattr() checks
+        in checkpointing code (Module 08).
+
+        Returns:
+            bool: True if momentum is enabled (momentum > 0), False otherwise
+
+        EXAMPLE:
+            >>> optimizer = SGD(params, lr=0.01, momentum=0.9)
+            >>> optimizer.has_momentum()
+            True
+        """
+        return self.momentum > 0
+
+    def get_momentum_state(self) -> Optional[List]:
+        """
+        Get momentum buffers for checkpointing.
+
+        This explicit API method provides safe access to momentum buffers
+        without using hasattr(), making the API contract clear.
+
+        Returns:
+            Optional[List]: List of momentum buffers if momentum is enabled,
+                          None otherwise
+
+        EXAMPLE:
+            >>> optimizer = SGD(params, lr=0.01, momentum=0.9)
+            >>> optimizer.step()  # Initialize buffers
+            >>> state = optimizer.get_momentum_state()
+            >>> # Later: optimizer.set_momentum_state(state)
+        """
+        if not self.has_momentum():
+            return None
+        return [buf.copy() if buf is not None else None
+                for buf in self.momentum_buffers]
+
+    def set_momentum_state(self, state: Optional[List]) -> None:
+        """
+        Restore momentum buffers from checkpointing.
+
+        This explicit API method provides safe restoration of momentum state
+        without using hasattr().
+
+        Args:
+            state: List of momentum buffers or None
+
+        EXAMPLE:
+            >>> optimizer = SGD(params, lr=0.01, momentum=0.9)
+            >>> state = optimizer.get_momentum_state()
+            >>> # Training interruption...
+            >>> new_optimizer = SGD(params, lr=0.01, momentum=0.9)
+            >>> new_optimizer.set_momentum_state(state)
+        """
+        if state is None or not self.has_momentum():
+            return
+
+        if len(state) != len(self.momentum_buffers):
+            raise ValueError(
+                f"Momentum state length mismatch\n"
+                f"  ❌ State has {len(state)} buffers, but optimizer has {len(self.momentum_buffers)} parameters\n"
+                f"  💡 Checkpoint was saved with a different model architecture or parameter count\n"
+                f"  🔧 Ensure you're loading state into an optimizer with the same number of parameters:\n"
+                f"      # Check parameter counts match before restoring\n"
+                f"      assert len(saved_state) == len(optimizer.params)"
+            )
+
+        for i, buf in enumerate(state):
+            if buf is not None:
+                self.momentum_buffers[i] = buf.copy()
+
+    def step(self):
+        """
+        Perform SGD update step with momentum.
+
+        TODO: Implement SGD parameter update by composing helpers
+
+        APPROACH:
+        1. For each parameter with gradients:
+           a. Extract gradient using self._extract_gradient(param)
+           b. Apply weight decay if specified
+           c. Update momentum buffer
+           d. Update parameter using momentum
+
+        FORMULA:
+        - With weight decay: grad = grad + weight_decay * param
+        - Momentum: v = momentum * v_prev + grad
+        - Update: param = param - lr * v
+
+        HINTS:
+        - Skip parameters without gradients
+        - Use self._extract_gradient() from the base class
+        - Initialize momentum buffers on first use
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement SGD.step")
+        ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class SGD(Optimizer):
     """
     Stochastic Gradient Descent with momentum.
@@ -831,7 +1073,44 @@ Step 2: m = 0.9*0.1*g + 0.1*g Step 2: m̂ = m / (1-0.9²) = m / 0.19
 """
 
 # %% nbgrader={"grade": false, "grade_id": "adam-optimizer", "solution": true}
+
+class Adam(Optimizer):
+    """
+    Adam optimizer with adaptive learning rates.
+
+    Adam computes individual adaptive learning rates for different parameters
+    from estimates of first and second moments of the gradients.
+    This makes it effective for problems with sparse gradients or noisy data.
+    """
+
+    def __init__(self, params: List[Tensor], lr: float = DEFAULT_LEARNING_RATE_ADAM, betas: tuple = (DEFAULT_BETA1, DEFAULT_BETA2), eps: float = DEFAULT_EPS, weight_decay: float = 0.0):
+        """
+        Initialize Adam optimizer.
+
+        TODO: Set up Adam with adaptive learning rates
+
+        APPROACH:
+        1. Call parent constructor
+        2. Store hyperparameters (lr, betas, eps, weight_decay)
+        3. Initialize first and second moment buffers
+
+        PARAMETERS:
+        - lr: Learning rate (default: 0.001)
+        - betas: Coefficients for computing running averages (default: (0.9, 0.999))
+        - eps: Small constant for numerical stability (default: 1e-8)
+        - weight_decay: L2 penalty coefficient (default: 0.0)
+
+        EXAMPLE:
+        >>> optimizer = Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999))
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Adam.__init__")
+        ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Adam(Optimizer):
     """
     Adam optimizer with adaptive learning rates.
@@ -896,7 +1175,46 @@ only has to compose: extract gradient, update moments, apply update.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "adam-update-moments", "solution": true}
+
+class _AdamUpdateMomentsMixin:
+    """Mixin added to Adam for moment updates."""
+    def _update_moments(self, i: int, grad_data: np.ndarray) -> tuple:
+        """
+        Update first and second moment estimates with bias correction.
+
+        Computes the exponential moving averages of the gradient (first moment)
+        and the squared gradient (second moment), then applies bias correction
+        to counteract the zero-initialization bias in early training steps.
+
+        TODO: Update moment buffers and return bias-corrected estimates
+
+        APPROACH:
+        1. Initialize m and v buffers to zeros if this is the first call
+        2. Update first moment: m = beta1 * m + (1 - beta1) * grad
+        3. Update second moment: v = beta2 * v + (1 - beta2) * grad^2
+        4. Compute bias corrections using step_count
+        5. Return bias-corrected m_hat and v_hat
+
+        EXAMPLE:
+        >>> m_hat, v_hat = self._update_moments(0, np.array([0.1, 0.2]))
+        >>> # m_hat ≈ grad (after bias correction at step 1)
+        >>> # v_hat ≈ grad^2 (after bias correction at step 1)
+
+        HINTS:
+        - Use self.step_count (already incremented before this call)
+        - Bias correction denominators: (1 - beta^t) approach 1 as t grows
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement _AdamUpdateMomentsMixin._update_moments")
+        ### END SOLUTION
+
+# Attach _update_moments to Adam
+Adam._update_moments = _AdamUpdateMomentsMixin._update_moments
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class _AdamUpdateMomentsMixin:
     """Mixin added to Adam for moment updates."""
     def _update_moments(self, i: int, grad_data: np.ndarray) -> tuple:
@@ -1027,7 +1345,42 @@ For each parameter:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "adam-step", "solution": true}
+
+class _AdamStepMixin:
+    """Mixin added to Adam for step method."""
+    def step(self):
+        """
+        Perform Adam update step by composing helpers.
+
+        TODO: Implement Adam parameter update using _extract_gradient and _update_moments
+
+        APPROACH:
+        1. Increment step_count (needed for bias correction)
+        2. For each parameter with gradients:
+           a. Extract gradient with self._extract_gradient(param)
+           b. Apply weight decay to gradient if specified
+           c. Update moments with self._update_moments(i, grad_data)
+           d. Update parameter: param -= lr * m_hat / (sqrt(v_hat) + eps)
+
+        FORMULAS:
+        - θ_t = θ_{t-1} - lr * m̂_t / (√v̂_t + ε)
+
+        HINTS:
+        - Increment step_count FIRST (before the loop)
+        - _update_moments returns (m_hat, v_hat) tuple
+        - Weight decay modifies grad_data before moment update
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement _AdamStepMixin.step")
+        ### END SOLUTION
+
+# Attach step to Adam
+Adam.step = _AdamStepMixin.step
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class _AdamStepMixin:
     """Mixin added to Adam for step method."""
     def step(self):
@@ -1224,7 +1577,42 @@ Coupled (inconsistent)          Decoupled (consistent)
 """
 
 # %% nbgrader={"grade": false, "grade_id": "adamw-optimizer", "solution": true}
+
+class AdamW(Optimizer):
+    """
+    AdamW optimizer with decoupled weight decay.
+
+    AdamW fixes a bug in Adam's weight decay implementation by decoupling
+    weight decay from the gradient-based update. This leads to better
+    regularization and is the preferred version for most applications.
+    """
+
+    def __init__(self, params: List[Tensor], lr: float = DEFAULT_LEARNING_RATE_ADAM, betas: tuple = (DEFAULT_BETA1, DEFAULT_BETA2), eps: float = DEFAULT_EPS, weight_decay: float = DEFAULT_WEIGHT_DECAY_ADAMW):
+        """
+        Initialize AdamW optimizer.
+
+        TODO: Set up AdamW with decoupled weight decay
+
+        APPROACH:
+        1. Call parent constructor
+        2. Store hyperparameters (note higher default weight_decay)
+        3. Initialize moment buffers like Adam
+
+        KEY DIFFERENCE from Adam:
+        - Weight decay is applied directly to parameters, not added to gradients
+        - This provides better regularization behavior
+
+        EXAMPLE:
+        >>> optimizer = AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement AdamW.__init__")
+        ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class AdamW(Optimizer):
     """
     AdamW optimizer with decoupled weight decay.
@@ -1286,7 +1674,42 @@ AdamW flow:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "adamw-update-moments", "solution": true}
+
+class _AdamWUpdateMomentsMixin:
+    """Mixin added to AdamW for moment updates."""
+    def _update_moments(self, i: int, grad_data: np.ndarray) -> tuple:
+        """
+        Update first and second moment estimates with bias correction for AdamW.
+
+        Identical math to Adam's _update_moments: EMA of gradient and squared
+        gradient, with bias correction. The key difference is in how step()
+        calls this -- AdamW passes pure gradients without weight decay mixed in.
+
+        TODO: Update moment buffers and return bias-corrected estimates
+
+        APPROACH:
+        1. Initialize m and v buffers to zeros if this is the first call
+        2. Update first moment: m = beta1 * m + (1 - beta1) * grad
+        3. Update second moment: v = beta2 * v + (1 - beta2) * grad^2
+        4. Compute bias corrections using step_count
+        5. Return bias-corrected m_hat and v_hat
+
+        EXAMPLE:
+        >>> m_hat, v_hat = self._update_moments(0, np.array([0.1, 0.2]))
+
+        HINT: Same math as Adam -- the decoupling happens in step(), not here
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement _AdamWUpdateMomentsMixin._update_moments")
+        ### END SOLUTION
+
+# Attach _update_moments to AdamW
+AdamW._update_moments = _AdamWUpdateMomentsMixin._update_moments
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class _AdamWUpdateMomentsMixin:
     """Mixin added to AdamW for moment updates."""
     def _update_moments(self, i: int, grad_data: np.ndarray) -> tuple:
@@ -1413,7 +1836,42 @@ For each parameter:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "adamw-step", "solution": true}
+
+class _AdamWStepMixin:
+    """Mixin added to AdamW for step method."""
+    def step(self):
+        """
+        Perform AdamW update step by composing helpers with decoupled weight decay.
+
+        TODO: Implement AdamW parameter update using _extract_gradient and _update_moments
+
+        APPROACH:
+        1. Increment step_count (needed for bias correction)
+        2. For each parameter with gradients:
+           a. Extract gradient with self._extract_gradient(param)
+           b. Update moments with self._update_moments(i, grad_data) -- pure gradient
+           c. Apply gradient update: param -= lr * m_hat / (sqrt(v_hat) + eps)
+           d. Apply weight decay separately: param *= (1 - lr * weight_decay)
+
+        KEY DIFFERENCE from Adam:
+        - NO weight decay added to gradient before moment update
+        - Weight decay applied directly to parameter AFTER gradient update
+
+        HINTS:
+        - Do NOT modify grad_data with weight decay (that's Adam's bug)
+        - Apply decay as a multiplicative factor on param.data
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement _AdamWStepMixin.step")
+        ### END SOLUTION
+
+# Attach step to AdamW
+AdamW.step = _AdamWStepMixin.step
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class _AdamWStepMixin:
     """Mixin added to AdamW for step method."""
     def step(self):

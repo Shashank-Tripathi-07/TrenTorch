@@ -220,7 +220,49 @@ This creates a natural learning curve that adapts training speed to the optimiza
 """
 
 # %% nbgrader={"grade": false, "grade_id": "scheduler", "locked": false, "solution": true}
+
+class CosineSchedule:
+    """
+    Cosine annealing learning rate schedule.
+
+    Starts at max_lr, decreases following a cosine curve to min_lr over T epochs.
+    This provides aggressive learning initially, then fine-tuning at the end.
+
+    TODO: Implement cosine annealing schedule
+
+    APPROACH:
+    1. Store max_lr, min_lr, and total_epochs
+    2. In get_lr(), compute cosine factor: (1 + cos(π * epoch / total_epochs)) / 2
+    3. Interpolate: min_lr + (max_lr - min_lr) * cosine_factor
+
+    EXAMPLE:
+    >>> schedule = CosineSchedule(max_lr=0.1, min_lr=0.01, total_epochs=100)
+    >>> print(schedule.get_lr(0))    # Start: 0.1
+    >>> print(schedule.get_lr(50))   # Middle: ~0.055
+    >>> print(schedule.get_lr(100))  # End: 0.01
+
+    HINT: Use np.cos() and np.pi for the cosine calculation
+    """
+    ### BEGIN SOLUTION
+    def __init__(self, max_lr: float = DEFAULT_MAX_LR, min_lr: float = DEFAULT_MIN_LR, total_epochs: int = DEFAULT_TOTAL_EPOCHS):
+        self.max_lr = max_lr
+        self.min_lr = min_lr
+        self.total_epochs = total_epochs
+
+    def get_lr(self, epoch: int) -> float:
+        """Get learning rate for current epoch."""
+        if epoch >= self.total_epochs:
+            return self.min_lr
+
+        # Cosine annealing formula
+        cosine_factor = (1 + np.cos(np.pi * epoch / self.total_epochs)) / 2
+        return self.min_lr + (self.max_lr - self.min_lr) * cosine_factor
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class CosineSchedule:
     """
     Cosine annealing learning rate schedule.
@@ -341,7 +383,41 @@ This preserves the relative magnitudes while preventing explosion.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "gradient_clipping", "locked": false, "solution": true}
+
+def clip_grad_norm(parameters: List, max_norm: float = 1.0) -> float:
+    """
+    Clip gradients by global norm to prevent exploding gradients.
+
+    This is crucial for training stability, especially with RNNs and deep networks.
+    Instead of clipping each gradient individually, we compute the global norm
+    across all parameters and scale uniformly if needed.
+
+    TODO: Implement gradient clipping by global norm
+
+    APPROACH:
+    1. Compute total norm: sqrt(sum of squared gradients across all parameters)
+    2. If total_norm > max_norm, compute clip_coef = max_norm / total_norm
+    3. Scale all gradients by clip_coef: grad *= clip_coef
+    4. Return the original norm for monitoring
+
+    EXAMPLE:
+    >>> params = [Tensor([1, 2, 3], requires_grad=True)]
+    >>> params[0].grad = Tensor([10, 20, 30])  # Large gradients
+    >>> original_norm = clip_grad_norm(params, max_norm=1.0)
+    >>> print(f"Clipped norm: {np.linalg.norm(params[0].grad.data):.2f}")  # Should be ≤ 1.0
+
+    HINTS:
+    - Use np.linalg.norm() to compute norms
+    - Only clip if total_norm > max_norm
+    - Modify gradients in-place for efficiency
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement clip_grad_norm")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 def clip_grad_norm(parameters: List, max_norm: float = 1.0) -> float:
     """
@@ -592,7 +668,46 @@ Trainer State After __init__:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "trainer-init", "locked": false, "solution": true}
+
+def trainer_init(self, model, optimizer, loss_fn, scheduler=None, grad_clip_norm=None):
+    """
+    Initialize trainer with model and training components.
+
+    Args:
+        model: Neural network to train (must have .forward() and .parameters())
+        optimizer: Parameter update strategy (SGD, Adam, etc.)
+        loss_fn: Loss function (CrossEntropy, MSE, etc.)
+        scheduler: Optional learning rate scheduler (e.g., CosineSchedule)
+        grad_clip_norm: Optional max gradient norm for clipping (float)
+
+    TODO: Store all components and initialize training state
+
+    APPROACH:
+    1. Store model, optimizer, loss_fn, scheduler, and grad_clip_norm as attributes
+    2. Enable gradient tracking: set requires_grad=True on all model.parameters()
+    3. Initialize epoch=0, step=0, training_mode=True
+    4. Create history dict with keys: 'train_loss', 'eval_loss', 'learning_rates'
+       (each mapping to an empty list)
+
+    EXAMPLE:
+    >>> trainer = Trainer(model, optimizer, MSELoss())
+    >>> print(trainer.epoch)     # 0
+    >>> print(trainer.step)      # 0
+    >>> print(trainer.history)   # {'train_loss': [], 'eval_loss': [], 'learning_rates': []}
+
+    HINT: This is straightforward assignment. The key insight is WHAT state
+    a training system needs to track across epochs.
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement trainer_init")
+    ### END SOLUTION
+
+Trainer.__init__ = trainer_init
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def trainer_init(self, model, optimizer, loss_fn, scheduler=None, grad_clip_norm=None):
     """
     Initialize trainer with model and training components.
@@ -745,7 +860,39 @@ with scaled gradients for accumulation.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "trainer-process-batch", "locked": false, "solution": true}
+
+def _trainer_process_batch(self, inputs, targets, accumulation_steps):
+    """
+    Process one batch: forward pass, loss computation, backward pass.
+
+    Args:
+        inputs: Input tensor for this batch
+        targets: Target tensor for this batch
+        accumulation_steps: Number of batches per optimizer update (for scaling)
+
+    Returns:
+        Scaled loss value (float) for accumulation tracking
+
+    TODO: Implement the forward-backward cycle for a single batch
+
+    APPROACH:
+    1. Forward pass: model.forward(inputs)
+    2. Compute loss: loss_fn.forward(outputs, targets)
+    3. Scale loss by 1/accumulation_steps
+    4. Backward pass with scaled gradient
+
+    HINT: scaled_gradient = np.ones_like(loss.data) / accumulation_steps
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement _trainer_process_batch")
+    ### END SOLUTION
+
+Trainer._process_batch = _trainer_process_batch
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def _trainer_process_batch(self, inputs, targets, accumulation_steps):
     """
     Process one batch: forward pass, loss computation, backward pass.
@@ -794,7 +941,28 @@ step the optimizer, and reset gradients for the next accumulation window.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "trainer-optimizer-update", "locked": false, "solution": true}
+
+def _trainer_optimizer_update(self):
+    """
+    Clip gradients (if enabled) and step the optimizer.
+
+    TODO: Implement the gradient clip + optimizer step + zero_grad cycle
+
+    APPROACH:
+    1. If grad_clip_norm is set, call clip_grad_norm on model parameters
+    2. Call optimizer.step() to update weights
+    3. Call optimizer.zero_grad() to reset gradients
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement _trainer_optimizer_update")
+    ### END SOLUTION
+
+Trainer._optimizer_update = _trainer_optimizer_update
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def _trainer_optimizer_update(self):
     """
     Clip gradients (if enabled) and step the optimizer.
@@ -826,7 +994,39 @@ training epoch with accumulation, scheduling, and history tracking.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "trainer-train-epoch", "locked": false, "solution": true}
+
+def trainer_train_epoch(self, dataloader, accumulation_steps=1):
+    """
+    Train for one epoch through the dataset.
+
+    Args:
+        dataloader: Iterable yielding (inputs, targets) batches
+        accumulation_steps: Number of batches to accumulate before update
+
+    Returns:
+        Average loss for the epoch (float)
+
+    TODO: Compose _process_batch and _optimizer_update into the epoch loop
+
+    APPROACH:
+    1. Set model.training = True and self.training_mode = True
+    2. Loop over batches, calling self._process_batch for each
+    3. Every accumulation_steps batches, call self._optimizer_update
+    4. Handle remaining accumulated gradients after the loop
+    5. Record average loss, update scheduler, increment epoch
+
+    HINT: Check (batch_idx + 1) % accumulation_steps == 0 for update timing
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement trainer_train_epoch")
+    ### END SOLUTION
+
+Trainer.train_epoch = trainer_train_epoch
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def trainer_train_epoch(self, dataloader, accumulation_steps=1):
     """
     Train for one epoch through the dataset.
@@ -1087,7 +1287,45 @@ no gradient clipping.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "trainer-evaluate", "locked": false, "solution": true}
+
+def trainer_evaluate(self, dataloader):
+    """
+    Evaluate model on dataset without updating parameters.
+
+    Args:
+        dataloader: Iterable yielding (inputs, targets) batches
+
+    Returns:
+        Tuple of (average_loss, accuracy)
+
+    TODO: Implement evaluation loop (forward pass only, no gradient updates)
+
+    APPROACH:
+    1. Set model.training = False and self.training_mode = False
+    2. For each batch: forward pass only, accumulate loss
+    3. For classification: compute accuracy from argmax predictions
+    4. Record average loss in self.history['eval_loss']
+    5. Return (avg_loss, accuracy)
+
+    EXAMPLE:
+    >>> eval_loss, accuracy = trainer.evaluate(test_data)
+    >>> print(f"Eval loss: {eval_loss:.4f}, Accuracy: {accuracy:.2%}")
+
+    HINTS:
+    - For multi-class: predictions = np.argmax(outputs.data, axis=1)
+    - Handle both integer targets and one-hot targets
+    - accuracy = correct / total if total > 0 else 0.0
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement trainer_evaluate")
+    ### END SOLUTION
+
+Trainer.evaluate = trainer_evaluate
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def trainer_evaluate(self, dataloader):
     """
     Evaluate model on dataset without updating parameters.
@@ -1256,7 +1494,40 @@ Checkpoint Contents:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "trainer-save-checkpoint", "locked": false, "solution": true}
+
+def trainer_save_checkpoint(self, path: str):
+    """
+    Save complete training state for resumption.
+
+    Args:
+        path: File path to save checkpoint (.pkl)
+
+    TODO: Serialize all training state to disk using pickle
+
+    APPROACH:
+    1. Build a checkpoint dict with keys: epoch, step, model_state,
+       optimizer_state, scheduler_state, history, training_mode
+    2. Use self._get_model_state(), self._get_optimizer_state(),
+       self._get_scheduler_state() to extract component states
+    3. Create parent directory if needed: Path(path).parent.mkdir(parents=True, exist_ok=True)
+    4. Write with pickle.dump()
+
+    EXAMPLE:
+    >>> trainer.save_checkpoint('/tmp/checkpoint.pkl')
+    >>> # Later: trainer.load_checkpoint('/tmp/checkpoint.pkl')
+
+    HINT: The private _get_*_state() helpers are already provided.
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement trainer_save_checkpoint")
+    ### END SOLUTION
+
+Trainer.save_checkpoint = trainer_save_checkpoint
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def trainer_save_checkpoint(self, path: str):
     """
     Save complete training state for resumption.
@@ -1374,7 +1645,41 @@ checkpoint.pkl ──→ pickle.load() ──→ restore epoch, step
 """
 
 # %% nbgrader={"grade": false, "grade_id": "trainer-load-checkpoint", "locked": false, "solution": true}
+
+def trainer_load_checkpoint(self, path: str):
+    """
+    Load training state from checkpoint.
+
+    Args:
+        path: File path to load checkpoint from (.pkl)
+
+    TODO: Deserialize training state from disk and restore all components
+
+    APPROACH:
+    1. Open and unpickle the checkpoint file
+    2. Restore self.epoch, self.step, self.history, self.training_mode
+    3. Call self._set_model_state() if 'model_state' in checkpoint
+    4. Call self._set_optimizer_state() if 'optimizer_state' in checkpoint
+    5. Call self._set_scheduler_state() if 'scheduler_state' in checkpoint
+
+    EXAMPLE:
+    >>> trainer.save_checkpoint('/tmp/checkpoint.pkl')
+    >>> trainer.epoch = 999  # Some change
+    >>> trainer.load_checkpoint('/tmp/checkpoint.pkl')
+    >>> print(trainer.epoch)  # Restored to original value
+
+    HINT: The private _set_*_state() helpers are already provided.
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement trainer_load_checkpoint")
+    ### END SOLUTION
+
+Trainer.load_checkpoint = trainer_load_checkpoint
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def trainer_load_checkpoint(self, path: str):
     """
     Load training state from checkpoint.

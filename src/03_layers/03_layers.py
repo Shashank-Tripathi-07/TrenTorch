@@ -285,7 +285,107 @@ Linear(784, 256) Parameters:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "linear-layer", "solution": true}
+
+class Linear(Layer):
+    """
+    Linear (fully connected) layer: y = xW + b
+
+    This is the fundamental building block of neural networks.
+    Applies a linear transformation to incoming data.
+    """
+
+    def __init__(self, in_features, out_features, bias=True):
+        """
+        Initialize linear layer with proper weight initialization.
+
+        TODO: Initialize weights and bias with proper scaling
+
+        APPROACH:
+        1. Create weight matrix (in_features, out_features) with LeCun scaling
+        2. Create bias vector (out_features,) initialized to zeros if bias=True
+        3. Store as Tensor objects for use in forward pass
+
+        EXAMPLE:
+        >>> layer = Linear(784, 10)  # MNIST classifier final layer
+        >>> print(layer.weight.shape)
+        (784, 10)
+        >>> print(layer.bias.shape)
+        (10,)
+
+        HINTS:
+        - LeCun-style init: scale = sqrt(1/in_features)
+        - Use rng.standard_normal() for normal distribution
+        - bias=None when bias=False
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Linear.__init__")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through linear layer.
+
+        TODO: Implement y = xW + b
+
+        APPROACH:
+        1. Matrix multiply input with weights: xW
+        2. Add bias if it exists
+        3. Return result as new Tensor
+
+        EXAMPLE:
+        >>> layer = Linear(3, 2)
+        >>> x = Tensor([[1, 2, 3], [4, 5, 6]])  # 2 samples, 3 features
+        >>> y = layer.forward(x)
+        >>> print(y.shape)
+        (2, 2)  # 2 samples, 2 outputs
+
+        HINTS:
+        - Use tensor.matmul() for matrix multiplication
+        - Handle bias=None case
+        - Broadcasting automatically handles bias addition
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Linear.forward")
+        ### END SOLUTION
+
+    def parameters(self):
+        """
+        Return list of trainable parameters.
+
+        TODO: Return all tensors that need gradients
+
+        APPROACH:
+        1. Start with weight (always present)
+        2. Add bias if it exists
+        3. Return as list for optimizer
+
+        EXAMPLE:
+        >>> layer = Linear(10, 5)
+        >>> params = layer.parameters()
+        >>> len(params)
+        2  # [weight, bias]
+        >>> layer_no_bias = Linear(10, 5, bias=False)
+        >>> len(layer_no_bias.parameters())
+        1  # [weight only]
+
+        HINTS:
+        - Create list starting with self.weight
+        - Check if self.bias is not None before appending
+        - Return the complete list
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Linear.parameters")
+        ### END SOLUTION
+
+    def __repr__(self):
+        """String representation for debugging."""
+        bias_str = f", bias={self.bias is not None}"
+        return f"Linear(in_features={self.in_features}, out_features={self.out_features}{bias_str})"
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Linear(Layer):
     """
     Linear (fully connected) layer: y = xW + b
@@ -588,7 +688,157 @@ Computational Overhead: Minimal (element-wise operations)
 """
 
 # %% nbgrader={"grade": false, "grade_id": "dropout-layer", "solution": true}
+
+class Dropout(Layer):
+    """
+    Dropout layer for regularization.
+
+    During training: randomly zeros elements with probability p, scales survivors by 1/(1-p)
+    During inference: passes input through unchanged
+
+    This prevents overfitting by forcing the network to not rely on specific neurons.
+    """
+
+    def __init__(self, p=0.5):
+        """
+        Initialize dropout layer.
+
+        TODO: Store dropout probability and validate range
+
+        APPROACH:
+        1. Validate p is between 0.0 and 1.0 (inclusive)
+        2. Raise ValueError if out of range
+        3. Store p as instance attribute
+
+        Args:
+            p: Probability of zeroing each element (0.0 = no dropout, 1.0 = zero everything)
+
+        EXAMPLE:
+        >>> dropout = Dropout(0.5)  # Zero 50% of elements during training
+        >>> dropout.p
+        0.5
+
+        HINTS:
+        - Use DROPOUT_MIN_PROB and DROPOUT_MAX_PROB constants for validation
+        - Check: DROPOUT_MIN_PROB <= p <= DROPOUT_MAX_PROB
+        - Raise descriptive ValueError if invalid
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Dropout.__init__")
+        ### END SOLUTION
+
+    def _should_apply_dropout(self, training):
+        """
+        Determine whether dropout should be applied.
+
+        Dropout is a training-time technique. During inference the full
+        network is used, so dropout is skipped. It is also skipped when p=0
+        (no neurons are dropped) since the result would be the identity.
+
+        TODO: Return True only when dropout should actually modify the input
+
+        APPROACH:
+        1. Check if we are in training mode
+        2. Check if dropout probability is greater than zero
+
+        EXAMPLE:
+        >>> d = Dropout(0.5)
+        >>> d._should_apply_dropout(training=True)
+        True
+        >>> d._should_apply_dropout(training=False)
+        False
+
+        HINT: Both conditions must be true for dropout to apply
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Dropout._should_apply_dropout")
+        ### END SOLUTION
+
+    def _generate_dropout_mask(self, shape):
+        """
+        Generate a random dropout mask with inverted scaling.
+
+        The mask has the same shape as the input. Each element is either
+        0 (dropped) or 1/(1-p) (kept and scaled). Scaling at training time
+        keeps the expected value of each element unchanged, so no adjustment
+        is needed at inference. This trick is called "inverted dropout."
+
+        ```
+        Example with p=0.5 (keep_prob=0.5, scale=2.0):
+        random draw:  [0.3,  0.8,  0.1,  0.6]
+                        ↓     ↓     ↓     ↓
+        keep?         [yes,  no,  yes,  no ]   (< 0.5?)
+                        ↓     ↓     ↓     ↓
+        mask:         [2.0,  0.0,  2.0,  0.0]  (kept × scale, dropped × 0)
+        ```
+
+        TODO: Build the scaled binary mask
+
+        APPROACH:
+        1. Compute keep_prob = 1 - p
+        2. Draw uniform random values and threshold at keep_prob
+        3. Convert the boolean mask to float and scale by 1/keep_prob
+
+        EXAMPLE:
+        >>> d = Dropout(0.5)
+        >>> mask = d._generate_dropout_mask((4,))
+        >>> mask.shape
+        (4,)
+
+        HINTS:
+        - np.random.random(shape) gives uniform [0, 1) values
+        - Threshold with < keep_prob to get a boolean mask
+        - Scale factor is 1.0 / keep_prob
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Dropout._generate_dropout_mask")
+        ### END SOLUTION
+
+    def forward(self, x, training=True):
+        """
+        Forward pass through dropout layer.
+
+        Composes the two helpers: first decide whether dropout applies,
+        then generate and apply the mask if it does.
+
+        TODO: Implement dropout forward pass
+
+        APPROACH:
+        1. Use _should_apply_dropout to check if dropout is needed
+        2. Handle the special case p=1 (drop everything)
+        3. Use _generate_dropout_mask to create the scaled mask
+        4. Element-wise multiply input by the mask
+
+        EXAMPLE:
+        >>> dropout = Dropout(0.5)
+        >>> x = Tensor([1, 2, 3, 4])
+        >>> y_train = dropout.forward(x, training=True)   # Some elements zeroed
+        >>> y_eval = dropout.forward(x, training=False)   # All elements preserved
+
+        HINTS:
+        - _should_apply_dropout returns False for inference or p=0
+        - When p=1.0 every element is dropped (return zeros)
+        - Multiply x by the mask tensor for the final output
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Dropout.forward")
+        ### END SOLUTION
+
+    def __call__(self, x, training=True):
+        """Allows the layer to be called like a function."""
+        return self.forward(x, training)
+
+    def parameters(self):
+        """Dropout has no parameters."""
+        return []
+
+    def __repr__(self):
+        return f"Dropout(p={self.p})"
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Dropout(Layer):
     """
     Dropout layer for regularization.

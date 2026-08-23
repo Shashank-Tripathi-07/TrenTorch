@@ -479,7 +479,271 @@ The 7 nested loops iterate over:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "conv2d-class", "solution": true}
+
+class Conv2dBackward(Function):
+    """
+    Gradient computation for 2D convolution.
+
+    Computes gradients for Conv2d backward pass:
+    - grad_input: gradient w.r.t. input (for backprop to previous layer)
+    - grad_weight: gradient w.r.t. filters (for weight updates)
+    - grad_bias: gradient w.r.t. bias (for bias updates)
+
+    This uses explicit loops to show the gradient computation, matching
+    the educational approach of the forward pass.
+    """
+
+    def __init__(self, x, weight, bias, stride, padding, kernel_size, padded_shape):
+        # Register all tensors that need gradients with autograd
+        if bias is not None:
+            super().__init__(x, weight, bias)
+        else:
+            super().__init__(x, weight)
+        self.x = x
+        self.weight = weight
+        self.bias = bias
+        self.stride = stride
+        self.padding = padding
+        self.kernel_size = kernel_size
+        self.padded_shape = padded_shape
+
+    def apply(self, grad_output):
+        """
+        Compute gradients for convolution inputs and parameters.
+
+        Args:
+            grad_output: Gradient flowing back from next layer
+                        Shape: (batch_size, out_channels, out_height, out_width)
+
+        Returns:
+            Tuple of (grad_input, grad_weight, grad_bias)
+        """
+        batch_size, out_channels, out_height, out_width = grad_output.shape
+        _, in_channels, in_height, in_width = self.x.shape
+        kernel_h, kernel_w = self.kernel_size
+
+        # Apply padding to input if needed (for gradient computation)
+        if self.padding > 0:
+            padded_input = np.pad(self.x.data,
+                                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
+                                mode='constant', constant_values=0)
+        else:
+            padded_input = self.x.data
+
+        # Initialize gradients
+        grad_input_padded = np.zeros_like(padded_input)
+        grad_weight = np.zeros_like(self.weight.data)
+        grad_bias = None if self.bias is None else np.zeros_like(self.bias.data)
+
+        # Compute gradients using explicit loops (educational approach)
+        for b in range(batch_size):
+            for out_ch in range(out_channels):
+                for out_h in range(out_height):
+                    for out_w in range(out_width):
+                        # Position in input
+                        in_h_start = out_h * self.stride
+                        in_w_start = out_w * self.stride
+
+                        # Gradient value flowing back to this position
+                        grad_val = grad_output[b, out_ch, out_h, out_w]
+
+                        # Distribute gradient to weight and input
+                        for k_h in range(kernel_h):
+                            for k_w in range(kernel_w):
+                                for in_ch in range(in_channels):
+                                    # Input position
+                                    in_h = in_h_start + k_h
+                                    in_w = in_w_start + k_w
+
+                                    # Gradient w.r.t. weight
+                                    grad_weight[out_ch, in_ch, k_h, k_w] += (
+                                        padded_input[b, in_ch, in_h, in_w] * grad_val
+                                    )
+
+                                    # Gradient w.r.t. input
+                                    grad_input_padded[b, in_ch, in_h, in_w] += (
+                                        self.weight.data[out_ch, in_ch, k_h, k_w] * grad_val
+                                    )
+
+        # Compute gradient w.r.t. bias (sum over batch and spatial dimensions)
+        if grad_bias is not None:
+            for out_ch in range(out_channels):
+                grad_bias[out_ch] = grad_output[:, out_ch, :, :].sum()
+
+        # Remove padding from input gradient
+        if self.padding > 0:
+            grad_input = grad_input_padded[:, :,
+                                          self.padding:-self.padding,
+                                          self.padding:-self.padding]
+        else:
+            grad_input = grad_input_padded
+
+        # Tuple length must match saved_tensors: (x, weight) or (x, weight, bias).
+        if self.bias is None:
+            return grad_input, grad_weight
+        return grad_input, grad_weight, grad_bias
+
 #| export
+
+class Conv2d:
+    """
+    2D Convolution layer for spatial feature extraction.
+
+    Implements convolution with explicit loops to demonstrate
+    computational complexity and memory access patterns.
+
+    Args:
+        in_channels: Number of input channels
+        out_channels: Number of output feature maps
+        kernel_size: Size of convolution kernel (int or tuple)
+        stride: Stride of convolution (default: 1)
+        padding: Zero-padding added to input (default: 0)
+        bias: Whether to add learnable bias (default: True)
+    """
+
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=True):
+        """
+        Initialize Conv2d layer with proper weight initialization.
+
+        TODO: Complete Conv2d initialization
+
+        APPROACH:
+        1. Store hyperparameters (channels, kernel_size, stride, padding)
+        2. Initialize weights using He initialization for ReLU compatibility
+        3. Initialize bias (if enabled) to zeros
+        4. Use proper shapes: weight (out_channels, in_channels, kernel_h, kernel_w)
+
+        WEIGHT INITIALIZATION:
+        - He init: std = sqrt(2 / (in_channels * kernel_h * kernel_w))
+        - This prevents vanishing/exploding gradients with ReLU
+
+        HINT: Convert kernel_size to tuple if it's an integer
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Conv2d.__init__")
+        ### END SOLUTION
+
+    def _compute_output_shape(self, in_h, in_w):
+        """
+        Calculate output spatial dimensions for convolution.
+
+        TODO: Apply the convolution output size formula
+
+        APPROACH:
+        1. Apply the standard formula for each spatial dimension:
+           out_dim = (in_dim + 2 * padding - kernel_size) // stride + 1
+        2. Return (out_height, out_width) as a tuple
+
+        EXAMPLE:
+        >>> conv = Conv2d(3, 16, kernel_size=3, padding=1, stride=1)
+        >>> oh, ow = conv._compute_output_shape(32, 32)
+        >>> print(oh, ow)  # 32, 32 (same padding preserves size)
+
+        >>> conv2 = Conv2d(3, 16, kernel_size=3, padding=0, stride=1)
+        >>> oh, ow = conv2._compute_output_shape(32, 32)
+        >>> print(oh, ow)  # 30, 30 (shrinks by kernel_size - 1)
+
+        HINT: The formula is the same for height and width, just with
+        different input dimensions.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Conv2d._compute_output_shape")
+        ### END SOLUTION
+
+    def _apply_padding(self, x_data):
+        """
+        Zero-pad the spatial dimensions of the input numpy array.
+
+        TODO: Add zero-padding around spatial dimensions (height, width)
+
+        APPROACH:
+        1. If self.padding > 0, use np.pad to add zeros around spatial dims
+        2. Only pad dimensions 2 and 3 (height, width), not batch or channels
+        3. If self.padding == 0, return the input unchanged
+
+        EXAMPLE:
+        >>> conv = Conv2d(1, 1, kernel_size=3, padding=1)
+        >>> x = np.ones((1, 1, 3, 3))
+        >>> padded = conv._apply_padding(x)
+        >>> print(padded.shape)  # (1, 1, 5, 5) -- 3+2*1=5
+
+        HINT: np.pad takes a tuple of (before, after) pairs per dimension.
+        Use (0,0) for batch and channel dims, (padding, padding) for spatial.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Conv2d._apply_padding")
+        ### END SOLUTION
+
+    def _convolve_loops(self, padded, batch_size, out_h, out_w):
+        """
+        The core convolution: sliding window dot products over the input.
+
+        TODO: Implement the nested loop convolution
+
+        APPROACH:
+        1. Initialize output array of shape (batch_size, out_channels, out_h, out_w)
+        2. Loop over: batch, output channel, output row, output column
+        3. For each output position, accumulate the dot product over:
+           kernel height, kernel width, and input channels
+        4. Store the accumulated sum at the output position
+
+        LOOP STRUCTURE:
+        for b in range(batch_size):
+            for out_ch in range(out_channels):
+                for oh in range(out_h):
+                    for ow in range(out_w):
+                        conv_sum = 0.0
+                        for k_h in range(kernel_h):
+                            for k_w in range(kernel_w):
+                                for in_ch in range(in_channels):
+                                    conv_sum += padded[b, in_ch, ...] * weight[out_ch, in_ch, ...]
+                        output[b, out_ch, oh, ow] = conv_sum
+
+        HINT: The input position for kernel element (k_h, k_w) at output
+        position (oh, ow) with stride s is: (oh * s + k_h, ow * s + k_w).
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Conv2d._convolve_loops")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through Conv2d layer.
+
+        This method composes four steps:
+        1. Validate input is 4D (shared helper)
+        2. Compute output spatial dimensions
+        3. Pad input if needed
+        4. Run the sliding window convolution loops
+        5. Add bias and attach gradient tracking
+
+        Each step is a separate helper you implement below.
+        See the individual helper docstrings for details.
+
+        EXAMPLE:
+        >>> conv = Conv2d(3, 16, kernel_size=3, padding=1)
+        >>> x = Tensor(rng.standard_normal((2, 3, 32, 32)))  # batch=2, RGB, 32x32
+        >>> out = conv(x)
+        >>> print(out.shape)  # Should be (2, 16, 32, 32)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Conv2d.forward")
+        ### END SOLUTION
+
+    def parameters(self):
+        """Return trainable parameters."""
+        params = [self.weight]
+        if self.bias is not None:
+            params.append(self.bias)
+        return params
+
+    def __call__(self, x):
+        """Enable model(x) syntax."""
+        return self.forward(x)
+
+# %% tags=["solution"]
+#| export
+# Solution
 
 class Conv2dBackward(Function):
     """
@@ -1245,7 +1509,199 @@ For input (1, 64, 224, 224) with 2×2 pooling:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "maxpool2d-class", "solution": true}
+
+class MaxPool2dBackward(Function):
+    """
+    Gradient computation for 2D max pooling.
+
+    Max pooling gradients flow only to the positions that were selected
+    as the maximum in the forward pass.
+    """
+
+    def __init__(self, x, output_shape, kernel_size, stride, padding):
+        super().__init__(x)
+        self.x = x
+        self.output_shape = output_shape
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        # Store max positions for gradient routing
+        self.max_positions = {}
+
+    def apply(self, grad_output):
+        """
+        Route gradients back to max positions.
+
+        Args:
+            grad_output: Gradient from next layer
+
+        Returns:
+            Gradient w.r.t. input
+        """
+        batch_size, channels, in_height, in_width = self.x.shape
+        _, _, out_height, out_width = self.output_shape
+        kernel_h, kernel_w = self.kernel_size
+
+        # Apply padding if needed
+        if self.padding > 0:
+            padded_input = np.pad(self.x.data,
+                                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
+                                mode='constant', constant_values=-np.inf)
+            grad_input_padded = np.zeros_like(padded_input)
+        else:
+            padded_input = self.x.data
+            grad_input_padded = np.zeros_like(self.x.data)
+
+        # Route gradients to max positions
+        for b in range(batch_size):
+            for c in range(channels):
+                for out_h in range(out_height):
+                    for out_w in range(out_width):
+                        in_h_start = out_h * self.stride
+                        in_w_start = out_w * self.stride
+
+                        # Find max position in this window
+                        max_val = -np.inf
+                        max_h, max_w = 0, 0
+                        for k_h in range(kernel_h):
+                            for k_w in range(kernel_w):
+                                in_h = in_h_start + k_h
+                                in_w = in_w_start + k_w
+                                val = padded_input[b, c, in_h, in_w]
+                                if val > max_val:
+                                    max_val = val
+                                    max_h, max_w = in_h, in_w
+
+                        # Route gradient to max position
+                        grad_input_padded[b, c, max_h, max_w] += grad_output[b, c, out_h, out_w]
+
+        # Remove padding
+        if self.padding > 0:
+            grad_input = grad_input_padded[:, :,
+                                          self.padding:-self.padding,
+                                          self.padding:-self.padding]
+        else:
+            grad_input = grad_input_padded
+
+        # Return as tuple (following Function protocol)
+        return (grad_input,)
+
 #| export
+
+class MaxPool2d:
+    """
+    2D Max Pooling layer for spatial dimension reduction.
+
+    Applies maximum operation over spatial windows, preserving
+    the strongest activations while reducing computational load.
+
+    Args:
+        kernel_size: Size of pooling window (int or tuple)
+        stride: Stride of pooling operation (default: same as kernel_size)
+        padding: Zero-padding added to input (default: 0)
+    """
+
+    def __init__(self, kernel_size, stride=None, padding=0):
+        """
+        Initialize MaxPool2d layer.
+
+        TODO: Store pooling parameters
+
+        APPROACH:
+        1. Convert kernel_size to tuple if needed
+        2. Set stride to kernel_size if not provided (non-overlapping)
+        3. Store padding parameter
+
+        HINT: Default stride equals kernel_size for non-overlapping windows
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MaxPool2d.__init__")
+        ### END SOLUTION
+
+    def _compute_pool_output_shape(self, in_h, in_w):
+        """
+        Calculate output spatial dimensions for pooling.
+
+        TODO: Apply the pooling output size formula
+
+        APPROACH:
+        1. Apply the same formula as convolution:
+           out_dim = (in_dim + 2 * padding - kernel_size) // stride + 1
+        2. Return (out_height, out_width) as a tuple
+
+        EXAMPLE:
+        >>> pool = MaxPool2d(kernel_size=2, stride=2)
+        >>> oh, ow = pool._compute_pool_output_shape(8, 8)
+        >>> print(oh, ow)  # 4, 4 (halved)
+
+        HINT: This formula is identical to convolution's output shape formula.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MaxPool2d._compute_pool_output_shape")
+        ### END SOLUTION
+
+    def _maxpool_loops(self, padded, batch_size, channels, out_h, out_w):
+        """
+        The core max pooling: find maximum value in each window.
+
+        TODO: Implement the nested loop max pooling
+
+        APPROACH:
+        1. Initialize output array of shape (batch_size, channels, out_h, out_w)
+        2. Loop over: batch, channel, output row, output column
+        3. For each output position, scan the kernel window to find the maximum
+        4. Store the maximum at the output position
+
+        LOOP STRUCTURE:
+        for b in range(batch_size):
+            for c in range(channels):
+                for oh in range(out_h):
+                    for ow in range(out_w):
+                        max_val = -infinity
+                        for k_h in range(kernel_h):
+                            for k_w in range(kernel_w):
+                                max_val = max(max_val, padded[b, c, ...])
+                        output[b, c, oh, ow] = max_val
+
+        HINT: Initialize max_val to -np.inf so any real value is larger.
+        The input position is (oh * stride + k_h, ow * stride + k_w).
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MaxPool2d._maxpool_loops")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through MaxPool2d layer.
+
+        This method composes the helpers:
+        1. Validate input is 4D
+        2. Compute output dimensions
+        3. Pad input (with -inf for max pooling)
+        4. Run the max pooling loops
+        5. Attach gradient tracking
+
+        EXAMPLE:
+        >>> pool = MaxPool2d(kernel_size=2, stride=2)
+        >>> x = Tensor(rng.standard_normal((1, 3, 8, 8)))
+        >>> out = pool(x)
+        >>> print(out.shape)  # Should be (1, 3, 4, 4)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MaxPool2d.forward")
+        ### END SOLUTION
+
+    def parameters(self):
+        """Return empty list (pooling has no parameters)."""
+        return []
+
+    def __call__(self, x):
+        """Enable model(x) syntax."""
+        return self.forward(x)
+
+# %% tags=["solution"]
+#| export
+# Solution
 
 class MaxPool2dBackward(Function):
     """
@@ -1665,7 +2121,188 @@ Memory access pattern identical to MaxPool, just different aggregation!
 """
 
 # %% nbgrader={"grade": false, "grade_id": "avgpool2d-class", "solution": true}
+
+class AvgPool2dBackward(Function):
+    """
+    Gradient computation for 2D average pooling.
+
+    Each output is the mean of the kernel_h*kernel_w inputs in its window, so
+    the gradient is distributed equally (1/kernel_area) to every input position
+    that contributed, accumulating where windows overlap.
+    """
+
+    def __init__(self, x, output_shape, kernel_size, stride, padding):
+        super().__init__(x)
+        self.x = x
+        self.output_shape = output_shape
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+
+    def apply(self, grad_output):
+        """
+        Distribute each output gradient equally across its pooling window.
+
+        Args:
+            grad_output: Gradient from next layer
+
+        Returns:
+            Gradient w.r.t. input
+        """
+        batch_size, channels, in_height, in_width = self.x.shape
+        _, _, out_height, out_width = self.output_shape
+        kernel_h, kernel_w = self.kernel_size
+        kernel_area = kernel_h * kernel_w
+
+        # Average pooling pads with zeros, so the gradient buffer is padded with
+        # zeros too (matching the forward pass).
+        if self.padding > 0:
+            grad_input_padded = np.zeros(
+                (batch_size, channels,
+                 in_height + 2 * self.padding,
+                 in_width + 2 * self.padding)
+            )
+        else:
+            grad_input_padded = np.zeros_like(self.x.data)
+
+        # Spread each output gradient equally over its window, accumulating overlaps.
+        for b in range(batch_size):
+            for c in range(channels):
+                for out_h in range(out_height):
+                    for out_w in range(out_width):
+                        in_h_start = out_h * self.stride
+                        in_w_start = out_w * self.stride
+                        share = grad_output[b, c, out_h, out_w] / kernel_area
+                        for k_h in range(kernel_h):
+                            for k_w in range(kernel_w):
+                                grad_input_padded[b, c, in_h_start + k_h, in_w_start + k_w] += share
+
+        # Remove padding
+        if self.padding > 0:
+            grad_input = grad_input_padded[:, :,
+                                          self.padding:-self.padding,
+                                          self.padding:-self.padding]
+        else:
+            grad_input = grad_input_padded
+
+        # Return as tuple (following Function protocol)
+        return (grad_input,)
+
 #| export
+
+class AvgPool2d:
+    """
+    2D Average Pooling layer for spatial dimension reduction.
+
+    Applies average operation over spatial windows, smoothing
+    features while reducing computational load.
+
+    Args:
+        kernel_size: Size of pooling window (int or tuple)
+        stride: Stride of pooling operation (default: same as kernel_size)
+        padding: Zero-padding added to input (default: 0)
+    """
+
+    def __init__(self, kernel_size, stride=None, padding=0):
+        """
+        Initialize AvgPool2d layer.
+
+        TODO: Store pooling parameters (same as MaxPool2d)
+
+        APPROACH:
+        1. Convert kernel_size to tuple if needed
+        2. Set stride to kernel_size if not provided
+        3. Store padding parameter
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement AvgPool2d.__init__")
+        ### END SOLUTION
+
+    def _compute_pool_output_shape(self, in_h, in_w):
+        """
+        Calculate output spatial dimensions for pooling.
+
+        TODO: Apply the pooling output size formula
+
+        APPROACH:
+        1. Apply the standard formula for each spatial dimension:
+           out_dim = (in_dim + 2 * padding - kernel_size) // stride + 1
+        2. Return (out_height, out_width) as a tuple
+
+        EXAMPLE:
+        >>> pool = AvgPool2d(kernel_size=2, stride=2)
+        >>> oh, ow = pool._compute_pool_output_shape(8, 8)
+        >>> print(oh, ow)  # 4, 4 (halved)
+
+        HINT: This formula is identical to MaxPool2d and Conv2d output shapes.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement AvgPool2d._compute_pool_output_shape")
+        ### END SOLUTION
+
+    def _avgpool_loops(self, padded, batch_size, channels, out_h, out_w):
+        """
+        The core average pooling: compute mean of each window.
+
+        TODO: Implement the nested loop average pooling
+
+        APPROACH:
+        1. Initialize output array of shape (batch_size, channels, out_h, out_w)
+        2. Loop over: batch, channel, output row, output column
+        3. For each output position, sum all values in the kernel window
+        4. Divide by window area (kernel_h * kernel_w) to get the average
+        5. Store the average at the output position
+
+        LOOP STRUCTURE:
+        for b in range(batch_size):
+            for c in range(channels):
+                for oh in range(out_h):
+                    for ow in range(out_w):
+                        window_sum = 0.0
+                        for k_h in range(kernel_h):
+                            for k_w in range(kernel_w):
+                                window_sum += padded[b, c, ...]
+                        output[b, c, oh, ow] = window_sum / (kernel_h * kernel_w)
+
+        HINT: Unlike max pooling, you accumulate a sum and then divide.
+        The input position is (oh * stride + k_h, ow * stride + k_w).
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement AvgPool2d._avgpool_loops")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through AvgPool2d layer.
+
+        This method composes the helpers:
+        1. Validate input is 4D
+        2. Compute output dimensions
+        3. Pad input (with zeros for average pooling)
+        4. Run the average pooling loops
+        5. Return result with gradient tracking
+
+        EXAMPLE:
+        >>> pool = AvgPool2d(kernel_size=2, stride=2)
+        >>> x = Tensor(rng.standard_normal((1, 3, 8, 8)))
+        >>> out = pool(x)
+        >>> print(out.shape)  # Should be (1, 3, 4, 4)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement AvgPool2d.forward")
+        ### END SOLUTION
+
+    def parameters(self):
+        """Return empty list (pooling has no parameters)."""
+        return []
+
+    def __call__(self, x):
+        """Enable model(x) syntax."""
+        return self.forward(x)
+
+# %% tags=["solution"]
+#| export
+# Solution
 
 class AvgPool2dBackward(Function):
     """
@@ -2058,7 +2695,133 @@ current batch                      consistent inference
 """
 
 # %% nbgrader={"grade": false, "grade_id": "batchnorm2d-class", "solution": true}
+
+class BatchNorm2d:
+    """
+    Batch Normalization for 2D spatial inputs (images).
+
+    Normalizes activations across batch and spatial dimensions for each channel,
+    then applies learnable scale (gamma) and shift (beta) parameters.
+
+    Key behaviors:
+    - Training: Uses batch statistics, updates running statistics
+    - Eval: Uses frozen running statistics for consistent inference
+
+    Args:
+        num_features: Number of channels (C in NCHW format)
+        eps: Small constant for numerical stability (default: 1e-5)
+        momentum: Momentum for running statistics update (default: 0.1)
+    """
+
+    def __init__(self, num_features, eps=1e-5, momentum=0.1):
+        """
+        Initialize BatchNorm2d layer.
+
+        TODO: Initialize learnable and running parameters
+
+        APPROACH:
+        1. Store hyperparameters (num_features, eps, momentum)
+        2. Initialize gamma (scale) to ones - identity at start
+        3. Initialize beta (shift) to zeros - no shift at start
+        4. Initialize running_mean to zeros
+        5. Initialize running_var to ones
+        6. Set training mode to True initially
+
+        EXAMPLE:
+        >>> bn = BatchNorm2d(64)  # For 64-channel feature maps
+        >>> print(bn.gamma.shape)  # (64,)
+        >>> print(bn.training)     # True
+        """
+        super().__init__()
+
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement BatchNorm2d.__init__")
+        ### END SOLUTION
+
+    def train(self):
+        """Set layer to training mode."""
+        self.training = True
+        return self
+
+    def eval(self):
+        """Set layer to evaluation mode."""
+        self.training = False
+        return self
+
+    def _validate_input(self, x):
+        """
+        Validate that input tensor has the correct shape for BatchNorm2d.
+
+        TODO: Validate input is 4D with correct channel count
+
+        APPROACH:
+        1. Check input is 4D (batch, channels, height, width)
+        2. Provide helpful error messages for common mistakes (3D, 2D)
+        3. Verify channel dimension matches num_features
+
+        HINTS:
+        - Use len(x.shape) to check dimensionality
+        - Use ❌ What → 💡 Why → 🔧 Fix error message format
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement BatchNorm2d._validate_input")
+        ### END SOLUTION
+
+    def _get_stats(self, x):
+        """
+        Get mean and variance for normalization (batch or running stats).
+
+        TODO: Compute or retrieve normalization statistics based on mode
+
+        APPROACH:
+        1. If training: compute batch mean/var over axes (0, 2, 3),
+           then update running statistics with momentum
+        2. If eval: use frozen running_mean and running_var
+
+        HINTS:
+        - np.mean(x.data, axis=(0, 2, 3)) gives per-channel mean
+        - Running update: running = (1 - momentum) * running + momentum * batch
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement BatchNorm2d._get_stats")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through BatchNorm2d.
+
+        TODO: Compose _validate_input, _get_stats, and normalize+scale
+
+        APPROACH:
+        1. Validate input with self._validate_input(x)
+        2. Get mean/var with self._get_stats(x)
+        3. Normalize: (x - mean) / sqrt(var + eps) with proper broadcasting
+        4. Scale by gamma and shift by beta
+
+        EXAMPLE:
+        >>> bn = BatchNorm2d(16)
+        >>> x = Tensor(rng.standard_normal((2, 16, 8, 8)))
+        >>> y = bn(x)
+        >>> print(y.shape)  # (2, 16, 8, 8)
+
+        HINTS:
+        - Reshape mean/var/gamma/beta to (1, C, 1, 1) for broadcasting
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement BatchNorm2d.forward")
+        ### END SOLUTION
+
+    def parameters(self):
+        """Return learnable parameters (gamma and beta)."""
+        return [self.gamma, self.beta]
+
+    def __call__(self, x):
+        """Enable model(x) syntax."""
+        return self.forward(x)
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 class BatchNorm2d:
     """
@@ -2800,7 +3563,82 @@ spanning 8×8 regions of original image!
 """
 
 # %% nbgrader={"grade": false, "grade_id": "simple-cnn", "solution": true}
+
+class SimpleCNN:
+    """
+    Simple CNN demonstrating spatial operations integration.
+
+    Architecture:
+    - Conv2d(3→16, 3×3) + ReLU + MaxPool(2×2)
+    - Conv2d(16→32, 3×3) + ReLU + MaxPool(2×2)
+    - Flatten + Linear(features→num_classes)
+    """
+
+    def __init__(self, num_classes=10):
+        """
+        Initialize SimpleCNN.
+
+        TODO: Build CNN architecture with spatial and dense layers
+
+        APPROACH:
+        1. Conv layer 1: 3 → 16 channels, 3×3 kernel, padding=1
+        2. Pool layer 1: 2×2 max pooling
+        3. Conv layer 2: 16 → 32 channels, 3×3 kernel, padding=1
+        4. Pool layer 2: 2×2 max pooling
+        5. Calculate flattened size and add final linear layer
+
+        HINT: For 32×32 input → 32 → 16 → 8 spatial reduction
+        Final feature size: 32 channels × 8 × 8 = 2048 features
+        """
+        super().__init__()
+
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement SimpleCNN.__init__")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through SimpleCNN.
+
+        TODO: Implement CNN forward pass
+
+        APPROACH:
+        1. Apply conv1 → ReLU → pool1
+        2. Apply conv2 → ReLU → pool2
+        3. Flatten spatial dimensions
+        4. Apply final linear layer (when available)
+
+        For now, return features before final linear layer
+        since we haven't imported Linear from layers module yet.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement SimpleCNN.forward")
+        ### END SOLUTION
+
+    def relu(self, x):
+        """ReLU activation with gradient tracking for CNN."""
+        result_data = np.maximum(0, x.data)
+        result = Tensor(result_data)
+        if x.requires_grad:
+            result.requires_grad = True
+            result._grad_fn = ReLUBackward(x)
+        return result
+
+    def parameters(self):
+        """Return all trainable parameters."""
+        params = []
+        params.extend(self.conv1.parameters())
+        params.extend(self.conv2.parameters())
+        # Linear layer parameters would be added here
+        return params
+
+    def __call__(self, x):
+        """Enable model(x) syntax."""
+        return self.forward(x)
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 class SimpleCNN:
     """

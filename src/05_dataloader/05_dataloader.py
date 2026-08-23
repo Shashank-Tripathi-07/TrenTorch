@@ -160,7 +160,46 @@ First, we implement the abstract Dataset base class that defines the interface.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "dataset-implementation", "solution": true}
+
+class Dataset(ABC):
+    """
+    Abstract base class for all datasets.
+
+    Provides the fundamental interface that all datasets must implement:
+    - __len__(): Returns the total number of samples
+    - __getitem__(idx): Returns the sample at given index
+
+    TODO: Implement the abstract Dataset base class
+
+    APPROACH:
+    1. Use ABC (Abstract Base Class) to define interface
+    2. Mark methods as @abstractmethod to force implementation
+    3. Provide clear docstrings for subclasses
+
+    EXAMPLE:
+    >>> class MyDataset(Dataset):
+    ...     def __len__(self): return 100
+    ...     def __getitem__(self, idx): return idx
+    >>> dataset = MyDataset()
+    >>> print(len(dataset))  # 100
+    >>> print(dataset[42])   # 42
+
+    HINT: Abstract methods force subclasses to implement core functionality
+    """
+
+    ### BEGIN SOLUTION
+    @abstractmethod
+    def __len__(self) -> int:
+        raise NotImplementedError("TODO: implement __len__")
+    @abstractmethod
+    def __getitem__(self, idx: int):
+        raise NotImplementedError("TODO: implement __getitem__")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Dataset(ABC):
     """
     Abstract base class for all datasets.
@@ -323,7 +362,105 @@ Now we implement TensorDataset for tensor-based data storage.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "tensordataset-implementation", "solution": true}
+
+class TensorDataset(Dataset):
+    """
+    Dataset wrapping tensors for supervised learning.
+
+    Each sample is a tuple of tensors from the same index across all input tensors.
+    All tensors must have the same size in their first dimension.
+
+    TODO: Implement TensorDataset for tensor-based data
+
+    APPROACH:
+    1. Store all input tensors
+    2. Validate they have same first dimension (number of samples)
+    3. Return tuple of tensor slices for each index
+
+    EXAMPLE:
+    >>> features = Tensor([[1, 2], [3, 4], [5, 6]])  # 3 samples, 2 features each
+    >>> labels = Tensor([0, 1, 0])                    # 3 labels
+    >>> dataset = TensorDataset(features, labels)
+    >>> print(len(dataset))  # 3
+    >>> print(dataset[1])    # (Tensor([3, 4]), Tensor(1))
+
+    HINTS:
+    - Use *tensors to accept variable number of tensor arguments
+    - Check all tensors have same length in dimension 0
+    - Return tuple of tensor[idx] for all tensors
+    """
+
+    def __init__(self, *tensors):
+        """
+        Create dataset from multiple tensors.
+
+        Args:
+            *tensors: Variable number of Tensor objects
+
+        All tensors must have the same size in their first dimension.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement TensorDataset.__init__")
+        ### END SOLUTION
+
+    def __len__(self) -> int:
+        """
+        Return number of samples (size of first dimension).
+
+        TODO: Return the total number of samples in the dataset
+
+        APPROACH:
+        1. Access the first tensor from self.tensors
+        2. Return length of its data (first dimension size)
+
+        EXAMPLE:
+        >>> features = Tensor([[1, 2], [3, 4], [5, 6]])  # 3 samples
+        >>> labels = Tensor([0, 1, 0])
+        >>> dataset = TensorDataset(features, labels)
+        >>> print(len(dataset))  # 3
+
+        HINT: All tensors have same first dimension (validated in __init__)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement TensorDataset.__len__")
+        ### END SOLUTION
+
+    def __getitem__(self, idx: int) -> Tuple[Tensor, ...]:
+        """
+        Return tuple of tensor slices at given index.
+
+        TODO: Return the sample at the given index
+
+        APPROACH:
+        1. Validate index is within bounds
+        2. Extract data at index from each tensor
+        3. Wrap each slice in a Tensor and return as tuple
+
+        Args:
+            idx: Sample index
+
+        Returns:
+            Tuple containing tensor[idx] for each input tensor
+
+        EXAMPLE:
+        >>> features = Tensor([[1, 2], [3, 4], [5, 6]])
+        >>> labels = Tensor([0, 1, 0])
+        >>> dataset = TensorDataset(features, labels)
+        >>> sample = dataset[1]
+        >>> # Returns: (Tensor([3, 4]), Tensor(1))
+
+        HINTS:
+        - Check idx < len(self) to prevent out-of-bounds access
+        - Use generator expression with tuple() for clean syntax
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement TensorDataset.__getitem__")
+        ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class TensorDataset(Dataset):
     """
     Dataset wrapping tensors for supervised learning.
@@ -573,7 +710,134 @@ Now we implement the DataLoader class with batching and shuffling support.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "dataloader-implementation", "solution": true}
+
+class DataLoader:
+    """
+    Data loader with batching and shuffling support.
+
+    Wraps a dataset to provide batched iteration with optional shuffling.
+    Essential for efficient training with mini-batch gradient descent.
+
+    TODO: Implement DataLoader with batching and shuffling
+
+    APPROACH:
+    1. Store dataset, batch_size, and shuffle settings
+    2. Create iterator that groups samples into batches
+    3. Handle shuffling by randomizing indices
+    4. Collate individual samples into batch tensors
+
+    EXAMPLE:
+    >>> dataset = TensorDataset(Tensor([[1,2], [3,4], [5,6]]), Tensor([0,1,0]))
+    >>> loader = DataLoader(dataset, batch_size=2, shuffle=True)
+    >>> for batch in loader:
+    ...     features_batch, labels_batch = batch
+    ...     print(f"Features: {features_batch.shape}, Labels: {labels_batch.shape}")
+
+    HINTS:
+    - Use random.shuffle() for index shuffling
+    - Group consecutive samples into batches
+    - Stack individual tensors using np.stack()
+    """
+
+    def __init__(self, dataset: Dataset, batch_size: int, shuffle: bool = False):
+        """
+        Create DataLoader for batched iteration.
+
+        Args:
+            dataset: Dataset to load from
+            batch_size: Number of samples per batch
+            shuffle: Whether to shuffle data each epoch
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement DataLoader.__init__")
+        ### END SOLUTION
+
+    def __len__(self) -> int:
+        """
+        Return number of batches per epoch.
+
+        TODO: Calculate the number of batches based on dataset size and batch_size
+
+        APPROACH:
+        1. Use ceiling division: (dataset_size + batch_size - 1) // batch_size
+        2. This ensures we count the last partial batch
+
+        EXAMPLE:
+        >>> dataset = TensorDataset(Tensor([[1], [2], [3], [4], [5]]))
+        >>> loader = DataLoader(dataset, batch_size=2)
+        >>> print(len(loader))  # 3 (batches: [2, 2, 1])
+
+        HINT: Ceiling division handles uneven splits correctly
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement DataLoader.__len__")
+        ### END SOLUTION
+
+    def __iter__(self) -> Iterator:
+        """
+        Return iterator over batches.
+
+        TODO: Implement iteration that yields batches of data
+
+        APPROACH:
+        1. Create list of indices [0, 1, 2, ..., len(dataset)-1]
+        2. Shuffle indices if self.shuffle is True
+        3. Group indices into chunks of batch_size
+        4. For each chunk, retrieve samples and collate into batch
+
+        EXAMPLE:
+        >>> dataset = TensorDataset(Tensor([[1], [2], [3], [4]]))
+        >>> loader = DataLoader(dataset, batch_size=2)
+        >>> for batch in loader:
+        ...     print(batch[0].shape)  # (2, 1)
+
+        HINTS:
+        - Use random.shuffle() to randomize indices
+        - Use range(0, len(indices), batch_size) to create chunks
+        - Call self._collate_batch() to convert list of samples to batch tensors
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement DataLoader.__iter__")
+        ### END SOLUTION
+
+    def _collate_batch(self, batch: List[Tuple[Tensor, ...]]) -> Tuple[Tensor, ...]:
+        """
+        Collate individual samples into batch tensors.
+
+        TODO: Stack individual sample tensors into batch tensors
+
+        APPROACH:
+        1. Handle empty batch edge case
+        2. Determine how many tensors per sample (e.g., 2 for features + labels)
+        3. For each tensor position, extract all samples at that position
+        4. Stack them using np.stack() to create batch dimension
+        5. Wrap result in Tensor and return tuple
+
+        Args:
+            batch: List of sample tuples from dataset
+
+        Returns:
+            Tuple of batched tensors
+
+        EXAMPLE:
+        >>> # batch = [(Tensor([1,2]), Tensor(0)),
+        ...            (Tensor([3,4]), Tensor(1))]
+        >>> # Returns: (Tensor([[1,2], [3,4]]), Tensor([0, 1]))
+
+        HINTS:
+        - Use len(batch[0]) to get number of tensors per sample
+        - Extract .data from each tensor before stacking
+        - np.stack() creates new axis at position 0 (batch dimension)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement DataLoader._collate_batch")
+        ### END SOLUTION
+
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class DataLoader:
     """
     Data loader with batching and shuffling support.
@@ -824,6 +1088,71 @@ class RandomHorizontalFlip:
         HINT: Raise ValueError if p is outside valid range
         """
         ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement RandomHorizontalFlip.__init__")
+        ### END SOLUTION
+
+    def __call__(self, x):
+        """
+        Apply random horizontal flip to input.
+
+        TODO: Implement random horizontal flip
+
+        APPROACH:
+        1. Generate random number in [0, 1)
+        2. If random < p, flip horizontally
+        3. Otherwise, return unchanged
+
+        Args:
+            x: Input array with shape (..., H, W) or (..., H, W, C)
+               Flips along the last-1 axis (width dimension)
+
+        Returns:
+            Flipped or unchanged array (same shape as input)
+
+        EXAMPLE:
+        >>> flip = RandomHorizontalFlip(0.5)
+        >>> img = np.array([[1, 2, 3], [4, 5, 6]])  # 2x3 image
+        >>> # 50% chance output is [[3, 2, 1], [6, 5, 4]]
+
+        HINT: Think about all the possible position of the width axis to flip
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement RandomHorizontalFlip.__call__")
+        ### END SOLUTION
+
+# %% tags=["solution"]
+# Solution
+
+#| export
+
+class RandomHorizontalFlip:
+    """
+    Randomly flip images horizontally with given probability.
+
+    A simple but effective augmentation for most image datasets.
+    Flipping is appropriate when horizontal orientation doesn't change class
+    (cats, dogs, cars - not digits or text!).
+
+    Args:
+        p: Probability of flipping (default: 0.5)
+    """
+
+    def __init__(self, p=0.5):
+        """
+        Initialize RandomHorizontalFlip.
+
+        TODO: Store flip probability
+
+        APPROACH:
+        1. Validate probability is in range [0, 1]
+        2. Store p as instance variable
+
+        EXAMPLE:
+        >>> flip = RandomHorizontalFlip(p=0.5)  # 50% chance to flip
+
+        HINT: Raise ValueError if p is outside valid range
+        """
+        ### BEGIN SOLUTION
         if not 0.0 <= p <= 1.0:
             raise ValueError(
                 f"Invalid flip probability: {p}\n"
@@ -915,7 +1244,38 @@ We must pad ONLY spatial dimensions, never the channel dimension.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "dataloader-pad-image", "solution": true}
+
+def _pad_image(data, padding):
+    """
+    Detect image format and apply zero-padding to spatial dimensions only.
+
+    TODO: Pad the image with zeros on all spatial sides
+
+    APPROACH:
+    1. Check dimensionality: 2D (H,W), 3D (C,H,W or H,W,C), else error
+    2. For 2D: pad uniformly on all sides
+    3. For 3D: determine channel axis (first dim <= 4 → channels-first)
+    4. Pad only H and W dimensions, leave channels untouched
+
+    EXAMPLE:
+    >>> img = np.ones((3, 4, 4))  # (C, H, W) = (3, 4, 4)
+    >>> padded = _pad_image(img, padding=2)
+    >>> print(padded.shape)  # (3, 8, 8) — channels unchanged, spatial +4
+
+    HINTS:
+    - np.pad takes a pad_width per axis: ((before, after), (before, after), ...)
+    - Use (0, 0) for axes you do NOT want to pad (channels)
+    - Use (padding, padding) for axes you DO want to pad (H, W)
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement _pad_image")
+    ### END SOLUTION
+
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def _pad_image(data, padding):
     """
     Detect image format and apply zero-padding to spatial dimensions only.
@@ -1035,7 +1395,33 @@ computing two random integers within valid bounds.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "dataloader-crop-region", "solution": true}
+
+def _random_crop_region(padded_h, padded_w, target_h, target_w):
+    """
+    Sample a random (top, left) position for cropping.
+
+    TODO: Generate random top-left corner within valid bounds
+
+    APPROACH:
+    1. Compute max valid top: padded_h - target_h
+    2. Compute max valid left: padded_w - target_w
+    3. Sample uniformly from [0, max_top] and [0, max_left]
+
+    EXAMPLE:
+    >>> top, left = _random_crop_region(40, 40, 32, 32)
+    >>> # top in [0, 8], left in [0, 8]
+
+    HINT: rng.integers(0, high+1) gives values in [0, high] inclusive
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement _random_crop_region")
+    ### END SOLUTION
+
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def _random_crop_region(padded_h, padded_w, target_h, target_w):
     """
     Sample a random (top, left) position for cropping.
@@ -1124,7 +1510,112 @@ Each step does ONE thing. The composition function wires them together.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "dataloader-random-crop", "solution": true}
+
+class RandomCrop:
+    """
+    Randomly crop image after padding.
+
+    This is the standard augmentation for CIFAR-10:
+    1. Pad image by `padding` pixels on each side
+    2. Randomly crop back to original size
+
+    This simulates small translations in the image, forcing the model
+    to recognize objects regardless of their exact position.
+
+    Args:
+        size: Output crop size (int for square, or tuple (H, W))
+        padding: Pixels to pad on each side before cropping (default: 4)
+    """
+
+    def __init__(self, size, padding=4):
+        """
+        Initialize RandomCrop.
+
+        TODO: Store crop parameters
+
+        APPROACH:
+        1. Convert size to tuple if it's an int (for square crops)
+        2. Store size and padding as instance variables
+
+        EXAMPLE:
+        >>> crop = RandomCrop(32, padding=4)  # CIFAR-10 standard
+        >>> # Pads to 40x40, then crops back to 32x32
+
+        HINT: Handle both int and tuple sizes for flexibility
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement RandomCrop.__init__")
+        ### END SOLUTION
+
+    def __call__(self, x):
+        """
+        Apply random crop after padding.
+
+        Composes _pad_image and _random_crop_region to perform:
+        1. Pad the image with zeros on spatial dimensions
+        2. Sample a random crop position
+        3. Extract the crop and return
+
+        TODO: Compose _pad_image → _random_crop_region → slice extraction
+
+        APPROACH:
+        1. Unwrap Tensor if needed, get raw numpy array
+        2. Call _pad_image(data, self.padding) to pad spatial dims
+        3. Determine padded spatial dimensions (H, W) based on format
+        4. Call _random_crop_region(padded_h, padded_w, target_h, target_w)
+        5. Slice the padded array at (top, left) for target size
+        6. Re-wrap as Tensor if input was Tensor
+
+        EXAMPLE:
+        >>> crop = RandomCrop(32, padding=4)
+        >>> img = rng.standard_normal((3, 32, 32))
+        >>> out = crop(img)
+        >>> print(out.shape)  # (3, 32, 32)
+
+        HINT: The slicing pattern differs by format:
+          2D:  padded[top:top+h, left:left+w]
+          CHW: padded[:, top:top+h, left:left+w]
+          HWC: padded[top:top+h, left:left+w, :]
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement RandomCrop.__call__")
+        ### END SOLUTION
+
 #| export
+
+class Compose:
+    """
+    Compose multiple transforms into a pipeline.
+
+    Applies transforms in sequence, passing output of each
+    as input to the next.
+
+    Args:
+        transforms: List of transform callables
+    """
+
+    def __init__(self, transforms):
+        """
+        Initialize Compose with list of transforms.
+
+        EXAMPLE:
+        >>> transforms = Compose([
+        ...     RandomHorizontalFlip(0.5),
+        ...     RandomCrop(32, padding=4)
+        ... ])
+        """
+        self.transforms = transforms
+
+    def __call__(self, x):
+        """Apply all transforms in sequence."""
+        for transform in self.transforms:
+            x = transform(x)
+        return x
+
+
+# %% tags=["solution"]
+#| export
+# Solution
 
 class RandomCrop:
     """

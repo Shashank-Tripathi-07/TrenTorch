@@ -351,7 +351,44 @@ Why this matters: Sparsity directly relates to memory savings, but achieving spe
 """
 
 # %% nbgrader={"grade": false, "grade_id": "measure-sparsity", "solution": true}
+
+def measure_sparsity(model) -> float:
+    """
+    Calculate the percentage of zero weights in a model.
+
+    TODO: Count zero weights and total weights across all layers
+
+    APPROACH:
+    1. Iterate through all model parameters
+    2. Count zeros using np.sum(weights == 0)
+    3. Count total parameters
+    4. Return percentage: zeros / total * 100
+
+    Args:
+        model: Model with .parameters() method
+
+    Returns:
+        Sparsity percentage (0.0-100.0)
+
+    EXAMPLE:
+    >>> # Create test model with explicit composition
+    >>> layer1 = Linear(10, 5)
+    >>> layer2 = Linear(5, 2)
+    >>> model = Sequential(layer1, layer2)
+    >>> sparsity = measure_sparsity(model)
+    >>> print(f"Model sparsity: {sparsity:.1f}%")
+    Model sparsity: 0.0%  # Before pruning
+
+    HINT: Use np.sum() to count zeros efficiently
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement measure_sparsity")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def measure_sparsity(model) -> float:
     """
     Calculate the percentage of zero weights in a model.
@@ -497,7 +534,43 @@ Global thresholding treats the entire model as one big collection of weights, fi
 """
 
 # %% nbgrader={"grade": false, "grade_id": "magnitude-prune", "solution": true}
+
+def magnitude_prune(model, sparsity=0.9):
+    """
+    Remove weights with smallest magnitudes to achieve target sparsity.
+
+    TODO: Implement global magnitude-based pruning
+
+    APPROACH:
+    1. Collect all weights from the model
+    2. Calculate absolute values to get magnitudes
+    3. Find threshold at desired sparsity percentile
+    4. Set weights below threshold to zero (in-place)
+
+    EXAMPLE:
+    >>> # Create model with explicit layer composition
+    >>> layer1 = Linear(100, 50)
+    >>> layer2 = Linear(50, 10)
+    >>> model = Sequential(layer1, layer2)
+    >>> original_params = sum(p.size for p in model.parameters())
+    >>> magnitude_prune(model, sparsity=0.8)
+    >>> final_sparsity = measure_sparsity(model)
+    >>> print(f"Achieved {final_sparsity:.1f}% sparsity")
+    Achieved 80.0% sparsity
+
+    HINTS:
+    - Use np.percentile() to find threshold
+    - Modify model parameters in-place
+    - Consider only weight matrices, not biases
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement magnitude_prune")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def magnitude_prune(model, sparsity=0.9):
     """
     Remove weights with smallest magnitudes to achieve target sparsity.
@@ -675,7 +748,44 @@ Structured sparsity enables real hardware acceleration because:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "structured-prune", "solution": true}
+
+def structured_prune(model, prune_ratio=0.5):
+    """
+    Remove entire channels/neurons based on L2 norm importance.
+
+    TODO: Implement structured pruning for Linear layers
+
+    APPROACH:
+    1. For each Linear layer, calculate L2 norm of each output channel
+    2. Rank channels by importance (L2 norm)
+    3. Remove lowest importance channels by setting to zero
+    4. This creates block sparsity that's hardware-friendly
+
+    EXAMPLE:
+    >>> # Create model with explicit layers
+    >>> layer1 = Linear(100, 50)
+    >>> layer2 = Linear(50, 10)
+    >>> model = Sequential(layer1, layer2)
+    >>> original_shape = layer1.weight.shape
+    >>> structured_prune(model, prune_ratio=0.3)
+    >>> # 30% of channels are now completely zero
+    >>> final_sparsity = measure_sparsity(model)
+    >>> print(f"Structured sparsity: {final_sparsity:.1f}%")
+    Structured sparsity: 30.0%
+
+    HINTS:
+    - Calculate L2 norm for all channels at once: np.linalg.norm(weight, axis=0)
+    - Find the lowest-norm channels: np.argpartition(norms, k)[:k] or np.argsort(norms)[:k]
+    - Set entire channels to zero: weight[:, prune_indices] = 0
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement structured_prune")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def structured_prune(model, prune_ratio=0.5):
     """
     Remove entire channels/neurons based on L2 norm importance.
@@ -858,7 +968,37 @@ It works poorly when:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "low-rank-approx", "solution": true}
+
+def low_rank_approximate(weight_matrix, rank_ratio=0.5):
+    """
+    Approximate weight matrix using low-rank decomposition (SVD).
+
+    TODO: Implement SVD-based low-rank approximation
+
+    APPROACH:
+    1. Perform SVD: W = U @ S @ V^T
+    2. Keep only top k singular values where k = rank_ratio * min(dimensions)
+    3. Reconstruct: W_approx = U[:,:k] @ diag(S[:k]) @ V[:k,:]
+    4. Return decomposed matrices for memory savings
+
+    EXAMPLE:
+    >>> weight = rng.standard_normal((100, 50))
+    >>> U, S, V = low_rank_approximate(weight, rank_ratio=0.3)
+    >>> # Original: 100*50 = 5000 params
+    >>> # Compressed: 100*15 + 15*50 = 2250 params (55% reduction)
+
+    HINTS:
+    - Use np.linalg.svd() for decomposition
+    - Choose k = int(rank_ratio * min(m, n))
+    - Return U[:,:k], S[:k], V[:k,:] for reconstruction
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement low_rank_approximate")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 def low_rank_approximate(weight_matrix, rank_ratio=0.5):
     """
@@ -1043,7 +1183,99 @@ Temperature T:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "distillation", "solution": true}
+
+class KnowledgeDistillation:
+    """
+    Knowledge distillation for model compression.
+
+    Train a smaller student model to mimic a larger teacher model.
+    """
+
+    def __init__(self, teacher_model, student_model, temperature=3.0, alpha=0.7):
+        """
+        Initialize knowledge distillation.
+
+        TODO: Set up teacher and student models with distillation parameters
+
+        APPROACH:
+        1. Store teacher and student models
+        2. Set temperature for softening probability distributions
+        3. Set alpha for balancing hard vs soft targets
+
+        EXAMPLE:
+        >>> # Create teacher with more capacity (explicit layers)
+        >>> teacher_l1 = Linear(100, 200)
+        >>> teacher_l2 = Linear(200, 50)
+        >>> teacher = Sequential(teacher_l1, teacher_l2)
+        >>>
+        >>> # Create smaller student (explicit layer)
+        >>> student = Sequential(Linear(100, 50))
+        >>>
+        >>> kd = KnowledgeDistillation(teacher, student, temperature=4.0, alpha=0.8)
+        >>> print(f"Temperature: {kd.temperature}, Alpha: {kd.alpha}")
+        Temperature: 4.0, Alpha: 0.8
+
+        HINTS:
+        - Simply assign the parameters to instance variables
+        - Temperature typically ranges from 3-5 for effective softening
+        - Alpha of 0.7 means 70% soft targets, 30% hard targets
+
+        Args:
+            teacher_model: Large, pre-trained model
+            student_model: Smaller model to train
+            temperature: Softening parameter for distributions
+            alpha: Weight for soft target loss (1-alpha for hard targets)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement KnowledgeDistillation.__init__")
+        ### END SOLUTION
+
+    def distillation_loss(self, student_logits, teacher_logits, true_labels):
+        """
+        Calculate combined distillation loss.
+
+        TODO: Implement knowledge distillation loss function
+
+        APPROACH:
+        1. Calculate hard target loss (student vs true labels)
+        2. Calculate soft target loss (student vs teacher, with temperature)
+        3. Combine losses: alpha * soft_loss + (1-alpha) * hard_loss
+
+        EXAMPLE:
+        >>> kd = KnowledgeDistillation(teacher, student)
+        >>> loss = kd.distillation_loss(student_out, teacher_out, labels)
+        >>> print(f"Distillation loss: {loss:.4f}")
+
+        HINTS:
+        - Use temperature to soften distributions: logits/temperature
+        - Soft targets use KL divergence or cross-entropy
+        - Hard targets use standard classification loss
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement KnowledgeDistillation.distillation_loss")
+        ### END SOLUTION
+
+    def _softmax(self, logits):
+        """Compute softmax with numerical stability."""
+        exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+        return exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
+
+    def _kl_divergence(self, p, q):
+        """Compute KL divergence between distributions."""
+        return np.sum(p * np.log(p / (q + 1e-8) + 1e-8))
+
+    def _cross_entropy(self, predictions, labels):
+        """Compute cross-entropy loss."""
+        # Simple implementation for integer labels
+        if labels.ndim == 1:
+            return -np.mean(np.log(predictions[np.arange(len(labels)), labels] + 1e-8))
+        else:
+            return -np.mean(np.sum(labels * np.log(predictions + 1e-8), axis=1))
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class KnowledgeDistillation:
     """
     Knowledge distillation for model compression.
@@ -1279,6 +1511,38 @@ CLOUD SERVICE (Minimal compression):
 """
 
 # %% nbgrader={"grade": false, "grade_id": "compress-model-comprehensive", "solution": true}
+
+def compress_model(model, compression_config):
+    """
+    Apply comprehensive model compression based on configuration.
+
+    TODO: Implement complete compression pipeline
+
+    APPROACH:
+    1. Apply magnitude pruning if specified
+    2. Apply structured pruning if specified
+    3. Apply low-rank approximation if specified
+    4. Return compression statistics
+
+    EXAMPLE:
+    >>> config = {
+    ...     'magnitude_prune': 0.8,
+    ...     'structured_prune': 0.3,
+    ...     'low_rank': 0.5
+    ... }
+    >>> stats = compress_model(model, config)
+    >>> print(f"Final sparsity: {stats['sparsity']:.1f}%")
+    Final sparsity: 85.0%
+
+    HINT: Apply techniques sequentially and measure results
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement compress_model")
+    ### END SOLUTION
+
+# %% tags=["solution"]
+# Solution
+
 def compress_model(model, compression_config):
     """
     Apply comprehensive model compression based on configuration.

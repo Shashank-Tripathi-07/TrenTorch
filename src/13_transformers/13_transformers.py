@@ -444,7 +444,125 @@ Without normalization, deep networks suffer from "internal covariate shift" - th
 """
 
 # %% nbgrader={"grade": false, "grade_id": "layer-norm", "solution": true}
+
+
+class _LayerNormBackward(Function):
+    """
+    Gradient computation for the full layer normalization operation.
+
+    Computes gradients for x, gamma, and beta in one pass.
+    output = gamma * ((x - mean) / std) + beta
+
+    The gradient for x uses the standard LayerNorm formula:
+        dx = (gamma/std) * (grad - mean(grad) - normalized * mean(grad * normalized))
+    """
+
+    def __init__(self, x, gamma, beta, normalized_data, std_data):
+        """Initialize with forward pass values needed for gradient computation."""
+        super().__init__(x, gamma, beta)
+        self.normalized_data = normalized_data
+        self.std_data = std_data
+
+    def apply(self, grad_output):
+        """Compute gradients for LayerNorm (x, gamma, beta)."""
+        x, gamma, beta = self.saved_tensors
+
+        grad_x = grad_gamma = grad_beta = None
+        normalized = self.normalized_data
+        std_data = self.std_data
+
+        # Gradient for beta: sum over all dims except last
+        if isinstance(beta, Tensor) and beta.requires_grad:
+            # Sum over batch and sequence dimensions
+            grad_beta = grad_output.copy()
+            while grad_beta.ndim > 1:
+                grad_beta = grad_beta.sum(axis=0)
+
+        # Gradient for gamma: sum of (grad_output * normalized) over batch/seq dims
+        if isinstance(gamma, Tensor) and gamma.requires_grad:
+            grad_gamma = (grad_output * normalized).copy()
+            while grad_gamma.ndim > 1:
+                grad_gamma = grad_gamma.sum(axis=0)
+
+        # Gradient for x: full LayerNorm backward formula
+        if isinstance(x, Tensor) and x.requires_grad:
+            # grad flowing through gamma: grad_output * gamma
+            gamma_data = gamma.data if isinstance(gamma, Tensor) else gamma
+            grad_norm = grad_output * gamma_data
+
+            mean_grad = np.mean(grad_norm, axis=-1, keepdims=True)
+            mean_grad_norm = np.mean(grad_norm * normalized, axis=-1, keepdims=True)
+            grad_x = (1.0 / std_data) * (grad_norm - mean_grad - normalized * mean_grad_norm)
+
+        return (grad_x, grad_gamma, grad_beta)
+
+
+class LayerNorm:
+    """
+    Layer Normalization for transformer blocks.
+
+    Normalizes across the feature dimension (last axis) for each sample independently,
+    unlike batch normalization which normalizes across the batch dimension.
+    """
+
+    def __init__(self, normalized_shape, eps=1e-5):
+        """
+        Initialize LayerNorm with learnable parameters.
+
+        TODO: Set up normalization parameters
+
+        APPROACH:
+        1. Store the shape to normalize over (usually embed_dim)
+        2. Initialize learnable scale (gamma) and shift (beta) parameters
+        3. Set small epsilon for numerical stability
+
+        EXAMPLE:
+        >>> ln = LayerNorm(512)  # For 512-dimensional embeddings
+        >>> x = Tensor(rng.standard_normal((2, 10, 512)))  # (batch, seq, features)
+        >>> normalized = ln.forward(x)
+        >>> # Each (2, 10) sample normalized independently across 512 features
+
+        HINTS:
+        - gamma should start at 1.0 (identity scaling)
+        - beta should start at 0.0 (no shift)
+        - eps prevents division by zero in variance calculation
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement LayerNorm.__init__")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Apply layer normalization.
+
+        TODO: Implement layer normalization formula
+
+        APPROACH:
+        1. Compute mean and variance across the last dimension
+        2. Normalize: (x - mean) / sqrt(variance + eps)
+        3. Apply learnable scale and shift: gamma * normalized + beta
+
+        MATHEMATICAL FORMULA:
+        y = (x - μ) / σ * γ + β
+        where μ = mean(x), σ = sqrt(var(x) + ε)
+
+        HINT: Use keepdims=True to maintain tensor dimensions for broadcasting
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement LayerNorm.forward")
+        ### END SOLUTION
+
+    def __call__(self, x):
+        """Allows the layer norm to be called like a function."""
+        return self.forward(x)
+
+    def parameters(self):
+        """Return learnable parameters."""
+        return [self.gamma, self.beta]
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 
 class _LayerNormBackward(Function):
@@ -712,7 +830,73 @@ GELU is smoother and provides better gradients for language modeling.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "mlp", "solution": true}
+
+class MLP:
+    """
+    Multi-Layer Perceptron (Feed-Forward Network) for transformer blocks.
+
+    Standard pattern: Linear -> GELU -> Linear with expansion ratio of 4:1.
+    This provides the non-linear transformation in each transformer block.
+    """
+
+    def __init__(self, embed_dim, hidden_dim=None, dropout_prob=0.1):
+        """
+        Initialize MLP with two linear layers.
+
+        TODO: Set up the feed-forward network layers
+
+        APPROACH:
+        1. First layer expands from embed_dim to hidden_dim (usually 4x larger)
+        2. Second layer projects back to embed_dim
+        3. Use GELU activation (smoother than ReLU, preferred in transformers)
+
+        EXAMPLE:
+        >>> mlp = MLP(512)  # Will create 512 -> 2048 -> 512 network
+        >>> x = Tensor(rng.standard_normal((2, 10, 512)))
+        >>> output = mlp.forward(x)
+        >>> assert output.shape == (2, 10, 512)
+
+        HINT: Standard transformer MLP uses 4x expansion (hidden_dim = 4 * embed_dim)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MLP.__init__")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through MLP.
+
+        TODO: Implement the feed-forward computation
+
+        APPROACH:
+        1. First linear transformation: embed_dim -> hidden_dim
+        2. Apply GELU activation (smooth, differentiable)
+        3. Second linear transformation: hidden_dim -> embed_dim
+
+        COMPUTATION FLOW:
+        x -> Linear -> GELU -> Linear -> output
+
+        HINT: GELU activation is implemented above as a function
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MLP.forward")
+        ### END SOLUTION
+
+    def __call__(self, x):
+        """Allows the MLP to be called like a function."""
+        return self.forward(x)
+
+    def parameters(self):
+        """Return all learnable parameters."""
+        params = []
+        params.extend(self.linear1.parameters())
+        params.extend(self.linear2.parameters())
+        return params
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class MLP:
     """
     Multi-Layer Perceptron (Feed-Forward Network) for transformer blocks.
@@ -935,7 +1119,84 @@ Each layer adds information to this stream rather than replacing it, creating a 
 """
 
 # %% nbgrader={"grade": false, "grade_id": "transformer-block", "solution": true}
+
+class TransformerBlock:
+    """
+    Complete Transformer Block with self-attention, MLP, and residual connections.
+
+    This is the core building block of GPT and other transformer models.
+    Each block processes the input sequence and passes it to the next block.
+    """
+
+    def __init__(self, embed_dim, num_heads, mlp_ratio=4, ff_dim=None, dropout_prob=0.1):
+        """
+        Initialize a complete transformer block.
+
+        TODO: Set up all components of the transformer block
+
+        APPROACH:
+        1. Multi-head self-attention for sequence modeling
+        2. First layer normalization (pre-norm architecture)
+        3. MLP with specified expansion ratio (or explicit ff_dim)
+        4. Second layer normalization
+
+        TRANSFORMER BLOCK ARCHITECTURE:
+        x → LayerNorm → MultiHeadAttention → + (residual) →
+            LayerNorm → MLP → + (residual) → output
+
+        EXAMPLE:
+        >>> block = TransformerBlock(embed_dim=512, num_heads=8)
+        >>> x = Tensor(rng.standard_normal((2, 10, 512)))  # (batch, seq, embed)
+        >>> output = block.forward(x)
+        >>> assert output.shape == (2, 10, 512)
+
+        HINT: We use pre-norm architecture (LayerNorm before attention/MLP)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement TransformerBlock.__init__")
+        ### END SOLUTION
+
+    def forward(self, x, mask=None):
+        """
+        Forward pass through transformer block.
+
+        TODO: Implement the complete transformer block computation
+
+        APPROACH:
+        1. Apply layer norm, then self-attention, then add residual
+        2. Apply layer norm, then MLP, then add residual
+        3. Return the transformed sequence
+
+        COMPUTATION FLOW:
+        x → ln1 → attention → + x → ln2 → mlp → + → output
+
+        RESIDUAL CONNECTIONS:
+        These are crucial for training deep networks - they allow gradients
+        to flow directly through the network during backpropagation.
+
+        HINT: Store intermediate results to add residual connections properly
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement TransformerBlock.forward")
+        ### END SOLUTION
+
+    def __call__(self, x, mask=None):
+        """Allows the transformer block to be called like a function."""
+        return self.forward(x, mask)
+
+    def parameters(self):
+        """Return all learnable parameters."""
+        params = []
+        params.extend(self.attention.parameters())
+        params.extend(self.ln1.parameters())
+        params.extend(self.ln2.parameters())
+        params.extend(self.mlp.parameters())
+        return params
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class TransformerBlock:
     """
     Complete Transformer Block with self-attention, MLP, and residual connections.
@@ -1245,7 +1506,148 @@ GPT-4 (estimated):
 """
 
 # %% nbgrader={"grade": false, "grade_id": "gpt", "solution": true}
+
+class GPT:
+    """
+    Complete GPT (Generative Pre-trained Transformer) model.
+
+    This combines embeddings, positional encoding, multiple transformer blocks,
+    and a language modeling head for text generation.
+    """
+
+    def __init__(self, vocab_size, embed_dim, num_layers, num_heads, max_seq_len=1024):
+        """
+        Initialize complete GPT model.
+
+        TODO: Set up all components of the GPT architecture
+
+        APPROACH:
+        1. Token embedding layer to convert tokens to vectors
+        2. Positional embedding to add position information
+        3. Stack of transformer blocks (the main computation)
+        4. Final layer norm and language modeling head
+
+        GPT ARCHITECTURE:
+        tokens → embedding → + pos_embedding →
+                transformer_blocks → layer_norm → lm_head → logits
+
+        EXAMPLE:
+        >>> model = GPT(vocab_size=1000, embed_dim=256, num_layers=6, num_heads=8)
+        >>> tokens = Tensor(rng.integers(0, 1000, (2, 10)))  # (batch, seq)
+        >>> logits = model.forward(tokens)
+        >>> assert logits.shape == (2, 10, 1000)  # (batch, seq, vocab)
+
+        HINTS:
+        - Positional embeddings are learned, not fixed sinusoidal
+        - Final layer norm stabilizes training
+        - Language modeling head is a separate Linear(embed_dim, vocab_size) layer
+          (weight tying with the token embedding is a production optimization not implemented here)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement GPT.__init__")
+        ### END SOLUTION
+
+    def forward(self, tokens):
+        """
+        Forward pass through GPT model.
+
+        TODO: Implement the complete GPT forward pass
+
+        APPROACH:
+        1. Get token embeddings and positional embeddings
+        2. Add them together (broadcasting handles different shapes)
+        3. Pass through all transformer blocks sequentially
+        4. Apply final layer norm and language modeling head
+
+        COMPUTATION FLOW:
+        tokens → embed + pos_embed → blocks → ln_f → lm_head → logits
+
+        CAUSAL MASKING:
+        For autoregressive generation, we need to prevent tokens from
+        seeing future tokens. This is handled by the attention mask.
+
+        HINT: Create position indices as range(seq_len) for positional embedding
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement GPT.forward")
+        ### END SOLUTION
+
+    def __call__(self, tokens):
+        """Allows the GPT model to be called like a function."""
+        return self.forward(tokens)
+
+    def _create_causal_mask(self, seq_len):
+        """Create causal mask to prevent attending to future positions."""
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement GPT._create_causal_mask")
+        ### END SOLUTION
+
+    def _sample_next_token(self, logits, temperature=1.0):
+        """
+        Sample one token from vocabulary logits using temperature scaling.
+
+        TODO: Implement temperature-controlled token sampling
+
+        APPROACH:
+        1. Scale logits by temperature (higher = more random)
+        2. Apply softmax to get probabilities (subtract max for numerical stability)
+        3. Sample one token index from the probability distribution
+
+        EXAMPLE:
+        >>> logits = np.array([[1.0, 2.0, 3.0]])  # Raw model output
+        >>> token = model._sample_next_token(logits, temperature=1.0)
+        >>> assert 0 <= token < 3  # Valid token index
+
+        HINT: Use np.exp(x - max(x)) / sum(np.exp(x - max(x))) for stable softmax
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement GPT._sample_next_token")
+        ### END SOLUTION
+
+    def generate(self, prompt_tokens, max_new_tokens=50, temperature=1.0):
+        """
+        Generate text autoregressively by repeatedly sampling next tokens.
+
+        TODO: Implement the autoregressive generation loop
+
+        APPROACH:
+        1. Start with prompt tokens
+        2. For each new position:
+           - Run forward pass to get logits
+           - Extract last-position logits (next token prediction)
+           - Call _sample_next_token to pick the next token
+           - Append to sequence
+        3. Return generated sequence
+
+        EXAMPLE:
+        >>> model = GPT(vocab_size=100, embed_dim=64, num_layers=2, num_heads=4)
+        >>> prompt = Tensor([[1, 2, 3]])  # Some token sequence
+        >>> generated = model.generate(prompt, max_new_tokens=5)
+        >>> assert generated.shape[1] == 3 + 5  # original + new tokens
+
+        HINT: Use self._sample_next_token(last_logits, temperature) for sampling
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement GPT.generate")
+        ### END SOLUTION
+
+    def parameters(self):
+        """Return all learnable parameters."""
+        params = []
+        params.extend(self.embedding_layer.parameters())
+
+        for block in self.blocks:
+            params.extend(block.parameters())
+
+        params.extend(self.ln_f.parameters())
+        params.extend(self.lm_head.parameters())
+
+        return params
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class GPT:
     """
     Complete GPT (Generative Pre-trained Transformer) model.

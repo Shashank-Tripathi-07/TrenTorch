@@ -290,7 +290,75 @@ essential — standard indexing would overwrite instead of accumulating.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "embedding-backward", "solution": true}
+
+class EmbeddingBackward(Function):
+    """
+    Gradient computation for embedding lookup operation.
+
+    **Mathematical Rule:** If Y = Embedding[indices], then:
+    - ∂Loss/∂Embedding[i] = sum of all gradients where index==i
+
+    Embedding lookup is a gather operation. The backward
+    is a scatter operation that accumulates gradients to the embedding weights.
+    """
+
+    def __init__(self, weight, indices):
+        """
+        Args:
+            weight: Embedding weight matrix
+            indices: Indices used for lookup
+        """
+        super().__init__(weight)
+        self.indices = indices
+
+    def apply(self, grad_output):
+        """
+        Compute gradient for embedding lookup.
+
+        Args:
+            grad_output: Gradient flowing backward from output
+
+        Returns:
+            Tuple with single gradient for weight tensor
+
+        **Mathematical Foundation:**
+        - ∂(Embedding[indices])/∂Embedding = scatter gradients to selected rows
+        - Multiple indices can point to same embedding → gradients accumulate
+
+        TODO: Implement gradient computation for embedding lookup.
+
+        APPROACH:
+        1. Extract weight tensor from self.saved_tensors
+        2. Initialize grad_weight to None
+        3. If weight requires gradients:
+           - Create zeros array: grad_weight = np.zeros_like(weight.data)
+           - Flatten indices: indices_flat = self.indices.data.astype(int).flatten()
+           - Reshape grad_output: match flattened indices with embedding dimension
+           - Use np.add.at to accumulate gradients: np.add.at(grad_weight, indices_flat, grad_output_reshaped)
+        4. Return tuple (grad_weight,)
+
+        EXAMPLE:
+        >>> vocab = Tensor([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], requires_grad=True)  # 3 words, 2D
+        >>> indices = Tensor([0, 2, 0])  # Select words 0, 2, 0
+        >>> output = vocab[indices]  # [[0.1, 0.2], [0.5, 0.6], [0.1, 0.2]]
+        >>> # During backward: grad_output = [[1, 1], [1, 1], [1, 1]]
+        >>> # grad_vocab[0] accumulates twice: [1, 1] + [1, 1] = [2, 2]
+        >>> # grad_vocab[2] once: [1, 1]
+
+        HINTS:
+        - Embedding lookup is a gather operation; backward is scatter
+        - np.add.at accumulates gradients for repeated indices
+        - Reshape grad_output to match: (num_indices, embedding_dim)
+        - Return as single-element tuple: (grad_weight,)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement EmbeddingBackward.apply")
+        ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class EmbeddingBackward(Function):
     """
     Gradient computation for embedding lookup operation.
@@ -370,7 +438,79 @@ class EmbeddingBackward(Function):
         ### END SOLUTION
 
 # %% nbgrader={"grade": false, "grade_id": "embedding-init", "solution": true}
+
+class Embedding:
+    """
+    Learnable embedding layer that maps token indices to dense vectors.
+
+    This is the fundamental building block for converting discrete tokens
+    into continuous representations that neural networks can process.
+
+    We'll build this in two steps: first initialize the weight matrix,
+    then implement the forward lookup.
+    """
+
+    def __init__(self, vocab_size: int, embed_dim: int):
+        """
+        Initialize embedding layer with Xavier-uniform weights.
+
+        Args:
+            vocab_size: Size of vocabulary (number of unique tokens)
+            embed_dim: Dimension of embedding vectors
+
+        TODO: Initialize the embedding weight matrix
+
+        APPROACH:
+        1. Store vocab_size and embed_dim
+        2. Create weight matrix of shape (vocab_size, embed_dim)
+        3. Use Xavier/Glorot uniform initialization: limit = sqrt(6 / (V + D))
+
+        HINT: rng.uniform(-limit, limit, (vocab_size, embed_dim))
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Embedding.__init__")
+        ### END SOLUTION
+
+    def forward(self, indices: Tensor) -> Tensor:
+        """
+        Forward pass: lookup embeddings for given indices.
+
+        Args:
+            indices: Token indices of shape (batch_size, seq_len) or (seq_len,)
+
+        Returns:
+            Embedded vectors of shape (*indices.shape, embed_dim)
+
+        TODO: Implement embedding lookup with validation and gradient tracking
+
+        APPROACH:
+        1. Validate indices are within [0, vocab_size)
+        2. Perform lookup using numpy advanced indexing: weight[indices]
+        3. Attach EmbeddingBackward gradient function if weight requires grad
+
+        HINTS:
+        - Use self.weight.data[indices.data.astype(int)] for the lookup
+        - Attach result._grad_fn = EmbeddingBackward(self.weight, indices)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Embedding.forward")
+        ### END SOLUTION
+
+    def __call__(self, indices: Tensor) -> Tensor:
+        """Allows the embedding to be called like a function."""
+        return self.forward(indices)
+
+    def parameters(self) -> List[Tensor]:
+        """Return trainable parameters."""
+        return [self.weight]
+
+    def __repr__(self):
+        return f"Embedding(vocab_size={self.vocab_size}, embed_dim={self.embed_dim})"
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Embedding:
     """
     Learnable embedding layer that maps token indices to dense vectors.
@@ -594,7 +734,80 @@ Let's build trainable positional embeddings that can learn position-specific pat
 """
 
 # %% nbgrader={"grade": false, "grade_id": "positional-encoding-init", "solution": true}
+
+class PositionalEncoding:
+    """
+    Learnable positional encoding layer.
+
+    Adds trainable position-specific vectors to token embeddings,
+    allowing the model to learn positional patterns specific to the task.
+
+    We'll build this in two steps: initialize the position matrix,
+    then implement the forward pass that adds positions to embeddings.
+    """
+
+    def __init__(self, max_seq_len: int, embed_dim: int):
+        """
+        Initialize learnable positional encoding.
+
+        Args:
+            max_seq_len: Maximum sequence length to support
+            embed_dim: Embedding dimension (must match token embeddings)
+
+        TODO: Create the position embedding matrix
+
+        APPROACH:
+        1. Store max_seq_len and embed_dim
+        2. Create position_embeddings matrix of shape (max_seq_len, embed_dim)
+        3. Use smaller initialization than token embeddings (they're additive)
+
+        HINT: limit = sqrt(2.0 / embed_dim), then uniform(-limit, limit)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement PositionalEncoding.__init__")
+        ### END SOLUTION
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Add positional encodings to input embeddings.
+
+        Args:
+            x: Input embeddings of shape (batch_size, seq_len, embed_dim)
+
+        Returns:
+            Position-encoded embeddings of same shape
+
+        TODO: Validate input and add position embeddings
+
+        APPROACH:
+        1. Validate input is 3D with correct embed_dim and seq_len <= max
+        2. Slice position_embeddings[:seq_len] for variable-length support
+        3. Reshape to (1, seq_len, embed_dim) for batch broadcasting
+        4. Add to input embeddings
+
+        HINTS:
+        - pos_embeddings.data[np.newaxis, :, :] adds the batch dimension
+        - Use x + pos_embeddings_batched for element-wise addition
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement PositionalEncoding.forward")
+        ### END SOLUTION
+
+    def __call__(self, x: Tensor) -> Tensor:
+        """Allows the positional encoding to be called like a function."""
+        return self.forward(x)
+
+    def parameters(self) -> List[Tensor]:
+        """Return trainable parameters."""
+        return [self.position_embeddings]
+
+    def __repr__(self):
+        return f"PositionalEncoding(max_seq_len={self.max_seq_len}, embed_dim={self.embed_dim})"
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class PositionalEncoding:
     """
     Learnable positional encoding layer.
@@ -897,7 +1110,46 @@ Step 3: Outer product → angles     Step 4: Interleave sin/cos
 """
 
 # %% nbgrader={"grade": false, "grade_id": "posenc-sinusoidal-table", "solution": true}
+
+def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
+    """
+    Compute the raw sinusoidal positional encoding table as a numpy array.
+
+    This helper builds the (max_len, embed_dim) table of sin/cos values
+    using the formula from "Attention Is All You Need":
+      PE(pos, 2i)   = sin(pos / 10000^(2i/embed_dim))
+      PE(pos, 2i+1) = cos(pos / 10000^(2i/embed_dim))
+
+    TODO: Compute the sinusoidal table with alternating sin/cos columns
+
+    APPROACH:
+    1. Create position indices as column vector: (max_len, 1)
+    2. Compute frequency scaling (div_term) using exponential decay
+    3. Initialize zeros matrix of shape (max_len, embed_dim)
+    4. Fill even columns with sin(position * div_term)
+    5. Fill odd columns with cos(position * div_term)
+    6. Handle odd embed_dim gracefully
+
+    EXAMPLE:
+    >>> table = _compute_sinusoidal_table(4, 8)
+    >>> table.shape
+    (4, 8)
+    >>> table[0, 0]  # sin(0) = 0.0
+    0.0
+    >>> table[0, 1]  # cos(0) = 1.0
+    1.0
+
+    HINT: The div_term creates geometrically decreasing frequencies across
+    dimensions. Use np.exp with negative log(10000) scaling.
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement _compute_sinusoidal_table")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
     """
     Compute the raw sinusoidal positional encoding table as a numpy array.
@@ -1008,7 +1260,39 @@ ready for use in embedding pipelines.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "sinusoidal-function", "solution": true}
+
+def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
+    """
+    Create sinusoidal positional encodings as used in "Attention Is All You Need".
+
+    These fixed encodings use sine and cosine functions to create unique
+    positional patterns that don't require training and can extrapolate
+    to longer sequences than seen during training.
+
+    TODO: Use _compute_sinusoidal_table to build the encoding and wrap in Tensor
+
+    APPROACH:
+    1. Call _compute_sinusoidal_table(max_seq_len, embed_dim) for the raw table
+    2. Wrap the result in a Tensor and return
+
+    EXAMPLE:
+    >>> pe = create_sinusoidal_embeddings(512, 64)
+    >>> print(pe.shape)
+    (512, 64)
+    >>> # Position 0: [0, 1, 0, 1, 0, 1, ...] (sin(0)=0, cos(0)=1)
+    >>> # Each position gets unique trigonometric signature
+
+    HINT: The heavy lifting is done by _compute_sinusoidal_table. This function
+    just wraps the result as a Tensor for use in the embedding pipeline.
+    """
+
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement create_sinusoidal_embeddings")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
     """
@@ -1207,7 +1491,69 @@ EmbeddingLayer.__init__ assembles sub-components:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "emblayer-init", "solution": true}
+
+class EmbeddingLayer:
+    """
+    Complete embedding system combining token and positional embeddings.
+
+    This is the production-ready component that handles the full embedding
+    pipeline used in transformers and other sequence models.
+    """
+
+    def __init__(
+        self,
+        vocab_size: int,
+        embed_dim: int,
+        max_seq_len: int = 512,
+        pos_encoding: str = 'learned',
+        scale_embeddings: bool = False
+    ):
+        """
+        Initialize complete embedding system.
+
+        TODO: Create sub-components for token embedding and positional encoding
+
+        APPROACH:
+        1. Store configuration (vocab_size, embed_dim, max_seq_len, etc.)
+        2. Create token Embedding(vocab_size, embed_dim)
+        3. Based on pos_encoding argument, create the appropriate positional encoder:
+           - 'learned' -> PositionalEncoding(max_seq_len, embed_dim)
+           - 'sinusoidal' -> create_sinusoidal_embeddings(max_seq_len, embed_dim)
+           - None -> no positional encoding
+        4. Raise ValueError for unknown pos_encoding types
+
+        EXAMPLE:
+        >>> layer = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding='learned')
+        >>> layer.token_embedding  # Embedding(vocab_size=100, embed_dim=64)
+        >>> layer.pos_encoding     # PositionalEncoding(max_seq_len=512, embed_dim=64)
+
+        HINT: The pos_encoding parameter selects the strategy; each strategy
+        produces a different type of object stored in self.pos_encoding.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement EmbeddingLayer.__init__")
+        ### END SOLUTION
+
+    def __call__(self, tokens: Tensor) -> Tensor:
+        """Allows the embedding layer to be called like a function."""
+        return self.forward(tokens)
+
+    def parameters(self) -> List[Tensor]:
+        """Return all trainable parameters."""
+        params = self.token_embedding.parameters()
+        if self.pos_encoding_type == 'learned':
+            params.extend(self.pos_encoding.parameters())
+        return params
+
+    def __repr__(self):
+        return (f"EmbeddingLayer(vocab_size={self.vocab_size}, "
+                f"embed_dim={self.embed_dim}, "
+                f"pos_encoding='{self.pos_encoding_type}')")
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class EmbeddingLayer:
     """
     Complete embedding system combining token and positional embeddings.
@@ -1369,7 +1715,43 @@ EmbeddingLayer.forward pipeline:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "emblayer-forward", "solution": true}
+
+# Continue the EmbeddingLayer class with forward and utility methods
+def emblayer_forward(self, tokens: Tensor) -> Tensor:
+    """
+    Forward pass through complete embedding system.
+
+    TODO: Compose token embed + optional scaling + positional encoding
+
+    APPROACH:
+    1. Handle 1D input by reshaping to (1, seq_len)
+    2. Look up token embeddings via self.token_embedding.forward(tokens)
+    3. If scale_embeddings, multiply by sqrt(embed_dim)
+    4. Add positional encoding based on self.pos_encoding_type
+    5. Squeeze batch dim if it was added in step 1
+
+    EXAMPLE:
+    >>> layer = EmbeddingLayer(vocab_size=100, embed_dim=64)
+    >>> tokens = Tensor([[1, 2, 3], [4, 5, 6]])
+    >>> output = layer.forward(tokens)
+    >>> output.shape
+    (2, 3, 64)
+
+    HINTS:
+    - For sinusoidal PE, slice the table to seq_len and add a batch dim with np.newaxis
+    - For learned PE, just call self.pos_encoding.forward(token_embeds)
+    - Remember to squeeze the batch dim for 1D inputs at the end
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement emblayer_forward")
+    ### END SOLUTION
+
+# Attach forward to EmbeddingLayer class (other methods defined in class body above)
+EmbeddingLayer.forward = emblayer_forward
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 # Continue the EmbeddingLayer class with forward and utility methods
 def emblayer_forward(self, tokens: Tensor) -> Tensor:

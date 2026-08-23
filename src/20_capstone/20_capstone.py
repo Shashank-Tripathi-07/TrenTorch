@@ -373,7 +373,83 @@ Students can later apply this exact workflow to more sophisticated models (CNNs,
 """
 
 # %% nbgrader={"grade": false, "grade_id": "toy-model", "solution": true}
+
+class SimpleMLP:
+    """
+    Simple 2-layer MLP for benchmarking demonstration.
+
+    This is a toy model to demonstrate the benchmarking workflow.
+    Students can later apply the same workflow to milestone models.
+
+    Architecture:
+        Input → Linear(in, hidden) → ReLU → Linear(hidden, out) → Output
+
+    Why this design:
+    - Two layers: Enough to show optimization impact (quantization, pruning)
+    - ReLU activation: Common pattern students recognize
+    - Small by default: Fast benchmarking during development
+    - Configurable sizes: Can scale up for experiments
+    """
+    def __init__(self, input_size=10, hidden_size=20, output_size=3):
+        """
+        Initialize simple MLP with random weights.
+
+        TODO: Create a 2-layer MLP with ReLU activation
+
+        APPROACH:
+        1. Create fc1 Linear layer (input_size -> hidden_size)
+        2. Create ReLU activation
+        3. Create fc2 Linear layer (hidden_size -> output_size)
+        4. Initialize weights with small random values (scale 0.01)
+        5. Initialize biases to zeros
+
+        HINTS:
+        - Use Linear(in_features, out_features) for layers
+        - Weight shape is (in_features, out_features)
+        - Small initial weights (0.01 scale) help training stability
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement SimpleMLP.__init__")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through the network.
+
+        TODO: Implement forward pass through fc1 -> ReLU -> fc2
+
+        APPROACH:
+        1. Pass input through fc1 (first linear layer)
+        2. Apply ReLU activation
+        3. Pass through fc2 (second linear layer)
+        4. Return output
+
+        HINTS:
+        - Call layer.forward(x) for each layer
+        - Order matters: linear -> activation -> linear
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement SimpleMLP.forward")
+        ### END SOLUTION
+
+    def parameters(self):
+        """Return model parameters for perf."""
+        return [self.fc1.weight, self.fc1.bias, self.fc2.weight, self.fc2.bias]
+
+    def count_parameters(self):
+        """Count total number of parameters."""
+        total = 0
+        for param in self.parameters():
+            total += param.data.size
+        return total
+
+if __name__ == "__main__":
+    print("✅ SimpleMLP model defined")
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class SimpleMLP:
     """
     Simple 2-layer MLP for benchmarking demonstration.
@@ -510,7 +586,146 @@ The BenchmarkReport class encapsulates all benchmark results and provides method
 """
 
 # %% nbgrader={"grade": false, "grade_id": "benchmark-report", "solution": true}
+
+class BenchmarkReport:
+    """
+    Benchmark report for model performance.
+
+    Measures and stores:
+    - Model characteristics (parameters, size)
+    - Performance metrics (accuracy, latency, throughput)
+    - System context (platform, versions)
+    - Optimization info (techniques applied)
+
+    Usage:
+        report = BenchmarkReport(model_name="my_model")
+        report.benchmark_model(model, X_test, y_test, num_runs=100)
+        print(report.metrics)
+    """
+    def __init__(self, model_name="model"):
+        self.model_name = model_name
+        self.metrics = {}
+        self.system_info = self._get_system_info()
+        self.timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+
+    def _get_system_info(self):
+        """Collect system information for reproducibility."""
+        return {
+            'platform': platform.platform(),
+            'python_version': sys.version.split()[0],
+            'numpy_version': np.__version__
+        }
+
+    def benchmark_model(self, model, X_test, y_test, num_runs=100):
+        """
+        Benchmark model performance comprehensively.
+
+        Args:
+            model: Model to benchmark (must have .forward() and .count_parameters())
+            X_test: Test inputs (Tensor)
+            y_test: Test labels (numpy array of class indices)
+            num_runs: Number of inference runs for latency measurement (default: 100)
+
+        Returns:
+            Dictionary of metrics
+
+        Measurements:
+        1. Parameter count - Model capacity indicator
+        2. Model size (MB) - Deployment cost (assumes FP32)
+        3. Accuracy - Task performance (classification accuracy)
+        4. Latency (mean ± std) - Inference speed and consistency
+        5. Throughput - Maximum samples/second capacity
+        """
+        # Count parameters
+        param_count = model.count_parameters()
+        model_size_mb = (param_count * 4) / (1024 * 1024)  # Assuming FP32
+
+        # Measure accuracy
+        predictions = model.forward(X_test)
+        pred_labels = np.argmax(predictions.data, axis=1)
+        accuracy = np.mean(pred_labels == y_test)
+
+        # Measure latency (average over multiple runs)
+        # Why multiple runs? See "Variance" section in Foundations
+        latencies = []
+        for _ in range(num_runs):
+            start = time.time()
+            _ = model.forward(X_test[:1])  # Single sample inference
+            latencies.append((time.time() - start) * 1000)  # Convert to ms
+
+        avg_latency = np.mean(latencies)
+        std_latency = np.std(latencies)
+
+        # Store metrics (all as Python native types for JSON serialization)
+        self.metrics = {
+            'parameter_count': int(param_count),
+            'model_size_mb': float(model_size_mb),
+            'accuracy': float(accuracy),
+            'latency_ms_mean': float(avg_latency),
+            'latency_ms_std': float(std_latency),
+            # time.time()'s resolution is coarse enough (~15.6ms on Windows)
+            # that a fast forward pass can measure exactly 0.0 elapsed time;
+            # floor the denominator so throughput stays a large-but-finite
+            # positive number instead of raising ZeroDivisionError.
+            'throughput_samples_per_sec': float(1000 / max(avg_latency, 1e-6))
+        }
+
+        print(f"\n📊 Benchmark Results for {self.model_name}:")
+        print(f"  Parameters: {param_count:,}")
+        print(f"  Size: {model_size_mb:.2f} MB")
+        print(f"  Accuracy: {accuracy*100:.1f}%")
+        print(f"  Latency: {avg_latency:.2f}ms ± {std_latency:.2f}ms")
+
+        return self.metrics
+
+    def measure_latency(self, model, X_sample, num_runs=100):
+        """
+        Measure inference latency over multiple runs.
+
+        TODO: Time single-sample inference over multiple runs
+
+        APPROACH:
+        1. Run inference num_runs times
+        2. Measure each run with time.time()
+        3. Convert to milliseconds
+        4. Return list of latencies
+
+        HINTS:
+        - Use time.time() before and after model.forward()
+        - Multiply by 1000 to convert seconds to milliseconds
+        - Use X_sample[:1] for single-sample timing
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement BenchmarkReport.measure_latency")
+        ### END SOLUTION
+
+    def measure_memory(self, model):
+        """
+        Measure model memory footprint.
+
+        TODO: Calculate model size in MB assuming FP32 weights
+
+        APPROACH:
+        1. Count total parameters
+        2. Multiply by 4 bytes (FP32)
+        3. Convert to MB (divide by 1024*1024)
+
+        HINTS:
+        - model.count_parameters() gives total param count
+        - FP32 = 4 bytes per parameter
+        - 1 MB = 1024 * 1024 bytes
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement BenchmarkReport.measure_memory")
+        ### END SOLUTION
+
+if __name__ == "__main__":
+    print("✅ BenchmarkReport class defined")
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class BenchmarkReport:
     """
     Benchmark report for model performance.
@@ -1070,6 +1285,142 @@ This is the COMPLETE story: Profile → Optimize → Benchmark → Submit
 """
 
 # %% nbgrader={"grade": false, "grade_id": "optimization-workflow", "solution": true}
+
+def run_optimization_workflow_example():
+    """
+    Advanced example showing the complete optimization workflow.
+
+    This demonstrates:
+    1. Profiling baseline model (Module 14)
+    2. Applying optimizations (Modules 15, 16)
+    3. Benchmarking with best practices (Module 19)
+    4. Generating submission with before/after comparison
+
+    Students learn how to use TrenTorch as a complete framework!
+    """
+    print("="*70)
+    print("TRENTORCH CAPSTONE: OPTIMIZATION WORKFLOW")
+    print("="*70)
+    print("\nThis workflow demonstrates using Modules 14-19 together:")
+    print("  📊 Module 14: Profiling")
+    print("  🔢 Module 15: Quantization (optional - API imported for demonstration)")
+    print("  ✂️  Module 16: Compression (optional - API imported for demonstration)")
+    print("  ⚡ Module 17: Acceleration (optional - API imported for demonstration)")
+    print("  💾 Module 18: Memoization (optional - API imported for demonstration)")
+    print("  📈 Module 19: Benchmarking")
+    print("  📝 Module 20: Submission Generation")
+
+    # Demonstrate API imports (students can use these for their own optimizations)
+    print("\n🔧 Importing optimization APIs...")
+    try:
+        from trentorch.perf.profiling import Profiler, quick_profile
+        print("  ✅ Module 14 (Profiling) imported")
+    except ImportError:
+        print("  ⚠️  Module 14 (Profiling) not available - using basic profiling")
+        Profiler = None
+
+    try:
+        from trentorch.perf.compression import magnitude_prune, structured_prune
+        print("  ✅ Module 16 (Compression) imported")
+    except ImportError:
+        print("  ⚠️  Module 16 (Compression) not available - skipping pruning demo")
+        magnitude_prune = None
+
+    try:
+        from trentorch.perf.benchmarking import BenchmarkSuite, BenchmarkResult
+        print("  ✅ Module 19 (Benchmarking) imported")
+    except ImportError:
+        print("  ⚠️  Module 19 (Benchmarking) not available - using basic benchmarking")
+        BenchmarkSuite = None
+
+    # Step 1: Create dataset
+    print("\n" + "="*70)
+    print("STEP 1: Create Test Dataset")
+    print("="*70)
+    rng = np.random.default_rng(7)
+    X_test = Tensor(rng.standard_normal((100, 10)))
+    y_test = rng.integers(0, 3, 100)
+    print(f"  Dataset: {X_test.shape[0]} samples, {X_test.shape[1]} features, 3 classes")
+
+    # Step 2: Create and profile baseline model
+    print("\n" + "="*70)
+    print("STEP 2: Baseline Model - Profile & Benchmark")
+    print("="*70)
+    baseline_model = SimpleMLP(input_size=10, hidden_size=20, output_size=3)
+    print(f"  Model: {baseline_model.count_parameters():,} parameters")
+
+    # Benchmark baseline using BenchmarkReport
+    baseline_report = BenchmarkReport(model_name="baseline_mlp")
+    baseline_metrics = baseline_report.benchmark_model(baseline_model, X_test, y_test, num_runs=50)
+
+    # Optional: Demonstrate using Module 14's Profiler if available
+    if Profiler:
+        print("\n  📊 Optional: Using Module 14's Profiler for detailed analysis...")
+        profiler = Profiler()
+        # Note: Profiler integration would go here
+        # This demonstrates the API is available for students to use
+
+    # Step 3: (DEMO ONLY) Show optimization APIs available
+    print("\n" + "="*70)
+    print("STEP 3: Optimization APIs Available (Demo)")
+    print("="*70)
+    print("\n  📚 Students can apply these optimizations:")
+    print("     - Module 15: quantize_model(model, bits=8)")
+    print("     - Module 16: magnitude_prune(model, sparsity=0.5)")
+    print("     - Module 17: Use accelerated ops (vectorized_matmul, etc.)")
+    print("     - Module 18: enable_kv_cache(model)  # For transformers")
+    print("\n  💡 For this demo, we'll simulate an optimized model")
+    print("     (Students can replace this with real optimizations!)")
+
+    # Create "optimized" model (students would apply real optimizations here)
+    optimized_model = SimpleMLP(input_size=10, hidden_size=15, output_size=3)  # Smaller for demo
+    optimized_report = BenchmarkReport(model_name="optimized_mlp")
+    optimized_metrics = optimized_report.benchmark_model(optimized_model, X_test, y_test, num_runs=50)
+
+    # Step 4: Generate submission with before/after comparison
+    print("\n" + "="*70)
+    print("STEP 4: Generate Submission with Improvements")
+    print("="*70)
+
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement run_optimization_workflow_example")
+    ### END SOLUTION
+
+    # Display improvement summary
+    if 'improvements' in submission:
+        improvements = submission['improvements']
+        print("\n  📈 Optimization Results:")
+        print(f"     Speedup: {improvements['speedup']:.2f}x")
+        print(f"     Compression: {improvements['compression_ratio']:.2f}x")
+        print(f"     Accuracy change: {improvements['accuracy_delta']*100:+.1f}%")
+
+    # Step 5: Save submission
+    print("\n" + "="*70)
+    print("STEP 5: Save Submission")
+    print("="*70)
+    filepath = save_submission(submission, "optimization_submission.json")
+
+    print("\n" + "="*70)
+    print("🎉 OPTIMIZATION WORKFLOW COMPLETE!")
+    print("="*70)
+    print("\n📚 What students learned:")
+    print("  ✅ How to import and use optimization APIs from Modules 14-19")
+    print("  ✅ How to benchmark before and after optimization")
+    print("  ✅ How to generate professional submissions with improvement metrics")
+    print("  ✅ How TrenTorch modules work together as a complete framework")
+    print("\n💡 Next steps:")
+    print("  - Apply real optimizations (quantization, pruning, etc.)")
+    print("  - Benchmark milestone models (XOR, TinyDigits MLP/CNN, Transformer, etc.)")
+    print("  - Share your optimized results with the community!")
+
+    return submission
+
+if __name__ == "__main__":
+    print("✅ Optimization workflow example defined")
+
+# %% tags=["solution"]
+# Solution
+
 def run_optimization_workflow_example():
     """
     Advanced example showing the complete optimization workflow.

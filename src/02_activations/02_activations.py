@@ -209,7 +209,50 @@ Sigmoid Curve:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "sigmoid-impl", "solution": true}
+
+class Sigmoid:
+    """
+    Sigmoid activation: σ(x) = 1/(1 + e^(-x))
+
+    Maps any real number to (0, 1) range.
+    Perfect for probabilities and binary classification.
+    """
+
+    def parameters(self):
+        """Return empty list (activations have no learnable parameters)."""
+        return []
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Apply sigmoid activation element-wise.
+
+        TODO: Implement sigmoid function
+
+        APPROACH:
+        1. Apply sigmoid formula: 1 / (1 + exp(-x))
+        2. Use np.exp for exponential
+        3. Return result wrapped in new Tensor
+
+        EXAMPLE:
+        >>> sigmoid = Sigmoid()
+        >>> x = Tensor([-2, 0, 2])
+        >>> result = sigmoid(x)
+        >>> print(result.data)
+        [0.119, 0.5, 0.881]  # All values between 0 and 1
+
+        HINT: Use np.exp(-x.data) for numerical stability
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Sigmoid.forward")
+        ### END SOLUTION
+
+    def __call__(self, x: Tensor) -> Tensor:
+        """Allows the activation to be called like a function."""
+        return self.forward(x)
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 class Sigmoid:
     """
@@ -337,7 +380,50 @@ ReLU Function:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "relu-impl", "solution": true}
+
+class ReLU:
+    """
+    ReLU activation: f(x) = max(0, x)
+
+    Sets negative values to zero, keeps positive values unchanged.
+    Most popular activation for hidden layers.
+    """
+
+    def parameters(self):
+        """Return empty list (activations have no learnable parameters)."""
+        return []
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Apply ReLU activation element-wise.
+
+        TODO: Implement ReLU function
+
+        APPROACH:
+        1. Use np.maximum(0, x.data) for element-wise max with zero
+        2. Return result wrapped in new Tensor
+
+        EXAMPLE:
+        >>> relu = ReLU()
+        >>> x = Tensor([-2, -1, 0, 1, 2])
+        >>> result = relu(x)
+        >>> print(result.data)
+        [0, 0, 0, 1, 2]  # Negative values become 0, positive unchanged
+
+        HINT: np.maximum handles element-wise maximum automatically
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement ReLU.forward")
+        ### END SOLUTION
+
+    def __call__(self, x: Tensor) -> Tensor:
+        """Allows the activation to be called like a function."""
+        return self.forward(x)
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class ReLU:
     """
     ReLU activation: f(x) = max(0, x)
@@ -457,7 +543,50 @@ Tanh Curve:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "tanh-impl", "solution": true}
+
+class Tanh:
+    """
+    Tanh activation: f(x) = (e^x - e^(-x))/(e^x + e^(-x))
+
+    Maps any real number to (-1, 1) range.
+    Zero-centered alternative to sigmoid.
+    """
+
+    def parameters(self):
+        """Return empty list (activations have no learnable parameters)."""
+        return []
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Apply tanh activation element-wise.
+
+        TODO: Implement tanh function
+
+        APPROACH:
+        1. Use np.tanh(x.data) for hyperbolic tangent
+        2. Return result wrapped in new Tensor
+
+        EXAMPLE:
+        >>> tanh = Tanh()
+        >>> x = Tensor([-2, 0, 2])
+        >>> result = tanh(x)
+        >>> print(result.data)
+        [-0.964, 0.0, 0.964]  # Range (-1, 1), symmetric around 0
+
+        HINT: NumPy provides np.tanh function
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tanh.forward")
+        ### END SOLUTION
+
+    def __call__(self, x: Tensor) -> Tensor:
+        """Allows the activation to be called like a function."""
+        return self.forward(x)
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Tanh:
     """
     Tanh activation: f(x) = (e^x - e^(-x))/(e^x + e^(-x))
@@ -593,7 +722,52 @@ GELU Function:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "gelu-impl", "solution": true}
+
+class GELU:
+    """
+    GELU activation: f(x) = x * Φ(x) ≈ x * Sigmoid(1.702 * x)
+
+    Smooth approximation to ReLU, used in modern architectures.
+    Where Φ(x) is the cumulative distribution function of standard normal.
+    """
+
+    def parameters(self):
+        """Return empty list (activations have no learnable parameters)."""
+        return []
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Apply GELU activation element-wise.
+
+        TODO: Implement GELU approximation
+
+        APPROACH:
+        1. Use approximation: x * sigmoid(1.702 * x)
+        2. Compute sigmoid part: 1 / (1 + exp(-1.702 * x))
+        3. Multiply by x element-wise
+        4. Return result wrapped in new Tensor
+
+        EXAMPLE:
+        >>> gelu = GELU()
+        >>> x = Tensor([-1, 0, 1])
+        >>> result = gelu(x)
+        >>> print(result.data)
+        [-0.15, 0.0, 0.85]  # Smooth, like ReLU but differentiable everywhere
+
+        HINT: The 1.702 constant is empirically fitted so that sigmoid(1.702x) ≈ Φ(x)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement GELU.forward")
+        ### END SOLUTION
+
+    def __call__(self, x: Tensor) -> Tensor:
+        """Allows the activation to be called like a function."""
+        return self.forward(x)
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class GELU:
     """
     GELU activation: f(x) = x * Φ(x) ≈ x * Sigmoid(1.702 * x)
@@ -713,7 +887,56 @@ Raw scores: [1, 2, 3, 4]
 """
 
 # %% nbgrader={"grade": false, "grade_id": "softmax-impl", "solution": true}
+
+class Softmax:
+    """
+    Softmax activation: f(x_i) = e^(x_i) / Σ(e^(x_j))
+
+    Converts any vector to a probability distribution.
+    Sum of all outputs equals 1.0.
+    """
+
+    def parameters(self):
+        """Return empty list (activations have no learnable parameters)."""
+        return []
+
+    def forward(self, x: Tensor, dim: int = -1) -> Tensor:
+        """
+        Apply softmax activation along specified dimension.
+
+        TODO: Implement numerically stable softmax
+
+        APPROACH:
+        1. Subtract max for numerical stability: x - max(x)
+        2. Compute exponentials: exp(x - max(x))
+        3. Sum along dimension: sum(exp_values)
+        4. Divide: exp_values / sum
+        5. Return result wrapped in new Tensor
+
+        EXAMPLE:
+        >>> softmax = Softmax()
+        >>> x = Tensor([1, 2, 3])
+        >>> result = softmax(x)
+        >>> print(result.data)
+        [0.090, 0.245, 0.665]  # Sums to 1.0, larger inputs get higher probability
+
+        HINTS:
+        - Use np.max(x.data, axis=dim, keepdims=True) for max
+        - Use np.sum(exp_values, axis=dim, keepdims=True) for sum
+        - The max subtraction prevents overflow in exponentials
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Softmax.forward")
+        ### END SOLUTION
+
+    def __call__(self, x: Tensor, dim: int = -1) -> Tensor:
+        """Allows the activation to be called like a function."""
+        return self.forward(x, dim)
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Softmax:
     """
     Softmax activation: f(x_i) = e^(x_i) / Σ(e^(x_j))

@@ -257,7 +257,453 @@ Tensor wraps with: shape=(2,3), size=6, dtype=float32
 """
 
 # %% nbgrader={"grade": false, "grade_id": "tensor-class", "solution": true}
+
+class Tensor:
+    """Educational tensor - the foundation of machine learning computation.
+
+    This class provides the core data structure for all ML operations:
+    - data: The actual numerical values (NumPy array)
+    - shape: Dimensions of the tensor
+    - ndim: Number of dimensions (0=scalar, 1=vector, 2=matrix, ...)
+    - size: Total number of elements
+    - dtype: Data type (float32)
+
+    All arithmetic, matrix, and shape operations are built on this foundation.
+    """
+
+    def __init__(self, data):
+        """Create a new tensor from data.
+
+        TODO: Initialize a Tensor by wrapping data in a NumPy array and setting attributes.
+
+        APPROACH:
+        1. Convert data to NumPy array with dtype=float32
+        2. Store the array as self.data
+        3. Set self.shape from the array's shape
+        4. Set self.size from the array's size
+        5. Set self.dtype from the array's dtype
+        EXAMPLE:
+        >>> t = Tensor([1, 2, 3])
+        >>> print(t.shape)
+        (3,)
+        >>> print(t.size)
+        3
+
+        HINT: Use np.array(data, dtype=np.float32) to convert data to NumPy array
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.__init__")
+        ### END SOLUTION
+
+    def __repr__(self):
+        """String representation of tensor for debugging."""
+        return f"Tensor(data={self.data}, shape={self.shape})"
+
+    def __str__(self):
+        """Human-readable string representation."""
+        return f"Tensor({self.data})"
+
+    def numpy(self):
+        """Return the underlying NumPy array."""
+        return self.data
+
+    def memory_footprint(self):
+        """Calculate exact memory usage in bytes.
+
+        Systems Concept: Understanding memory footprint is fundamental to ML systems.
+        Before running any operation, engineers should know how much memory it requires.
+
+        Returns:
+            int: Memory usage in bytes (e.g., 1000x1000 float32 = 4MB)
+        """
+        return self.data.nbytes
+
+    @property
+    def ndim(self):
+        """Number of tensor dimensions (0=scalar, 1=vector, 2=matrix, ...)."""
+        return len(self.shape)
+
+    def numel(self):
+        """Return total number of elements (PyTorch-compatible)."""
+        return self.size
+
+    def contiguous(self):
+        """Return a contiguous copy of the tensor data (PyTorch-compatible)."""
+        return Tensor(np.ascontiguousarray(self.data))
+
+    def view(self, *shape):
+        """Alias for reshape, matching PyTorch's Tensor.view() for contiguous tensors."""
+        return self.reshape(*shape)
+
+    def masked_fill(self, mask, value):
+        """Fill positions where mask is True with value, matching PyTorch's masked_fill.
+
+        Used in transformer attention to set padding positions to -inf before softmax.
+
+        Args:
+            mask:  A Tensor or numpy array of booleans, same shape as self (or broadcastable).
+            value: Scalar fill value (e.g. float('-inf') for attention masking).
+
+        Returns:
+            New Tensor with masked positions replaced by value.
+        """
+        mask_array = mask.data.astype(bool) if isinstance(mask, Tensor) else np.asarray(mask, dtype=bool)
+        result = self.data.copy()
+        result[mask_array] = value
+        return Tensor(result)
+
+    def __add__(self, other):
+        """Add two tensors element-wise with broadcasting support.
+
+        TODO: Implement element-wise addition that works with both Tensors and scalars.
+
+        APPROACH:
+        1. Check if other is a Tensor (use isinstance)
+        2. If Tensor: add self.data + other.data
+        3. If scalar: add self.data + other (broadcasting)
+        4. Wrap result in new Tensor
+
+        EXAMPLE:
+        >>> a = Tensor([1, 2, 3])
+        >>> b = Tensor([4, 5, 6])
+        >>> c = a + b
+        >>> print(c.data)
+        [5. 7. 9.]
+
+        HINT: NumPy's + operator handles broadcasting automatically
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.__add__")
+        ### END SOLUTION
+
+    def __radd__(self, other):
+        """Support natural scalar arithmetic: scalar + tensor."""
+        return self.__add__(other)
+
+    def __sub__(self, other):
+        """Subtract two tensors element-wise.
+
+        TODO: Implement element-wise subtraction (same pattern as __add__).
+
+        APPROACH:
+        1. Check if other is a Tensor
+        2. If Tensor: subtract self.data - other.data
+        3. If scalar: subtract self.data - other
+        4. Return new Tensor with result
+
+        EXAMPLE:
+        >>> a = Tensor([5, 7, 9])
+        >>> b = Tensor([1, 2, 3])
+        >>> c = a - b
+        >>> print(c.data)
+        [4. 5. 6.]
+
+        HINT: Follow the same pattern as __add__ but with subtraction
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.__sub__")
+        ### END SOLUTION
+
+    def __rsub__(self, other):
+        """Support natural scalar arithmetic: scalar - tensor."""
+        if isinstance(other, Tensor):
+            return Tensor(other.data - self.data)
+        return Tensor(other - self.data)
+
+    def __mul__(self, other):
+        """Multiply two tensors element-wise (NOT matrix multiplication).
+
+        TODO: Implement element-wise multiplication (same pattern as __add__).
+
+        APPROACH:
+        1. Check if other is a Tensor
+        2. If Tensor: multiply self.data * other.data
+        3. If scalar: multiply self.data * other
+        4. Return new Tensor with result
+
+        EXAMPLE:
+        >>> a = Tensor([1, 2, 3])
+        >>> b = Tensor([4, 5, 6])
+        >>> c = a * b
+        >>> print(c.data)
+        [ 4. 10. 18.]
+
+        HINT: Element-wise multiplication is *, not matrix multiplication (@)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.__mul__")
+        ### END SOLUTION
+
+    def __rmul__(self, other):
+        """Support natural scalar arithmetic: scalar * tensor."""
+        return self.__mul__(other)
+
+    def __truediv__(self, other):
+        """Divide two tensors element-wise.
+
+        TODO: Implement element-wise division (same pattern as __add__).
+
+        APPROACH:
+        1. Check if other is a Tensor
+        2. If Tensor: divide self.data / other.data
+        3. If scalar: divide self.data / other
+        4. Return new Tensor with result
+
+        EXAMPLE:
+        >>> a = Tensor([4, 6, 8])
+        >>> b = Tensor([2, 2, 2])
+        >>> c = a / b
+        >>> print(c.data)
+        [2. 3. 4.]
+
+        HINT: Division creates float results automatically due to float32 dtype
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.__truediv__")
+        ### END SOLUTION
+
+    def __rtruediv__(self, other):
+        """Support natural scalar arithmetic: scalar / tensor."""
+        if isinstance(other, Tensor):
+            return Tensor(other.data / self.data)
+        return Tensor(other / self.data)
+
+    def _validate_matmul_shapes(self, other):
+        """Validate that two tensors are compatible for matrix multiplication.
+
+        This helper checks three conditions before any computation begins:
+        1. The other operand must be a Tensor (not a plain number or array)
+        2. Neither operand can be a 0D scalar (scalars use * instead)
+        3. For 2D+ tensors, the inner dimensions must align
+
+        TODO: Implement the three validation checks for matrix multiplication.
+
+        APPROACH:
+        1. Check isinstance(other, Tensor) - raise TypeError if not
+        2. Check both tensors are at least 1D - raise ValueError if 0D
+        3. For 2D+ tensors, check self.shape[-1] == other.shape[-2]
+
+        EXAMPLE:
+        >>> a = Tensor([[1, 2], [3, 4]])  # 2x2
+        >>> b = Tensor([[5, 6], [7, 8]])  # 2x2
+        >>> a._validate_matmul_shapes(b)  # No error - shapes are compatible
+        >>> c = Tensor([[1, 2, 3]])        # 1x3
+        >>> d = Tensor([[1], [2]])         # 2x1
+        >>> c._validate_matmul_shapes(d)   # ValueError - 3 != 2
+
+        HINT: Use len(tensor.shape) to check dimensionality and tensor.shape[-1]
+        to access the last dimension.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor._validate_matmul_shapes")
+        ### END SOLUTION
+
+    def matmul(self, other):
+        """Matrix multiplication of two tensors.
+
+        Validates shapes via _validate_matmul_shapes, then computes the product.
+        For 2D matrices, uses explicit nested loops so you can see exactly how
+        each output element is a dot product of a row and a column. For batched
+        (3D+) inputs, delegates to np.matmul.
+
+        TODO: Validate inputs with _validate_matmul_shapes, then compute the
+        matrix product using explicit loops for 2D and np.matmul for 3D+.
+
+        APPROACH:
+        1. Call self._validate_matmul_shapes(other) to check compatibility
+        2. For 2D matrices: use explicit nested loops with np.dot per element
+        3. For batched (3D+): use np.matmul for correctness
+        4. Return result wrapped in Tensor
+
+        EXAMPLE:
+        >>> a = Tensor([[1, 2], [3, 4]])  # 2x2
+        >>> b = Tensor([[5, 6], [7, 8]])  # 2x2
+        >>> c = a.matmul(b)
+        >>> print(c.data)
+        [[19. 22.]
+         [43. 50.]]
+
+        HINTS:
+        - Inner dimensions must match: (M, K) @ (K, N) = (M, N)
+        - For 2D case: use np.dot(a[i, :], b[:, j]) for each output element
+        - The validation helper already handles all error cases
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.matmul")
+        ### END SOLUTION
+
+    def __matmul__(self, other):
+        """Enable @ operator for matrix multiplication."""
+        return self.matmul(other)
+
+    def __getitem__(self, key):
+        """Enable indexing and slicing operations on Tensors.
+
+        TODO: Implement indexing and slicing that returns a new Tensor.
+
+        APPROACH:
+        1. Use NumPy indexing: self.data[key]
+        2. If result is not an ndarray, wrap in np.array
+        3. Return result wrapped in new Tensor
+
+        EXAMPLE:
+        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])
+        >>> row = t[0]  # First row
+        >>> print(row.data)
+        [1. 2. 3.]
+        >>> element = t[0, 1]  # Single element
+        >>> print(element.data)
+        2.0
+
+        HINT: NumPy's indexing already handles all complex cases (slicing, fancy indexing)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.__getitem__")
+        ### END SOLUTION
+
+    def reshape(self, *shape):
+        """Reshape tensor to new dimensions.
+
+        TODO: Reshape tensor while preserving total element count.
+
+        APPROACH:
+        1. Handle both reshape(2, 3) and reshape((2, 3)) calling styles
+        2. If -1 in shape, infer that dimension from total size
+        3. Validate total elements match: np.prod(new_shape) == self.size
+        4. Use np.reshape to create new view
+        5. Return result wrapped in new Tensor
+
+        EXAMPLE:
+        >>> t = Tensor([1, 2, 3, 4, 5, 6])
+        >>> reshaped = t.reshape(2, 3)
+        >>> print(reshaped.data)
+        [[1. 2. 3.]
+         [4. 5. 6.]]
+        >>> auto = t.reshape(2, -1)  # Infers -1 as 3
+        >>> print(auto.shape)
+        (2, 3)
+
+        HINTS:
+        - Use isinstance(shape[0], (tuple, list)) to detect tuple input
+        - For -1: unknown_dim = self.size // known_size
+        - Raise ValueError if total elements don't match
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.reshape")
+        ### END SOLUTION
+
+    def transpose(self, dim0=None, dim1=None):
+        """Transpose tensor dimensions.
+
+        TODO: Swap tensor dimensions (default: swap last two dimensions).
+
+        APPROACH:
+        1. If no dims specified: swap last two dimensions (most common case)
+        2. For 1D tensors: return copy (no transpose needed)
+        3. If both dims specified: swap those specific dimensions
+        4. Use np.transpose with axes list to perform the swap
+        5. Return result wrapped in new Tensor
+
+        EXAMPLE:
+        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])  # 2×3
+        >>> transposed = t.transpose()
+        >>> print(transposed.data)
+        [[1. 4.]
+         [2. 5.]
+         [3. 6.]]  # 3×2
+
+        HINTS:
+        - Create axes list: [0, 1, 2, ...] then swap positions
+        - For default: axes[-2], axes[-1] = axes[-1], axes[-2]
+        - Use np.transpose(self.data, axes)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.transpose")
+        ### END SOLUTION
+
+    def sum(self, axis=None, keepdims=False):
+        """Sum tensor along specified axis.
+
+        TODO: Sum all elements or along specific axes.
+
+        APPROACH:
+        1. Use np.sum with axis and keepdims parameters
+        2. axis=None sums all elements (scalar result)
+        3. axis=N sums along dimension N
+        4. keepdims=True preserves original number of dimensions
+        5. Return result wrapped in Tensor
+
+        EXAMPLE:
+        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])
+        >>> total = t.sum()
+        >>> print(total.data)
+        21.0
+        >>> col_sum = t.sum(axis=0)
+        >>> print(col_sum.data)
+        [5. 7. 9.]
+
+        HINT: np.sum(data, axis=axis, keepdims=keepdims) does all the work
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.sum")
+        ### END SOLUTION
+
+    def mean(self, axis=None, keepdims=False):
+        """Compute mean of tensor along specified axis.
+
+        TODO: Calculate average of elements along axis (same pattern as sum).
+
+        APPROACH:
+        1. Use np.mean with axis and keepdims parameters
+        2. axis=None averages all elements
+        3. axis=N averages along dimension N
+        4. Return result wrapped in Tensor
+
+        EXAMPLE:
+        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])
+        >>> avg = t.mean()
+        >>> print(avg.data)
+        3.5
+        >>> col_mean = t.mean(axis=0)
+        >>> print(col_mean.data)
+        [2.5 3.5 4.5]
+
+        HINT: Follow the same pattern as sum() but with np.mean
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.mean")
+        ### END SOLUTION
+
+    def max(self, axis=None, keepdims=False):
+        """Find maximum values along specified axis.
+
+        TODO: Find maximum element(s) along axis (same pattern as sum).
+
+        APPROACH:
+        1. Use np.max with axis and keepdims parameters
+        2. axis=None finds maximum of all elements
+        3. axis=N finds maximum along dimension N
+        4. Return result wrapped in Tensor
+
+        EXAMPLE:
+        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])
+        >>> maximum = t.max()
+        >>> print(maximum.data)
+        6.0
+        >>> row_max = t.max(axis=1)
+        >>> print(row_max.data)
+        [3. 6.]
+
+        HINT: Follow the same pattern as sum() and mean() but with np.max
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.max")
+        ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
+
 class Tensor:
     """Educational tensor - the foundation of machine learning computation.
 

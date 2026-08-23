@@ -237,7 +237,56 @@ For c₁₁: Row₁ · Column₁ = a₁₁×b₁₁ + a₁₂×b₂₁ + a₁₃
 """
 
 # %% nbgrader={"grade": false, "grade_id": "vectorized-matmul", "solution": true}
+
+def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
+    """
+    High-performance matrix multiplication using vectorized operations.
+
+    This implementation leverages optimized BLAS libraries that use:
+    - SIMD instructions for parallel computation
+    - Cache-blocking for memory efficiency
+    - Multi-threading for CPU parallelization
+
+    TODO: Implement production-grade matrix multiplication
+
+    APPROACH:
+    1. Validate shapes are compatible for matrix multiplication
+    2. Use NumPy's optimized dot product (calls BLAS GEMM)
+    3. Return result wrapped in Tensor
+
+    Args:
+        a: First tensor for multiplication (M×K or batch×M×K)
+        b: Second tensor for multiplication (K×N or batch×K×N)
+
+    Returns:
+        Result tensor of shape (M×N or batch×M×N)
+
+    EXAMPLE:
+    Matrix multiplication visualization:
+    >>> a = Tensor([[1, 2], [3, 4]])  # 2×2
+    >>> b = Tensor([[5, 6], [7, 8]])  # 2×2
+    >>> result = vectorized_matmul(a, b)
+    >>> print(result.data)
+    [[19 22]    # [1×5+2×7, 1×6+2×8] = [19, 22]
+     [43 50]]   # [3×5+4×7, 3×6+4×8] = [43, 50]
+
+    PERFORMANCE CHARACTERISTICS:
+    - Time Complexity: O(N³) but highly optimized
+    - Space Complexity: O(N²) for result
+    - Arithmetic Intensity: 2N³ FLOPs / (3N² × 4) bytes = N/6 (good for large N)
+
+    HINTS:
+    - Check a.shape[-1] == b.shape[-2] for inner dimension match
+    - Use np.matmul() for batch support and optimization
+    - Trust BLAS to handle the vectorization magic
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement vectorized_matmul")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
     """
@@ -420,7 +469,59 @@ Unfused Operations:                    Fused Operation:
 """
 
 # %% nbgrader={"grade": false, "grade_id": "fused-gelu", "solution": true}
+
+def fused_gelu(x: Tensor) -> Tensor:
+    """
+    Fused GELU activation that combines all operations in a single kernel.
+
+    GELU combines the benefits of ReLU and sigmoid:
+    - Smooth everywhere (unlike ReLU's discontinuity at 0)
+    - Non-saturating for positive values (unlike sigmoid)
+    - Probabilistic interpretation: x * P(X ≤ x) where X ~ N(0,1)
+
+    Mathematical Definition:
+    GELU(x) = x * Φ(x) where Φ(x) is the standard normal CDF
+
+    Fast Approximation (used here):
+    GELU(x) ≈ 0.5 * x * (1 + tanh(√(2/π) * (x + 0.044715 * x³)))
+
+    TODO: Implement fused GELU to minimize memory bandwidth
+
+    APPROACH:
+    1. Compute all intermediate values in a single expression
+    2. Avoid creating temporary arrays
+    3. Let NumPy's broadcasting handle vectorization
+
+    Args:
+        x: Input tensor to apply GELU activation
+
+    Returns:
+        GELU-activated tensor (same shape as input)
+
+    EXAMPLE:
+    >>> x = Tensor([-2, -1, 0, 1, 2])
+    >>> result = fused_gelu(x)
+    >>> print(result.data)
+    [-0.04540231 -0.15880801  0.          0.84119199  1.95459769]
+    # Notice: smooth transition through 0, positive bias
+
+    MEMORY EFFICIENCY:
+    - Unfused: 5 temporary arrays × input_size × 4 bytes
+    - Fused: 0 temporary arrays, direct computation
+    - Bandwidth reduction: ~80% for memory-bound operations
+
+    HINTS:
+    - Use np.sqrt(2.0 / np.pi) for the constant
+    - Keep entire expression in one line for maximum fusion
+    - NumPy will optimize the expression tree automatically
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement fused_gelu")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 def fused_gelu(x: Tensor) -> Tensor:
     """
@@ -533,6 +634,50 @@ Let's quantify the impact of kernel fusion by comparing fused vs unfused impleme
 """
 
 # %% nbgrader={"grade": false, "grade_id": "unfused-gelu", "solution": true}
+
+def unfused_gelu(x: Tensor) -> Tensor:
+    """
+    Deliberately unfused GELU implementation for performance comparison.
+
+    This version creates multiple intermediate tensors to simulate
+    the memory bandwidth overhead of unfused operations.
+
+    TODO: Implement GELU with explicit intermediate steps
+
+    APPROACH:
+    1. Break computation into individual steps
+    2. Create temporary Tensor objects for each step
+    3. This simulates real memory allocation overhead
+
+    Args:
+        x: Input tensor
+
+    Returns:
+        GELU-activated tensor (same shape as input)
+
+    EXAMPLE:
+    >>> x = Tensor([0.5, 1.0, -0.5])
+    >>> result = unfused_gelu(x)
+    >>> print(result.shape)
+    (3,)  # Same as input
+
+    PERFORMANCE IMPACT:
+    - Creates 7 temporary arrays
+    - Each array allocation/deallocation has overhead
+    - More memory bandwidth usage
+    - Potential cache misses between operations
+
+    HINTS:
+    - Create each step as: temp = Tensor(operation)
+    - This forces memory allocation for educational comparison
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement unfused_gelu")
+    ### END SOLUTION
+
+# %% tags=["solution"]
+# Solution
+
 def unfused_gelu(x: Tensor) -> Tensor:
     """
     Deliberately unfused GELU implementation for performance comparison.
@@ -676,7 +821,52 @@ Tiling keeps working set in cache for maximum reuse.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "tiled-matmul", "solution": true}
+
+def tiled_matmul(a: Tensor, b: Tensor, tile_size: int = 64) -> Tensor:
+    """
+    Cache-aware matrix multiplication using tiling/blocking.
+
+    Demonstrates blocking algorithm for cache optimization by breaking
+    large matrix multiplications into cache-sized chunks.
+
+    TODO: Implement cache-aware tiled matrix multiplication
+
+    APPROACH:
+    1. Validate inputs for matrix multiplication compatibility
+    2. Use NumPy's optimized matmul (which already implements tiling internally)
+    3. In production, explicit tiling would use nested loops over blocks
+
+    Args:
+        a: First matrix (M×K)
+        b: Second matrix (K×N)
+        tile_size: Block size for cache efficiency (default: 64)
+
+    Returns:
+        Result matrix (M×N)
+
+    EXAMPLE:
+    >>> a = Tensor(rng.standard_normal((256, 256)))
+    >>> b = Tensor(rng.standard_normal((256, 256)))
+    >>> result = tiled_matmul(a, b, tile_size=64)
+    >>> # Same result as vectorized_matmul, but more cache-friendly for large matrices
+
+    PERFORMANCE CHARACTERISTICS:
+    - Reduces cache misses by working on blocks that fit in L1/L2
+    - Especially beneficial for matrices larger than cache size
+    - tile_size should match cache line size (typically 64 bytes)
+
+    HINTS:
+    - For educational purposes, we use NumPy's optimized BLAS
+    - BLAS libraries (MKL, OpenBLAS) already implement cache blocking
+    - Explicit tiling would use 6 nested loops (3 for tiles, 3 for elements)
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement tiled_matmul")
+    ### END SOLUTION
+
+# %% tags=["solution"]
 #| export
+# Solution
 
 def tiled_matmul(a: Tensor, b: Tensor, tile_size: int = 64) -> Tensor:
     """
