@@ -46,7 +46,6 @@ from .commands.base import BaseCommand
 from .commands.system import SystemCommand
 from .commands.module import ModuleWorkflowCommand
 from .commands.package import PackageCommand
-from .commands.nbgrader import NBGraderCommand
 from .commands.milestone import MilestoneCommand
 from .commands.setup import SetupCommand
 from .commands.benchmark import BenchmarkCommand
@@ -104,7 +103,6 @@ class TrenTorchCLI:
             # Developer tools
             'dev': DevCommand,
             'package': PackageCommand,
-            'nbgrader': NBGraderCommand,
             # Progress tracking
             'milestone': MilestoneCommand,
             'benchmark': BenchmarkCommand,
@@ -114,7 +112,7 @@ class TrenTorchCLI:
 
         # Command categorization for help display
         self.student_commands = ['module', 'milestone', 'benchmark', 'olympics']
-        self.developer_commands = ['dev', 'system', 'package', 'nbgrader']
+        self.developer_commands = ['dev', 'system', 'package']
 
         # Welcome screen sections (used for both tito and tito --help)
         self.welcome_sections = {

@@ -65,10 +65,9 @@ Before any subcommand's own logic runs, `tren/main.py`'s `TrenTorchCLI` does the
 │    - CLIConfig.from_project_root(): walks UP from cwd looking for a    │
 │      pyproject.toml to decide where "the project" is. If none is       │
 │      found anywhere up the tree, falls back to plain cwd.              │
-│    - Registers 10 command classes into one dict (main.py's own         │
+│    - Registers 9 command classes into one dict (main.py's own          │
 │      comment calls this the "SINGLE SOURCE OF TRUTH"): setup, system,  │
-│      module, dev, package, nbgrader, milestone, benchmark, olympics,   │
-│      convert.                                                          │
+│      module, dev, package, milestone, benchmark, olympics, convert.    │
 └───────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -559,16 +558,6 @@ Consolidating every conditional branch surfaced across Parts 1–8 that depends 
 │                                │ PACKAGES are installed, if the venv's      │
 │                                │ Scripts/bin directory isn't on PATH for    │
 │                                │ whatever process is invoking tren)         │
-├───────────────────────────────┼───────────────────────────────────────────┤
-│ nbgrader installed?            │ Entirely optional add-on (not in           │
-│                                │ requirements.txt). `tren nbgrader init`    │
-│                                │ checks explicitly and fails with an        │
-│                                │ install hint rather than a crash; other    │
-│                                │ nbgrader subcommands that shell out to     │
-│                                │ external `nbgrader` binaries return exit   │
-│                                │ code 127 by deliberate design when it's    │
-│                                │ missing (FileNotFoundError is caught and   │
-│                                │ converted, not left to crash raw)          │
 ├───────────────────────────────┼───────────────────────────────────────────┤
 │ Module tracking vs. disk       │ started_modules/completed_modules in       │
 │ desync                         │ .tren/progress.json can go out of sync     │

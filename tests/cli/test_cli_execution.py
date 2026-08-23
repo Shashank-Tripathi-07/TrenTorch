@@ -69,7 +69,7 @@ class TestCommandExecution:
         assert "Tren" in result.stdout or "CLI" in result.stdout
 
     @pytest.mark.parametrize("command", [
-        'setup', 'system', 'module', 'dev', 'package', 'nbgrader',
+        'setup', 'system', 'module', 'dev', 'package',
         'milestone', 'benchmark', 'olympics'
     ])
     def test_command_help_works(self, command):
@@ -150,7 +150,7 @@ class TestCommandGrouping:
         )
 
         # Developer commands should be in help
-        dev_commands = ['dev', 'package', 'nbgrader']
+        dev_commands = ['dev', 'package']
 
         for cmd in dev_commands:
             assert cmd in result.stdout, (

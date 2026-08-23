@@ -2,7 +2,7 @@
 
 *A complete inventory of every `tren` command, grepped directly from `tren/main.py` and every file under `tren/commands/`, not from any existing documentation. Command groups are dict entries in `TrenTorchCLI.commands` (`tren/main.py`); each group's own `add_arguments` defines its subcommands via `argparse` subparsers. See [`system_design.md`](system_design.md) for how these map onto the underlying module lifecycle.*
 
-There are 10 top-level command groups, registered in this exact dict (the single source of truth per `tren/main.py`'s own comment): `setup`, `system`, `module`, `dev`, `package`, `nbgrader`, `milestone`, `benchmark`, `olympics`, `convert`. A `community` group and standalone `login`/`logout` commands used to exist here, talking to the original TrenTorch project's own hosted backend; they have been removed (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)).
+There are 9 top-level command groups, registered in this exact dict (the single source of truth per `tren/main.py`'s own comment): `setup`, `system`, `module`, `dev`, `package`, `milestone`, `benchmark`, `olympics`, `convert`. A `community` group and standalone `login`/`logout` commands used to exist here, talking to the original TrenTorch project's own hosted backend; they have been removed (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)). An `nbgrader` group also used to exist, wrapping multi-student assignment staging and grading (`nbgrader init/generate/release/collect/autograde/feedback/report/analytics`); it has been removed as dead weight for a self-use install with no other students to grade &mdash; nothing about a solo `tren module start`/`complete` workflow depended on it.
 
 ## `tren setup`
 
@@ -130,24 +130,6 @@ Package management and nbdev integration. Dispatcher: `tren/commands/package/pac
 | `--clean` | Clean notebook outputs (`nbdev-clean`) |
 | `--all` | Used with `--export`: export all modules |
 | `module` (positional, optional) | Used with `--export`: export one specific module |
-
-## `tren nbgrader` (instructor/developer, assignment staging + grading)
-
-`tren/commands/nbgrader.py`. TrenTorch owns module discovery and staging; nbgrader itself owns release, collection, autograding, feedback, and export.
-
-| Subcommand | Arguments | Purpose |
-|---|---|---|
-| `init` | (none) | Initialize nbgrader directories (`assignments/{source,release,submitted,autograded,feedback}`) and a default `nbgrader_config.py` |
-| `generate` | `module` (positional, optional); `--all`; `--range` (e.g. `01-04`); `--tier {student,challenge,instructor}` (hidden via `SUPPRESS`, default `student`) | Stage TrenTorch notebooks as nbgrader source assignments |
-| `release` | `assignment` (positional, optional); `--all` | Create student release notebooks with nbgrader |
-| `collect` | `assignment` (positional, optional); `--all`; `--student` | Collect student submissions |
-| `autograde` | `assignment` (positional, optional); `--all`; `--student`; `--force` | Auto-grade submissions |
-| `feedback` | `assignment` (positional, optional); `--all`; `--student` | Generate feedback for students |
-| `status` | (none) | Show local assignment status (counts per directory) |
-| `analytics` | `assignment` (positional, required) | Show local submission/grading counts for one assignment |
-| `report` | `--format {csv}` (default `csv`); `--assignment`/`--module` (same dest); `--student` | Export a grades report via nbgrader |
-
-Notable internal behavior: `generate` never overwrites the student-facing notebook a student would open with `tren module start`/`resume`; if that notebook already exists, it stages a fresh jupytext conversion into a private `.nbgrader_staging/` cache instead, specifically so a routine `git pull` bumping a source file's mtime can't silently clobber in-progress student work.
 
 ## `tren milestone`
 

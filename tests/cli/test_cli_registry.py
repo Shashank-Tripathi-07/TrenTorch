@@ -136,7 +136,6 @@ class TestCommandFiles:
             'module': 'module/__init__.py',   # Now in subfolder
             'dev': 'dev/__init__.py',         # Now in subfolder
             'package': 'package/__init__.py', # Now in subfolder
-            'nbgrader': 'nbgrader.py',
             'milestone': 'milestone.py',      # Singular, not plural
             'olympics': 'olympics.py',
             'benchmark': 'benchmark.py',
@@ -160,7 +159,7 @@ class TestCommandFiles:
         # Files we expect to see (registered commands + internal helpers)
         expected_files = {
             # Registered top-level commands
-            'setup.py', 'nbgrader.py',
+            'setup.py',
             'milestone.py', 'benchmark.py',
             'olympics.py',
             'convert.py',
@@ -198,7 +197,6 @@ class TestEpilogDocumentation:
             'system',
             'module',
             'package',
-            'nbgrader',
             'milestone',
             'olympics'
         ]

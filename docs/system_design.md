@@ -66,7 +66,7 @@ Orange boxes are code the CLI runs directly. Purple cylinders are things written
                                      |
         +---------------+-----------+-----------------+
         |               |           |                 |
-  Module workflow   Milestone   Dev/CI tools    Package/NBGrader
+  Module workflow   Milestone   Dev/CI tools    Package
   (start/test/       system     (test --ci)     commands
    complete/reset)
         |

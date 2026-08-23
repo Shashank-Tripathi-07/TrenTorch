@@ -8,7 +8,6 @@
 |---|---|
 | A module's content (`src/<NN_name>/`) or its tests | Python 3.10 or newer, a virtual environment, and `pip install -r requirements.txt && pip install -e .` from `trentorch/`. That's the whole setup; no external services required. |
 | The `tren` CLI itself | The same as above. `tren` is a plain Python package (`tren/`) installed alongside `trentorch/` from the same `pyproject.toml`. |
-| Instructor grading workflows | The above, plus `nbgrader` installed (`pip install nbgrader`), per `INSTRUCTOR.md`. |
 
 ## Repository layout
 
@@ -21,7 +20,7 @@ cs249r_book/
     trentorch/           # The installable package, generated from modules/ by nbdev
     tren/                # The `tren` CLI package
     milestones/          # Six historical-ML reproduction exercises
-    docs/                # Design docs, contributor docs (CONTRIBUTING.md, INSTRUCTOR.md, NBGRADER_RELEASE_TIERS.md)
+    docs/                # Design docs, contributor docs (CONTRIBUTING.md)
     binder/               # mybinder.org / Colab launch configuration (must stay at repo root)
     dev/                  # Dev-only support tooling: scripts/, tools/, etc/ (jupyter config)
     benchmark_results/    # Local artifact output from Module 19's BenchmarkSuite
@@ -69,7 +68,7 @@ class Tensor:
         ### END SOLUTION
 ```
 
-When an instructor runs the release pipeline, nbgrader's solution-clearing step removes everything between `### BEGIN SOLUTION` and `### END SOLUTION`, leaving the `TODO:` comment and surrounding scaffolding in place for the student to fill in. The same pattern repeats through the file for `__add__`, `__sub__`, matmul, reshape, transpose, and the reduction operations.
+Nothing in this fork strips the code between `### BEGIN SOLUTION` and `### END SOLUTION` anymore (the `tren nbgrader` command that used to do that has been removed); the `nbgrader={...}` cell metadata is inert leftover from that convention. `tren module start`'s plain `jupytext` conversion has no awareness of any of these markers, so the notebook a learner opens contains this code already filled in, TODO comment and all &mdash; see `design.md`'s note on the honor-system model. The same marker pattern repeats through the file for `__add__`, `__sub__`, matmul, reshape, transpose, and the reduction operations.
 
 ### 1.2 Module metadata
 
@@ -114,7 +113,6 @@ Every command class inherits from the abstract `BaseCommand` (`tren/commands/bas
 | `tren module start / view / resume / test / complete / reset / status / list / path` | `ModuleWorkflowCommand`, `commands/module/workflow.py` (1,857 lines) plus `commands/module/test.py` and `commands/module/reset.py` | `start` checks sequential prerequisites and opens the module in Jupyter, creating its notebook from `src/` if it doesn't exist yet. `complete` runs the four-step pipeline described in section 1.3. `test` runs the three-phase test check described below without exporting anything. `reset` regenerates a module's notebook from `src/` and clears its progress entries. |
 | `tren dev test / preflight / export / clean` | `commands/dev/*.py` | `test` is the unified pytest runner CI uses, with flags for `--unit`, `--integration`, `--e2e`, `--cli`, `--milestone`, `--all`, `--release`, or a specific `--module NN`. `preflight` runs pre-release verification (project structure, CLI smoke checks, imports, git state, module tests, milestone scripts). `export` rebuilds the entire curriculum (`src/` to `modules/` to `trentorch/`) for all modules or one. `clean` removes build artifacts. |
 | `tren package reset / nbdev` | `commands/package/*.py` | `reset package` clears exported package files; `reset all` clears all user progress and data. `nbdev` is a thin wrapper exposing `--export`/`--build-docs`/`--test`/`--clean`, mostly delegating to the underlying nbdev CLI or to `DevExportCommand`. |
-| `tren nbgrader init / generate / release / collect / autograde / feedback / status / analytics / report` | `commands/nbgrader.py` | `generate` converts a module's `src/` file to a notebook via jupytext, applies nbgrader cell-metadata validation and solution stripping, and stages it under `assignments/source/`. `release`, `collect`, `autograde`, `feedback`, and `report` are thin wrappers that shell out to the real `nbgrader` CLI. This whole command group is a fully local, offline instructor workflow with no network calls. |
 | `tren milestone list / run / info / status / timeline / test / demo` | `commands/milestone.py` | Implements the six hardcoded milestones described in the design doc. `run` executes a milestone's standalone script via a subprocess, after validating that the required module exports actually work. Progress is stored in `.tren/milestones.json`. |
 | `tren benchmark baseline / capstone` | `commands/benchmark.py` | `baseline` runs quick NumPy micro-benchmarks (tensor ops, matmul, forward pass) and normalizes them into a 0 to 100 score against a hardcoded reference system, saving JSON under `.tren/benchmarks/`. `capstone` scores the student's Module 20 `trentorch.olympics` submission if it exists, or falls back to a placeholder score otherwise. The "submit to website" step in both is currently a stub. |
 | `tren olympics` | `commands/olympics.py` | The not-yet-implemented placeholder described in the design doc. Only its `logo` subcommand does anything real; every other subcommand, including a registered but unimplemented `status`, falls through to a generic "coming soon" message. |
@@ -161,7 +159,7 @@ The root `tests/conftest.py` (349 lines) does three important things before any 
 | Directory | What's tested |
 |---|---|
 | `tests/<NN_name>/` (one per module) | Standard unit tests for that module's implementation. |
-| `tests/cli/` | Black-box tests of the `tren` command itself: bare invocation, `--help`, `--version`, CLI registry consistency, help-text consistency, and nbgrader-command behavior. Some tests import `tren.main.TrenTorchCLI` directly; others shell out via subprocess to test the real entry point end to end. |
+| `tests/cli/` | Black-box tests of the `tren` command itself: bare invocation, `--help`, `--version`, CLI registry consistency, and help-text consistency. Some tests import `tren.main.TrenTorchCLI` directly; others shell out via subprocess to test the real entry point end to end. |
 | `tests/e2e/` | Full simulated student journeys, run as `tren` subprocesses with `TITO_ALLOW_SYSTEM=1` set. Marked `quick` (about 30 seconds), `module_flow` (about 2 minutes), or `full_journey` (7 to 8 minutes, CI only). |
 | `tests/environment/` | Validates the local dev environment itself: Python version at least 3.10, an active virtualenv, and that core dependencies import correctly. Meant to run right after `tren setup`. |
 | `tests/integration/` | Cross-module tests: tensor plus autograd plus layers together, a full training pipeline, CNN integration, gradient flow, and similar. One file, `test_module_integration.py`, is entirely disabled via `pytest.mark.skip` with an explicit comment that it targets stale package paths; current coverage lives in the other, more focused files in the same directory. |
@@ -218,8 +216,6 @@ The upstream TinyTorch project runs five GitHub Actions workflows (validate, pre
 4. Work on module content directly in `src/<NN_name>/<NN_name>.py`, the source of truth; never hand-edit files under `modules/`, since those are regenerated. After a change, run `tren dev export` (or `tren module complete <NN>` if you also want it reflected in progress tracking) to see it as an importable part of `trentorch`.
 5. Test with `pytest tests/<NN_name>/` or `tren module test <NN>` for a single module, `pytest tests/integration/` for cross-module checks, and, if your change affects one, the relevant milestone script under `milestones/`.
 6. Follow the mandatory git workflow from `CONTRIBUTING.md`: never commit directly to `dev` or `main`; branch as `feature/your-improvement`; stage files explicitly rather than using a blanket `git add .`; open a PR targeting `dev`.
-
-For instructor-side grading workflows specifically, `INSTRUCTOR.md` documents the full `tren nbgrader init` through `report` sequence, plus a 16-week sample course schedule and a grading rubric (roughly 70% auto-graded, 30% manually-graded "ML Systems Thinking" reflection questions).
 
 ---
 
