@@ -1972,12 +1972,20 @@ class ModuleWorkflowCommand(BaseCommand):
         return 0
 
     def _check_milestone_unlocks(self, module_name: str) -> None:
-        """Show newly runnable milestones after completing a module."""
+        """Run any milestone this module's completion just unlocked.
+
+        Milestones used to be a separate step: complete a module, see a
+        panel telling you to go run `tren milestone run <id>` yourself.
+        Folding that run into the same `tren module complete` flow makes
+        the milestone feel like a natural checkpoint in the module
+        progression instead of a detached extra command to remember.
+        """
         try:
             import json
+            from argparse import Namespace as _Namespace
             from datetime import datetime
             from rich import box
-            from ..milestone import MILESTONE_SCRIPTS, _module_progress_to_int, _required_modules_for
+            from ..milestone import MILESTONE_SCRIPTS, MilestoneCommand, _module_progress_to_int, _required_modules_for
 
             progress = self.get_progress_data()
             completed = {
@@ -2026,13 +2034,22 @@ class ModuleWorkflowCommand(BaseCommand):
             for milestone_id, milestone in newly_unlocked:
                 self.console.print()
                 self.console.print(Panel.fit(
-                    f"[bold green]Milestone ready to run[/bold green]\n\n"
+                    f"[bold green]Milestone unlocked[/bold green]\n\n"
                     f"[bold cyan]Milestone {milestone_id}: {milestone['name']}[/bold cyan]\n"
                     f"{milestone['description']}\n\n"
-                    f"[bold]Run:[/bold] [yellow]tito milestone run {milestone_id}[/yellow]",
+                    f"[dim]Running it now...[/dim]",
                     border_style="green",
                     box=box.DOUBLE,
                 ))
+                self.console.print()
+
+                # skip_checks=True: the required-modules check above just
+                # confirmed this milestone's prerequisites are met, no need
+                # for _handle_run_command to redo that same check.
+                milestone_command = MilestoneCommand(self.config)
+                milestone_command._handle_run_command(
+                    _Namespace(milestone_id=milestone_id, part=None, skip_checks=True)
+                )
                 self.console.print()
 
         except ImportError:
