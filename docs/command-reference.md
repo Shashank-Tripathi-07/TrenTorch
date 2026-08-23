@@ -2,7 +2,7 @@
 
 *A complete inventory of every `tren` command, grepped directly from `tren/main.py` and every file under `tren/commands/`, not from any existing documentation. Command groups are dict entries in `TrenTorchCLI.commands` (`tren/main.py`); each group's own `add_arguments` defines its subcommands via `argparse` subparsers. See [`system_design.md`](system_design.md) for how these map onto the underlying module lifecycle.*
 
-There are 10 top-level command groups, registered in this exact dict (the single source of truth per `tren/main.py`'s own comment): `setup`, `system`, `module`, `dev`, `package`, `nbgrader`, `milestone`, `community`, `benchmark`, `olympics`. A `login`/`logout` pair also exists as a standalone `BaseCommand` (`tren/commands/login.py`) but is never registered directly in the top-level dict; it is only reachable by delegation, through `tren community login` / `tren community logout`.
+There are 10 top-level command groups, registered in this exact dict (the single source of truth per `tren/main.py`'s own comment): `setup`, `system`, `module`, `dev`, `package`, `nbgrader`, `milestone`, `benchmark`, `olympics`, `convert`. A `community` group and standalone `login`/`logout` commands used to exist here, talking to the original TrenTorch project's own hosted backend; they have been removed (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)).
 
 ## `tren setup`
 
@@ -15,7 +15,7 @@ First-time environment setup (`tren/commands/setup.py`). Idempotent: safe to re-
 | `--skip-profile` | Skip user profile creation (`~/.trentorch/profile.json`) |
 | `--force` | Prompt to recreate existing components (venv, profile) instead of silently reusing them |
 
-Runs four steps in order: create `.venv`, install packages (numpy, jupyter, jupyterlab, jupytext, ipykernel, nbdev, rich, pyyaml, psutil, then `pip install -e .` for the project itself), create the user profile, validate the environment. Ends by registering a Jupyter kernel named `trentorch` and prompting to join the community (delegates to `LoginCommand`).
+Runs four steps in order: create `.venv`, install packages (numpy, jupyter, jupyterlab, jupytext, ipykernel, nbdev, rich, pyyaml, psutil, then `pip install -e .` for the project itself), create the user profile, validate the environment. Ends by registering a Jupyter kernel named `trentorch`.
 
 ## `tren system` (developer/student mixed)
 
@@ -95,25 +95,12 @@ With no flags, defaults to unit tests only.
 | `--all` | Export every module |
 | `--test-checkpoint` | Run a checkpoint test after a successful export |
 
-### `tren dev build`
-`tren/commands/dev/build.py`. Thin wrapper over the site's `make` targets (so tools like the VS Code extension can call `tren` instead of raw `make`).
-
-| `target` (positional, required) | Runs |
-|---|---|
-| `html` | `make html` in `site/` |
-| `serve` | `make serve` in `site/` |
-| `pdf` | `make pdf` in `site/` |
-| `paper` | `make paper` in `site/` |
-
-Note: `make` is not bundled with Git Bash on Windows, unlike git/python; this is a documented reachable `FileNotFoundError` for a Windows user without WSL or a separate `make` install.
-
 ### `tren dev clean`
-`tren/commands/dev/clean.py`. Same Windows-`make` caveat as `build`.
+`tren/commands/dev/clean.py`. Wraps `make clean` at the project root. Note: `make` is not bundled with Git Bash on Windows, unlike git/python; this is a documented reachable `FileNotFoundError` for a Windows user without WSL or a separate `make` install.
 
 | `target` (positional, optional, default `all`) | Effect |
 |---|---|
 | `all` | `make clean` at the project root |
-| `site` | `make clean` inside `site/` |
 
 ## `tren package`
 
@@ -175,21 +162,6 @@ Achievement/capability-unlock tracking, gated on completed modules. `tren/comman
 | `timeline` | `--horizontal` | View milestone timeline; `--horizontal` shows a progress bar instead of a tree |
 | `test` | `milestone_id` (optional, defaults to next available) | Test milestone achievement requirements |
 | `demo` | `milestone_id` (required) | Run a milestone capability demonstration |
-
-## `tren community`
-
-Login/profile/status tooling. `tren/commands/community.py`. **Talks to the upstream TinyTorch project's own hosted backend** (`mlsysbook.ai`, Netlify, Supabase), not anything TrenTorch hosts; the commands below run without erroring but won't do anything meaningful from this fork.
-
-| Subcommand | Delegates to / does | Notes |
-|---|---|---|
-| `login` | `LoginCommand` (`tren/commands/login.py`) | Opens a browser for OAuth-style login; also offers to sync any progress completed while logged out |
-| `logout` | `LogoutCommand` | Clears stored credentials via a browser-confirmed logout flow |
-| `profile` | Opens `mlsysbook.ai/tinytorch/community/?action=profile&community=true` in a browser | |
-| `status` | Shows an "ID card" panel: online/authenticated + email, or a not-authenticated panel | |
-| `map` | Opens `mlsysbook.ai/tinytorch/community/community.html` in a browser | |
-| `sync` | `SubmissionHandler.sync_progress()` | Explicit recovery path: pushes the current `progress.json` on demand, for a student who completed modules before logging in or whose automatic sync was skipped |
-
-`login`/`logout` are only reachable through `tren community login`/`tren community logout` (or by direct instantiation of `LoginCommand`/`LogoutCommand` in other files like `setup.py`); there is no bare top-level `tren login`.
 
 ## `tren benchmark`
 

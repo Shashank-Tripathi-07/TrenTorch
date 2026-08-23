@@ -1,8 +1,0 @@
-# Secrets
-tests/e2e/credentials.json
-
-# Playwright
-test-results/
-playwright-report/
-blob-report/
-playwright/.cache/

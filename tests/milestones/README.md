@@ -71,4 +71,4 @@ When adding or renaming a milestone:
 2. Update or add the milestone script under `milestones/`.
 3. Add smoke coverage in `test_milestones_smoke.py`.
 4. Add release-run coverage in `test_milestones_run.py` if the script should run end to end.
-5. Update student-facing docs and Quarto pages that mention the command or script name.
+5. Update student-facing docs that mention the command or script name.

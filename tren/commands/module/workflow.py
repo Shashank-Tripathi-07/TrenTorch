@@ -28,8 +28,6 @@ from ..base import BaseCommand
 from .reset import ModuleResetCommand
 from .test import ModuleTestCommand
 from ...core.exceptions import ModuleNotFoundError
-from ...core import auth
-from ...core.submission import SubmissionHandler, auto_sync_after_completion
 from ...core.modules import (
     get_module_mapping,
     get_module_name,
@@ -251,11 +249,6 @@ class ModuleWorkflowCommand(BaseCommand):
             '--source',
             action='store_true',
             help='Path to module source (.py)'
-        )
-        path_group.add_argument(
-            '--guide',
-            action='store_true',
-            help='Path to module Lab Guide chapter (quarto/modules/NN_xxx.qmd)'
         )
 
     # Module mapping and normalization now imported from core.modules
@@ -770,8 +763,6 @@ class ModuleWorkflowCommand(BaseCommand):
         # Step 5: Check for milestone unlocks
         if success:
             self._check_milestone_unlocks(module_name)
-            self._trigger_submission()
-
 
         return 0 if success else 1
 
@@ -893,23 +884,6 @@ class ModuleWorkflowCommand(BaseCommand):
         self.update_progress(module_num, module_name)
 
         return 0
-
-    def _trigger_submission(self):
-        """Offer to sync progress after a module completes.
-
-        Delegates the whole "should we sync, and should we prompt" decision to
-        the shared :func:`auto_sync_after_completion` helper so module, milestone,
-        and login paths stay consistent. In particular, this no longer skips the
-        sync on a non-TTY shell (Git Bash / IDE terminals) -- that silent skip
-        was the cause of dashboards never updating (#1849).
-        """
-        self.console.print()  # Add a blank line for spacing
-        auto_sync_after_completion(
-            self.config,
-            self.console,
-            total_modules=len(get_module_mapping()),
-        )
-
 
     def run_module_tests(self, module_name: str, verbose: bool = True) -> int:
         """
@@ -1576,7 +1550,7 @@ class ModuleWorkflowCommand(BaseCommand):
         return 0
 
     def get_path(self, module_number: str, notebook: bool = False,
-                 source: bool = False, guide: bool = False) -> int:
+                 source: bool = False) -> int:
         """Print the absolute path to a module file. For IDE integrations."""
         module_mapping = get_module_mapping()
         normalized = normalize_module_number(module_number)
@@ -1593,10 +1567,8 @@ class ModuleWorkflowCommand(BaseCommand):
             target = project_root / "modules" / folder / f"{slug}.ipynb"
         elif source:
             target = project_root / "src" / folder / f"{folder}.py"
-        elif guide:
-            target = project_root / "quarto" / "modules" / f"{folder}.qmd"
         else:
-            self.console.print("[red]❌ Specify --notebook, --source, or --guide[/red]")
+            self.console.print("[red]❌ Specify --notebook or --source[/red]")
             return 1
 
         print(str(target))
@@ -1823,7 +1795,6 @@ class ModuleWorkflowCommand(BaseCommand):
                     args.module_number,
                     notebook=getattr(args, 'notebook', False),
                     source=getattr(args, 'source', False),
-                    guide=getattr(args, 'guide', False),
                 )
 
         # Show help if no valid command

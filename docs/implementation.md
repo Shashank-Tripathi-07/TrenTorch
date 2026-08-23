@@ -1,6 +1,6 @@
 # TrenTorch: Implementation Reference
 
-> **Status: as-built, contributor-facing.** TrenTorch is a live, already-implemented course and framework. This document is your map for reading and modifying the real source: file paths, line numbers, and representative code pulled directly from the codebase at `dev` HEAD (`7d695104`, 2026-08-12). Read the [design doc](design.md) first for the "what and why"; this doc is the "where and how." Section 11, "Common contribution workflows," is the fastest way in if you already know what you want to change.
+> **Status: as-built, contributor-facing.** TrenTorch is a live, already-implemented course and framework. This document is your map for reading and modifying the real source: file paths, line numbers, and representative code pulled directly from the codebase at `dev` HEAD (`7d695104`, 2026-08-12). Read the [design doc](design.md) first for the "what and why"; this doc is the "where and how." Section 10, "Common contribution workflows," is the fastest way in if you already know what you want to change.
 
 ## Prerequisites
 
@@ -8,8 +8,6 @@
 |---|---|
 | A module's content (`src/<NN_name>/`) or its tests | Python 3.10 or newer, a virtual environment, and `pip install -r requirements.txt && pip install -e .` from `trentorch/`. That's the whole setup; no external services required. |
 | The `tren` CLI itself | The same as above. `tren` is a plain Python package (`tren/`) installed alongside `trentorch/` from the same `pyproject.toml`. |
-| The docs site or PDF guide | The above, plus Quarto, and for PDF builds specifically, a LaTeX distribution (CI uses TinyTeX) and the Mermaid CLI for diagrams. |
-| The community dashboard (`quarto/community/`) | Node.js and npm for its Playwright test suite; the dashboard itself is plain HTML/CSS/JS with no build step. |
 | Instructor grading workflows | The above, plus `nbgrader` installed (`pip install nbgrader`), per `INSTRUCTOR.md`. |
 
 ## Repository layout
@@ -23,7 +21,6 @@ cs249r_book/
     trentorch/           # The installable package, generated from modules/ by nbdev
     tren/                # The `tren` CLI package
     milestones/          # Six historical-ML reproduction exercises
-    quarto/              # Docs site source (mlsysbook.ai/tinytorch/) + PDF guide + community dashboard
     docs/                # Design docs, contributor docs (CONTRIBUTING.md, INSTRUCTOR.md, NBGRADER_RELEASE_TIERS.md)
     binder/               # mybinder.org / Colab launch configuration (must stay at repo root)
     dev/                  # Dev-only support tooling: scripts/, tools/, etc/ (jupyter config)
@@ -31,11 +28,9 @@ cs249r_book/
     pyproject.toml, settings.ini, MANIFEST.in, requirements.txt
     README.md, LICENSE, CHANGELOG.md
   .github/workflows/
-    tinytorch-validate-dev.yml
-    tinytorch-preview-dev.yml
-    tinytorch-publish-live.yml
-    tinytorch-build-pdfs.yml
-    tinytorch-update-pdfs.yml
+    validate.yml
+    update-contributors.yml
+    welcome.yml
 ```
 
 ---
@@ -114,32 +109,26 @@ Every command class inherits from the abstract `BaseCommand` (`tren/commands/bas
 
 | Command | Class / file | What it actually does |
 |---|---|---|
-| `tren setup` | `SetupCommand`, `commands/setup.py` | Creates `.venv` (with Apple Silicon/Rosetta detection), installs a fixed toolchain plus `pip install -e .`, registers a `trentorch` Jupyter kernel, creates `~/.trentorch/profile.json`, validates the environment, and offers to log in to the community. |
+| `tren setup` | `SetupCommand`, `commands/setup.py` | Creates `.venv` (with Apple Silicon/Rosetta detection), installs a fixed toolchain plus `pip install -e .`, registers a `trentorch` Jupyter kernel, creates `~/.trentorch/profile.json`, and validates the environment. |
 | `tren system info / health / jupyter / update / logo / reset` | `commands/system/*.py` | Environment diagnostics, launching a Jupyter server, checking for CLI updates, showing branding, and resetting the local environment to a pristine state. |
 | `tren module start / view / resume / test / complete / reset / status / list / path` | `ModuleWorkflowCommand`, `commands/module/workflow.py` (1,857 lines) plus `commands/module/test.py` and `commands/module/reset.py` | `start` checks sequential prerequisites and opens the module in Jupyter, creating its notebook from `src/` if it doesn't exist yet. `complete` runs the four-step pipeline described in section 1.3. `test` runs the three-phase test check described below without exporting anything. `reset` regenerates a module's notebook from `src/` and clears its progress entries. |
-| `tren dev test / preflight / export / build / clean` | `commands/dev/*.py` | `test` is the unified pytest runner CI uses, with flags for `--unit`, `--integration`, `--e2e`, `--cli`, `--milestone`, `--all`, `--release`, or a specific `--module NN`. `preflight` runs pre-release verification (project structure, CLI smoke checks, imports, git state, module tests, milestone scripts, docs). `export` rebuilds the entire curriculum (`src/` to `modules/` to `trentorch/`) for all modules or one. `build` wraps `make` targets for the site, PDF guide, or paper. `clean` removes build artifacts. |
+| `tren dev test / preflight / export / clean` | `commands/dev/*.py` | `test` is the unified pytest runner CI uses, with flags for `--unit`, `--integration`, `--e2e`, `--cli`, `--milestone`, `--all`, `--release`, or a specific `--module NN`. `preflight` runs pre-release verification (project structure, CLI smoke checks, imports, git state, module tests, milestone scripts). `export` rebuilds the entire curriculum (`src/` to `modules/` to `trentorch/`) for all modules or one. `clean` removes build artifacts. |
 | `tren package reset / nbdev` | `commands/package/*.py` | `reset package` clears exported package files; `reset all` clears all user progress and data. `nbdev` is a thin wrapper exposing `--export`/`--build-docs`/`--test`/`--clean`, mostly delegating to the underlying nbdev CLI or to `DevExportCommand`. |
 | `tren nbgrader init / generate / release / collect / autograde / feedback / status / analytics / report` | `commands/nbgrader.py` | `generate` converts a module's `src/` file to a notebook via jupytext, applies nbgrader cell-metadata validation and solution stripping, and stages it under `assignments/source/`. `release`, `collect`, `autograde`, `feedback`, and `report` are thin wrappers that shell out to the real `nbgrader` CLI. This whole command group is a fully local, offline instructor workflow with no network calls. |
 | `tren milestone list / run / info / status / timeline / test / demo` | `commands/milestone.py` | Implements the six hardcoded milestones described in the design doc. `run` executes a milestone's standalone script via a subprocess, after validating that the required module exports actually work. Progress is stored in `.tren/milestones.json`. |
-| `tren community login / logout / profile / status / map / sync` | `commands/community.py`, `commands/login.py` | `login`/`logout` run the browser-based auth flow described in section 6 below. `profile` and `map` just open the relevant page on `mlsysbook.ai` in the browser. `status` shows a login-state panel. `sync` is the manual recovery path to upload local progress that wasn't synced automatically. |
 | `tren benchmark baseline / capstone` | `commands/benchmark.py` | `baseline` runs quick NumPy micro-benchmarks (tensor ops, matmul, forward pass) and normalizes them into a 0 to 100 score against a hardcoded reference system, saving JSON under `.tren/benchmarks/`. `capstone` scores the student's Module 20 `trentorch.olympics` submission if it exists, or falls back to a placeholder score otherwise. The "submit to website" step in both is currently a stub. |
 | `tren olympics` | `commands/olympics.py` | The not-yet-implemented placeholder described in the design doc. Only its `logo` subcommand does anything real; every other subcommand, including a registered but unimplemented `status`, falls through to a generic "coming soon" message. |
-
-Note: `login`/`logout` are not registered as bare top-level commands in `main.py`'s dispatch table; they're only reachable as `tren community login` / `tren community logout`. Some older documentation and welcome text refers to a bare `tren login`, which doesn't exist as an actual dispatch entry.
 
 ### 2.3 `tren/core/` responsibilities
 
 | File | Responsibility |
 |---|---|
-| `auth.py` | Credential storage at `~/.trentorch/credentials.json`, plus `AuthReceiver`/`LocalAuthServer`, a local HTTP callback server used during the browser login flow. Defines the backend base URL and endpoints. |
-| `browser.py` | Cross-platform "open this URL in the default browser" helper, with WSL, macOS, and Windows-specific strategies and a manual-fallback panel if none of them work. |
 | `config.py` | `CLIConfig`, a dataclass of resolved project paths. Auto-detects the project root by walking up the directory tree looking for `pyproject.toml`, and validates the Python version, active virtualenv, required directories, and required packages. |
 | `console.py` | A shared Rich `Console` singleton plus banner, logo, error, success, warning, and info print helpers used across the whole CLI. |
 | `exceptions.py` | A small exception hierarchy: `TrenTorchCLIError` (base), `ValidationError`, `ExecutionError`, `EnvironmentError`, `ModuleNotFoundError`. |
 | `modules.py` | Module auto-discovery and metadata parsing, described in section 1.4. |
 | `runtime.py` | Distinguishes `is_ci()` from `is_interactive()` as two explicitly separate checks. See "Project history" in the design doc for why this distinction matters. |
 | `status_analyzer.py` | `TrenTorchStatusAnalyzer`, a heavier per-module compliance and health checker (checks for required sections, parses class and function counts, tries importing and running the module) used by dashboards and preflight checks. |
-| `submission.py` | `SubmissionHandler`, which assembles progress and milestone data and posts it to the Supabase Edge Function backing community sync, with token-refresh handling on authentication failure. Also owns `auto_sync_after_completion()`, the shared decision point (skip in CI, prompt if interactive, sync silently if already logged in) used after module and milestone completion and after login. |
 | `theme.py` | Centralized Rich color and style constants for consistent CLI theming. |
 | `virtual_env_manager.py` | Resolves the virtual environment path (respecting a `VENV_PATH` environment variable or a `.tinyrc` config file, defaulting to `.venv`) and the correct binary directory for the current OS. |
 
@@ -172,7 +161,7 @@ The root `tests/conftest.py` (349 lines) does three important things before any 
 | Directory | What's tested |
 |---|---|
 | `tests/<NN_name>/` (one per module) | Standard unit tests for that module's implementation. |
-| `tests/cli/` | Black-box tests of the `tren` command itself: bare invocation, `--help`, `--version`, CLI registry consistency, help-text consistency, community and submission flows, and nbgrader-command behavior. Some tests import `tren.main.TrenTorchCLI` directly; others shell out via subprocess to test the real entry point end to end. |
+| `tests/cli/` | Black-box tests of the `tren` command itself: bare invocation, `--help`, `--version`, CLI registry consistency, help-text consistency, and nbgrader-command behavior. Some tests import `tren.main.TrenTorchCLI` directly; others shell out via subprocess to test the real entry point end to end. |
 | `tests/e2e/` | Full simulated student journeys, run as `tren` subprocesses with `TITO_ALLOW_SYSTEM=1` set. Marked `quick` (about 30 seconds), `module_flow` (about 2 minutes), or `full_journey` (7 to 8 minutes, CI only). |
 | `tests/environment/` | Validates the local dev environment itself: Python version at least 3.10, an active virtualenv, and that core dependencies import correctly. Meant to run right after `tren setup`. |
 | `tests/integration/` | Cross-module tests: tensor plus autograd plus layers together, a full training pipeline, CNN integration, gradient flow, and similar. One file, `test_module_integration.py`, is entirely disabled via `pytest.mark.skip` with an explicit comment that it targets stale package paths; current coverage lives in the other, more focused files in the same directory. |
@@ -189,41 +178,13 @@ Each milestone directory (for example `milestones/01_1958_perceptron/`) contains
 
 ---
 
-## 5. Documentation site and PDFs (`quarto/`)
+## 5. Documentation site, PDF guide, and community sync: removed
 
-### 5.1 The docs site
-
-`quarto/_quarto.yml` is the main website Quarto project. Upstream publishes it at `mlsysbook.ai/tinytorch/`; this fork doesn't currently deploy it anywhere, but the site still builds locally via `quarto render`. Structure:
-
-- `quarto/modules/01_tensor.qmd` through `20_capstone.qmd`: one hand-authored chapter per module. These are prose pages that link out to the actual notebook (a Binder launch URL pointing at `modules/<NN>/<slug>.ipynb`) and the actual source (a GitHub link to `src/<NN>/<NN>.py`); they are not generated from either. There is no notebook-to-docs conversion script anywhere in the project (confirmed by searching `tren/` and `dev/scripts/` for `nbconvert` or similar, with no matches).
-- `quarto/milestones/` and `quarto/tiers/`: narrative pages for the six milestones and the three curriculum tiers (Foundation, Architecture, Optimization).
-- `quarto/tito/`: CLI reference documentation (not yet renamed to match the `tren` CLI, still lives at this path on disk).
-- `quarto/config/announcement.yml`: the site's announcement banner configuration, upstream-specific (links to sibling mlsysbook.ai projects that don't apply to this fork).
-- `quarto/install.sh`: the install script. Upstream serves it at `mlsysbook.ai/tinytorch/install.sh`; this fork has no equivalent hosted URL, so it's run from a local checkout or a raw GitHub URL instead.
-
-### 5.2 The PDF guide and the paper
-
-`quarto/pdf/` is a second, separate Quarto book project that reuses the same `.qmd` chapter files from `quarto/modules/` (one directory up) to render a downloadable PDF course guide via LaTeX, built with `make pdf` from `quarto/Makefile`. Upstream also kept a fully independent LaTeX research paper, compiled separately via `xu-cheng/latex-action` in CI; this fork removed that standalone `paper/` document.
-
-### 5.3 The community dashboard
-
-`quarto/community/` is a distinct sub-feature: an interactive student-progress dashboard, including a 3D "globe" visualization, built as plain HTML, CSS, and JavaScript (`dashboard.html`, `community.html`, supporting pages for profile setup and auth callbacks, and a `community/modules/` directory of JS for auth, camera, terrain, and UI rendering). It's published by Quarto only as a static-resource passthrough, not authored in `.qmd`, and has its own Playwright end-to-end test suite under `quarto/community/community/tests/`.
-
-**Not usable in this fork as-is**: this dashboard is a static frontend for a backend hosted by the original TrenTorch project (see section 6). It's included here as documentation of how the original system works, not as a working feature.
+This fork inherited upstream's Quarto-based docs site and PDF guide (`quarto/`), its student-progress community dashboard (`quarto/community/`), and the CLI-side login/auth/sync code that talked to it (`tren/commands/login.py`, `community.py`, `tren/core/auth.py`, `browser.py`, `submission.py`). The dashboard and CLI sync code were client-only: the backend they talked to (a Netlify-hosted login endpoint and a Supabase project) belonged to the original TrenTorch project and was never usable from this fork. The Quarto docs site and PDF guide were never deployed from this fork either, and the hand-authored `.qmd` pages had already drifted from the actual module content since nothing kept the two in sync. All of it has been removed rather than kept as dead code pointing at someone else's infrastructure or an undeployed site; see [`design.md`](design.md#community-dashboard-and-progress-sync-removed) for the fuller history. `docs/` (this file included) is the contributor-facing documentation going forward.
 
 ---
 
-## 6. Community sync and authentication
-
-The upstream project's `tren login` (reached via `tren community login`) starts a short-lived local HTTP server, opens the browser to the TrenTorch website's `cli-login` endpoint at `https://trentorch.netlify.app`, and waits up to 300 seconds for the browser to redirect back to `localhost:<port>/callback` with an access token, a refresh token, and an email address as query parameters. On success, tokens are saved to `~/.trentorch/credentials.json`, and the user is offered a one-time sync of any progress completed before logging in.
-
-Progress sync itself (`SubmissionHandler` in `tren/core/submission.py`) assembles `.tren/progress.json` and `.tren/milestones.json` into a payload and posts it, with bearer-token authentication and automatic token-refresh retry on a 401, to a Supabase Edge Function. This is a separate backend from the Netlify-hosted login flow: login authenticates the user against the website, while progress data itself is stored via Supabase.
-
-**Exclusive to the upstream project, not usable here**: `trentorch.netlify.app` and its Supabase backend belong to the original TrenTorch project, not this fork. The `tren community` code is documented here because it's still present in the codebase, but running it against those endpoints won't work meaningfully for TrenTorch users. None of this is required to build the framework: every module and milestone completion is tracked locally first (`.tren/progress.json`, `.tren/milestones.json`) regardless of login state.
-
----
-
-## 7. Packaging
+## 6. Packaging
 
 ### 7.1 `pyproject.toml` (at `trentorch/`)
 
@@ -243,13 +204,13 @@ TrenTorch is not currently published to PyPI by any automated workflow. Upstream
 
 ---
 
-## 8. CI/CD
+## 7. CI/CD
 
 The upstream TinyTorch project runs five GitHub Actions workflows (validate, preview, publish, and two PDF-build workflows) that gate merges, build and deploy the docs site to `mlsysbook.ai`, and cut versioned releases. None of that CI/CD infrastructure exists in this fork: it's specific to the `harvard-edge/cs249r_book` repository's GitHub Actions setup and secrets, and can't be used here without standing up equivalent workflows against this repository. If TrenTorch adds its own CI later, it would need to be built independently rather than copied wholesale, since the originals assume the monorepo's directory layout and deploy targets.
 
 ---
 
-## 9. Local development setup
+## 8. Local development setup
 
 1. `cd trentorch`, create and activate a virtual environment.
 2. `pip install -r requirements.txt`, then `pip install -e .` to install both `trentorch` and `tren` in editable mode.
@@ -262,19 +223,18 @@ For instructor-side grading workflows specifically, `INSTRUCTOR.md` documents th
 
 ---
 
-## 10. Known-broken or inaccurate as of this document
+## 9. Known-broken or inaccurate as of this document
 
 - `CONTRIBUTING.md`'s "Release Process" section claims the release workflow "deploys to tinytorch.org" and "publishes to PyPI." Neither matches the actual `tinytorch-publish-live.yml` workflow, which deploys to `mlsysbook.ai/tinytorch/` via `gh-pages` and has no PyPI step at all.
-- `dev/scripts/build-docs.sh` references a defunct Jupyter Book pipeline (`docs/_build/html`, `website/docs/`) that predates the current Quarto site, and is not called from any current CI workflow.
+- `dev/scripts/build-docs.sh` references a defunct Jupyter Book pipeline (`docs/_build/html`, `website/docs/`) that predates the (now also removed) Quarto site, and is not called from any current CI workflow.
 - `tests/integration/test_module_integration.py` is fully disabled (`pytest.mark.skip`) with a comment that it targets stale package paths.
 - `settings.ini` and `pyproject.toml` specify different dependency version floors for the same package; nothing currently enforces they stay consistent beyond the manual version-bump step in the publish workflow.
 - `CHANGELOG.md`'s newest entry is `[0.1.10]` (dated 2026-04, marked "planned"); `pyproject.toml`'s actual `version` is `0.1.13` as of this document, at least three releases with no changelog entry.
 - `INSTRUCTOR.md` documents `tren module status --student student_id` and `--export class_progress.csv`; the real `status` subparser takes no arguments and both would fail with an argparse error.
-- `quarto/tren/troubleshooting.qmd` references a `trentorch.nn` submodule (`from trentorch.nn import Linear`) that doesn't exist; the real path is `trentorch.core.layers`. The same file's `overview.qmd` sibling omits `tren package`, `tren olympics`, and `tren module path` from its command reference table, despite all three being real, registered commands.
 
 ---
 
-## 11. Common contribution workflows
+## 10. Common contribution workflows
 
 ### Improving a module's content or exercises
 
@@ -296,9 +256,3 @@ For instructor-side grading workflows specifically, `INSTRUCTOR.md` documents th
 1. Milestones live in `milestones/<NN_year_name>/`, each with its own `README.md` and runnable script that imports the student's real module classes.
 2. If you're changing a module's public API in a way that could affect a milestone that depends on it, check `tests/milestones/test_milestones_smoke.py` and consider running the affected milestone directly; this is the exact class of bug that test file exists to catch (see GitHub issue #1278, referenced in the design doc).
 3. Update the milestone's requirement list in `tren/commands/milestone.py`'s `MILESTONE_SCRIPTS` if the set of prerequisite modules changes.
-
-### Working on the docs site or PDF guide
-
-1. Docs pages live under `quarto/modules/`, `quarto/milestones/`, and `quarto/tiers/`, hand-authored `.qmd` files, not generated from module source. If you add or substantially change a module, remember to update its corresponding `.qmd` page yourself; nothing does this automatically, and nothing currently fails a build if it goes stale.
-2. Preview locally with Quarto's own render/preview commands from within `quarto/`, or use `tren dev build` to build via the project's `make` targets.
-3. PDF-specific changes (the guide or the paper) can be tested locally if you have a LaTeX distribution installed; CI verifies them via `tinytorch-build-pdfs.yml` on every relevant change.

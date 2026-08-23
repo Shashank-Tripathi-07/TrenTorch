@@ -67,6 +67,6 @@ duplicated list of requirements.
 2. Add or rename scripts under `milestones/`.
 3. Update `test_milestones_smoke.py` for import/model construction coverage.
 4. Update `test_milestones_run.py` for release-run coverage.
-5. Update milestone READMEs and Quarto pages.
+5. Update milestone READMEs.
 
 Keep command examples singular: use `tren milestone`.

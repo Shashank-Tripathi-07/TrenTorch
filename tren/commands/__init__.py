@@ -10,7 +10,6 @@ from .base import BaseCommand
 # Individual commands
 from .nbgrader import NBGraderCommand
 from .benchmark import BenchmarkCommand
-from .community import CommunityCommand
 
 # Command groups (with subcommands organized in subfolders)
 from .system import SystemCommand
@@ -22,7 +21,6 @@ __all__ = [
     # Individual commands
     'NBGraderCommand',
     'BenchmarkCommand',
-    'CommunityCommand',
     # Command groups
     'SystemCommand',
     'ModuleWorkflowCommand',

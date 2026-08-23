@@ -10,7 +10,6 @@ This replaces the old 01_setup module with a proper CLI command that handles:
 
 import subprocess
 import sys
-import os
 import platform
 import datetime
 from pathlib import Path
@@ -21,13 +20,9 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.prompt import Prompt, Confirm
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich import box
 
 from .base import BaseCommand
-from .login import LoginCommand
 from ..core.console import get_console
-from ..core.auth import is_logged_in
-from ..core.browser import open_url
 
 def _print_file_update(console, file_path: Path) -> None:
     """Print a notification when a file is created or updated."""
@@ -522,92 +517,6 @@ class SetupCommand(BaseCommand):
             border_style="green"
         ))
 
-    def prompt_community_registration(self) -> None:
-        """Prompt user to join the TinyTorch community."""
-        # Check if already logged in
-        if is_logged_in():
-             self.console.print("\n[green]✅ You are already connected to the TinyTorch community.[/green]")
-             return
-
-        # Unlike install.sh (which honors this for its own prompts), tito setup
-        # never checked this env var, so a fully unattended run (CI, scripted
-        # setup, no stdin) crashed here with "EOF when reading a line" instead
-        # of skipping the prompt like every other TINYTORCH_NON_INTERACTIVE=1
-        # invocation is supposed to.
-        if os.environ.get("TINYTORCH_NON_INTERACTIVE"):
-            self.console.print("\n[dim]Skipping community prompt (TINYTORCH_NON_INTERACTIVE set). "
-                                "You can join anytime with: tito community login[/dim]")
-            return
-
-        self.console.print()
-        self.console.print(Panel.fit(
-            "[bold cyan]🌍 Join the TinyTorch Community[/bold cyan]\n\n"
-            "Connect at [link=https://mlsysbook.ai/tinytorch/community/?action=join]mlsysbook.ai/tinytorch/community/?action=join[/link]\n\n"
-            "[dim]• See learners worldwide\n"
-            "• Leaderboard submissions\n"
-            "• Progress syncing[/dim]",
-            border_style="cyan",
-            box=box.ROUNDED
-        ))
-
-        join = Confirm.ask("\n[bold]Join the community?[/bold]", default=True)
-
-        if join:
-            self.console.print("\n[cyan]Starting community login process...[/cyan]")
-            login_cmd = LoginCommand(self.config)
-
-            # Create a dummy Namespace for login command arguments
-            login_args = Namespace(force=False)
-
-            try:
-                login_result = login_cmd.run(login_args)
-
-                if login_result == 0:
-                    self.console.print("[green]✅ Successfully connected to the TinyTorch community![/green]")
-
-                    # Post-login profile update prompt
-                    self.console.print()
-                    self.console.print(Panel(
-                        "[bold magenta]✨ Update Community Profile ✨[/bold magenta]\n\n"
-                        "Your CLI is now connected. Would you like to update your profile on the TinyTorch community website?",
-                        title="Community Profile Update",
-                        border_style="magenta",
-                        box=box.ROUNDED
-                    ))
-                    if Confirm.ask("[bold]Update your community profile?[/bold]", default=True):
-                        self.console.print("[dim]Opening profile editor...[/dim]")
-                        open_url("https://mlsysbook.ai/tinytorch/community/?action=profile&community=true", self.console, show_manual_fallback=True)
-                else:
-                    self.console.print("[yellow]⚠️  Community connection timed out or was cancelled.[/yellow]")
-                    self.console.print("[yellow]💡 You can complete this anytime with:[/yellow] [bold green]tito community login[/bold green]")
-            except Exception as e:
-                 self.console.print(f"[yellow]⚠️  Error during login: {e}[/yellow]")
-        else:
-            self.console.print("[dim]No problem! You can join anytime at mlsysbook.ai/tinytorch/community/[/dim]")
-
-    def prompt_community_login(self) -> None:
-        """Prompt user to log in to the TinyTorch community via CLI."""
-        self.console.print()
-        if Confirm.ask("[bold]Would you like to connect your TinyTorch CLI to the community now (for leaderboard submissions, progress syncing, etc.)?[/bold]", default=True):
-            self.console.print("\n[cyan]Starting community login process...[/cyan]")
-            login_cmd = LoginCommand(self.config)
-
-            # Create a dummy Namespace for login command arguments
-            login_args = Namespace(force=False)
-
-            try:
-                login_result = login_cmd.run(login_args)
-
-                if login_result == 0:
-                    self.console.print("[green]✅ Successfully connected to the TinyTorch community![/green]")
-                else:
-                    self.console.print("[yellow]⚠️  Community connection timed out or was cancelled.[/yellow]")
-                    self.console.print("[yellow]💡 You can complete this anytime with:[/yellow] [bold green]tito community login[/bold green]")
-            except Exception as e:
-                 self.console.print(f"[yellow]⚠️  Error during login: {e}[/yellow]")
-        else:
-            self.console.print("[dim]You can connect to the community anytime with 'tito community login'.[/dim]")
-
     def run(self, args: Namespace) -> int:
         """Execute the setup command."""
         self.console.print(Panel(
@@ -667,9 +576,6 @@ class SetupCommand(BaseCommand):
             else:
                 self.console.print("[green]✅ Setup completed successfully![/green]")
                 self.console.print("💡 Try: [bold]tito module start 01[/bold]")
-
-            # Prompt to join community
-            self.prompt_community_registration()
 
             return 0
 

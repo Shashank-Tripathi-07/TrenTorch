@@ -2,8 +2,8 @@
 # =============================================================================
 # TinyTorch Fresh Install Test
 # =============================================================================
-# Simulates exactly what a student experiences: fresh machine, curl install,
-# run through modules and milestones.
+# Simulates exactly what a student experiences: fresh machine, clone + pip
+# install, run through modules and milestones.
 #
 # Usage:
 #   ./scripts/test-fresh-install.sh                    # Test against main
@@ -65,34 +65,29 @@ echo "  TinyTorch Fresh Install Test"
 echo "  Branch: $BRANCH"
 echo "══════════════════════════════════════════════════════════════"
 
-# Step 1: Install from specified branch
+# Step 1: Clone the branch and install exactly the way the docs tell a
+# contributor to (pip install -r requirements.txt && pip install -e .).
+# TrenTorch has no hosted one-line installer of its own (the upstream
+# curl-install script this used to shell out to lived at quarto/install.sh
+# and has been removed along with the rest of the Quarto-hosted content;
+# see docs/design.md#community-dashboard-and-progress-sync-removed).
 echo ""
-echo "▶ Step 1: Running install script (branch: $BRANCH)..."
-export TINYTORCH_BRANCH="$BRANCH"
-export TINYTORCH_NON_INTERACTIVE=1
-# TrenTorch is currently a private repo: raw.githubusercontent.com 404s an
-# anonymous request the same way it would for a nonexistent file, so this
-# needs GITHUB_TOKEN (present automatically in this repo's own CI) passed
-# as a bearer token. install.sh's own internal git clone needs the same
-# token, which it already reads from this same env var -- exported above
-# via TINYTORCH_BRANCH and here via GITHUB_TOKEN, which stays in the
-# environment for `bash /tmp/install.sh` below to inherit.
-CURL_AUTH=()
-if [ -n "$GITHUB_TOKEN" ]; then
-    CURL_AUTH=(-H "Authorization: token $GITHUB_TOKEN")
-fi
+echo "▶ Step 1: Cloning and installing (branch: $BRANCH)..."
 REPO_SLUG="${GITHUB_REPOSITORY:-Shashank-Tripathi-07/TrenTorch}"
-curl -fsSL "${CURL_AUTH[@]}" "https://raw.githubusercontent.com/${REPO_SLUG}/${BRANCH}/quarto/install.sh" -o /tmp/install.sh || {
-    echo "✗ Failed to download install script for branch: $BRANCH"
-    echo "  URL: https://raw.githubusercontent.com/${REPO_SLUG}/${BRANCH}/quarto/install.sh"
-    echo "  Hint: Does the branch '${BRANCH}' exist and contain quarto/install.sh?"
-    [ -z "$GITHUB_TOKEN" ] && echo "  Also: TrenTorch is a private repo and no GITHUB_TOKEN was set -- that alone would 404 here."
+CLONE_URL="https://github.com/${REPO_SLUG}.git"
+if [ -n "$GITHUB_TOKEN" ]; then
+    CLONE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_SLUG}.git"
+fi
+git clone --depth 1 --branch "$BRANCH" "$CLONE_URL" trentorch || {
+    echo "✗ Failed to clone branch: $BRANCH"
+    [ -z "$GITHUB_TOKEN" ] && echo "  TrenTorch is a private repo and no GITHUB_TOKEN was set -- that alone would fail here."
     exit 1
 }
-bash /tmp/install.sh
-
-cd tinytorch
+cd trentorch
+python3 -m venv .venv
 source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
 
 # Step 2: Verify tren works
 echo ""

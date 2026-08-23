@@ -50,7 +50,6 @@ from .commands.nbgrader import NBGraderCommand
 from .commands.milestone import MilestoneCommand
 from .commands.setup import SetupCommand
 from .commands.benchmark import BenchmarkCommand
-from .commands.community import CommunityCommand
 from .commands.dev import DevCommand
 from .commands.olympics import OlympicsCommand
 from .commands.convert import ConvertCommand
@@ -108,15 +107,13 @@ class TrenTorchCLI:
             'nbgrader': NBGraderCommand,
             # Progress tracking
             'milestone': MilestoneCommand,
-            # Community
-            'community': CommunityCommand,
             'benchmark': BenchmarkCommand,
             'olympics': OlympicsCommand,
             'convert': ConvertCommand,
         }
 
         # Command categorization for help display
-        self.student_commands = ['module', 'milestone', 'community', 'benchmark', 'olympics']
+        self.student_commands = ['module', 'milestone', 'benchmark', 'olympics']
         self.developer_commands = ['dev', 'system', 'package', 'nbgrader']
 
         # Welcome screen sections (used for both tito and tito --help)
@@ -129,10 +126,6 @@ class TrenTorchCLI:
             'track_progress': [
                 (f'[{Theme.CAT_PROGRESS}]tren module status[/{Theme.CAT_PROGRESS}]', 'View module progress'),
                 (f'[{Theme.CAT_PROGRESS}]tren milestone status[/{Theme.CAT_PROGRESS}]', 'View unlocked capabilities'),
-            ],
-            'community': [
-                (f'[{Theme.CAT_COMMUNITY}]tren community login[/{Theme.CAT_COMMUNITY}]', 'Log in to TrenTorch'),
-                (f'[{Theme.CAT_COMMUNITY}]tren community logout[/{Theme.CAT_COMMUNITY}]', 'Log out of TrenTorch'),
             ],
             'help_docs': [
                 (f'[{Theme.CAT_HELP}]tren system health[/{Theme.CAT_HELP}]', 'Check environment health'),
@@ -152,11 +145,6 @@ class TrenTorchCLI:
         # Track Progress
         lines.append(f"\n[{Theme.SECTION}]Track Progress:[/{Theme.SECTION}]")
         for cmd, desc in self.welcome_sections['track_progress']:
-            lines.append(f"  {cmd:<38} {desc}")
-
-        # Community
-        lines.append(f"\n[{Theme.SECTION}]Community:[/{Theme.SECTION}]")
-        for cmd, desc in self.welcome_sections['community']:
             lines.append(f"  {cmd:<38} {desc}")
 
         # Help & Docs

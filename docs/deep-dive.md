@@ -1,160 +1,14 @@
 # TrenTorch: How It Actually Works, From First Principles
 
-*Every claim in this document is sourced from reading the actual code: `quarto/install.sh`, `bin/tren`, `tren/main.py`, `tren/core/*.py`, `tren/commands/**/*.py`, `pyproject.toml`, `requirements.txt`, and `trentorch/__init__.py`, cross-checked against a real, install.sh-created TrenTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `install.sh` and `tren` source verbatim, so the mechanics below are still accurate to this fork's code, except that the install URL, the repo it clones, and the community backend it can optionally talk to (Part 6) are still hardcoded to upstream's own infrastructure, not this fork's.*
+*Every claim in this document is sourced from reading the actual code: `bin/tren`, `tren/main.py`, `tren/core/*.py`, `tren/commands/**/*.py`, `pyproject.toml`, `requirements.txt`, and `trentorch/__init__.py`, cross-checked against a real TrenTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `tren` source verbatim, so the mechanics below are still accurate to this fork's code. This fork also inherited upstream's `install.sh` (a one-line-curl installer hardcoded to upstream's own hosted URL and repo) and the optional community backend it could talk to; both have since been removed rather than kept pointing at someone else's infrastructure (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)).*
 
 ---
 
-## Part 1: Before Anything Runs, The Install
+## Part 1: Two Ways To Invoke `tren`
 
-Nothing about TrenTorch exists on a user's machine until they run one command:
+Upstream's one-line-curl installer (`quarto/install.sh`) has been removed from this fork along with the rest of the Quarto-hosted content; it was hardcoded to upstream's own URL and repository and never usable as an install path for TrenTorch itself. Setup here goes through `pip install -r requirements.txt && pip install -e .` (see [`implementation.md`](implementation.md#prerequisites)) instead.
 
-```text
-curl -sSL mlsysbook.ai/tinytorch/install.sh | bash
-```
-
-This pipes a single Bash script (`quarto/install.sh`, 874 lines) into a shell. Nothing else is downloaded first. The script itself is small (tens of KB); everything else it does is described below, step by step, matching `main()` at the bottom of the file. **This URL is upstream's**; this fork's copy of the script still points at the upstream repository until it's repointed at TrenTorch's own.
-
-### 1.1 Pre-flight checks (before touching the disk)
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│  main()                                                          │
-│                                                                   │
-│  1. fetch_latest_version()   ── network call to GitHub tags API  │
-│  2. print_banner()                                                │
-│  3. check_write_permission() ── touch a test file, then delete it│
-│  4. check_not_in_venv()      ── warn only, does not block         │
-│  5. check_prerequisites()    ── git, Python 3.10+, venv module    │
-│  6. check_internet()         ── git ls-remote against the real repo│
-│  7. prompt_install_directory()                                    │
-│  8. check_existing_directory()                                    │
-│  9. show_plan_and_confirm()                                       │
-│ 10. do_install()              ── the actual work (Part 1.2)       │
-│ 11. print_success_message()                                       │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-Every one of these steps that touches the network or an external process is wrapped in `run_with_timeout()` (a wrapper around `timeout`/`gtimeout`, or a raw call if neither exists). This exists because of a real, filed bug, [issue #1960](https://github.com/harvard-edge/cs249r_book/issues/1960), where the installer would print `Git OK` and then hang forever with zero output, because a step had no timeout and something in the user's environment blocked silently. Every external call in the script now has an explicit ceiling:
-
-| Step | Timeout | Why this exact bound |
-|---|---|---|
-| Detecting/validating a Python command | 5s | Windows can silently redirect `python` to a Microsoft Store placeholder that tries to open the Store and never returns |
-| Checking GitHub is reachable | 15s | A firewall/VPN that drops packets instead of rejecting them can hang a plain `git ls-remote` indefinitely |
-| Cloning the repo | 120s | A shallow, sparse clone of one small folder should take seconds; anything past two minutes means the network is actually broken |
-| Creating the venv | 60s | Guards against a corrupted Python's internal `ensurepip` bootstrap hanging |
-| Installing pip packages | 600s (10 min) | Generous on purpose: a slow-but-working install should be allowed to finish. What this actually catches is a pip config silently pointing at a private index that waits for credentials nobody can type into a piped `curl \| bash` session |
-| Waiting on an interactive prompt | 30s | A `/dev/tty` that exists as a path but never delivers input (some IDE terminals, containers) must not hang forever |
-
-If a step never finishes and hits its ceiling, the script prints a specific, diagnosed error (not a generic timeout message) and exits. It names the *likely cause* (VPN, private pip index, Store alias) rather than just "timed out."
-
-### 1.2 The actual download and setup (`do_install`)
-
-```text
-[1/4] Downloading from GitHub...
-      │
-      │  git clone --depth 1 --filter=blob:none --sparse --branch main \
-      │      https://github.com/harvard-edge/cs249r_book.git <tmp>/repo
-      │
-      │  This is a SPARSE, SHALLOW, BLOB-FILTERED clone: depth 1 means no
-      │  git history, --filter=blob:none defers downloading file contents
-      │  until sparse-checkout narrows the tree, and --sparse means only
-      │  the trentorch/ subdirectory of the whole monorepo actually lands
-      │  on disk. The user never downloads the textbook, the hardware kit
-      │  recipes, the labs, or any other sibling project in this repo.
-      │
-      ▼
-      git sparse-checkout set trentorch
-      mv <tmp>/repo/trentorch  ./trentorch      (or the user's chosen name)
-      rm -rf <tmp>
-      │
-      │  Then a cleanup pass removes ~20 developer-only paths that a
-      │  learner doesn't need: instructor/, site/, dev/ (scripts,
-      │  tools, jupyter config, vscode extension), binder/, .claude/,
-      │  .cursor/, .vscode/, docs/CONTRIBUTING.md, docs/INSTRUCTOR.md,
-      │  docs/NBGRADER_RELEASE_TIERS.md, .pre-commit-config.yaml, and more (see the
-      │  REMOVE list in install.sh, lines 664-693).
-      │
-      │  modules/ is emptied (populated later by tren, not shipped
-      │  pre-built). progress.json and .tren/ are deleted (a student
-      │  starts with zero progress, even if the branch being cloned
-      │  happens to have stale tracking files in it). trentorch/core/*.py
-      │  is deleted except __init__.py. This is the critical one: the
-      │  package a student receives has NO implementations in it yet.
-      │  Every core/*.py file the package needs is something the student
-      │  will write themselves and export via tren.
-      ▼
-[2/4] Creating Python environment...
-      │
-      │  <detected-python> -m venv .venv
-      │  source .venv/bin/activate   (or .venv/Scripts/activate on Windows)
-      │
-      ▼
-[3/4] Installing dependencies...
-      │
-      │  pip install --upgrade pip
-      │  pip install -r requirements.txt      (all packages below)
-      │  pip install -e .                      (tren itself, editable)
-      │
-      ▼
-[4/4] Verifying installation...
-      │
-      │  command -v tren   (confirms the entry point resolved on PATH)
-      ▼
-   done.
-```
-
-### 1.3 What's actually on disk afterward, and how big it is
-
-Measured directly on a real installed environment (not estimated):
-
-```text
-trentorch/                                          ~339 MB total (after all
-├── .venv/                              ~296 MB     20 modules are built,
-│   └── Lib/site-packages/                          a fresh install before
-│       ├── debugpy/          31.2 MB                any module work is
-│       ├── babel/            30.0 MB                closer to ~300 MB,
-│       ├── jupyterlab/       23.5 MB                since .venv dominates)
-│       ├── numpy/            22.0 MB
-│       ├── numpy.libs/       20.1 MB   <- compiled BLAS/LAPACK, not Python
-│       ├── notebook/         15.9 MB
-│       ├── jedi/             14.3 MB   <- Jupyter's autocomplete engine
-│       ├── pip/               10.8 MB
-│       └── ...30+ more packages
-├── src/                                 1.6 MB     20 module source files
-│   ├── 01_tensor/01_tensor.py                       (the actual curriculum
-│   ├── 02_activations/...                            content, this is what
-│   └── ... 20_capstone/                              gets sparse-cloned)
-├── modules/                             ~0 MB       EMPTY at install time.
-│                                                     Populated one directory
-│                                                     per module, only when
-│                                                     `tren module start N`
-│                                                     runs (Part 3).
-├── trentorch/                           ~1 MB       the actual Python
-│   ├── core/                                        PACKAGE. At install
-│   │   └── __init__.py   (only this file)           time, core/ has nothing
-│   └── __init__.py                                  but __init__.py files,
-│                                                     no Tensor, no Linear,
-│                                                     nothing. Every real
-│                                                     class here is written
-│                                                     by the student later.
-├── tren/                                1.2 MB      the CLI's own source
-├── tests/                               3.5 MB       test suites (20 module
-│                                                       dirs + shared conftest)
-├── datasets/                            0.4 MB      tinydigits, tinytalks
-├── milestones/                          0.6 MB      6 historical ML scripts
-├── bin/tren                                         a standalone entry
-│                                                      point (works without
-│                                                      `pip install -e .`,
-│                                                      see 1.4)
-├── requirements.txt, pyproject.toml, settings.ini
-└── README.md, LICENSE
-```
-
-The `.venv/` directory alone is roughly **87% of the total install size**. The actual curriculum content a student edits (`src/`) is under 2 MB. This is worth internalizing: almost the entire disk footprint is dependency packages (numpy's compiled math libraries, JupyterLab's web frontend, a debugger), not TrenTorch's own code.
-
-### 1.4 Two ways to invoke `tren` (this matters for understanding "how it runs")
-
-There are two entry points into the exact same code, and they resolve `sys.path` differently:
+There are two entry points into the resulting code, and they resolve `sys.path` differently:
 
 ```text
 Path A: the installed console script (created by `pip install -e .`)
@@ -213,8 +67,8 @@ Before any subcommand's own logic runs, `tren/main.py`'s `TrenTorchCLI` does the
 │      found anywhere up the tree, falls back to plain cwd.              │
 │    - Registers 10 command classes into one dict (main.py's own         │
 │      comment calls this the "SINGLE SOURCE OF TRUTH"): setup, system,  │
-│      module, dev, package, nbgrader, milestone, community, benchmark,  │
-│      olympics.                                                         │
+│      module, dev, package, nbgrader, milestone, benchmark, olympics,   │
+│      convert.                                                          │
 └───────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -577,70 +431,13 @@ Every place in the codebase that makes an outbound network request, and exactly 
 │ install.sh do_install│ git clone (the actual        │ HARD FAILURE. Install cannot   │
 │                      │ download)                    │ proceed without this.          │
 ├────────────────────┼──────────────────────────────┼───────────────────────────────┤
-│ tren community login│ Opens a browser to a hosted   │ A local HTTP server            │
-│                      │ login page, waits (up to      │ (AuthReceiver) listens on      │
-│                      │ 300s) for a redirect back     │ 0.0.0.0, port 54321+ (hunts up │
-│                      │ carrying access/refresh       │ to +100 if taken), for a       │
-│                      │ tokens                        │ callback carrying the tokens.  │
-│                      │                                │ Times out silently after 5min. │
-├────────────────────┼──────────────────────────────┼───────────────────────────────┤
 │ tren system update   │ GitHub tags API + a second    │ Clear "could not check         │
 │ --check / update     │ sparse git clone (same         │ updates" message; nothing on   │
 │                      │ mechanism as install.sh)       │ disk changes.                  │
-├────────────────────┼──────────────────────────────┼───────────────────────────────┤
-│ Progress sync        │ POST to a Supabase Edge        │ See below: this is the ONLY  │
-│ (module/milestone     │ Function                       │ network call in the normal     │
-│ complete, or          │                                 │ per-module loop, and it is     │
-│ `community sync`)     │                                 │ entirely optional.             │
 └────────────────────┴──────────────────────────────┴───────────────────────────────┘
 ```
 
-**A student who never runs `tren community login` never makes a single network request during normal module work.** Everything in Parts 3-5 (starting, editing, testing, exporting, completing 20 modules) is 100% offline. The only thing that ever calls out is the progress-sync prompt, and that prompt only appears at all if `auth.is_logged_in()` is true (i.e. credentials already exist on disk).
-
-### 6.1 The sync decision tree (`auto_sync_after_completion`)
-
-```text
-              is_ci()?  (checks CI, GITHUB_ACTIONS, GITLAB_CI, etc. env vars)
-                    │
-              ┌─────┴─────┐
-             YES           NO
-              │             │
-        do nothing.    is_logged_in()?  (credentials.json exists?)
-        Never sync           │
-        automatically   ┌────┴────┐
-        in automation.  NO         YES
-                         │           │
-              print a hint    is_interactive()?
-              to run login,   (stdin AND stdout
-              return.         both real TTYs?)
-                                │
-                          ┌─────┴─────┐
-                         YES           NO
-                          │             │
-                   ASK first     Sync WITHOUT asking.
-                   (default:     This is deliberate: a
-                   yes). If      real logged-in student
-                   declined,     on Git Bash / MinTTY /
-                   skip.         most IDE terminals has
-                                 stdin.isatty() == False
-                                 EVEN THOUGH they're right
-                                 there watching the
-                                 terminal. An earlier
-                                 version of this code
-                                 treated non-TTY as "skip
-                                 silently," which is the
-                                 exact bug (#1849) that
-                                 left real students'
-                                 dashboards permanently
-                                 out of sync with no
-                                 error ever shown.
-```
-
-### 6.2 What the sync request actually contains, and how honesty is enforced
-
-The payload is a JSON POST to a hardcoded Supabase Edge Function URL, containing the user's email (from stored credentials), completed module list + count + percentage, and unlocked-milestone summary. Read `.tren/progress.json` and `.tren/milestones.json`, assemble, send, no telemetry beyond what's already tracked locally, nothing collected that isn't already visible to `tren module status`.
-
-The response handling is deliberately stricter than a normal "2xx = success" check, because of a previously-real, previously-invisible bug: a `SyncResult` has *two* separate booleans, `ok` and `accepted`. A 2xx HTTP response where the server's own `synced_modules` count is null or zero is reported as a **yellow warning** ("accepted, but not confirmed persisted"), not a green success, because that exact combination is what silently desynced dashboards before. A 401 triggers one automatic token-refresh-and-retry; if the refresh itself fails (400/401/403), stored credentials are deleted outright, forcing a genuine re-login rather than leaving a dead token sitting on disk indefinitely.
+**Every module in the normal 20-module student loop is 100% offline.** This fork previously had an optional `tren community login` / progress-sync path (a browser-based login plus a POST to a hosted backend after completing a module or milestone); it talked to the original TrenTorch project's own infrastructure, was never usable from this fork, and has since been removed along with the rest of the community/docs-site code (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)). The table above no longer includes it.
 
 ---
 
@@ -722,9 +519,6 @@ A direct answer to "what actually uses CPU/memory/disk/network," per command fam
 │                         │      │        │         │ most CPU-intensive        │
 │                         │      │        │         │ single command in the     │
 │                         │      │        │         │ system                    │
-│ tren community login    │ low  │ write  │ HTTP    │ opens a local port,       │
-│                         │      │ (creds)│ (OAuth- │ waits up to 300s          │
-│                         │      │        │ style)  │                           │
 │ tren benchmark baseline │ med  │ write  │ none    │ real numpy tensor ops,    │
 │                         │      │ (JSON  │         │ timed on the actual CPU,  │
 │                         │      │ result)│         │ not simulated             │
@@ -813,30 +607,16 @@ Tying every part above into one linear trace, from a user's very first keystroke
 ```
  USER                          MACHINE                          NETWORK
   │                               │                                 │
-  │ curl ... | bash               │                                 │
-  ├──────────────────────────────>│                                 │
-  │                               │  fetch_latest_version() ───────>│  GitHub tags API
-  │                               │<─────────────────────────────── │
-  │                               │  check_prerequisites()          │
-  │                               │  (git, python 3.10+, venv mod)  │
-  │                               │  check_internet() ─────────────>│  git ls-remote
-  │                               │<─────────────────────────────── │
-  │ [confirms install location]   │                                 │
-  ├──────────────────────────────>│                                 │
-  │                               │  git clone --sparse ────────────>│  the trentorch/
-  │                               │<──────────────────────────────── │  subtree only
-  │                               │  rm dev-only files, clear        │
-  │                               │  modules/, clear core/*.py       │
-  │                               │  python -m venv .venv            │
-  │                               │  pip install -r requirements.txt │
-  │                               │  pip install -e .                │
-  │                               │  [~300 MB now on disk]           │
+  │ git clone && cd trentorch     │                                 │
+  │ python -m venv .venv          │                                 │
+  │ pip install -r requirements.txt │                               │
+  │ pip install -e .              │                                 │
+  ├──────────────────────────────>│  [~300 MB now on disk]          │
   │                               │                                 │
-  │ cd trentorch && activate       │                                 │
+  │ activate .venv                │                                 │
   │ tren setup                    │                                 │
   ├──────────────────────────────>│  venv guard PASSES (activated)  │
   │                               │  create profile, verify env      │
-  │                               │  offer community login ─────?──>│  (optional, OAuth)
   │                               │                                 │
   │ tren module start 01          │                                 │
   ├──────────────────────────────>│  01 not started, no prereqs      │
@@ -866,9 +646,6 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │                               │  Step 4: completed_modules       │
   │                               │  gains "01"                      │
   │                               │  milestone-unlock check           │
-  │                               │  IF logged in AND interactive:   │
-  │                               │  ask to sync ───────?────────────>│  POST to Supabase
-  │                               │<──────────────────────────────── │  edge function
   │                               │                                 │
   │  [... repeat for modules      │                                 │
   │      02 through 20 ...]       │                                 │
@@ -901,6 +678,6 @@ Tying every part above into one linear trace, from a user's very first keystroke
 3. **`module start`**: checks tracking state, self-heals if that state has desynced from the actual files on disk, checks prerequisites, converts `src/*.py` to a notebook via a real `jupytext` subprocess if one doesn't exist, and optionally spawns a real, currently-untracked, long-lived `jupyter lab` server.
 4. **`module complete`**: a strict four-step pipeline (instructor-reference unit tests, notebook syntax check, real `nbdev` export of the student's own cells into a real Python file, then pytest against that just-exported package) where any failure stops everything before progress is ever recorded.
 5. **Two separate conversions** exist and are easy to confuse: `jupytext` runs once, source→notebook, at `start` time; `nbdev` runs every time, notebook→package, at `complete` time.
-6. **Network calls are rare and optional**: install itself, an optional login, an optional progress sync, and an optional update check, the entire 20-module curriculum works completely offline.
+6. **Network calls are rare and optional**: an optional update check is the only one left, the entire 20-module curriculum works completely offline.
 7. **The test gatekeeper exists because of a specific danger**: `trentorch/__init__.py`'s `try/except ImportError: X = None` pattern means a broken export can silently become `None` instead of an error, so `conftest.py` hard-fails the whole test session if the four foundational modules aren't properly exported before any test runs; modules 05-20 aren't covered by this check yet (a fix that would extend it to all 20 is open, unmerged).
 8. **No GPU is used anywhere**; every operation is either pure Python/JSON bookkeeping, a subprocess (`jupytext`, `pytest`, a plain `python` script, `jupyter lab`), or NumPy math on the CPU.

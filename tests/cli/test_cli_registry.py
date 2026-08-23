@@ -140,7 +140,6 @@ class TestCommandFiles:
             'milestone': 'milestone.py',      # Singular, not plural
             'olympics': 'olympics.py',
             'benchmark': 'benchmark.py',
-            'community': 'community.py',
         }
 
         for cmd_name, expected_file in cmd_to_file.items():
@@ -163,10 +162,9 @@ class TestCommandFiles:
             # Registered top-level commands
             'setup.py', 'nbgrader.py',
             'milestone.py', 'benchmark.py',
-            'community.py', 'olympics.py',
+            'olympics.py',
             'convert.py',
             # Known internal/helper files (not top-level commands)
-            'login.py',  # Subcommand of community
             'export_utils.py',  # Helper for export functionality
         }
 

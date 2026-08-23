@@ -70,7 +70,7 @@ class TestCommandExecution:
 
     @pytest.mark.parametrize("command", [
         'setup', 'system', 'module', 'dev', 'package', 'nbgrader',
-        'milestone', 'benchmark', 'community', 'olympics'
+        'milestone', 'benchmark', 'olympics'
     ])
     def test_command_help_works(self, command):
         """Test that each command's help can be displayed."""
@@ -97,7 +97,6 @@ class TestCommandExecution:
         ('system', 'health'),
         ('module', 'status'),
         ('module', 'list'),
-        ('community', 'join'),
         ('milestone', 'status'),
     ])
     def test_subcommand_help_works(self, command, subcommand):

@@ -1427,9 +1427,6 @@ class MilestoneCommand(BaseCommand):
                 padding=(1, 2)
             ))
 
-            # Offer to sync progress (uses centralized SubmissionHandler)
-            self._offer_progress_sync(milestone_id, milestone['name'])
-
             # Show next steps
             next_id = str(int(milestone_id) + 1).zfill(2)
             if next_id in MILESTONE_SCRIPTS:
@@ -1591,23 +1588,3 @@ class MilestoneCommand(BaseCommand):
         except IOError:
             pass
 
-    def _offer_progress_sync(self, milestone_id: str, milestone_name: str) -> None:
-        """Offer to sync progress after milestone completion.
-
-        Delegates to the shared :func:`auto_sync_after_completion` helper so the
-        CI / interactivity / logged-in rules match the module-completion path.
-        Crucially, this no longer skips the sync on a non-TTY shell (Git Bash /
-        IDE terminals) -- that silent skip left progress unsynced (#1849).
-        """
-        from ..core.submission import auto_sync_after_completion
-
-        self.console.print()
-        try:
-            auto_sync_after_completion(
-                self.config,
-                self.console,
-                prompt="Sync this achievement to your profile?",
-            )
-        except Exception as e:
-            self.console.print(f"[yellow]⚠️ Could not sync: {e}[/yellow]")
-            self.console.print("[dim]Your progress is saved locally and will sync next time.[/dim]")
