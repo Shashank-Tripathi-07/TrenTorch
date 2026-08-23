@@ -10,7 +10,6 @@
 | The `tren` CLI itself | The same as above. `tren` is a plain Python package (`tren/`) installed alongside `trentorch/` from the same `pyproject.toml`. |
 | The docs site or PDF guide | The above, plus Quarto, and for PDF builds specifically, a LaTeX distribution (CI uses TinyTeX) and the Mermaid CLI for diagrams. |
 | The community dashboard (`quarto/community/`) | Node.js and npm for its Playwright test suite; the dashboard itself is plain HTML/CSS/JS with no build step. |
-| The VS Code extension (`dev/vscode-ext/`) | Node.js, npm, and the VS Code extension development tools. |
 | Instructor grading workflows | The above, plus `nbgrader` installed (`pip install nbgrader`), per `INSTRUCTOR.md`. |
 
 ## Repository layout
@@ -27,7 +26,7 @@ cs249r_book/
     quarto/              # Docs site source (mlsysbook.ai/tinytorch/) + PDF guide + community dashboard
     docs/                # Design docs, contributor docs (CONTRIBUTING.md, INSTRUCTOR.md, NBGRADER_RELEASE_TIERS.md)
     binder/               # mybinder.org / Colab launch configuration (must stay at repo root)
-    dev/                  # Dev-only support tooling: scripts/, tools/, etc/ (jupyter config), vscode-ext/
+    dev/                  # Dev-only support tooling: scripts/, tools/, etc/ (jupyter config)
     benchmark_results/    # Local artifact output from Module 19's BenchmarkSuite
     pyproject.toml, settings.ini, MANIFEST.in, requirements.txt
     README.md, LICENSE, CHANGELOG.md

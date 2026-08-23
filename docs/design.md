@@ -79,7 +79,6 @@ Everything TrenTorch uses, what it is, and why it's the right tool for this proj
 
 | Technology | What it is | How TrenTorch uses it |
 |---|---|---|
-| VS Code Extension API (TypeScript) | The API used to build Visual Studio Code extensions. | Powers "TrenTorch Workbench" (`dev/vscode-ext/`), a sidebar extension that wraps the `tren` module, test, and build workflow in a graphical tree view, for students and contributors who prefer working inside VS Code. |
 | mybinder.org and Google Colab | Free, browser-based hosted Jupyter environments. | Let students run TrenTorch with no local installation at all. A `binder/postBuild` script installs the package and regenerates every module notebook from source at environment build time. |
 | Docker | A containerization tool. | Used in CI (`tinytorch-validate-dev.yml`'s fresh-install stage) to simulate a brand-new student machine installing the package from scratch. |
 
