@@ -1,5 +1,5 @@
 """
-Configuration management for TinyTorch CLI.
+Configuration management for TrenTorch CLI.
 """
 
 import os
@@ -33,7 +33,7 @@ def migrate_progress_dir(project_root: Path) -> None:
 
 @dataclass
 class CLIConfig:
-    """Configuration for TinyTorch CLI."""
+    """Configuration for TrenTorch CLI."""
 
     # Project paths
     project_root: Path

@@ -1,5 +1,5 @@
 """
-TinyTorch CLI Main Entry Point
+TrenTorch CLI Main Entry Point
 
 A professional command-line interface with proper architecture:
 - Clean separation of concerns
@@ -34,8 +34,8 @@ if sys.platform == "win32" or os.name == "nt":
         if hasattr(_stream, "reconfigure"):
             _stream.reconfigure(encoding="utf-8", errors="replace")
 
-# Set TINYTORCH_QUIET before any tinytorch imports to suppress autograd messages
-os.environ['TINYTORCH_QUIET'] = '1'
+# Set TRENTORCH_QUIET before any trentorch imports to suppress autograd messages
+os.environ['TRENTORCH_QUIET'] = '1'
 
 from .core.config import CLIConfig, migrate_progress_dir
 from .core.virtual_env_manager import get_venv_path
@@ -304,7 +304,7 @@ The best way to learn:
             table.add_row(cmd_name, cmd.description)
 
         self.console.print()
-        self.console.print(f"[{Theme.SECTION}]Tiny🔥Torch CLI[/{Theme.SECTION}] - Build ML systems from scratch")
+        self.console.print(f"[{Theme.SECTION}]Tren🔥Torch CLI[/{Theme.SECTION}] - Build ML systems from scratch")
         self.console.print()
         self.console.print(f"[{Theme.EMPHASIS}]Usage:[/{Theme.EMPHASIS}] [{Theme.INFO}]tito[/{Theme.INFO}] [{Theme.OPTION}]COMMAND[/{Theme.OPTION}] [{Theme.DIM}][OPTIONS][/{Theme.DIM}]")
         self.console.print()
@@ -382,7 +382,7 @@ The best way to learn:
                 allow_system = os.environ.get("TITO_ALLOW_SYSTEM") == "1"
                 if not in_venv and not allow_system:
                     print_error(
-                        "TinyTorch must run inside a virtual environment.\n"
+                        "TrenTorch must run inside a virtual environment.\n"
                         "Activate your project venv (for example, source .venv/bin/activate) "
                         "or set TITO_ALLOW_SYSTEM=1 to proceed at your own risk.",
                         "Virtual Environment Required"
