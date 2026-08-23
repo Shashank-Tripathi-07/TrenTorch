@@ -108,11 +108,12 @@ The four components that matter most for a system-design understanding:
 7. update_progress(module_num, module_name)
    writes .tren/progress.json
                     |
-8. _check_milestone_unlocks
-   may write .tren/milestones.json
+8. check_and_run_milestone_unlocks (tren/commands/milestone.py)
+   writes .tren/milestones.json, and runs the milestone immediately
+   if this module completion was the last prerequisite for one
 ```
 
-Two steps are easy to miss and worth calling out directly. First, `tren module test <NN>` alone does not run step 5, only `tren module complete <NN>` exports anything, a common point of confusion for a student who assumes testing and completing are the same action. Second, step 8's milestone check does not just look at whether the export step reported success, it separately imports the just-exported module and checks that specific required symbols actually exist, since a file existing and a file containing working code are not the same guarantee.
+Three steps are easy to miss and worth calling out directly. First, `tren module test <NN>` alone does not run step 5, only `tren module complete <NN>` exports anything, a common point of confusion for a student who assumes testing and completing are the same action. Second, the milestone check does not just look at whether the export step reported success, it separately imports the just-exported module and checks that specific required symbols actually exist, since a file existing and a file containing working code are not the same guarantee. Third, step 8 doesn't just unlock a milestone, it runs it in the same flow (`check_and_run_milestone_unlocks` calls straight into `MilestoneCommand._handle_run_command`) rather than telling the student to run it separately, as of 2026-08-23.
 
 ## 6. Error handling
 

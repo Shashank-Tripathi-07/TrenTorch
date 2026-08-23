@@ -554,6 +554,97 @@ class MilestoneSystem:
             pass
 
 
+def check_and_run_milestone_unlocks(config, console) -> None:
+    """Run any milestone that just became unlockable, right where it's called.
+
+    Called from `tren module complete` after progress updates. Milestones
+    used to be a separate step: complete a module, see a panel telling
+    you to go run `tren milestone run <id>` yourself. Folding that run
+    into the same completion flow makes the milestone feel like a
+    natural checkpoint in the module progression instead of a detached
+    extra command to remember.
+
+    Lives here rather than in module/workflow.py so the Milestone
+    component's process logic (checking unlocks, running, marking
+    complete) stays in one place instead of being split between two
+    files depending on which command happened to trigger it.
+    """
+    try:
+        progress_file = config.project_root / ".tren" / "progress.json"
+        try:
+            with open(progress_file, 'r') as f:
+                progress = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            progress = {}
+        completed = {
+            module_num
+            for module_num in (_module_progress_to_int(m) for m in progress.get("completed_modules", []))
+            if module_num is not None
+        }
+
+        milestones_file = config.project_root / ".tren" / "milestones.json"
+        milestones_file.parent.mkdir(parents=True, exist_ok=True)
+        if milestones_file.exists():
+            try:
+                with open(milestones_file, 'r') as f:
+                    milestone_progress = json.load(f)
+            except Exception:
+                milestone_progress = {}
+        else:
+            milestone_progress = {}
+
+        unlocked = set(milestone_progress.get("unlocked_milestones", []))
+        completed_milestones = set(milestone_progress.get("completed_milestones", []))
+        newly_unlocked = []
+
+        for milestone_id, milestone in sorted(MILESTONE_SCRIPTS.items()):
+            if milestone_id in unlocked or milestone_id in completed_milestones:
+                continue
+            required = set(_required_modules_for(milestone))
+            if required.issubset(completed):
+                unlocked.add(milestone_id)
+                newly_unlocked.append((milestone_id, milestone))
+
+        if not newly_unlocked:
+            return
+
+        milestone_progress["unlocked_milestones"] = sorted(unlocked)
+        milestone_progress["completed_milestones"] = sorted(completed_milestones)
+        milestone_progress.setdefault("unlock_dates", {})
+        for milestone_id, _ in newly_unlocked:
+            milestone_progress["unlock_dates"][milestone_id] = datetime.now().isoformat()
+        milestone_progress["total_unlocked"] = len(unlocked)
+        milestone_progress.setdefault("achievements", [])
+
+        with open(milestones_file, 'w') as f:
+            json.dump(milestone_progress, f, indent=2)
+
+        for milestone_id, milestone in newly_unlocked:
+            console.print()
+            console.print(Panel.fit(
+                f"[bold green]Milestone unlocked[/bold green]\n\n"
+                f"[bold cyan]Milestone {milestone_id}: {milestone['name']}[/bold cyan]\n"
+                f"{milestone['description']}\n\n"
+                f"[dim]Running it now...[/dim]",
+                border_style="green",
+                box=box.DOUBLE,
+            ))
+            console.print()
+
+            # skip_checks=True: the required-modules check above just
+            # confirmed this milestone's prerequisites are met, no need
+            # for _handle_run_command to redo that same check.
+            milestone_command = MilestoneCommand(config)
+            milestone_command._handle_run_command(
+                Namespace(milestone_id=milestone_id, part=None, skip_checks=True)
+            )
+            console.print()
+
+    except Exception as e:
+        # Don't fail the module-completion workflow if milestone checking fails
+        console.print(f"[dim]Note: Could not check milestone unlocks: {e}[/dim]")
+
+
 class MilestoneCommand(BaseCommand):
     @property
     def name(self) -> str:

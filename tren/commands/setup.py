@@ -23,6 +23,7 @@ from rich.prompt import Prompt, Confirm
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .base import BaseCommand
+from .jupyter import register_jupyter_magic
 from ..core.console import get_console
 
 def _print_file_update(console, file_path: Path) -> None:
@@ -240,7 +241,7 @@ class SetupCommand(BaseCommand):
             if result.returncode == 0:
                 self.console.print("[green]✅ Jupyter kernel 'tinytorch' registered[/green]")
                 self.console.print("[dim]   Notebooks will use this Python environment[/dim]")
-                self._register_jupyter_magic()
+                register_jupyter_magic(self.config, self.console)
             else:
                 self.console.print("[red]❌ Jupyter kernel registration failed[/red]")
                 self.console.print(f"[dim]   {result.stderr.strip()}[/dim]")
@@ -256,47 +257,6 @@ class SetupCommand(BaseCommand):
             return False
 
         return True
-
-    def _register_jupyter_magic(self) -> None:
-        """Scope-load the %tren magic for the 'tinytorch' kernel only.
-
-        Points that kernel's IPYTHONDIR at a project-local directory
-        (instead of the user's global ~/.ipython) and drops a startup
-        script there that registers TrenMagics. Other kernels and other
-        IPython sessions on the machine are untouched.
-        """
-        try:
-            result = subprocess.run(
-                [sys.executable, "-m", "jupyter", "--data-dir"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15
-            )
-            if result.returncode != 0:
-                return
-            kernel_json_path = Path(result.stdout.strip()) / "kernels" / "tinytorch" / "kernel.json"
-            if not kernel_json_path.exists():
-                return
-
-            ipython_dir = self.config.project_root / ".tren" / "ipython"
-            startup_dir = ipython_dir / "profile_default" / "startup"
-            startup_dir.mkdir(parents=True, exist_ok=True)
-            (startup_dir / "00-tren-magic.py").write_text(
-                "try:\n"
-                "    from tren.jupyter_magic import load_ipython_extension\n"
-                "    load_ipython_extension(get_ipython())\n"
-                "except Exception:\n"
-                "    pass\n",
-                encoding="utf-8",
-            )
-
-            spec = json.loads(kernel_json_path.read_text(encoding="utf-8"))
-            spec.setdefault("env", {})["IPYTHONDIR"] = str(ipython_dir)
-            kernel_json_path.write_text(json.dumps(spec, indent=1), encoding="utf-8")
-
-            self.console.print("[green]✅ %tren magic registered for the 'tinytorch' kernel[/green]")
-            self.console.print("[dim]   Run tren commands from inside Jupyter: %tren module complete 01[/dim]")
-        except Exception as e:
-            self.console.print(f"[yellow]⚠️  Could not register %tren magic: {e}[/yellow]")
-            self.console.print("[dim]   tren commands still work from the terminal as usual[/dim]")
 
     def create_virtual_environment(self, force: bool = False) -> bool:
         """Create a virtual environment for Tiny🔥Torch development.

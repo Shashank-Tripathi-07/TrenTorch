@@ -165,6 +165,7 @@ class TestCommandFiles:
             'convert.py',
             # Known internal/helper files (not top-level commands)
             'export_utils.py',  # Helper for export functionality
+            'jupyter.py',  # Jupyter component: server lifecycle, %tren magic registration
         }
 
         orphaned = []

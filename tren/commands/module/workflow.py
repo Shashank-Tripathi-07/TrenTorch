@@ -22,13 +22,13 @@ from typing import Dict, Optional
 from rich.panel import Panel
 from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.prompt import Confirm, Prompt
 
 from ..base import BaseCommand
 from .reset import ModuleResetCommand
 from .test import ModuleTestCommand
+from ..jupyter import open_jupyter
+from ..milestone import check_and_run_milestone_unlocks
 from ...core.exceptions import ModuleNotFoundError
-from ...core.runtime import is_interactive
 from ...core.modules import (
     get_module_mapping,
     get_module_name,
@@ -444,7 +444,7 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print("   3. Run: [bold cyan]tito module complete " + normalized + "[/bold cyan]")
         self.console.print()
 
-        return self._open_jupyter(module_name, notebook=notebook, lab=lab)
+        return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
 
     def view_module(self, module_number: str, notebook: bool = False, lab: bool = False) -> int:
         """Open a module notebook in Jupyter without any status ceremony."""
@@ -469,7 +469,7 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print(f"💡 Run: [bold cyan]tito module start {normalized}[/bold cyan]")
             return 1
 
-        return self._open_jupyter(module_name, notebook=notebook, lab=lab)
+        return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
 
     def _create_module_from_src(self, module_name: str) -> bool:
         """Create a module in modules/ by converting from src/.
@@ -553,166 +553,7 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print("💡 Continue your work, then run:")
         self.console.print(f"   [bold cyan]tito module complete {normalized}[/bold cyan]")
 
-        return self._open_jupyter(module_name, notebook=notebook, lab=lab)
-
-    def _resolve_jupyter_ui(self, notebook: bool, lab: bool) -> bool:
-        """Return True for the classic Notebook UI, False for Lab.
-
-        An explicit --notebook or --lab always wins, no prompt. With
-        neither, ask when there's a real terminal to ask on (Notebook
-        recommended, since that's the closer match to the single-document
-        editing a module is); in CI or any other non-interactive context,
-        fall back to Lab without prompting rather than hang waiting for
-        an answer nobody can give.
-        """
-        if notebook:
-            return True
-        if lab:
-            return False
-        if not is_interactive():
-            return False
-        choice = Prompt.ask(
-            "Open in [cyan]Notebook[/cyan] or [cyan]Lab[/cyan]? (notebook recommended)",
-            choices=["notebook", "lab"],
-            default="notebook",
-        )
-        return choice == "notebook"
-
-    def _open_jupyter(self, module_name: str, notebook: bool = False, lab: bool = False) -> int:
-        """Open a module's notebook in Jupyter, reusing one shared server.
-
-        Every module used to spawn its own `jupyter lab` process rooted in
-        that module's own directory, an untracked process per `tren module
-        start` that left the CLI with no idea what was still running (see
-        deep-dive.md). One server rooted at the project root, reused across
-        every module and every `%tren` call inside it, replaces that: the
-        terminal is only needed once, to bring the server up.
-        """
-        try:
-            classic_notebook = self._resolve_jupyter_ui(notebook, lab)
-            module_dir = self.config.project_root / "modules" / module_name
-            if not module_dir.exists():
-                self.console.print(f"[yellow]⚠️  Module directory not found: {module_name}[/yellow]")
-                return 1
-
-            short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-            notebook_path = module_dir / f"{short_name}.ipynb"
-            if not notebook_path.exists():
-                notebooks = list(module_dir.glob("*.ipynb"))
-                notebook_path = notebooks[0] if notebooks else None
-
-            base_url, token = self._find_running_jupyter_server()
-            if base_url is None:
-                self.console.print("[cyan]🚀 Starting a shared Jupyter Lab server...[/cyan]")
-                if not self._start_jupyter_server():
-                    self.console.print("[yellow]⚠️  Jupyter Lab not found. Install with:[/yellow]")
-                    self.console.print("[dim]pip install jupyterlab[/dim]")
-                    return 1
-                base_url, token = self._find_running_jupyter_server()
-            else:
-                self.console.print("[cyan]🔗 Reusing the already-running Jupyter Lab server...[/cyan]")
-
-            if base_url is None:
-                self.console.print("[yellow]⚠️  Jupyter Lab started but its URL couldn't be detected.[/yellow]")
-                self.console.print("[dim]Check the terminal output above for the URL and token.[/dim]")
-                return 1
-
-            # One jupyter_server backend serves both UIs; /tree is the classic
-            # Notebook interface (Notebook 7, requires the `notebook` package
-            # alongside jupyterlab), /lab/tree is Jupyter Lab. Same running
-            # server either way, just a different frontend path.
-            ui_path = "tree" if classic_notebook else "lab/tree"
-            if notebook_path and notebook_path.exists():
-                relative = notebook_path.relative_to(self.config.project_root)
-                url = f"{base_url}{ui_path}/{relative.as_posix()}"
-            else:
-                url = f"{base_url}{'tree' if classic_notebook else 'lab'}"
-            if token:
-                url += f"?token={token}"
-
-            import webbrowser
-            webbrowser.open(url)
-
-            ui_name = "Jupyter Notebook" if classic_notebook else "Jupyter Lab"
-            self.console.print(f"[green]✅ Opened in {ui_name}[/green]")
-            self.console.print(f"[dim]If it didn't open automatically: {url}[/dim]")
-            self.console.print()
-            module_number = module_name.split("_", 1)[0]
-            self.console.print("[bold]From inside a notebook cell, no need to come back here:[/bold]")
-            self.console.print(f"  [cyan]%tren module complete {module_number}[/cyan]")
-            return 0
-
-        except FileNotFoundError:
-            self.console.print("[yellow]⚠️  Jupyter Lab not found. Install with:[/yellow]")
-            self.console.print("[dim]pip install jupyterlab[/dim]")
-            return 1
-
-    def _find_running_jupyter_server(self):
-        """Return (base_url, token) for a Jupyter server already rooted at
-        the project root, or (None, None) if none is running there.
-
-        Reads live state from `jupyter server list` rather than tracking a
-        PID ourselves, so it self-heals if the server was closed outside
-        tren's control.
-        """
-        import re
-
-        try:
-            result = subprocess.run(
-                ["jupyter", "server", "list"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15
-            )
-        except FileNotFoundError:
-            return None, None
-        if result.returncode != 0:
-            return None, None
-
-        project_root = str(self.config.project_root.resolve())
-        for line in result.stdout.splitlines():
-            match = re.match(r"^(https?://\S+?/)(?:\?token=(\S+))?\s*::\s*(.+)$", line.strip())
-            if not match:
-                continue
-            url, token, root_dir = match.groups()
-            if os.path.normcase(os.path.normpath(root_dir.strip())) == os.path.normcase(os.path.normpath(project_root)):
-                return url, token
-        return None, None
-
-    def _start_jupyter_server(self) -> bool:
-        """Spawn one Jupyter Lab server rooted at the project root.
-
-        Detached so it outlives this `tren` process; every subsequent
-        `tren module start/view/resume` finds and reuses it via
-        `_find_running_jupyter_server` instead of starting another.
-        """
-        import time
-
-        try:
-            cmd = [
-                "jupyter", "lab",
-                "--no-browser",
-                f"--notebook-dir={self.config.project_root}",
-            ]
-            detach_kwargs = (
-                {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS}
-                if sys.platform == "win32"
-                else {"start_new_session": True}
-            )
-            subprocess.Popen(
-                cmd,
-                cwd=str(self.config.project_root),
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                **detach_kwargs,
-            )
-        except FileNotFoundError:
-            return False
-
-        for _ in range(20):
-            time.sleep(0.5)
-            base_url, _ = self._find_running_jupyter_server()
-            if base_url is not None:
-                return True
-        return True
+        return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
 
     def complete_module(self, module_number: Optional[str] = None, skip_tests: bool = False, skip_export: bool = False) -> int:
         """Complete a module with enhanced visual feedback and celebration."""
@@ -895,7 +736,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
         # Step 5: Check for milestone unlocks
         if success:
-            self._check_milestone_unlocks(module_name)
+            check_and_run_milestone_unlocks(self.config, self.console)
 
         return 0 if success else 1
 
@@ -1971,89 +1812,3 @@ class ModuleWorkflowCommand(BaseCommand):
 
         return 0
 
-    def _check_milestone_unlocks(self, module_name: str) -> None:
-        """Run any milestone this module's completion just unlocked.
-
-        Milestones used to be a separate step: complete a module, see a
-        panel telling you to go run `tren milestone run <id>` yourself.
-        Folding that run into the same `tren module complete` flow makes
-        the milestone feel like a natural checkpoint in the module
-        progression instead of a detached extra command to remember.
-        """
-        try:
-            import json
-            from argparse import Namespace as _Namespace
-            from datetime import datetime
-            from rich import box
-            from ..milestone import MILESTONE_SCRIPTS, MilestoneCommand, _module_progress_to_int, _required_modules_for
-
-            progress = self.get_progress_data()
-            completed = {
-                module_num
-                for module_num in (_module_progress_to_int(m) for m in progress.get("completed_modules", []))
-                if module_num is not None
-            }
-
-            milestones_file = self.config.project_root / ".tren" / "milestones.json"
-            milestones_file.parent.mkdir(parents=True, exist_ok=True)
-            if milestones_file.exists():
-                try:
-                    with open(milestones_file, 'r') as f:
-                        milestone_progress = json.load(f)
-                except Exception:
-                    milestone_progress = {}
-            else:
-                milestone_progress = {}
-
-            unlocked = set(milestone_progress.get("unlocked_milestones", []))
-            completed_milestones = set(milestone_progress.get("completed_milestones", []))
-            newly_unlocked = []
-
-            for milestone_id, milestone in sorted(MILESTONE_SCRIPTS.items()):
-                if milestone_id in unlocked or milestone_id in completed_milestones:
-                    continue
-                required = set(_required_modules_for(milestone))
-                if required.issubset(completed):
-                    unlocked.add(milestone_id)
-                    newly_unlocked.append((milestone_id, milestone))
-
-            if not newly_unlocked:
-                return
-
-            milestone_progress["unlocked_milestones"] = sorted(unlocked)
-            milestone_progress["completed_milestones"] = sorted(completed_milestones)
-            milestone_progress.setdefault("unlock_dates", {})
-            for milestone_id, _ in newly_unlocked:
-                milestone_progress["unlock_dates"][milestone_id] = datetime.now().isoformat()
-            milestone_progress["total_unlocked"] = len(unlocked)
-            milestone_progress.setdefault("achievements", [])
-
-            with open(milestones_file, 'w') as f:
-                json.dump(milestone_progress, f, indent=2)
-
-            for milestone_id, milestone in newly_unlocked:
-                self.console.print()
-                self.console.print(Panel.fit(
-                    f"[bold green]Milestone unlocked[/bold green]\n\n"
-                    f"[bold cyan]Milestone {milestone_id}: {milestone['name']}[/bold cyan]\n"
-                    f"{milestone['description']}\n\n"
-                    f"[dim]Running it now...[/dim]",
-                    border_style="green",
-                    box=box.DOUBLE,
-                ))
-                self.console.print()
-
-                # skip_checks=True: the required-modules check above just
-                # confirmed this milestone's prerequisites are met, no need
-                # for _handle_run_command to redo that same check.
-                milestone_command = MilestoneCommand(self.config)
-                milestone_command._handle_run_command(
-                    _Namespace(milestone_id=milestone_id, part=None, skip_checks=True)
-                )
-                self.console.print()
-
-        except ImportError:
-            pass
-        except Exception as e:
-            # Don't fail the workflow if milestone checking fails
-            self.console.print(f"[dim]Note: Could not check milestone unlocks: {e}[/dim]")

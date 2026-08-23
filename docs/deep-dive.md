@@ -220,28 +220,25 @@ This is the loop a student repeats 20 times (once per module). Each module is in
                             │                            │
                      --no-jupyter flag?              (no flag)
                             │                            │
-                     print "ready (notebook       _open_jupyter():
-                     created)" and STOP HERE.      subprocess.Popen(
-                     Nothing further runs.           ["jupyter", "lab",
-                     (This is what CI/testing         "<notebook path>"])
-                     uses; the flag exists            a REAL, DETACHED,
-                     specifically so automation        LONG-RUNNING PROCESS
-                     never launches a real             gets spawned here,
-                     Jupyter server.)                  not awaited.
-                                                       time.sleep(2) to let
-                                                       it bind its port,
-                                                       then prints instructions
-                                                       and returns 0 whether
-                                                       or not the server
-                                                       actually came up
-                                                       cleanly.
+                     print "ready (notebook       open_jupyter():
+                     created)" and STOP HERE.      finds the one shared
+                     Nothing further runs.          server via `jupyter
+                     (This is what CI/testing       server list` (jupyter
+                     uses; the flag exists          commands/jupyter.py),
+                     specifically so automation     reuses it if already
+                     never launches a real          running, otherwise
+                     Jupyter server.)                spawns exactly one,
+                                                     detached, rooted at
+                                                     the project root, then
+                                                     opens this module's
+                                                     notebook in it.
 ```
 
-**A currently-real dead end worth naming precisely.** `started_modules` in `.tren/progress.json` and the actual notebook on disk under `modules/` are two independently-maintained facts, and nothing keeps them in sync. `tren system reset --keep-progress` is a documented command that deliberately clears `modules/` while intentionally leaving `started_modules` untouched. Hit that combination (or lose `modules/` some other way, e.g. a partial restore from backup) and `tren module start N` will refuse forever with "already started," pointing at `tren module resume N`. Resume, in turn, accepts (tracking says started) and only discovers the notebook is missing deep inside `_open_jupyter`, failing with "Module directory not found" and no further guidance. Neither command's own error message mentions the actual fix, `tren module reset N --force`, which does work. A pull request fixing exactly this (both commands checking whether the notebook genuinely exists before trusting the tracking flag, and recreating it from `src/` when it doesn't) is open at the time of writing (harvard-edge/cs249r_book#2026), not yet merged.
+**A currently-real dead end worth naming precisely.** `started_modules` in `.tren/progress.json` and the actual notebook on disk under `modules/` are two independently-maintained facts, and nothing keeps them in sync. `tren system reset --keep-progress` is a documented command that deliberately clears `modules/` while intentionally leaving `started_modules` untouched. Hit that combination (or lose `modules/` some other way, e.g. a partial restore from backup) and `tren module start N` will refuse forever with "already started," pointing at `tren module resume N`. Resume, in turn, accepts (tracking says started) and only discovers the notebook is missing deep inside `open_jupyter` (`tren/commands/jupyter.py`), failing with "Module directory not found" and no further guidance. Neither command's own error message mentions the actual fix, `tren module reset N --force`, which does work. A pull request fixing exactly this (both commands checking whether the notebook genuinely exists before trusting the tracking flag, and recreating it from `src/` when it doesn't) is open at the time of writing (harvard-edge/cs249r_book#2026), not yet merged.
 
-### 3.3 A currently-real gap worth naming precisely: untracked Jupyter processes
+### 3.3 Jupyter server lifecycle: one shared server, not one per launch
 
-As of the current `dev` branch, **`_open_jupyter()` does not track or reuse Jupyter Lab servers it launches.** Every `tren module start`, `tren module resume`, and `tren module view` call that reaches this code path spawns a brand-new `jupyter lab` subprocess via `subprocess.Popen`, with no PID file, no "is one already running" check, and no cleanup. Run `start`/`resume`/`view` five times in one working session and you get five separate Jupyter Lab servers, each holding its own port and consuming its own memory, none of which `tren` will ever stop for you. A fix for exactly this (`_jupyter_pid_file`, `_running_jupyter_pid`, reusing an existing server instead of spawning a new one) exists as an **open, unmerged pull request** (harvard-edge/cs249r_book#2011) at the time of writing. It is not yet part of the behavior described everywhere else in this document, which reflects what's actually on `dev` right now.
+This used to be a real gap: every `tren module start/resume/view` call spawned a brand-new `jupyter lab` subprocess with no tracking, so five calls in one session meant five separate servers, none of which `tren` would ever stop. Fixed 2026-08-23: `tren/commands/jupyter.py`'s `find_running_jupyter_server()` reads live state from `jupyter server list` (not a PID `tren` tracks itself, so it self-heals if the server was closed outside `tren`'s control) and `open_jupyter()` reuses that server if one is already rooted at the project root, only calling `start_jupyter_server()` to spawn one when none exists. The same file also owns `resolve_jupyter_ui()` (the Notebook-or-Lab prompt) and `register_jupyter_magic()` (scoping the `%tren` magic to the `tinytorch` kernel, called from `tren setup`) — the whole Jupyter component's process logic lives in this one file rather than being split across `module/workflow.py`, `commands/setup.py`, and `jupyter_magic.py` the way it originally grew.
 
 ### 3.4 What Jupyter Lab actually costs, once it's running
 
@@ -551,7 +548,7 @@ Consolidating every conditional branch surfaced across Parts 1–8 that depends 
 │ (is_ci() / is_interactive())   │ never syncs; interactive asks first;       │
 │                                │ logged-in-but-non-TTY syncs WITHOUT asking │
 ├───────────────────────────────┼───────────────────────────────────────────┤
-│ jupyter/jupyterlab installed?  │ `tren system jupyter` and `_open_jupyter`  │
+│ jupyter/jupyterlab installed?  │ `tren system jupyter` and `open_jupyter`   │
 │                                │ fail cleanly with an install hint if the   │
 │                                │ `jupyter` binary isn't resolvable on PATH  │
 │                                │ (this can happen even when the Python      │
