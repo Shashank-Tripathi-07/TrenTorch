@@ -32,7 +32,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 def run_tren(args: list, cwd: Optional[Path] = None, timeout: int = 60) -> Tuple[int, str, str]:
     """Run a tren command and return (exit_code, stdout, stderr)."""
     import os
-    cmd = [sys.executable, "-m", "tren.main"] + args
+    cmd = [sys.executable, "-m", "platforms.cli.main"] + args
     env = os.environ.copy()
     env["TREN_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
     result = subprocess.run(
@@ -121,8 +121,8 @@ class TestQuickVerification:
     @pytest.mark.quick
     def test_modules_directory_exists(self):
         """Modules directory structure exists."""
-        modules_dir = PROJECT_ROOT / "modules"
-        assert modules_dir.exists(), "modules/ directory missing"
+        modules_dir = PROJECT_ROOT / "data" / "modules"
+        assert modules_dir.exists(), "data/modules/ directory missing"
 
         # Check first few modules exist
         for num in ["01", "02", "03"]:
@@ -132,8 +132,8 @@ class TestQuickVerification:
     @pytest.mark.quick
     def test_milestones_directory_exists(self):
         """Milestones directory structure exists."""
-        milestones_dir = PROJECT_ROOT / "milestones"
-        assert milestones_dir.exists(), "milestones/ directory missing"
+        milestones_dir = PROJECT_ROOT / "data" / "milestones"
+        assert milestones_dir.exists(), "data/milestones/ directory missing"
 
         # Check milestone directories
         assert (milestones_dir / "01_1958_perceptron").exists(), "Milestone 01 missing"
@@ -163,8 +163,8 @@ class TestModuleFlow:
 
     @pytest.fixture(autouse=True)
     def backup_progress(self):
-        """Backup and restore .tren/progress.json around tests."""
-        tren_dir = PROJECT_ROOT / ".tren"
+        """Backup and restore user_data/progress.json around tests."""
+        tren_dir = PROJECT_ROOT / "user_data"
         progress_file = tren_dir / "progress.json"
         backup_file = tren_dir / "progress.json.e2e_backup"
         had_progress = progress_file.exists()
@@ -217,7 +217,7 @@ class TestModuleFlow:
     @pytest.mark.module_flow
     def test_progress_tracking_persists(self):
         """Progress is saved and persisted across commands."""
-        tren_dir = PROJECT_ROOT / ".tren"
+        tren_dir = PROJECT_ROOT / "user_data"
         tren_dir.mkdir(exist_ok=True)
         progress_file = tren_dir / "progress.json"
 
@@ -280,14 +280,14 @@ class TestMilestoneFlow:
     @pytest.mark.milestone_flow
     def test_milestone_01_script_exists(self):
         """Milestone 01 script file exists."""
-        script_path = PROJECT_ROOT / "milestones" / "01_1958_perceptron" / "01_rosenblatt_forward.py"
+        script_path = PROJECT_ROOT / "data" / "milestones" / "01_1958_perceptron" / "01_rosenblatt_forward.py"
         assert script_path.exists(), f"Milestone script missing: {script_path}"
 
     @pytest.mark.milestone_flow
     def test_milestone_run_checks_prerequisites(self):
         """'tren milestone run' checks prerequisites before running."""
         # Create clean state with no completed modules
-        tren_dir = PROJECT_ROOT / ".tren"
+        tren_dir = PROJECT_ROOT / "user_data"
         tren_dir.mkdir(exist_ok=True)
         progress_file = tren_dir / "progress.json"
         progress_file.write_text(json.dumps({
@@ -366,7 +366,7 @@ print('OK')
         )
 
         # Run milestone 01 with skip-checks (we verified prereqs above)
-        script_path = PROJECT_ROOT / "milestones" / "01_1958_perceptron" / "01_rosenblatt_forward.py"
+        script_path = PROJECT_ROOT / "data" / "milestones" / "01_1958_perceptron" / "01_rosenblatt_forward.py"
         assert script_path.exists(), f"Milestone script not found at {script_path}"
 
         code, stdout, stderr = run_python_script(script_path, timeout=120)
@@ -411,7 +411,7 @@ class TestInstallationPaths:
     @pytest.mark.quick
     def test_src_directory_exists(self):
         """Source directory for development exists."""
-        src_dir = PROJECT_ROOT / "src"
+        src_dir = PROJECT_ROOT / "data" / "src"
         assert src_dir.exists(), "src/ directory missing"
 
     @pytest.mark.quick

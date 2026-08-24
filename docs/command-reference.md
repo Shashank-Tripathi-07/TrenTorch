@@ -1,8 +1,8 @@
 # TrenTorch: `tren` CLI Command Reference
 
-*A complete inventory of every `tren` command, grepped directly from `tren/main.py` and every file under `tren/commands/`, not from any existing documentation. Command groups are dict entries in `TrenTorchCLI.commands` (`tren/main.py`); each group's own `add_arguments` defines its subcommands via `argparse` subparsers. See [`system_design.md`](system_design.md) for how these map onto the underlying module lifecycle.*
+*A complete inventory of every `tren` command, grepped directly from `platforms/cli/main.py` and every file under `tren/commands/`, not from any existing documentation. Command groups are dict entries in `TrenTorchCLI.commands` (`platforms/cli/main.py`); each group's own `add_arguments` defines its subcommands via `argparse` subparsers. See [`system_design.md`](system_design.md) for how these map onto the underlying module lifecycle.*
 
-There are 9 top-level command groups, registered in this exact dict (the single source of truth per `tren/main.py`'s own comment): `setup`, `system`, `module`, `dev`, `package`, `milestone`, `benchmark`, `olympics`, `convert`. A `community` group and standalone `login`/`logout` commands used to exist here, talking to the original TrenTorch project's own hosted backend; they have been removed (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)). An `nbgrader` group also used to exist, wrapping multi-student assignment staging and grading (`nbgrader init/generate/release/collect/autograde/feedback/report/analytics`); it has been removed as dead weight for a self-use install with no other students to grade &mdash; nothing about a solo `tren module start`/`complete` workflow depended on it.
+There are 9 top-level command groups, registered in this exact dict (the single source of truth per `platforms/cli/main.py`'s own comment): `setup`, `system`, `module`, `dev`, `package`, `milestone`, `benchmark`, `olympics`, `convert`. A `community` group and standalone `login`/`logout` commands used to exist here, talking to the original TrenTorch project's own hosted backend; they have been removed (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)). An `nbgrader` group also used to exist, wrapping multi-student assignment staging and grading (`nbgrader init/generate/release/collect/autograde/feedback/report/analytics`); it has been removed as dead weight for a self-use install with no other students to grade &mdash; nothing about a solo `tren module start`/`complete` workflow depended on it.
 
 ## `tren setup`
 
@@ -19,22 +19,22 @@ Runs four steps in order: create `.venv`, install packages (numpy, jupyter, jupy
 
 ## `tren system` (developer/student mixed)
 
-Environment and configuration tooling. Dispatcher: `tren/commands/system/system.py`.
+Environment and configuration tooling. Dispatcher: `tren/platforms/cli_platform/system/system.py`.
 
 | Subcommand | File | Purpose |
 |---|---|---|
 | `info` | `system/info.py` | Show system/environment info (Python version, platform, venv status, TrenTorch/NumPy versions, disk space, memory). `--json` for machine-readable output. |
 | `health` | `system/health.py` | Quick environment health check (status-only table, no version numbers). No arguments. |
 | `jupyter` | `system/jupyter.py` | Start a Jupyter server. `--notebook` (classic) or `--lab` (JupyterLab, otherwise classic notebook is default); `--port N` (default 8888). |
-| `update` | `system/update.py` | Check GitHub for a newer `tinytorch-v*` tag and update in place. `--check` (check only, don't install), `--yes`/`-y` (skip confirmation). Preserves `modules/`, `trentorch/core/`, `.tren/`, `.venv/`; overwrites `src/`, `tren/`, `tests/`, `milestones/`, `datasets/`, `bin/`, and a few root files. **As inherited, this still points at the upstream repo's tags**, not this fork's, so it would check/update against the wrong project until repointed. |
+| `update` | `system/update.py` | Check GitHub for a newer `tinytorch-v*` tag and update in place. `--check` (check only, don't install), `--yes`/`-y` (skip confirmation). Preserves `data/modules/`, `trentorch/core/`, `user_data/`, `.venv/`; overwrites `src/`, `tren/`, `tests/`, `milestones/`, `data/datasets/`, `bin/`, and a few root files. **As inherited, this still points at the upstream repo's tags**, not this fork's, so it would check/update against the wrong project until repointed. |
 | `logo` | `system/logo.py` | Explains the TrenTorch logo's symbolism. `--image` shows the path to the actual logo PNG. |
-| `reset` | `system/reset.py` | Reset TrenTorch to a pristine state: clears `modules/` and `trentorch/core/*.py`, optionally resets progress. `--force`/`-f` (skip confirmation), `--keep-progress` (only reset code, not tracking), `--ci` (no prompts, plain-text `RESET OK`/`RESET FAILED` output for automation). |
+| `reset` | `system/reset.py` | Reset TrenTorch to a pristine state: clears `data/modules/` and `trentorch/core/*.py`, optionally resets progress. `--force`/`-f` (skip confirmation), `--keep-progress` (only reset code, not tracking), `--ci` (no prompts, plain-text `RESET OK`/`RESET FAILED` output for automation). |
 
 Running `tren system` with no subcommand prints a summary panel rather than an error.
 
 ## `tren module` (primary student workflow)
 
-The core lifecycle command. Dispatcher and most logic live in `tren/commands/module/workflow.py` (~1900 lines); `test` and `reset` subcommands each delegate to their own command classes (`module/test.py`'s `ModuleTestCommand`, `module/reset.py`'s `ModuleResetCommand`).
+The core lifecycle command. Dispatcher and most logic live in `tren/platforms/processes/module_workflow/workflow.py` (~1900 lines); `test` and `reset` subcommands each delegate to their own command classes (`module/test.py`'s `ModuleTestCommand`, `module/reset.py`'s `ModuleResetCommand`).
 
 | Subcommand | Arguments | Purpose |
 |---|---|---|
@@ -50,10 +50,10 @@ The core lifecycle command. Dispatcher and most logic live in `tren/commands/mod
 
 ## `tren dev` (developer/instructor tooling, not for students)
 
-Dispatcher: `tren/commands/dev/dev.py`. Five subcommands, each its own file.
+Dispatcher: `tren/platforms/cli_platform/dev/dev.py`. Five subcommands, each its own file.
 
 ### `tren dev test`
-`tren/commands/dev/test.py`. The primary CI/local test entry point.
+`tren/platforms/cli_platform/dev/test.py`. The primary CI/local test entry point.
 
 | Flag | Effect |
 |---|---|
@@ -74,7 +74,7 @@ Dispatcher: `tren/commands/dev/dev.py`. Five subcommands, each its own file.
 With no flags, defaults to unit tests only.
 
 ### `tren dev preflight`
-`tren/commands/dev/preflight.py`. Release/CI verification checks.
+`tren/platforms/cli_platform/dev/preflight.py`. Release/CI verification checks.
 
 | Flag | Effect |
 |---|---|
@@ -87,7 +87,7 @@ With no flags, defaults to unit tests only.
 | `--verbose`/`-v` | Show commands as they execute |
 
 ### `tren dev export`
-`tren/commands/dev/export.py`. **Developer-only**, rebuilds the whole curriculum: `src/*.py` → `modules/*.ipynb` → `trentorch` package files. This overwrites student notebooks; students should use `tren module complete` instead, which never touches the notebook file itself.
+`tren/platforms/cli_platform/dev/export.py`. **Developer-only**, rebuilds the whole curriculum: `src/*.py` → `data/modules/*.ipynb` (stub-only) + `data/solutions/*.ipynb` (reference) → `trentorch` package files, built from `data/solutions/` so the package always reflects fully-working code. This overwrites student notebooks; students should use `tren module complete` instead, which never touches the notebook file itself, tests the student's own filled-in code, and never reads `data/solutions/`.
 
 | Argument/Flag | Effect |
 |---|---|
@@ -96,7 +96,7 @@ With no flags, defaults to unit tests only.
 | `--test-checkpoint` | Run a checkpoint test after a successful export |
 
 ### `tren dev clean`
-`tren/commands/dev/clean.py`. Wraps `make clean` at the project root. Note: `make` is not bundled with Git Bash on Windows, unlike git/python; this is a documented reachable `FileNotFoundError` for a Windows user without WSL or a separate `make` install.
+`tren/platforms/cli_platform/dev/clean.py`. Wraps `make clean` at the project root. Note: `make` is not bundled with Git Bash on Windows, unlike git/python; this is a documented reachable `FileNotFoundError` for a Windows user without WSL or a separate `make` install.
 
 | `target` (positional, optional, default `all`) | Effect |
 |---|---|
@@ -104,10 +104,10 @@ With no flags, defaults to unit tests only.
 
 ## `tren package`
 
-Package management and nbdev integration. Dispatcher: `tren/commands/package/package.py`.
+Package management and nbdev integration. Dispatcher: `tren/platforms/cli_platform/package/package.py`.
 
 ### `tren package reset`
-`tren/commands/package/reset.py` (`ResetCommand`). Five sub-subcommands (`package reset <subcommand>`), all under `dest='reset_command'`:
+`tren/platforms/cli_platform/package/reset.py` (`ResetCommand`). Five sub-subcommands (`package reset <subcommand>`), all under `dest='reset_command'`:
 
 | Sub-subcommand | Flags | Effect |
 |---|---|---|
@@ -117,10 +117,10 @@ Package management and nbdev integration. Dispatcher: `tren/commands/package/pac
 | `milestones` | `--backup`, `--force` | Reset milestone achievements only |
 | `config` | `--force` | Reset `.tren/config.json` to defaults |
 
-`--backup` (where available) copies `.tren/` to a timestamped `.tren_backup_<timestamp>/` directory first.
+`--backup` (where available) copies `user_data/` to a timestamped `.tren_backup_<timestamp>/` directory first.
 
 ### `tren package nbdev`
-`tren/commands/package/nbdev.py`. Runs nbdev's own tooling.
+`tren/platforms/cli_platform/package/nbdev.py`. Runs nbdev's own tooling.
 
 | Flag | Effect |
 |---|---|

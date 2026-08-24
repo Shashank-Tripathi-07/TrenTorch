@@ -1,6 +1,6 @@
 # TrenTorch: How It Actually Works, From First Principles
 
-*Every claim in this document is sourced from reading the actual code: `bin/tren`, `tren/main.py`, `tren/core/*.py`, `tren/commands/**/*.py`, `pyproject.toml`, `requirements.txt`, and `trentorch/__init__.py`, cross-checked against a real TrenTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `tren` source verbatim, so the mechanics below are still accurate to this fork's code. This fork also inherited upstream's `install.sh` (a one-line-curl installer hardcoded to upstream's own hosted URL and repo) and the optional community backend it could talk to; both have since been removed rather than kept pointing at someone else's infrastructure (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)).*
+*Every claim in this document is sourced from reading the actual code: `bin/tren`, `platforms/cli/main.py`, `platforms/cli/core/*.py`, `platforms/cli/**/*.py`, `pyproject.toml`, `requirements.txt`, and `trentorch/__init__.py`, cross-checked against a real TrenTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `tren` source verbatim, so the mechanics below are still accurate to this fork's code. This fork also inherited upstream's `install.sh` (a one-line-curl installer hardcoded to upstream's own hosted URL and repo) and the optional community backend it could talk to; both have since been removed rather than kept pointing at someone else's infrastructure (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)).*
 
 ---
 
@@ -16,12 +16,12 @@ Path A: the installed console script (created by `pip install -e .`)
   .venv/Scripts/tren.exe   (Windows)   or   .venv/bin/tren   (Unix)
         │
         │  This is a tiny compiled/generated launcher that pip creates
-        │  from the `[project.scripts] tren = "tren.main:main"` entry in
+        │  from the `[project.scripts] tren = "platforms.cli.main:main"` entry in
         │  pyproject.toml. It only exists once `pip install -e .` has run,
         │  and only works once the venv is activated (or its Scripts/bin
         │  directory is on PATH).
         ▼
-  tren.main:main()
+  platforms.cli.main:main()
 
 Path B: bin/tren (a plain Python script, no pip install required)
 ────────────────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ Path B: bin/tren (a plain Python script, no pip install required)
         │  from. This exists for CI and for anyone who doesn't want an
         │  editable pip install at all.
         ▼
-  tren.main:main()      (same function, same code, either way)
+  platforms.cli.main:main()      (same function, same code, either way)
 ```
 
 Both paths converge on the exact same `main()`, the difference is only in how `sys.path` and the working directory get set up before that function runs.
@@ -44,7 +44,7 @@ Both paths converge on the exact same `main()`, the difference is only in how `s
 
 ## Part 2: What Happens Every Single Time You Type `tren ...`
 
-Before any subcommand's own logic runs, `tren/main.py`'s `TrenTorchCLI` does the same fixed sequence, every time, regardless of which command was typed.
+Before any subcommand's own logic runs, `platforms/cli/main.py`'s `TrenTorchCLI` does the same fixed sequence, every time, regardless of which command was typed.
 
 ```text
                           $ tren module start 01
@@ -104,9 +104,10 @@ Before any subcommand's own logic runs, `tren/main.py`'s `TrenTorchCLI` does the
 │ 5. Banner + first-run welcome                                           │
 │    print_banner() unless --no-color or the command is JSON-output-     │
 │    only (--json, or `module path`). First run ever (detected by        │
-│    .tren/ not existing yet) also shows a one-time "Solutions are        │
-│    included, this is intentional" welcome panel, then creates .tren/   │
-│    just to mark that the welcome was shown, so it never shows again.  │
+│    user_data/ not existing yet) also shows a one-time "each notebook is    │
+│    stub-only, no solutions included" welcome panel, then creates       │
+│    .tren/ just to mark that the welcome was shown, so it never shows   │
+│    again.                                                              │
 └───────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -138,7 +139,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
 
 ### 3.1 Module identity: there is no hardcoded module list
 
-`tren/core/modules.py`'s `_discover_modules()` scans `src/` at runtime for directories matching the regex `^(\d{2})_(\w+)$` and builds the number→folder mapping from whatever it finds, cached with `@lru_cache`. **Nothing enumerates "there are 20 modules" as a constant anywhere in this discovery path.** If a 21st `src/21_whatever/` directory existed, it would simply appear. (Other parts of the codebase, like the milestone system's `PRIMARY_EXPORT_LABELS` dict, do hardcode 01-20 as display labels; that's a separate, static lookup table, not the module registry itself.)
+`platforms/cli/core/modules.py`'s `_discover_modules()` scans `src/` at runtime for directories matching the regex `^(\d{2})_(\w+)$` and builds the number→folder mapping from whatever it finds, cached with `@lru_cache`. **Nothing enumerates "there are 20 modules" as a constant anywhere in this discovery path.** If a 21st `src/21_whatever/` directory existed, it would simply appear. (Other parts of the codebase, like the milestone system's `PRIMARY_EXPORT_LABELS` dict, do hardcode 01-20 as display labels; that's a separate, static lookup table, not the module registry itself.)
 
 ### 3.2 `tren module start 01`, full decision tree
 
@@ -166,7 +167,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
                               -> suggests `resume`       falls through to
                               -> return 1, STOP HERE.    the prerequisite
                               This fires regardless of   check below)
-                              whether modules/01_tensor/
+                              whether data/modules/01_tensor/
                               actually still exists on
                               disk or not (see below).
 
@@ -183,7 +184,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
                                            order", return 1
                             │
                             ▼
-              modules/01_tensor/ exists on disk?
+              data/modules/01_tensor/ exists on disk?
                     │                        │
                    YES                      NO
                     │                        │
@@ -196,7 +197,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
                               -> spawns a REAL SUBPROCESS:
                                  jupytext --to ipynb
                                    src/01_tensor/01_tensor.py
-                                   --output modules/01_tensor/tensor.ipynb
+                                   --output data/modules/01_tensor/tensor.ipynb
                               (this is CPU + disk work: jupytext parses
                                the percent-format .py file and writes a
                                real .ipynb JSON file, typically well
@@ -234,7 +235,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
                                                      notebook in it.
 ```
 
-**A currently-real dead end worth naming precisely.** `started_modules` in `.tren/progress.json` and the actual notebook on disk under `modules/` are two independently-maintained facts, and nothing keeps them in sync. `tren system reset --keep-progress` is a documented command that deliberately clears `modules/` while intentionally leaving `started_modules` untouched. Hit that combination (or lose `modules/` some other way, e.g. a partial restore from backup) and `tren module start N` will refuse forever with "already started," pointing at `tren module resume N`. Resume, in turn, accepts (tracking says started) and only discovers the notebook is missing deep inside `open_jupyter` (`tren/commands/jupyter.py`), failing with "Module directory not found" and no further guidance. Neither command's own error message mentions the actual fix, `tren module reset N --force`, which does work. A pull request fixing exactly this (both commands checking whether the notebook genuinely exists before trusting the tracking flag, and recreating it from `src/` when it doesn't) is open at the time of writing (harvard-edge/cs249r_book#2026), not yet merged.
+**A currently-real dead end worth naming precisely.** `started_modules` in `.tren/progress.json` and the actual notebook on disk under `data/modules/` are two independently-maintained facts, and nothing keeps them in sync. `tren system reset --keep-progress` is a documented command that deliberately clears `data/modules/` while intentionally leaving `started_modules` untouched. Hit that combination (or lose `data/modules/` some other way, e.g. a partial restore from backup) and `tren module start N` will refuse forever with "already started," pointing at `tren module resume N`. Resume, in turn, accepts (tracking says started) and only discovers the notebook is missing deep inside `open_jupyter` (`tren/commands/jupyter.py`), failing with "Module directory not found" and no further guidance. Neither command's own error message mentions the actual fix, `tren module reset N --force`, which does work. A pull request fixing exactly this (both commands checking whether the notebook genuinely exists before trusting the tracking flag, and recreating it from `src/` when it doesn't) is open at the time of writing (harvard-edge/cs249r_book#2026), not yet merged.
 
 ### 3.3 Jupyter server lifecycle: one shared server, not one per launch
 
@@ -285,7 +286,7 @@ This is the command that actually turns a student's edited notebook into working
 ┌────────────────────────────────────────────────────────────────────────┐
 │ STEP 1.5: Notebook syntax check   [pure Python, in-process, no subprocess]│
 │                                                                          │
-│   Reads modules/01_tensor/tensor.ipynb as JSON, and for every code      │
+│   Reads data/modules/01_tensor/tensor.ipynb as JSON, and for every code      │
 │   cell, strips IPython magics (%...) and shell escapes (!...), then     │
 │   compile(code, ..., "exec"), WITHOUT executing it, just compiling.  │
 │                                                                          │
@@ -303,7 +304,7 @@ This is the command that actually turns a student's edited notebook into working
 │                                   real code generation]                 │
 │                                                                          │
 │   from nbdev.export import nb_export                                    │
-│   nb_export(modules/01_tensor/tensor.ipynb, lib_path=trentorch/)        │
+│   nb_export(data/modules/01_tensor/tensor.ipynb, lib_path=trentorch/)        │
 │                                                                          │
 │   nbdev reads the notebook's cells looking for `#| export` markers      │
 │   (present in every code cell the student is meant to keep) and the    │
@@ -376,13 +377,13 @@ There are exactly two file-format conversions in this whole system, and they run
 
 ```text
 ┌──────────────────────────────────────────────────────────────────┐
-│  CONVERSION A: jupytext (src/*.py  ->  modules/*.ipynb)            │
+│  CONVERSION A: jupytext (src/*.py  ->  data/modules/*.ipynb)            │
 │  ─────────────────────────────────────────────────────────────    │
 │  WHEN:    tren module start N   (only if the notebook doesn't      │
 │           already exist)                                           │
 │  RUNS AS: an external subprocess (jupytext --to ipynb ...)         │
 │  READS:   the INSTRUCTOR's src/NN_name/NN_name.py                  │
-│  WRITES:  modules/NN_name/name.ipynb , the file the student      │
+│  WRITES:  data/modules/NN_name/name.ipynb , the file the student      │
 │           actually opens and edits in Jupyter                       │
 │  PURPOSE: turn plain "percent-format" Python (# %% cell markers)   │
 │           into a real, openable .ipynb notebook, ONCE, so the      │
@@ -390,12 +391,12 @@ There are exactly two file-format conversions in this whole system, and they run
 └──────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────┐
-│  CONVERSION B: nbdev (modules/*.ipynb  ->  trentorch/**/*.py)       │
+│  CONVERSION B: nbdev (data/modules/*.ipynb  ->  trentorch/**/*.py)       │
 │  ─────────────────────────────────────────────────────────────    │
 │  WHEN:    tren module complete N   (every single time, not just    │
 │           once)                                                     │
 │  RUNS AS: an in-process Python function call (nb_export)           │
-│  READS:   the STUDENT's edited modules/NN_name/name.ipynb          │
+│  READS:   the STUDENT's edited data/modules/NN_name/name.ipynb          │
 │  WRITES:  trentorch/core/name.py (or perf/, or olympics/),  the  │
 │           real Python package a student can `import trentorch`     │
 │  PURPOSE: turn the student's notebook cells marked `#| export`     │
@@ -558,7 +559,7 @@ Consolidating every conditional branch surfaced across Parts 1–8 that depends 
 ├───────────────────────────────┼───────────────────────────────────────────┤
 │ Module tracking vs. disk       │ started_modules/completed_modules in       │
 │ desync                         │ .tren/progress.json can go out of sync     │
-│                                │ with modules/ on disk (e.g. `tren system   │
+│                                │ with data/modules/ on disk (e.g. `tren system   │
 │                                │ reset --keep-progress` intentionally       │
 │                                │ clears one but not the other). On `dev`    │
 │                                │ right now, `start` and `resume` both       │
@@ -609,7 +610,7 @@ Tying every part above into one linear trace, from a user's very first keystroke
   │                               │  needed (module 1)               │
   │                               │  notebook doesn't exist →         │
   │                               │  jupytext subprocess writes       │
-  │                               │  modules/01_tensor/tensor.ipynb  │
+  │                               │  data/modules/01_tensor/tensor.ipynb  │
   │                               │  mark_module_started("01")       │
   │                               │  spawn jupyter lab (untracked,   │
   │                               │  Part 3.3) ──────────────────────│  binds :8888,

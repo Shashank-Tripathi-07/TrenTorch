@@ -121,7 +121,7 @@ jobs:
 
       # Only Stage 1 sets this: Stages 2-5 each need the exported package
       # present to skip their own redundant `tren dev export --all` (see
-      # tren/commands/dev/test.py's _check_imports/_build_package). Sharing
+      # platforms/cli/cli_platform/dev/test.py's _check_imports/_build_package). Sharing
       # Stage 1's already-built output cuts that duplicated work to zero
       # without skipping or altering any test.
       - name: Upload built package

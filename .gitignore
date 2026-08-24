@@ -150,22 +150,29 @@ COMMIT_LOG.txt
 run-community.sh
 
 # Tren CLI user state and cache (local to each user)
+user_data/
+# Legacy directory names, in case migrate_progress_dir() hasn't run yet
 .tren/
+.tito/
 
 # Downloaded datasets (not source-controlled, too large)
-data/
-datasets/*
+data/datasets/*
 milestones/datasets/
 
 # BUT: Include TinyTorch's curated educational datasets (tiny, ship-with-repo)
-!datasets/tinydigits/
-!datasets/tinydigits/**
-!datasets/tinytalks/
-!datasets/tinytalks/**
-!datasets/tinymnist/
-!datasets/tinymnist/**
-!datasets/README.md
-!datasets/DATASET_ANALYSIS.md
+!data/datasets/tinydigits/
+!data/datasets/tinydigits/**
+!data/datasets/tinytalks/
+!data/datasets/tinytalks/**
+!data/datasets/tinymnist/
+!data/datasets/tinymnist/**
+!data/datasets/README.md
+!data/datasets/DATASET_ANALYSIS.md
+
+# Solutions (generated from src/*.py, used only by maintainers/CI to verify
+# curriculum integrity and build the ground-truth trentorch/ package -- never
+# committed, never surfaced by any tren command a student runs)
+data/solutions/*
 
 # Temporary AI-generated reports (not permanent project docs)
 MODULE_REVIEW_REPORT_*.md
@@ -196,12 +203,12 @@ MODULE_STATUS_SUMMARY.md
 **/NEW_CITATIONS.bib
 **/proposed_figures.tex
 progress.json
-modules/HASATTR_*.md
+data/modules/HASATTR_*.md
 
 # Generated notebooks (built from src/*.py source files)
-# The modules/ directory contains generated notebooks for learners
-modules/*
-!modules/README.md
+# The data/modules/ directory contains stub-only generated notebooks for learners
+data/modules/*
+!data/modules/README.md
 
 # Generated website module docs (copied from src/*/ABOUT.md during build)
 # Single source of truth: src/*/ABOUT.md
@@ -232,5 +239,5 @@ tinytorch/perf/*
 !tinytorch/perf/__init__.py
 !tinytorch/README.md
 
-# Generated benchmark outputs
-.tren/benchmarks/
+# Generated benchmark outputs (covered by user_data/ above; kept explicit for clarity)
+user_data/benchmarks/

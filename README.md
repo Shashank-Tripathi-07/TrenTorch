@@ -251,8 +251,11 @@ TrenTorch/
 │   ├── 19_benchmarking/        # Module 19: Performance measurement
 │   └── 20_capstone/            # Module 20: Complete ML systems
 │
-├── modules/                    # 📓 Generated notebooks (learn here)
-│   └── ...                     # (20 module directories)
+├── data/
+│   ├── modules/                # 📓 Generated notebooks (learn here -- stub-only)
+│   │   └── ...                 # (20 module directories)
+│   ├── solutions/               # 🔒 Reference implementations (maintainer/CI-only)
+│   └── datasets/                # 🗂️ Curated training data (tinydigits, tinytalks)
 │
 ├── milestones/                 # 🏆 Historical ML evolution - prove what you built
 │   ├── 01_1958_perceptron/
@@ -264,17 +267,22 @@ TrenTorch/
 │
 ├── tren/                       # 🎛️ CLI tool for streamlined workflows
 │   ├── main.py                 # Entry point
-│   ├── commands/                # Command modules
-│   └── core/                   # Core utilities
+│   ├── core/                   # Shared plumbing: config, console, theme, runtime
+│   ├── commands/                # Genuinely shared code only: base.py, export_utils.py, jupyter.py
+│   └── platforms/               # Everything else, organized by feature
+│       ├── cli_platform/         # The CLI's own bootstrap: setup, system, package, dev tooling
+│       └── processes/             # The student-facing workflow: module_workflow, milestone, benchmark, olympics, convert
 │
 ├── trentorch/                  # 📦 Generated package (import from here)
 │   ├── core/                   # Core ML components
 │   └── ...                     # The framework you built
 │
+├── user_data/                  # 🗃️ Your own progress, milestones, benchmarks (not committed)
+│
 └── tests/                      # ✅ Module, CLI, integration, and milestone tests
 ```
 
-**Key workflow**: `src/*.py` → `modules/*.ipynb` → `trentorch/*.py`
+**Key workflow**: `src/*.py` → `data/modules/*.ipynb` (you solve it) → `trentorch/*.py`
 
 ---
 

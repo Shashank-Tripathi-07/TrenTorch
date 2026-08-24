@@ -15,16 +15,16 @@
 cs249r_book/
   trentorch/
     src/                # Source of truth: one <NN_name>/<NN_name>.py per module
-    modules/             # Generated student notebooks (from src/, via jupytext)
+    data/modules/             # Generated student notebooks (from src/, via jupytext)
     tests/               # Per-module tests, plus cli/e2e/environment/integration/milestones/regression
-    trentorch/           # The installable package, generated from modules/ by nbdev
+    trentorch/           # The installable package, generated from data/modules/ by nbdev
     tren/                # The `tren` CLI package
     milestones/          # Six historical-ML reproduction exercises
     docs/                # Design docs, contributor docs (CONTRIBUTING.md)
     dev/                  # Dev-only support tooling: scripts/, tools/, etc/ (jupyter config)
     benchmark_results/    # Local artifact output from Module 19's BenchmarkSuite
     pyproject.toml, settings.ini, MANIFEST.in, requirements.txt
-    README.md, LICENSE, CHANGELOG.md
+    README.md, LICENSE
   .github/workflows/
     validate.yml
     update-contributors.yml
@@ -33,7 +33,7 @@ cs249r_book/
 
 ---
 
-## 1. The module system (`src/`, `modules/`, `trentorch/`)
+## 1. The module system (`src/`, `data/modules/`, `trentorch/`)
 
 ### 1.1 A real module source file
 
@@ -53,21 +53,28 @@ class Tensor:
     ...
 ```
 
-Implementation gaps students fill in look like this (representative, from the `__init__` region):
+In `src/01_tensor/01_tensor.py`, each implementation gap is a stub-cell/solution-cell pair (representative, from the `__init__` region):
 
 ```python
 # %% nbgrader={"grade": false, "grade_id": "tensor-class", "solution": true}
-#| export
 class Tensor:
     def __init__(self, data):
         # TODO: Initialize a Tensor by wrapping data in a NumPy array
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Tensor.__init__")
+        ### END SOLUTION
+
+# %% tags=["solution"]
+#| export
+class Tensor:
+    def __init__(self, data):
         ### BEGIN SOLUTION
         self.data = np.asarray(data)
         ...
         ### END SOLUTION
 ```
 
-Nothing in this fork strips the code between `### BEGIN SOLUTION` and `### END SOLUTION` anymore (the `tren nbgrader` command that used to do that has been removed); the `nbgrader={...}` cell metadata is inert leftover from that convention. `tren module start`'s plain `jupytext` conversion has no awareness of any of these markers, so the notebook a learner opens contains this code already filled in, TODO comment and all &mdash; see `design.md`'s note on the honor-system model. The same marker pattern repeats through the file for `__add__`, `__sub__`, matmul, reshape, transpose, and the reduction operations.
+Only the `tags=["solution"]` cell carries `#| export`; the stub cell doesn't, in `src/`. Two different notebooks get generated from this one source file: `data/modules/01_tensor/tensor.ipynb` keeps only the stub cell (with `#| export` added back, so a student's own filled-in code is what nbdev picks up), and `data/solutions/01_tensor/tensor.ipynb` keeps only the solution cell, gitignored and maintainer/CI-only. `tren module start` opens the stub notebook; a learner sees the `TODO`, not the answer &mdash; see `design.md`'s note on the four-tree module system. The same stub/solution pairing repeats through the file for `__add__`, `__sub__`, matmul, reshape, transpose, and the reduction operations.
 
 ### 1.2 Module metadata
 
@@ -79,29 +86,29 @@ subtitle: Building Blocks of ML
 description: Build the foundational Tensor class that powers all machine learning operations.
 ```
 
-Every module directory under `src/` has one of these; `tren` reads it (via `tren/core/modules.py`) to show titles and descriptions in the CLI without hardcoding them anywhere.
+Every module directory under `src/` has one of these; `tren` reads it (via `platforms/cli/core/modules.py`) to show titles and descriptions in the CLI without hardcoding them anywhere.
 
 ### 1.3 How a module becomes three other things
 
-- **Source to notebook**: `tren/commands/export_utils.py`'s `convert_py_to_notebook()` shells out to `jupytext --to ipynb` to regenerate `modules/<NN_name>/<short_name>.ipynb` from the `src/` `.py` file. `SOURCE_MAPPINGS` in the same file hardcodes which `src/` file feeds which nbdev export target, since the notebook path and the export path aren't always the same string.
+- **Source to notebook**: `tren/commands/export_utils.py`'s `convert_py_to_notebook()` shells out to `jupytext --to ipynb` to regenerate `data/modules/<NN_name>/<short_name>.ipynb` from the `src/` `.py` file. `SOURCE_MAPPINGS` in the same file hardcodes which `src/` file feeds which nbdev export target, since the notebook path and the export path aren't always the same string.
 - **Notebook to package**: nbdev exports every `#| export`-tagged cell into `trentorch/`, following the `#| default_exp` target declared in the source file (`core.tensor` becomes `trentorch/core/tensor.py`). `add_autogenerated_warnings()` (also in `export_utils.py`) injects the "AUTOGENERATED! DO NOT EDIT!" banner into every generated file, and each generated file carries an nbdev provenance comment (for example `# %% ../../modules/01_tensor/tensor.ipynb #dbd4f042`) pointing back at the exact notebook cell it came from.
 - **The command that does this for a student**: `tren module complete <NN>` runs the module's tests, does a syntax check, exports via nbdev, runs relevant integration tests, and updates progress tracking, in that order. Running `tren module test <NN>` alone does *not* export anything; only `complete` updates what's actually importable from `trentorch`.
 
 ### 1.4 Module discovery
 
-`tren/core/modules.py` auto-discovers modules by scanning `src/` for directories matching `^(\d{2})_(\w+)$`, builds the `{"01": "01_tensor", ...}` mapping used throughout the CLI, and reads each module's `module.yaml` for display metadata. Nothing about the module list is hardcoded; adding a 21st module means adding a correctly-named `src/` directory with a `module.yaml`, and the CLI picks it up automatically.
+`platforms/cli/core/modules.py` auto-discovers modules by scanning `src/` for directories matching `^(\d{2})_(\w+)$`, builds the `{"01": "01_tensor", ...}` mapping used throughout the CLI, and reads each module's `module.yaml` for display metadata. Nothing about the module list is hardcoded; adding a 21st module means adding a correctly-named `src/` directory with a `module.yaml`, and the CLI picks it up automatically.
 
 ---
 
 ## 2. The `tren` CLI (`tren/`)
 
-### 2.1 Architecture (`tren/main.py`)
+### 2.1 Architecture (`platforms/cli/main.py`)
 
 `TrenTorchCLI` builds one `argparse.ArgumentParser` with subparsers, keyed off a single dictionary mapping top-level command names to command classes. Each top-level command is itself a group that registers its own nested subparser (for example, `module` registers `start`, `test`, `complete`, and so on), so effectively every command in the table below is two levels of `argparse` subcommand.
 
 `run(args)` does some deliberate custom behavior before dispatching: it intercepts `-h`/`--help` to show Rich-formatted help instead of argparse's default, gives a friendlier error for an unrecognized first argument, and (except for `tren setup`) enforces that commands run inside an activated virtual environment unless `TITO_ALLOW_SYSTEM=1` is set, since running the course tooling against a system Python is a common source of confusing failures.
 
-Every command class inherits from the abstract `BaseCommand` (`tren/commands/base.py`), which supplies `config`, a shared Rich `console`, the resolved `venv_path`, and an `execute()` wrapper that catches and formats `TrenTorchCLIError` and generic exceptions consistently.
+Every command class inherits from the abstract `BaseCommand` (`platforms/cli/commands/base.py`), which supplies `config`, a shared Rich `console`, the resolved `venv_path`, and an `execute()` wrapper that catches and formats `TrenTorchCLIError` and generic exceptions consistently.
 
 ### 2.2 Command reference
 
@@ -110,13 +117,13 @@ Every command class inherits from the abstract `BaseCommand` (`tren/commands/bas
 | `tren setup` | `SetupCommand`, `commands/setup.py` | Creates `.venv` (with Apple Silicon/Rosetta detection), installs a fixed toolchain plus `pip install -e .`, registers a `trentorch` Jupyter kernel, creates `~/.trentorch/profile.json`, and validates the environment. |
 | `tren system info / health / jupyter / update / logo / reset` | `commands/system/*.py` | Environment diagnostics, launching a Jupyter server, checking for CLI updates, showing branding, and resetting the local environment to a pristine state. |
 | `tren module start / view / resume / test / complete / reset / status / list / path` | `ModuleWorkflowCommand`, `commands/module/workflow.py` (1,857 lines) plus `commands/module/test.py` and `commands/module/reset.py` | `start` checks sequential prerequisites and opens the module in Jupyter, creating its notebook from `src/` if it doesn't exist yet. `complete` runs the four-step pipeline described in section 1.3. `test` runs the three-phase test check described below without exporting anything. `reset` regenerates a module's notebook from `src/` and clears its progress entries. |
-| `tren dev test / preflight / export / clean` | `commands/dev/*.py` | `test` is the unified pytest runner CI uses, with flags for `--unit`, `--integration`, `--e2e`, `--cli`, `--milestone`, `--all`, `--release`, or a specific `--module NN`. `preflight` runs pre-release verification (project structure, CLI smoke checks, imports, git state, module tests, milestone scripts). `export` rebuilds the entire curriculum (`src/` to `modules/` to `trentorch/`) for all modules or one. `clean` removes build artifacts. |
+| `tren dev test / preflight / export / clean` | `commands/dev/*.py` | `test` is the unified pytest runner CI uses, with flags for `--unit`, `--integration`, `--e2e`, `--cli`, `--milestone`, `--all`, `--release`, or a specific `--module NN`. `preflight` runs pre-release verification (project structure, CLI smoke checks, imports, git state, module tests, milestone scripts). `export` rebuilds the entire curriculum (`src/` to `data/modules/` to `trentorch/`) for all modules or one. `clean` removes build artifacts. |
 | `tren package reset / nbdev` | `commands/package/*.py` | `reset package` clears exported package files; `reset all` clears all user progress and data. `nbdev` is a thin wrapper exposing `--export`/`--build-docs`/`--test`/`--clean`, mostly delegating to the underlying nbdev CLI or to `DevExportCommand`. |
 | `tren milestone list / run / info / status / timeline / test / demo` | `commands/milestone.py` | Implements the six hardcoded milestones described in the design doc. `run` executes a milestone's standalone script via a subprocess, after validating that the required module exports actually work. Progress is stored in `.tren/milestones.json`. |
 | `tren benchmark baseline / capstone` | `commands/benchmark.py` | `baseline` runs quick NumPy micro-benchmarks (tensor ops, matmul, forward pass) and normalizes them into a 0 to 100 score against a hardcoded reference system, saving JSON under `.tren/benchmarks/`. `capstone` scores the student's Module 20 `trentorch.olympics` submission if it exists, or falls back to a placeholder score otherwise. The "submit to website" step in both is currently a stub. |
 | `tren olympics` | `commands/olympics.py` | The not-yet-implemented placeholder described in the design doc. Only its `logo` subcommand does anything real; every other subcommand, including a registered but unimplemented `status`, falls through to a generic "coming soon" message. |
 
-### 2.3 `tren/core/` responsibilities
+### 2.3 `platforms/cli/core/` responsibilities
 
 | File | Responsibility |
 |---|---|
@@ -131,7 +138,7 @@ Every command class inherits from the abstract `BaseCommand` (`tren/commands/bas
 
 ### 2.4 What `tren module test <NN>` actually runs
 
-Three phases, in `ModuleTestCommand.test_module()` (`tren/commands/module/test.py`):
+Three phases, in `ModuleTestCommand.test_module()` (`tren/platforms/processes/module_workflow/test.py`):
 
 1. **Inline tests**: runs `python src/<module>/<module>.py` as a subprocess, which triggers the module's own `if __name__ == "__main__"` block containing quick sanity assertions. Pass or fail is just the subprocess return code.
 2. **Module pytest**: if `tests/<module>/` exists, runs `python -m pytest tests/<module> --trentorch -q --tb=short --no-cov`. The custom `--trentorch` flag turns on WHAT/WHY educational context in the test output, described in section 3.
@@ -177,7 +184,7 @@ Each milestone directory (for example `milestones/01_1958_perceptron/`) contains
 
 ## 5. Documentation site, PDF guide, and community sync: removed
 
-This fork inherited upstream's Quarto-based docs site and PDF guide (`quarto/`), its student-progress community dashboard (`quarto/community/`), and the CLI-side login/auth/sync code that talked to it (`tren/commands/login.py`, `community.py`, `tren/core/auth.py`, `browser.py`, `submission.py`). The dashboard and CLI sync code were client-only: the backend they talked to (a Netlify-hosted login endpoint and a Supabase project) belonged to the original TrenTorch project and was never usable from this fork. The Quarto docs site and PDF guide were never deployed from this fork either, and the hand-authored `.qmd` pages had already drifted from the actual module content since nothing kept the two in sync. All of it has been removed rather than kept as dead code pointing at someone else's infrastructure or an undeployed site; see [`design.md`](design.md#community-dashboard-and-progress-sync-removed) for the fuller history. `docs/` (this file included) is the contributor-facing documentation going forward.
+This fork inherited upstream's Quarto-based docs site and PDF guide (`quarto/`), its student-progress community dashboard (`quarto/community/`), and the CLI-side login/auth/sync code that talked to it (`tren/commands/login.py`, `community.py`, `platforms/cli/core/auth.py`, `browser.py`, `submission.py`). The dashboard and CLI sync code were client-only: the backend they talked to (a Netlify-hosted login endpoint and a Supabase project) belonged to the original TrenTorch project and was never usable from this fork. The Quarto docs site and PDF guide were never deployed from this fork either, and the hand-authored `.qmd` pages had already drifted from the actual module content since nothing kept the two in sync. All of it has been removed rather than kept as dead code pointing at someone else's infrastructure or an undeployed site; see [`design.md`](design.md#community-dashboard-and-progress-sync-removed) for the fuller history. `docs/` (this file included) is the contributor-facing documentation going forward.
 
 ---
 
@@ -185,7 +192,7 @@ This fork inherited upstream's Quarto-based docs site and PDF guide (`quarto/`),
 
 ### 7.1 `pyproject.toml` (at `trentorch/`)
 
-Declares `name = "trentorch"`, current version `0.1.13`, `requires-python = ">=3.10"`, MIT license, and runtime dependencies limited to `numpy`, `rich`, `PyYAML`, `certifi`, and `pytest`. `[project.scripts]` registers `tren = "tren.main:main"` as the installed console command. Optional dependency groups: `dev` (pytest plus coverage, jupytext, nbformat, jupyter, jupyterlab, ipykernel, and a pinned nbdev range), `visualization` (matplotlib), and `docs` (jupyter-book, sphinxcontrib-mermaid, matplotlib, and Jupyter widgets). `[tool.setuptools.packages.find]` limits the built package to the `trentorch` and `tren` packages, explicitly excluding `tests`, `modules`, `site`, `docs`, `milestones`, and `assignments`.
+Declares `name = "trentorch"`, current version `0.1.13`, `requires-python = ">=3.10"`, MIT license, and runtime dependencies limited to `numpy`, `rich`, `PyYAML`, `certifi`, and `pytest`. `[project.scripts]` registers `tren = "platforms.cli.main:main"` as the installed console command. Optional dependency groups: `dev` (pytest plus coverage, jupytext, nbformat, jupyter, jupyterlab, ipykernel, and a pinned nbdev range), `visualization` (matplotlib), and `docs` (jupyter-book, sphinxcontrib-mermaid, matplotlib, and Jupyter widgets). `[tool.setuptools.packages.find]` limits the built package to the `trentorch` and `tren` packages, explicitly excluding `tests`, `modules`, `site`, `docs`, `milestones`, and `assignments`.
 
 ### 7.2 `settings.ini`
 
@@ -212,7 +219,7 @@ The upstream TinyTorch project runs five GitHub Actions workflows (validate, pre
 1. `cd trentorch`, create and activate a virtual environment.
 2. `pip install -r requirements.txt`, then `pip install -e .` to install both `trentorch` and `tren` in editable mode.
 3. Verify with `tren --version`, `tren system health`, and `tren module status`.
-4. Work on module content directly in `src/<NN_name>/<NN_name>.py`, the source of truth; never hand-edit files under `modules/`, since those are regenerated. After a change, run `tren dev export` (or `tren module complete <NN>` if you also want it reflected in progress tracking) to see it as an importable part of `trentorch`.
+4. Work on module content directly in `src/<NN_name>/<NN_name>.py`, the source of truth; never hand-edit files under `data/modules/`, since those are regenerated. After a change, run `tren dev export` (or `tren module complete <NN>` if you also want it reflected in progress tracking) to see it as an importable part of `trentorch`.
 5. Test with `pytest tests/<NN_name>/` or `tren module test <NN>` for a single module, `pytest tests/integration/` for cross-module checks, and, if your change affects one, the relevant milestone script under `milestones/`.
 6. Follow the mandatory git workflow from `CONTRIBUTING.md`: never commit directly to `dev` or `main`; branch as `feature/your-improvement`; stage files explicitly rather than using a blanket `git add .`; open a PR targeting `dev`.
 
@@ -242,7 +249,7 @@ The upstream TinyTorch project runs five GitHub Actions workflows (validate, pre
 ### Fixing a bug in the `tren` CLI
 
 1. Locate the relevant command class (Section 2.2's table) or core module (Section 2.3's table).
-2. Make the fix. If it involves environment detection, subprocess behavior, or anything platform-specific, test on both a Unix shell and Windows if you can; this codebase has a documented history of Windows-specific bugs in exactly this kind of code (see `tren/core/runtime.py`'s CI-versus-interactive fix in the design doc's "Project history").
+2. Make the fix. If it involves environment detection, subprocess behavior, or anything platform-specific, test on both a Unix shell and Windows if you can; this codebase has a documented history of Windows-specific bugs in exactly this kind of code (see `platforms/cli/core/runtime.py`'s CI-versus-interactive fix in the design doc's "Project history").
 3. Add or update a test in `tests/cli/`. Prefer testing through the real subprocess entry point (`python -m tren.main ...`) when you're testing user-facing behavior, and importing `tren.main.TrenTorchCLI` directly when you're testing internal logic.
 4. `pytest tests/cli/` locally, then open a PR. CI's `tinytorch-validate-dev.yml` runs the CLI test stage on both Ubuntu and Windows.
 

@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tren = "tren.main:main"
+tren = "platforms.cli.main:main"
 
 [project.optional-dependencies]
 dev = [
@@ -59,7 +59,7 @@ docs = [
 [tool.nbdev]
 lib_name = "trentorch"
 lib_path = "trentorch"
-nbs_path = "modules"
+nbs_path = "data/modules"
 doc_path = "_docs"
 branch = "main"
 recursive = true
@@ -75,15 +75,24 @@ Repository = "https://github.com/Shashank-Tripathi-07/TrenTorch"
 Documentation = "https://github.com/ShivtejG236/docs4TrenTorch"
 Issues = "https://github.com/Shashank-Tripathi-07/TrenTorch/issues"
 
+# trentorch's own source now lives at data/trentorch/ (grouped with the
+# rest of the curriculum's generated content), but the installed package
+# and every "import trentorch" / "from trentorch.core.tensor import
+# Tensor" call site must keep resolving exactly as before. Listing
+# "data" as a second discovery root (alongside ".") is what makes that
+# true: setuptools finds "trentorch*" packages rooted there and reports
+# them under their real top-level name ("trentorch", "trentorch.core",
+# ...), not "data.trentorch" -- the physical move is invisible to every
+# import statement.
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["trentorch*", "tinytorch*", "tren*"]
-exclude = ["tests*", "modules*", "site*", "docs*", "milestones*", "assignments*"]
+where = [".", "data"]
+include = ["tinytorch*", "platforms*", "trentorch*"]
+exclude = ["tests*", "data*", "site*", "docs*", "assignments*"]
 
 # TinyTorch-specific pytest configuration (overrides parent pyproject.toml)
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["tests"]
+testpaths = ["data/src", "data/milestones", "platforms", "tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
