@@ -975,7 +975,7 @@ class DevTestCommand(BaseCommand):
 
             modules_dir = project_root / "data" / "modules"
             core_dir = project_root / "trentorch" / "core"
-            progress_file = project_root / ".tren" / "progress.json"
+            progress_file = project_root / "user_data" / "progress.json"
 
             modules_cleared = True
             if modules_dir.exists():

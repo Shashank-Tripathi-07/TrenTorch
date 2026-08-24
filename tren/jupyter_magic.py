@@ -2,7 +2,7 @@
 
 Registered automatically for the "tinytorch" kernel (see
 tren/platforms/cli_platform/setup.py's kernel registration and the startup script it
-writes under .tren/ipython/). Usage in a notebook cell:
+writes under user_data/ipython/). Usage in a notebook cell:
 
     %tren module complete 01
     %tren module test 01

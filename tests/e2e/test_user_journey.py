@@ -163,8 +163,8 @@ class TestModuleFlow:
 
     @pytest.fixture(autouse=True)
     def backup_progress(self):
-        """Backup and restore .tren/progress.json around tests."""
-        tren_dir = PROJECT_ROOT / ".tren"
+        """Backup and restore user_data/progress.json around tests."""
+        tren_dir = PROJECT_ROOT / "user_data"
         progress_file = tren_dir / "progress.json"
         backup_file = tren_dir / "progress.json.e2e_backup"
         had_progress = progress_file.exists()
@@ -217,7 +217,7 @@ class TestModuleFlow:
     @pytest.mark.module_flow
     def test_progress_tracking_persists(self):
         """Progress is saved and persisted across commands."""
-        tren_dir = PROJECT_ROOT / ".tren"
+        tren_dir = PROJECT_ROOT / "user_data"
         tren_dir.mkdir(exist_ok=True)
         progress_file = tren_dir / "progress.json"
 
@@ -287,7 +287,7 @@ class TestMilestoneFlow:
     def test_milestone_run_checks_prerequisites(self):
         """'tren milestone run' checks prerequisites before running."""
         # Create clean state with no completed modules
-        tren_dir = PROJECT_ROOT / ".tren"
+        tren_dir = PROJECT_ROOT / "user_data"
         tren_dir.mkdir(exist_ok=True)
         progress_file = tren_dir / "progress.json"
         progress_file.write_text(json.dumps({

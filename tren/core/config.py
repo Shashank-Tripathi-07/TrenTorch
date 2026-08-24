@@ -10,25 +10,34 @@ from dataclasses import dataclass
 
 
 def migrate_progress_dir(project_root: Path) -> None:
-    """One-time migration of the progress-tracking directory from .tito/ to .tren/.
+    """One-time migration of the progress-tracking directory to user_data/.
 
-    .tito/ was the directory name from before the tito->tren CLI rename, and
-    holds real progress.json/milestones.json data that already exists on any
-    machine that's run this CLI before. Renaming it outright would silently
-    reset that progress, so this only renames .tito/ to .tren/ once, the
-    first time a .tren/ directory doesn't already exist, and never touches
-    .tren/ once it's there. A fresh install with no .tito/ just gets .tren/
-    created normally by whichever command needs it, with nothing to migrate.
+    Two directory names came before user_data/, each from a real rename in
+    this project's history: .tito/ (before the tito->tren CLI rename) and
+    .tren/ (before user_data/ made the directory visible instead of hidden,
+    since students kept missing it existed at all). Either one holds real
+    progress.json/milestones.json data that already exists on any machine
+    that's run this CLI before, so renaming outright would silently reset
+    that progress -- this only renames whichever legacy directory is found
+    to user_data/ once, the first time user_data/ doesn't already exist,
+    and never touches user_data/ once it's there. A fresh install with
+    neither legacy directory just gets user_data/ created normally by
+    whichever command needs it, with nothing to migrate.
     """
-    tito_dir = project_root / '.tito'
-    tren_dir = project_root / '.tren'
-    if tito_dir.exists() and not tren_dir.exists():
-        try:
-            tito_dir.rename(tren_dir)
-        except OSError:
-            # Best effort; if the rename fails (e.g. cross-device on some
-            # CI runners), leave .tito/ in place rather than crash startup.
-            pass
+    user_data_dir = project_root / 'user_data'
+    if user_data_dir.exists():
+        return
+    for legacy_name in ('.tren', '.tito'):
+        legacy_dir = project_root / legacy_name
+        if legacy_dir.exists():
+            try:
+                legacy_dir.rename(user_data_dir)
+            except OSError:
+                # Best effort; if the rename fails (e.g. cross-device on
+                # some CI runners), leave the legacy dir in place rather
+                # than crash startup.
+                pass
+            return
 
 
 @dataclass

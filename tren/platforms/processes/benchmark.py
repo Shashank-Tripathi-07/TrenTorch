@@ -235,7 +235,7 @@ class BenchmarkCommand(BaseCommand):
         }
 
         # Save results
-        benchmark_dir = Path(".tren") / "benchmarks"
+        benchmark_dir = Path("user_data") / "benchmarks"
         benchmark_dir.mkdir(parents=True, exist_ok=True)
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"baseline_{timestamp_str}.json"
@@ -341,7 +341,7 @@ class BenchmarkCommand(BaseCommand):
         }
 
         # Save results
-        benchmark_dir = Path(".tren") / "benchmarks"
+        benchmark_dir = Path("user_data") / "benchmarks"
         benchmark_dir.mkdir(parents=True, exist_ok=True)
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_{timestamp_str}.json"
@@ -388,7 +388,7 @@ class BenchmarkCommand(BaseCommand):
         }
 
         # Save results
-        benchmark_dir = Path(".tren") / "benchmarks"
+        benchmark_dir = Path("user_data") / "benchmarks"
         benchmark_dir.mkdir(parents=True, exist_ok=True)
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_simplified_{timestamp_str}.json"
@@ -566,7 +566,7 @@ class BenchmarkCommand(BaseCommand):
                     submission["system_info"] = results.get("system_info", {})
 
                 # Save submission
-                submission_dir = Path(".tren") / "submissions"
+                submission_dir = Path("user_data") / "submissions"
                 submission_dir.mkdir(parents=True, exist_ok=True)
                 timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
                 submission_file = submission_dir / f"{benchmark_type}_submission_{timestamp_str}.json"

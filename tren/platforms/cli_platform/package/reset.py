@@ -181,14 +181,14 @@ class ResetCommand(BaseCommand):
         return 0
 
     def _create_backup(self) -> Path:
-        """Create timestamped backup of .tren folder."""
+        """Create timestamped backup of the user_data folder."""
         console = self.console
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_dir = Path(f".tren_backup_{timestamp}")
+        backup_dir = Path(f"user_data_backup_{timestamp}")
 
-        tito_dir = Path(".tren")
-        if tito_dir.exists():
-            shutil.copytree(tito_dir, backup_dir)
+        user_data_dir = Path("user_data")
+        if user_data_dir.exists():
+            shutil.copytree(user_data_dir, backup_dir)
             console.print(f"[green]✅ Backup created: {backup_dir}[/green]")
 
         return backup_dir
@@ -228,11 +228,11 @@ class ResetCommand(BaseCommand):
             self._create_backup()
 
         # Reset all data files
-        tito_dir = Path(".tren")
-        tito_dir.mkdir(parents=True, exist_ok=True)
+        user_data_dir = Path("user_data")
+        user_data_dir.mkdir(parents=True, exist_ok=True)
 
         # Reset progress.json
-        progress_file = tito_dir / "progress.json"
+        progress_file = user_data_dir / "progress.json"
         progress_file.write_text(json.dumps({
             "version": "1.0",
             "completed_modules": [],
@@ -240,7 +240,7 @@ class ResetCommand(BaseCommand):
         }, indent=2))
 
         # Reset milestones.json
-        milestones_file = tito_dir / "milestones.json"
+        milestones_file = user_data_dir / "milestones.json"
         milestones_file.write_text(json.dumps({
             "version": "1.0",
             "completed_milestones": [],
@@ -248,7 +248,7 @@ class ResetCommand(BaseCommand):
         }, indent=2))
 
         # Reset config.json
-        config_file = tito_dir / "config.json"
+        config_file = user_data_dir / "config.json"
         config_file.write_text(json.dumps({
             "logo_theme": "standard"
         }, indent=2))
@@ -294,10 +294,10 @@ class ResetCommand(BaseCommand):
             self._create_backup()
 
         # Reset progress.json
-        tito_dir = Path(".tren")
-        tito_dir.mkdir(parents=True, exist_ok=True)
+        user_data_dir = Path("user_data")
+        user_data_dir.mkdir(parents=True, exist_ok=True)
 
-        progress_file = tito_dir / "progress.json"
+        progress_file = user_data_dir / "progress.json"
         progress_file.write_text(json.dumps({
             "version": "1.0",
             "completed_modules": [],
@@ -345,10 +345,10 @@ class ResetCommand(BaseCommand):
             self._create_backup()
 
         # Reset milestones.json
-        tito_dir = Path(".tren")
-        tito_dir.mkdir(parents=True, exist_ok=True)
+        user_data_dir = Path("user_data")
+        user_data_dir.mkdir(parents=True, exist_ok=True)
 
-        milestones_file = tito_dir / "milestones.json"
+        milestones_file = user_data_dir / "milestones.json"
         milestones_file.write_text(json.dumps({
             "version": "1.0",
             "completed_milestones": [],
@@ -391,10 +391,10 @@ class ResetCommand(BaseCommand):
                 return 0
 
         # Reset config.json
-        tito_dir = Path(".tren")
-        tito_dir.mkdir(parents=True, exist_ok=True)
+        user_data_dir = Path("user_data")
+        user_data_dir.mkdir(parents=True, exist_ok=True)
 
-        config_file = tito_dir / "config.json"
+        config_file = user_data_dir / "config.json"
         config_file.write_text(json.dumps({
             "logo_theme": "standard"
         }, indent=2))

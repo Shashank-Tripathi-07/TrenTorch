@@ -229,8 +229,8 @@ def _module_progress_to_int(module_value):
 
 
 def _load_completed_module_numbers() -> set:
-    """Read completed module numbers from the canonical .tren progress file."""
-    progress_file = Path(".tren") / "progress.json"
+    """Read completed module numbers from the canonical user_data progress file."""
+    progress_file = Path("user_data") / "progress.json"
     completed = set()
     if not progress_file.exists():
         return completed
@@ -502,7 +502,7 @@ class MilestoneSystem:
     def _is_module_completed(self, module_name: str) -> bool:
         """Check if a module has been completed."""
         # Check module progress file
-        progress_file = Path(".tren") / "progress.json"
+        progress_file = Path("user_data") / "progress.json"
         if progress_file.exists():
             try:
                 with open(progress_file, 'r') as f:
@@ -519,7 +519,7 @@ class MilestoneSystem:
 
     def _get_milestone_progress_data(self) -> dict:
         """Get or create milestone progress data."""
-        progress_dir = Path(".tren")
+        progress_dir = Path("user_data")
         progress_file = progress_dir / "milestones.json"
 
         progress_dir.mkdir(exist_ok=True)
@@ -542,7 +542,7 @@ class MilestoneSystem:
 
     def _save_milestone_progress_data(self, milestone_data: dict) -> None:
         """Save milestone progress data."""
-        progress_dir = Path(".tren")
+        progress_dir = Path("user_data")
         progress_file = progress_dir / "milestones.json"
 
         progress_dir.mkdir(exist_ok=True)
@@ -570,7 +570,7 @@ def check_and_run_milestone_unlocks(config, console) -> None:
     files depending on which command happened to trigger it.
     """
     try:
-        progress_file = config.project_root / ".tren" / "progress.json"
+        progress_file = config.project_root / "user_data" / "progress.json"
         try:
             with open(progress_file, 'r') as f:
                 progress = json.load(f)
@@ -582,7 +582,7 @@ def check_and_run_milestone_unlocks(config, console) -> None:
             if module_num is not None
         }
 
-        milestones_file = config.project_root / ".tren" / "milestones.json"
+        milestones_file = config.project_root / "user_data" / "milestones.json"
         milestones_file.parent.mkdir(parents=True, exist_ok=True)
         if milestones_file.exists():
             try:
@@ -1526,7 +1526,7 @@ class MilestoneCommand(BaseCommand):
                 console.print(f"[dim]Milestone {next_id}: {next_milestone['name']}[/dim]")
 
                 # Get completed modules for checking next milestone
-                progress_file = Path(".tren") / "progress.json"
+                progress_file = Path("user_data") / "progress.json"
                 completed_modules = []
                 if progress_file.exists():
                     try:
@@ -1645,7 +1645,7 @@ class MilestoneCommand(BaseCommand):
 
     def _get_milestone_progress_data(self) -> dict:
         """Get or create milestone progress data."""
-        progress_dir = Path(".tren")
+        progress_dir = Path("user_data")
         progress_file = progress_dir / "milestones.json"
 
         progress_dir.mkdir(exist_ok=True)
@@ -1668,7 +1668,7 @@ class MilestoneCommand(BaseCommand):
 
     def _save_milestone_progress_data(self, milestone_data: dict) -> None:
         """Save milestone progress data."""
-        progress_dir = Path(".tren")
+        progress_dir = Path("user_data")
         progress_file = progress_dir / "milestones.json"
 
         progress_dir.mkdir(exist_ok=True)

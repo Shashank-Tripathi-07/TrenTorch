@@ -49,7 +49,7 @@ MILESTONE_ORDER = sorted(MILESTONES.keys())
 
 
 class MilestoneTracker:
-    """Tracks module progress and milestone readiness using .tren files."""
+    """Tracks module progress and milestone readiness using user_data files."""
 
     def __init__(
         self,
@@ -57,8 +57,8 @@ class MilestoneTracker:
         module_progress_file: Optional[Path] = None,
     ):
         root = _project_root()
-        self.progress_file = progress_file or root / ".tren" / "milestones.json"
-        self.module_progress_file = module_progress_file or root / ".tren" / "progress.json"
+        self.progress_file = progress_file or root / "user_data" / "milestones.json"
+        self.module_progress_file = module_progress_file or root / "user_data" / "progress.json"
         self.progress_file.parent.mkdir(parents=True, exist_ok=True)
         self.module_progress_file.parent.mkdir(parents=True, exist_ok=True)
         self.progress = self._load_progress()

@@ -132,7 +132,7 @@ class PreflightCommand(BaseCommand):
         start_time = time.time()
 
         # Setup log file for debugging
-        log_dir = project_root / ".tren" / "logs"
+        log_dir = project_root / "user_data" / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         self.log_file = log_dir / f"preflight_{timestamp}.log"

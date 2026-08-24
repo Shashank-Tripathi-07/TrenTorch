@@ -215,12 +215,12 @@ class ModuleResetCommand(BaseCommand):
             return 0
 
     def _update_progress_tracking(self, module_number: str, module_name: str) -> None:
-        """Remove module from completed progress in .tren/progress.json."""
+        """Remove module from completed progress in user_data/progress.json."""
         console = self.console
 
-        tito_dir = self.config.project_root / ".tren"
-        tito_dir.mkdir(parents=True, exist_ok=True)
-        progress_file = tito_dir / "progress.json"
+        user_data_dir = self.config.project_root / "user_data"
+        user_data_dir.mkdir(parents=True, exist_ok=True)
+        progress_file = user_data_dir / "progress.json"
 
         if progress_file.exists():
             try:
@@ -244,12 +244,12 @@ class ModuleResetCommand(BaseCommand):
                 console.print(f"[dim]Could not update progress: {e}[/dim]")
 
     def _clear_all_progress(self) -> None:
-        """Clear all progress tracking in .tren/ directory."""
-        tito_dir = self.config.project_root / ".tren"
-        tito_dir.mkdir(parents=True, exist_ok=True)
+        """Clear all progress tracking in user_data/ directory."""
+        user_data_dir = self.config.project_root / "user_data"
+        user_data_dir.mkdir(parents=True, exist_ok=True)
 
-        # Reset .tren/progress.json
-        progress_file = tito_dir / "progress.json"
+        # Reset user_data/progress.json
+        progress_file = user_data_dir / "progress.json"
         progress_file.write_text(json.dumps({
             "version": "1.0",
             "started_modules": [],
@@ -259,7 +259,7 @@ class ModuleResetCommand(BaseCommand):
         }, indent=2))
 
         # Reset milestones
-        milestones_file = tito_dir / "milestones.json"
+        milestones_file = user_data_dir / "milestones.json"
         milestones_file.write_text(json.dumps({
             "version": "1.0",
             "completed_milestones": [],

@@ -115,7 +115,7 @@ class SystemResetCommand(BaseCommand):
         # 3. Reset progress (unless --keep-progress)
         progress_reset = False
         if not args.keep_progress:
-            progress_file = project_root / ".tren" / "progress.json"
+            progress_file = project_root / "user_data" / "progress.json"
             if progress_file.exists():
                 try:
                     progress_file.unlink()

@@ -150,7 +150,10 @@ COMMIT_LOG.txt
 run-community.sh
 
 # Tren CLI user state and cache (local to each user)
+user_data/
+# Legacy directory names, in case migrate_progress_dir() hasn't run yet
 .tren/
+.tito/
 
 # Downloaded datasets (not source-controlled, too large)
 data/datasets/*
@@ -236,5 +239,5 @@ tinytorch/perf/*
 !tinytorch/perf/__init__.py
 !tinytorch/README.md
 
-# Generated benchmark outputs
-.tren/benchmarks/
+# Generated benchmark outputs (covered by user_data/ above; kept explicit for clarity)
+user_data/benchmarks/

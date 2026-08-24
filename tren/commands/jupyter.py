@@ -204,7 +204,7 @@ def register_jupyter_magic(config, console) -> None:
         if not kernel_json_path.exists():
             return
 
-        ipython_dir = config.project_root / ".tren" / "ipython"
+        ipython_dir = config.project_root / "user_data" / "ipython"
         startup_dir = ipython_dir / "profile_default" / "startup"
         startup_dir.mkdir(parents=True, exist_ok=True)
         (startup_dir / "00-tren-magic.py").write_text(

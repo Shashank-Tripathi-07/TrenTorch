@@ -92,7 +92,7 @@ class TrenTorchCLI:
         self.config = CLIConfig.from_project_root()
         migrate_progress_dir(self.config.project_root)
         self.console = get_console()
-        self._tito_dir = self.config.project_root / '.tren'
+        self._user_data_dir = self.config.project_root / 'user_data'
         # SINGLE SOURCE OF TRUTH: All valid commands registered here
         self.commands: Dict[str, Type[BaseCommand]] = {
             # Essential
@@ -154,11 +154,11 @@ class TrenTorchCLI:
 
     def _is_first_run(self) -> bool:
         """Check if this is the first time running tito."""
-        return not self._tito_dir.exists()
+        return not self._user_data_dir.exists()
 
     def _mark_welcome_shown(self) -> None:
-        """Mark that the welcome message has been shown by creating .tren/ folder."""
-        self._tito_dir.mkdir(parents=True, exist_ok=True)
+        """Mark that the welcome message has been shown by creating user_data/ folder."""
+        self._user_data_dir.mkdir(parents=True, exist_ok=True)
 
     def _show_first_run_welcome(self) -> None:
         """Show a one-time welcome message for new users."""
