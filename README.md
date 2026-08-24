@@ -267,17 +267,22 @@ TrenTorch/
 │
 ├── tren/                       # 🎛️ CLI tool for streamlined workflows
 │   ├── main.py                 # Entry point
-│   ├── commands/                # Command modules
-│   └── core/                   # Core utilities
+│   ├── core/                   # Shared plumbing: config, console, theme, runtime
+│   ├── commands/                # Genuinely shared code only: base.py, export_utils.py, jupyter.py
+│   └── platforms/               # Everything else, organized by feature
+│       ├── cli_platform/         # The CLI's own bootstrap: setup, system, package, dev tooling
+│       └── processes/             # The student-facing workflow: module_workflow, milestone, benchmark, olympics, convert
 │
 ├── trentorch/                  # 📦 Generated package (import from here)
 │   ├── core/                   # Core ML components
 │   └── ...                     # The framework you built
 │
+├── user_data/                  # 🗃️ Your own progress, milestones, benchmarks (not committed)
+│
 └── tests/                      # ✅ Module, CLI, integration, and milestone tests
 ```
 
-**Key workflow**: `src/*.py` → `modules/*.ipynb` → `trentorch/*.py`
+**Key workflow**: `src/*.py` → `data/modules/*.ipynb` (you solve it) → `trentorch/*.py`
 
 ---
 
