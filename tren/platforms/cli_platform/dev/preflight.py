@@ -30,7 +30,7 @@ from rich.live import Live
 from rich.status import Status
 from rich import box
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 
 
 class CheckStatus(Enum):

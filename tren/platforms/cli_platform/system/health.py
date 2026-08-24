@@ -10,7 +10,7 @@ from pathlib import Path
 from rich.panel import Panel
 from rich.table import Table
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 
 class HealthCommand(BaseCommand):
     @property
@@ -245,8 +245,8 @@ class HealthCommand(BaseCommand):
         # (Python version, disk space, memory) -- nothing module-related --
         # instead of actual per-module status. Read the real completion
         # data directly instead.
-        from ..module.workflow import ModuleWorkflowCommand
-        from ...core.modules import get_module_mapping
+        from tren.platforms.processes.module_workflow.workflow import ModuleWorkflowCommand
+        from tren.core.modules import get_module_mapping
 
         module_mapping = get_module_mapping()
         progress = ModuleWorkflowCommand(self.config).get_progress_data()

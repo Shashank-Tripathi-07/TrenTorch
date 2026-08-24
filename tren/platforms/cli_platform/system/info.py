@@ -12,7 +12,7 @@ from pathlib import Path
 from rich.panel import Panel
 from rich.table import Table
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 
 
 def _gather_system_info(venv_path: Path) -> dict:

@@ -18,14 +18,14 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 from .reset import ModuleResetCommand
 from .test import ModuleTestCommand
 from .test_runner import run_inline_unit_tests, run_integration_tests, check_notebook_syntax
-from ..jupyter import open_jupyter
-from ..milestone import check_and_run_milestone_unlocks
-from ...core.exceptions import ModuleNotFoundError
-from ...core.modules import (
+from tren.commands.jupyter import open_jupyter
+from tren.platforms.processes.milestone import check_and_run_milestone_unlocks
+from tren.core.exceptions import ModuleNotFoundError
+from tren.core.modules import (
     get_module_mapping,
     get_module_name,
     get_module_display_name,
@@ -476,7 +476,7 @@ class ModuleWorkflowCommand(BaseCommand):
         passed through to jupytext so notebooks match the source-of-truth and exports
         remain consistent for `tito module complete` and CI user-journey.
         """
-        from ..export_utils import convert_py_to_notebook
+        from tren.commands.export_utils import convert_py_to_notebook
 
         src_path = self.config.project_root / "src" / module_name
         if not src_path.exists():
@@ -487,7 +487,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
     def _get_milestone_for_module(self, module_num: int) -> Optional[tuple]:
         """Get the milestone this module contributes to."""
-        from ..milestone import MILESTONE_SCRIPTS, _required_modules_for
+        from tren.platforms.processes.milestone import MILESTONE_SCRIPTS, _required_modules_for
 
         for mid, milestone in sorted(MILESTONE_SCRIPTS.items()):
             required = _required_modules_for(milestone)
@@ -498,7 +498,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
     def _get_export_path_for_module(self, module_name: str) -> str:
         """Return the generated package path for a module based on default_exp."""
-        from ..export_utils import get_export_target
+        from tren.commands.export_utils import get_export_target
 
         module_path = Path("data") / "modules" / module_name
         export_target = get_export_target(module_path)
@@ -866,7 +866,7 @@ class ModuleWorkflowCommand(BaseCommand):
         import os
         import subprocess
         from pathlib import Path
-        from ..export_utils import get_export_target, ensure_writable_target
+        from tren.commands.export_utils import get_export_target, ensure_writable_target
         from .test_runner import VERIFY_SOLUTION_ENV
 
         try:
@@ -1287,7 +1287,7 @@ class ModuleWorkflowCommand(BaseCommand):
         prerequisites.
         """
         import json
-        from ..milestone import MILESTONE_SCRIPTS, _module_progress_to_int, _required_modules_for
+        from tren.platforms.processes.milestone import MILESTONE_SCRIPTS, _module_progress_to_int, _required_modules_for
 
         # Check which milestones have been run successfully.
         milestones_file = self.config.project_root / ".tren" / "milestones.json"

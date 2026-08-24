@@ -6,7 +6,7 @@ import subprocess
 from argparse import ArgumentParser, Namespace
 from rich.panel import Panel
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 
 class JupyterCommand(BaseCommand):
     @property

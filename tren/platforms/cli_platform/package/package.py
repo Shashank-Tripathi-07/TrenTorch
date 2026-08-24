@@ -5,7 +5,7 @@ Package command group for TinyTorch CLI: nbdev integration and package managemen
 from argparse import ArgumentParser, Namespace
 from rich.panel import Panel
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 from .reset import ResetCommand
 from .nbdev import NbdevCommand
 

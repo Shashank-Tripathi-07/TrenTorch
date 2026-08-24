@@ -33,8 +33,8 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskPr
 from rich.console import Console, Group
 from rich.rule import Rule
 
-from ..base import BaseCommand
-from ...core.modules import get_module_mapping, normalize_module_number
+from tren.commands.base import BaseCommand
+from tren.core.modules import get_module_mapping, normalize_module_number
 
 
 class ModuleTestCommand(BaseCommand):

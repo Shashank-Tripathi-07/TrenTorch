@@ -26,9 +26,9 @@ import yaml
 from datetime import datetime
 from pathlib import Path
 
-from .base import BaseCommand
-from ..core.console import print_ascii_logo
-from ..core.console import get_console
+from tren.commands.base import BaseCommand
+from tren.core.console import print_ascii_logo
+from tren.core.console import get_console
 
 
 # Name aliases for milestone IDs (allows `tito milestone run perceptron`)

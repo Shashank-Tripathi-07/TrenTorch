@@ -14,13 +14,13 @@ import numpy as np
 from rich.console import Console
 
 from tren.commands.export_utils import find_source_file_for_export
-from tren.commands.milestone import (
+from tren.platforms.processes.milestone import (
     MILESTONE_SCRIPTS,
     _required_modules_for,
     _validate_required_exports,
 )
-from tren.commands.module.workflow import ModuleWorkflowCommand
-from tren.commands.package.reset import ResetCommand
+from tren.platforms.processes.module_workflow.workflow import ModuleWorkflowCommand
+from tren.platforms.cli_platform.package.reset import ResetCommand
 from tren.core.config import CLIConfig
 
 

@@ -1,7 +1,7 @@
 """
 Compatibility milestone progress tracker for TrenTorch tests and older hooks.
 
-The canonical milestone definitions live in ``tren.commands.milestone``.
+The canonical milestone definitions live in ``tren.platforms.processes.milestone``.
 This file mirrors that table so legacy imports do not carry stale module
 names or write to a separate home-directory progress file.
 """
@@ -15,7 +15,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from tren.commands.milestone import MILESTONE_SCRIPTS
+from tren.platforms.processes.milestone import MILESTONE_SCRIPTS
 
 console = Console()
 

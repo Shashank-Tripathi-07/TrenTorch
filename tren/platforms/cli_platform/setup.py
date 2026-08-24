@@ -22,9 +22,9 @@ from rich.text import Text
 from rich.prompt import Prompt, Confirm
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from .base import BaseCommand
-from .jupyter import register_jupyter_magic
-from ..core.console import get_console
+from tren.commands.base import BaseCommand
+from tren.commands.jupyter import register_jupyter_magic
+from tren.core.console import get_console
 
 def _print_file_update(console, file_path: Path) -> None:
     """Print a notification when a file is created or updated."""
@@ -332,7 +332,7 @@ class SetupCommand(BaseCommand):
             self.console.print(f"✅ Virtual environment created at {venv_path}")
 
             # Verify architecture
-            from ..core.virtual_env_manager import get_venv_bin_dir
+            from tren.core.virtual_env_manager import get_venv_bin_dir
             venv_bin = get_venv_bin_dir(venv_path)
             venv_python = venv_bin / ("python.exe" if sys.platform == "win32" else "python3")
             if venv_python.exists():

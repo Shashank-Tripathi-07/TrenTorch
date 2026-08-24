@@ -18,8 +18,8 @@ from pathlib import Path
 
 from rich.panel import Panel
 
-from ..base import BaseCommand
-from ...core.modules import get_module_mapping
+from tren.commands.base import BaseCommand
+from tren.core.modules import get_module_mapping
 
 
 class SystemResetCommand(BaseCommand):

@@ -15,9 +15,9 @@ from typing import Optional
 from rich.panel import Panel
 from rich.table import Table
 
-from ..base import BaseCommand
-from ..export_utils import convert_py_to_notebook
-from ...core.modules import get_module_mapping, normalize_module_number
+from tren.commands.base import BaseCommand
+from tren.commands.export_utils import convert_py_to_notebook
+from tren.core.modules import get_module_mapping, normalize_module_number
 
 
 class ModuleResetCommand(BaseCommand):

@@ -10,7 +10,7 @@ from pathlib import Path
 from rich.panel import Panel
 from rich.text import Text
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 
 class ResetCommand(BaseCommand):
     @property

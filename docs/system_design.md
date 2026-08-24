@@ -78,7 +78,7 @@ Orange boxes are code the CLI runs directly. Purple cylinders are things written
 The four components that matter most for a system-design understanding:
 
 - **The `tren` dispatcher** (`tren/main.py`). A literal dict maps subcommand strings to command classes. There is no plugin discovery mechanism, adding a command means adding an entry to this dict.
-- **The module workflow subsystem** (`tren/commands/module/workflow.py`, close to 1900 lines). Owns the full lifecycle of one module: `start`, `view`, `resume`, `test`, `complete`, `reset`.
+- **The module workflow subsystem** (`tren/platforms/processes/module_workflow/workflow.py`, close to 1900 lines). Owns the full lifecycle of one module: `start`, `view`, `resume`, `test`, `complete`, `reset`.
 - **The export pipeline** (`tren/commands/export_utils.py`), shared logic the module workflow calls into rather than owning itself.
 - **The milestone system** (`tren/commands/milestone.py`), which gates on completed modules.
 

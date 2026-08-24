@@ -10,7 +10,7 @@ from rich.align import Align
 from rich.text import Text
 from rich.console import Group
 
-from .base import BaseCommand
+from tren.commands.base import BaseCommand
 
 class OlympicsCommand(BaseCommand):
     """🏅 TinyTorch Olympics - Future competition events"""

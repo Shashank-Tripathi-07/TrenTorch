@@ -20,8 +20,8 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.prompt import Prompt, Confirm
 from rich.console import Console
 
-from .base import BaseCommand
-from ..core.exceptions import TinyTorchCLIError
+from tren.commands.base import BaseCommand
+from tren.core.exceptions import TinyTorchCLIError
 
 
 class BenchmarkCommand(BaseCommand):

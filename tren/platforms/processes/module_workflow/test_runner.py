@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 #: Set by the maintainer curriculum-verification loop (`tren dev test
-#: --inline`, via `tren/commands/dev/test.py`) so that `tren module
+#: --inline`, via `tren/platforms/cli_platform/dev/test.py`) so that `tren module
 #: complete` -- which it shells out to per module -- tests and exports
 #: the known-working reference implementation instead of a student's
 #: (here, nobody's) notebook. Never set for a real student run.

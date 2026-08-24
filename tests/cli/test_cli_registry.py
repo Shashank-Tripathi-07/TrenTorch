@@ -125,46 +125,50 @@ class TestCommandFiles:
     def setup_method(self):
         """Set up test fixtures."""
         self.cli = TrenTorchCLI()
-        self.commands_dir = Path(__file__).parent.parent.parent / "tren" / "commands"
+        self.tren_dir = Path(__file__).parent.parent.parent / "tren"
+        self.commands_dir = self.tren_dir / "commands"
+        self.cli_platform_dir = self.tren_dir / "platforms" / "cli_platform"
+        self.processes_dir = self.tren_dir / "platforms" / "processes"
 
     def test_command_files_exist(self):
-        """Verify all registered commands have corresponding files."""
-        # Map command names to expected file paths (now with subfolders!)
+        """Verify all registered commands have corresponding files.
+
+        Feature commands live under tren/platforms/ (cli_platform/ for
+        bootstrapping/maintainer concerns, processes/ for the student-facing
+        workflow); only genuinely shared code (base.py, export_utils.py,
+        jupyter.py) stays in tren/commands/.
+        """
         cmd_to_file = {
-            'setup': 'setup.py',
-            'system': 'system/__init__.py',  # Now in subfolder
-            'module': 'module/__init__.py',   # Now in subfolder
-            'dev': 'dev/__init__.py',         # Now in subfolder
-            'package': 'package/__init__.py', # Now in subfolder
-            'milestone': 'milestone.py',      # Singular, not plural
-            'olympics': 'olympics.py',
-            'benchmark': 'benchmark.py',
+            'setup': self.cli_platform_dir / 'setup.py',
+            'system': self.cli_platform_dir / 'system' / '__init__.py',
+            'dev': self.cli_platform_dir / 'dev' / '__init__.py',
+            'package': self.cli_platform_dir / 'package' / '__init__.py',
+            'module': self.processes_dir / 'module_workflow' / '__init__.py',
+            'milestone': self.processes_dir / 'milestone.py',
+            'olympics': self.processes_dir / 'olympics.py',
+            'benchmark': self.processes_dir / 'benchmark.py',
         }
 
-        for cmd_name, expected_file in cmd_to_file.items():
+        for cmd_name, file_path in cmd_to_file.items():
             if cmd_name in self.cli.commands:
-                file_path = self.commands_dir / expected_file
                 assert file_path.exists(), (
-                    f"Command '{cmd_name}' registered but file missing: {expected_file}"
+                    f"Command '{cmd_name}' registered but file missing: {file_path}"
                 )
 
     def test_no_orphaned_command_files(self):
-        """Warn about command files that aren't registered."""
-        # Get all Python files in commands directory (excluding special files)
+        """Warn about command files that aren't registered anywhere."""
+        # Only tren/commands/ itself is checked flat (base.py + shared
+        # helpers); platforms/cli_platform/ and platforms/processes/ are
+        # organized by feature, each folder containing exactly the files
+        # that one command group owns, so there's nothing to orphan-check
+        # there beyond "does the registered command's file exist" above.
         command_files = [
             f for f in self.commands_dir.glob("*.py")
             if f.name not in ['__init__.py', 'base.py']
         ]
 
-        # Files we expect to see (registered commands + internal helpers)
         expected_files = {
-            # Registered top-level commands
-            'setup.py',
-            'milestone.py', 'benchmark.py',
-            'olympics.py',
-            'convert.py',
-            # Known internal/helper files (not top-level commands)
-            'export_utils.py',  # Helper for export functionality
+            'export_utils.py',  # Helper for export functionality, shared by cli_platform/dev and processes/module_workflow
             'jupyter.py',  # Jupyter component: server lifecycle, %tren magic registration
         }
 
@@ -177,7 +181,7 @@ class TestCommandFiles:
             pytest.fail(
                 f"Found {len(orphaned)} orphaned command files:\n" +
                 "\n".join(f"  - {item}" for item in orphaned) +
-                "\n\nEither register these commands or move to subfolders"
+                "\n\nEither register these commands or move to platforms/"
             )
 
 

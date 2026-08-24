@@ -8,7 +8,7 @@ Primary command: tito dev test (unified testing)
 from argparse import ArgumentParser, Namespace
 from rich.panel import Panel
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 from .test import DevTestCommand
 from .preflight import PreflightCommand
 from .export import DevExportCommand
@@ -52,7 +52,7 @@ class DevCommand(BaseCommand):
         # Export subcommand (rebuild curriculum from src/)
         export_parser = subparsers.add_parser(
             'export',
-            help='Rebuild curriculum: src/*.py → modules/*.ipynb → tinytorch package files'
+            help='Rebuild curriculum: src/*.py → data/modules/ + data/solutions/ → trentorch package files'
         )
         export_cmd = DevExportCommand(self.config)
         export_cmd.add_arguments(export_parser)

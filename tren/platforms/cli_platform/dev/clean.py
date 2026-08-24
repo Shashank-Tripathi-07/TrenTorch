@@ -11,7 +11,7 @@ Usage:
 import subprocess
 from argparse import ArgumentParser, Namespace
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 
 
 class DevCleanCommand(BaseCommand):

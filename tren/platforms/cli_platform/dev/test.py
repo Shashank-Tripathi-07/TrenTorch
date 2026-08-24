@@ -27,7 +27,7 @@ from rich.table import Table
 from rich.console import Console
 from rich import box
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 
 
 @dataclass
@@ -631,7 +631,7 @@ class DevTestCommand(BaseCommand):
            b. If tests pass, export to tinytorch/core/
            c. If tests fail, stop and report
         """
-        from ...core.modules import get_module_mapping
+        from tren.core.modules import get_module_mapping
 
         start = time.time()
         console = self.console
@@ -717,7 +717,7 @@ class DevTestCommand(BaseCommand):
                 # No student notebook has been solved in this maintainer
                 # verification loop -- test/export the reference
                 # implementation in data/solutions/ instead (see
-                # tren/commands/module/test_runner.py's VERIFY_SOLUTION_ENV).
+                # tren/platforms/processes/module_workflow/test_runner.py's VERIFY_SOLUTION_ENV).
                 complete_env["TREN_DEV_VERIFY_SOLUTION"] = "1"
                 if _profile_on:
                     complete_env["TREN_PROFILE"] = "1"
@@ -888,7 +888,7 @@ class DevTestCommand(BaseCommand):
         much rarer regression class than "does a milestone work at all",
         which is what actually matters and is still fully covered here.
         """
-        from ..milestone import MILESTONE_SCRIPTS
+        from tren.platforms.processes.milestone import MILESTONE_SCRIPTS
 
         start = time.time()
         console = self.console

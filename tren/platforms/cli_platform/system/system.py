@@ -5,7 +5,7 @@ System command group for TinyTorch CLI: environment, configuration, and system t
 from argparse import ArgumentParser, Namespace
 from rich.panel import Panel
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 from .info import InfoCommand
 from .health import HealthCommand
 from .jupyter import JupyterCommand
@@ -73,7 +73,7 @@ class SystemCommand(BaseCommand):
         # Reset subcommand
         reset_parser = subparsers.add_parser(
             'reset',
-            help='Reset TinyTorch to pristine state (clear modules and core)'
+            help='Reset TinyTorch to pristine state (clear data/modules/ and trentorch/core/)'
         )
         reset_cmd = SystemResetCommand(self.config)
         reset_cmd.add_arguments(reset_parser)
@@ -90,7 +90,7 @@ class SystemCommand(BaseCommand):
                 "  • [bold]jupyter[/bold] - Start Jupyter notebook server\n"
                 "  • [bold]update[/bold]  - Check for and install updates\n"
                 "  • [bold]logo[/bold]    - Learn about the TinyTorch logo\n"
-                "  • [bold]reset[/bold]   - Reset to pristine state (clear modules/core)\n\n"
+                "  • [bold]reset[/bold]   - Reset to pristine state (clear data/modules/ and trentorch/core/)\n\n"
                 "[dim]Example: tito system health[/dim]",
                 title="System Command Group",
                 border_style="bright_cyan"

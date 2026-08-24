@@ -19,7 +19,7 @@ Runs four steps in order: create `.venv`, install packages (numpy, jupyter, jupy
 
 ## `tren system` (developer/student mixed)
 
-Environment and configuration tooling. Dispatcher: `tren/commands/system/system.py`.
+Environment and configuration tooling. Dispatcher: `tren/platforms/cli_platform/system/system.py`.
 
 | Subcommand | File | Purpose |
 |---|---|---|
@@ -34,7 +34,7 @@ Running `tren system` with no subcommand prints a summary panel rather than an e
 
 ## `tren module` (primary student workflow)
 
-The core lifecycle command. Dispatcher and most logic live in `tren/commands/module/workflow.py` (~1900 lines); `test` and `reset` subcommands each delegate to their own command classes (`module/test.py`'s `ModuleTestCommand`, `module/reset.py`'s `ModuleResetCommand`).
+The core lifecycle command. Dispatcher and most logic live in `tren/platforms/processes/module_workflow/workflow.py` (~1900 lines); `test` and `reset` subcommands each delegate to their own command classes (`module/test.py`'s `ModuleTestCommand`, `module/reset.py`'s `ModuleResetCommand`).
 
 | Subcommand | Arguments | Purpose |
 |---|---|---|
@@ -50,10 +50,10 @@ The core lifecycle command. Dispatcher and most logic live in `tren/commands/mod
 
 ## `tren dev` (developer/instructor tooling, not for students)
 
-Dispatcher: `tren/commands/dev/dev.py`. Five subcommands, each its own file.
+Dispatcher: `tren/platforms/cli_platform/dev/dev.py`. Five subcommands, each its own file.
 
 ### `tren dev test`
-`tren/commands/dev/test.py`. The primary CI/local test entry point.
+`tren/platforms/cli_platform/dev/test.py`. The primary CI/local test entry point.
 
 | Flag | Effect |
 |---|---|
@@ -74,7 +74,7 @@ Dispatcher: `tren/commands/dev/dev.py`. Five subcommands, each its own file.
 With no flags, defaults to unit tests only.
 
 ### `tren dev preflight`
-`tren/commands/dev/preflight.py`. Release/CI verification checks.
+`tren/platforms/cli_platform/dev/preflight.py`. Release/CI verification checks.
 
 | Flag | Effect |
 |---|---|
@@ -87,7 +87,7 @@ With no flags, defaults to unit tests only.
 | `--verbose`/`-v` | Show commands as they execute |
 
 ### `tren dev export`
-`tren/commands/dev/export.py`. **Developer-only**, rebuilds the whole curriculum: `src/*.py` → `data/modules/*.ipynb` (stub-only) + `data/solutions/*.ipynb` (reference) → `trentorch` package files, built from `data/solutions/` so the package always reflects fully-working code. This overwrites student notebooks; students should use `tren module complete` instead, which never touches the notebook file itself, tests the student's own filled-in code, and never reads `data/solutions/`.
+`tren/platforms/cli_platform/dev/export.py`. **Developer-only**, rebuilds the whole curriculum: `src/*.py` → `data/modules/*.ipynb` (stub-only) + `data/solutions/*.ipynb` (reference) → `trentorch` package files, built from `data/solutions/` so the package always reflects fully-working code. This overwrites student notebooks; students should use `tren module complete` instead, which never touches the notebook file itself, tests the student's own filled-in code, and never reads `data/solutions/`.
 
 | Argument/Flag | Effect |
 |---|---|
@@ -96,7 +96,7 @@ With no flags, defaults to unit tests only.
 | `--test-checkpoint` | Run a checkpoint test after a successful export |
 
 ### `tren dev clean`
-`tren/commands/dev/clean.py`. Wraps `make clean` at the project root. Note: `make` is not bundled with Git Bash on Windows, unlike git/python; this is a documented reachable `FileNotFoundError` for a Windows user without WSL or a separate `make` install.
+`tren/platforms/cli_platform/dev/clean.py`. Wraps `make clean` at the project root. Note: `make` is not bundled with Git Bash on Windows, unlike git/python; this is a documented reachable `FileNotFoundError` for a Windows user without WSL or a separate `make` install.
 
 | `target` (positional, optional, default `all`) | Effect |
 |---|---|
@@ -104,10 +104,10 @@ With no flags, defaults to unit tests only.
 
 ## `tren package`
 
-Package management and nbdev integration. Dispatcher: `tren/commands/package/package.py`.
+Package management and nbdev integration. Dispatcher: `tren/platforms/cli_platform/package/package.py`.
 
 ### `tren package reset`
-`tren/commands/package/reset.py` (`ResetCommand`). Five sub-subcommands (`package reset <subcommand>`), all under `dest='reset_command'`:
+`tren/platforms/cli_platform/package/reset.py` (`ResetCommand`). Five sub-subcommands (`package reset <subcommand>`), all under `dest='reset_command'`:
 
 | Sub-subcommand | Flags | Effect |
 |---|---|---|
@@ -120,7 +120,7 @@ Package management and nbdev integration. Dispatcher: `tren/commands/package/pac
 `--backup` (where available) copies `.tren/` to a timestamped `.tren_backup_<timestamp>/` directory first.
 
 ### `tren package nbdev`
-`tren/commands/package/nbdev.py`. Runs nbdev's own tooling.
+`tren/platforms/cli_platform/package/nbdev.py`. Runs nbdev's own tooling.
 
 | Flag | Effect |
 |---|---|

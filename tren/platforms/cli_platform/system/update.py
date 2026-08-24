@@ -22,7 +22,7 @@ from pathlib import Path
 from argparse import ArgumentParser, Namespace
 from typing import Optional, Tuple, List
 
-from ..base import BaseCommand
+from tren.commands.base import BaseCommand
 
 
 class UpdateCommand(BaseCommand):

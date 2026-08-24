@@ -13,7 +13,7 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import List
 
-from .base import BaseCommand
+from tren.commands.base import BaseCommand
 from trentorch.export_sanitizer import (
     to_qmd,
     to_ipynb,

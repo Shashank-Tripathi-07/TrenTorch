@@ -43,15 +43,15 @@ from .core.console import get_console, print_banner, print_error, print_ascii_lo
 from .core.exceptions import TinyTorchCLIError
 from .core.theme import Theme
 from .commands.base import BaseCommand
-from .commands.system import SystemCommand
-from .commands.module import ModuleWorkflowCommand
-from .commands.package import PackageCommand
-from .commands.milestone import MilestoneCommand
-from .commands.setup import SetupCommand
-from .commands.benchmark import BenchmarkCommand
-from .commands.dev import DevCommand
-from .commands.olympics import OlympicsCommand
-from .commands.convert import ConvertCommand
+from .platforms.cli_platform.system import SystemCommand
+from .platforms.processes.module_workflow import ModuleWorkflowCommand
+from .platforms.cli_platform.package import PackageCommand
+from .platforms.processes.milestone import MilestoneCommand
+from .platforms.cli_platform.setup import SetupCommand
+from .platforms.processes.benchmark import BenchmarkCommand
+from .platforms.cli_platform.dev import DevCommand
+from .platforms.processes.olympics import OlympicsCommand
+from .platforms.processes.convert import ConvertCommand
 
 # Get version from pyproject.toml (single source of truth)
 def _get_version() -> str:

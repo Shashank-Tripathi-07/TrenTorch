@@ -138,7 +138,7 @@ Every command class inherits from the abstract `BaseCommand` (`tren/commands/bas
 
 ### 2.4 What `tren module test <NN>` actually runs
 
-Three phases, in `ModuleTestCommand.test_module()` (`tren/commands/module/test.py`):
+Three phases, in `ModuleTestCommand.test_module()` (`tren/platforms/processes/module_workflow/test.py`):
 
 1. **Inline tests**: runs `python src/<module>/<module>.py` as a subprocess, which triggers the module's own `if __name__ == "__main__"` block containing quick sanity assertions. Pass or fail is just the subprocess return code.
 2. **Module pytest**: if `tests/<module>/` exists, runs `python -m pytest tests/<module> --trentorch -q --tb=short --no-cov`. The custom `--trentorch` flag turns on WHAT/WHY educational context in the test output, described in section 3.

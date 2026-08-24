@@ -36,10 +36,10 @@ The point of naming these explicitly is that "make it faster/cheaper/more reprod
 
 | Current location | What it transforms |
 |---|---|
-| `tren/commands/module/` | `src/` → `data/modules/` (notebook conversion, `tren module start`) and `src/` → `trentorch/` (export, `tren module complete`), via `export_utils.py` calling `nbdev.export.nb_export` in-process. |
-| `tren/commands/build.py`, `tren/commands/package/` | `trentorch/` → distributable package (wheel/sdist). |
-| `tren/commands/dev/`, `tren/tools/testing.py` | Test execution: unit (`test_unit_*`), integration, CLI, E2E, run via `tren dev test`. |
-| `tren/commands/system/` | State transitions on a learner's local `.tren/` directory: `system reset`, progress tracking. |
+| `tren/platforms/processes/module_workflow/` | `src/` → `data/modules/` (notebook conversion, `tren module start`) and `src/` → `trentorch/` (export, `tren module complete`), via `export_utils.py` calling `nbdev.export.nb_export` in-process. |
+| `tren/commands/build.py`, `tren/platforms/cli_platform/package/` | `trentorch/` → distributable package (wheel/sdist). |
+| `tren/platforms/cli_platform/dev/`, `tren/tools/testing.py` | Test execution: unit (`test_unit_*`), integration, CLI, E2E, run via `tren dev test`. |
+| `tren/platforms/cli_platform/system/` | State transitions on a learner's local `.tren/` directory: `system reset`, progress tracking. |
 | `.github/workflows/validate.yml` (Stages 1-7) | The orchestration of the above processes into one pipeline, this is process composition, not a process itself. |
 | `dev/tools/maintenance/restructure-project.sh`, `merge-site-to-docs.sh`, `cleanup_history.sh` | One-off or periodic repo-structure transformations. These are processes too, just not part of the per-push pipeline. |
 
