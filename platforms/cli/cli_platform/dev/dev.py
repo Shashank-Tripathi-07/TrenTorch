@@ -52,7 +52,7 @@ class DevCommand(BaseCommand):
         # Export subcommand (rebuild curriculum from src/)
         export_parser = subparsers.add_parser(
             'export',
-            help='Rebuild curriculum: src/*.py → data/modules/ + data/solutions/ → trentorch package files'
+            help='Rebuild curriculum: data/src/*.py → data/modules/ + data/solutions/ → trentorch package files'
         )
         export_cmd = DevExportCommand(self.config)
         export_cmd.add_arguments(export_parser)

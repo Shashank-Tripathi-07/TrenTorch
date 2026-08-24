@@ -79,12 +79,12 @@ class CLIConfig:
             else:
                 project_root = Path.cwd()
 
-        modules_path = project_root / 'src'
+        modules_path = project_root / 'data' / 'src'
         return cls(
             project_root=project_root,
             assignments_dir=project_root / 'assignments',
             modules_dir=modules_path,
-            trentorch_dir=project_root / 'trentorch',
+            trentorch_dir=project_root / 'data' / 'trentorch',
             bin_dir=project_root / 'bin'
         )
 

@@ -338,7 +338,7 @@ class DevTestCommand(BaseCommand):
         """Build package by exporting all modules from src/.
 
         This runs 'tito dev export --all' which:
-        1. Converts src/*.py → data/modules/*.ipynb (stub) + data/solutions/*.ipynb (jupytext)
+        1. Converts data/src/*.py → data/modules/*.ipynb (stub) + data/solutions/*.ipynb (jupytext)
         2. Runs nbdev_export from data/solutions/ to copy working code to tinytorch/core/
 
         This ensures the full tinytorch package is available for testing.
@@ -974,7 +974,7 @@ class DevTestCommand(BaseCommand):
             )
 
             modules_dir = project_root / "data" / "modules"
-            core_dir = project_root / "trentorch" / "core"
+            core_dir = project_root / "data" / "trentorch" / "core"
             progress_file = project_root / "user_data" / "progress.json"
 
             modules_cleared = True

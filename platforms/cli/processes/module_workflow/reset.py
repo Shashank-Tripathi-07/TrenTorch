@@ -109,7 +109,7 @@ class ModuleResetCommand(BaseCommand):
         module_name = module_mapping[normalized]
 
         # Check if source exists
-        src_path = self.config.project_root / "src" / module_name
+        src_path = self.config.project_root / "data" / "src" / module_name
         if not src_path.exists():
             console.print(f"[red]Source not found: src/{module_name}[/red]")
             return 1
@@ -167,7 +167,7 @@ class ModuleResetCommand(BaseCommand):
         for module_num, module_name in sorted(module_mapping.items()):
             console.print(f"[cyan]Resetting {module_name}...[/cyan]")
 
-            src_path = self.config.project_root / "src" / module_name
+            src_path = self.config.project_root / "data" / "src" / module_name
             if not src_path.exists():
                 console.print(f"[yellow]  ⚠ Source not found, skipping[/yellow]")
                 continue

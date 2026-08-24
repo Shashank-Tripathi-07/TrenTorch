@@ -40,13 +40,13 @@ on:
     branches: [main]
     paths-ignore:
       - 'docs/**'
-      - 'dev/etc/**'
+      - 'platforms/dev_tools/etc/**'
       - '.github/assets/**'
       - '**/*.md'
   pull_request:
     paths-ignore:
       - 'docs/**'
-      - 'dev/etc/**'
+      - 'platforms/dev_tools/etc/**'
       - '.github/assets/**'
       - '**/*.md'
   workflow_dispatch:
@@ -305,7 +305,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           sparse-checkout: |
-            dev/scripts/test-fresh-install.sh
+            platforms/dev_tools/scripts/test-fresh-install.sh
 
       - name: Run Fresh Install Test (Docker)
         env:
@@ -324,8 +324,8 @@ jobs:
           # a shell string is exactly the injection pattern env vars exist to avoid.
           BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
-          chmod +x dev/scripts/test-fresh-install.sh
-          ./dev/scripts/test-fresh-install.sh --branch "$BRANCH"
+          chmod +x platforms/dev_tools/scripts/test-fresh-install.sh
+          ./platforms/dev_tools/scripts/test-fresh-install.sh --branch "$BRANCH"
 
   # ===========================================================================
   # STAGE 7: USER JOURNEY - Destructive full journey (after all stages)

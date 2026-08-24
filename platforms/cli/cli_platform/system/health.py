@@ -133,7 +133,7 @@ class HealthCommand(BaseCommand):
             issues.append("trentorch package not importable — run: pip install -e .")
 
         # 2. Does trentorch/core/tensor.py exist? (the most common failure point)
-        core_dir = self.config.project_root / "trentorch" / "core"
+        core_dir = self.config.project_root / "data" / "trentorch" / "core"
         tensor_file = core_dir / "tensor.py"
         if tensor_file.exists():
             nb_table.add_row(

@@ -101,7 +101,7 @@ class SystemResetCommand(BaseCommand):
                         errors.append(f"data/modules/{item.name}: {e}")
 
         # 2. Clear trentorch/core/ (keep __init__.py and hand-written, non-generated files)
-        core_dir = project_root / "trentorch" / "core"
+        core_dir = project_root / "data" / "trentorch" / "core"
         core_cleared = 0
         if core_dir.exists():
             for py_file in core_dir.glob("*.py"):

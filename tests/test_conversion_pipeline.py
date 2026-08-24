@@ -115,7 +115,7 @@ def test_platform_detector():
 
 
 def test_real_module_conversion():
-    source_file = Path("src/01_tensor/01_tensor.py")
+    source_file = Path("data/src/01_tensor/01_tensor.py")
     if source_file.exists():
         raw_code = source_file.read_text(encoding="utf-8")
         sandbox_code = to_sandbox_code(raw_code)

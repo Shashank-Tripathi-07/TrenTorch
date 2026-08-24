@@ -58,7 +58,7 @@ class ConvertCommand(BaseCommand):
 
     def run(self, args: Namespace) -> int:
         project_root = self.config.project_root
-        src_dir = project_root / "src"
+        src_dir = project_root / "data" / "src"
         console = self.console
 
         # Find target module directories

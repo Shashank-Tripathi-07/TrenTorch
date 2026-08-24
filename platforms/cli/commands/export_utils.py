@@ -17,7 +17,7 @@ from typing import Dict, List, Optional
 # ---------------------------------------------------------------------------
 # Stub / solution variant splitting
 #
-# src/<NN>/<NN>.py holds paired cells: a stub cell (raises NotImplementedError,
+# data/src/<NN>/<NN>.py holds paired cells: a stub cell (raises NotImplementedError,
 # no #| export) immediately followed by its solution cell (tags=["solution"],
 # has #| export). Two things get generated from that single source:
 #
@@ -27,7 +27,7 @@ from typing import Dict, List, Optional
 #                        gets picked up by nbdev once they solve it)
 #   - solution variant -> data/solutions/ (maintainer/CI-only reference; the
 #                        stub cell is dropped, solution cell kept as-is -- this
-#                        is exactly what src/<NN>/<NN>.py looked like before
+#                        is exactly what data/src/<NN>/<NN>.py looked like before
 #                        the stub/solution split)
 # ---------------------------------------------------------------------------
 
@@ -108,26 +108,26 @@ def make_solution_variant(source: str) -> str:
 # Mapping from generated package paths back to source files
 # Keys are (subpackage, module) tuples matching default_exp directives
 SOURCE_MAPPINGS = {
-    ("core", "tensor"): "src/01_tensor/01_tensor.py",
-    ("core", "activations"): "src/02_activations/02_activations.py",
-    ("core", "layers"): "src/03_layers/03_layers.py",
-    ("core", "losses"): "src/04_losses/04_losses.py",
-    ("core", "dataloader"): "src/05_dataloader/05_dataloader.py",
-    ("core", "autograd"): "src/06_autograd/06_autograd.py",
-    ("core", "optimizers"): "src/07_optimizers/07_optimizers.py",
-    ("core", "training"): "src/08_training/08_training.py",
-    ("core", "spatial"): "src/09_convolutions/09_convolutions.py",
-    ("core", "tokenization"): "src/10_tokenization/10_tokenization.py",
-    ("core", "embeddings"): "src/11_embeddings/11_embeddings.py",
-    ("core", "attention"): "src/12_attention/12_attention.py",
-    ("core", "transformers"): "src/13_transformers/13_transformers.py",
-    ("perf", "profiling"): "src/14_profiling/14_profiling.py",
-    ("perf", "quantization"): "src/15_quantization/15_quantization.py",
-    ("perf", "compression"): "src/16_compression/16_compression.py",
-    ("perf", "acceleration"): "src/17_acceleration/17_acceleration.py",
-    ("perf", "memoization"): "src/18_memoization/18_memoization.py",
-    ("perf", "benchmarking"): "src/19_benchmarking/19_benchmarking.py",
-    ("olympics",): "src/20_capstone/20_capstone.py",
+    ("core", "tensor"): "data/src/01_tensor/01_tensor.py",
+    ("core", "activations"): "data/src/02_activations/02_activations.py",
+    ("core", "layers"): "data/src/03_layers/03_layers.py",
+    ("core", "losses"): "data/src/04_losses/04_losses.py",
+    ("core", "dataloader"): "data/src/05_dataloader/05_dataloader.py",
+    ("core", "autograd"): "data/src/06_autograd/06_autograd.py",
+    ("core", "optimizers"): "data/src/07_optimizers/07_optimizers.py",
+    ("core", "training"): "data/src/08_training/08_training.py",
+    ("core", "spatial"): "data/src/09_convolutions/09_convolutions.py",
+    ("core", "tokenization"): "data/src/10_tokenization/10_tokenization.py",
+    ("core", "embeddings"): "data/src/11_embeddings/11_embeddings.py",
+    ("core", "attention"): "data/src/12_attention/12_attention.py",
+    ("core", "transformers"): "data/src/13_transformers/13_transformers.py",
+    ("perf", "profiling"): "data/src/14_profiling/14_profiling.py",
+    ("perf", "quantization"): "data/src/15_quantization/15_quantization.py",
+    ("perf", "compression"): "data/src/16_compression/16_compression.py",
+    ("perf", "acceleration"): "data/src/17_acceleration/17_acceleration.py",
+    ("perf", "memoization"): "data/src/18_memoization/18_memoization.py",
+    ("perf", "benchmarking"): "data/src/19_benchmarking/19_benchmarking.py",
+    ("olympics",): "data/src/20_capstone/20_capstone.py",
 }
 
 
@@ -136,7 +136,7 @@ def get_export_target(module_path: Path) -> str:
     module_name = module_path.name
     path_str = str(module_path)
     in_generated_dir = "data/modules" in path_str or "data/solutions" in path_str or "data\\modules" in path_str or "data\\solutions" in path_str
-    source_path = Path("src") / module_name if in_generated_dir else module_path
+    source_path = Path("data") / "src" / module_name if in_generated_dir else module_path
     dev_file = source_path / f"{module_name}.py"
     if not dev_file.exists():
         return "unknown"
@@ -152,7 +152,7 @@ def get_export_target(module_path: Path) -> str:
     return "unknown"
 
 
-def discover_modules(source_dir: Path = Path("src")) -> List[str]:
+def discover_modules(source_dir: Path = Path("data") / "src") -> List[str]:
     """List module directories under src/ excluding common non-module folders."""
     modules = []
     if source_dir.exists():
@@ -253,7 +253,7 @@ def convert_py_to_notebook(module_path: Path, venv_path: Path, console, variant:
       - "solution": stub cells dropped, solution cells kept (data/solutions/)
       - "full": no filtering, exactly what src/<module>.py contains
     """
-    project_root = Path(__file__).resolve().parents[2]  # tinytorch project root
+    project_root = Path(__file__).resolve().parents[3]  # tinytorch project root
     module_path = module_path if module_path.is_absolute() else project_root / module_path
     module_name = module_path.name
     dev_file = module_path / f"{module_name}.py"
@@ -339,7 +339,7 @@ def convert_all_modules(venv_path: Path, console, variant: str = "stub", target_
     """Convert all src modules to notebooks of the given variant."""
     converted = []
     for module_name in discover_modules():
-        module_path = Path("src") / module_name
+        module_path = Path("data") / "src" / module_name
         if convert_py_to_notebook(module_path, venv_path, console, variant=variant, target_root=target_root):
             converted.append(module_name)
     return converted
@@ -347,20 +347,20 @@ def convert_all_modules(venv_path: Path, console, variant: str = "stub", target_
 
 def find_source_file_for_export(exported_file: Path) -> str:
     """Map an exported package file back to its source file."""
-    rel_path = exported_file.relative_to(Path("trentorch"))
+    rel_path = exported_file.relative_to(Path("data") / "trentorch")
     module_parts = rel_path.with_suffix("").parts
     if module_parts in SOURCE_MAPPINGS:
         return SOURCE_MAPPINGS[module_parts]
     if len(module_parts) >= 2:
         module_name = module_parts[-1]
-        return f"src/XX_{module_name}/XX_{module_name}.py"
-    return "src/[unknown]/[unknown].py"
+        return f"data/src/XX_{module_name}/XX_{module_name}.py"
+    return "data/src/[unknown]/[unknown].py"
 
 
 def add_autogenerated_warnings(console) -> None:
     """Inject DO NOT EDIT headers into generated package files."""
     console.print("[yellow]🔧 Adding DO NOT EDIT warnings to all exported files...[/yellow]")
-    tinytorch_path = Path("trentorch")
+    tinytorch_path = Path("data") / "trentorch"
     if not tinytorch_path.exists():
         return
 
@@ -416,7 +416,7 @@ def ensure_writable_target(export_target: str) -> None:
     """Ensure target file is writable before export."""
     if export_target == "unknown":
         return
-    target_file = Path("trentorch") / (export_target.replace(".", "/") + ".py")
+    target_file = Path("data") / "trentorch" / (export_target.replace(".", "/") + ".py")
     if target_file.exists():
         try:
             target_file.chmod(target_file.stat().st_mode | stat.S_IWUSR)

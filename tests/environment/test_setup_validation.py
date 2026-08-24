@@ -240,14 +240,14 @@ class TestProjectStructure:
 
     def test_trentorch_package_directory(self):
         """trentorch/ package directory must exist."""
-        trentorch_dir = Path("trentorch")
+        trentorch_dir = Path("data") / "trentorch"
         assert trentorch_dir.exists(), "trentorch/ directory not found"
         assert trentorch_dir.is_dir(), "trentorch/ is not a directory"
         print(f"✅ Package directory: {trentorch_dir.absolute()}")
 
     def test_trentorch_init_file(self):
         """trentorch/__init__.py must exist."""
-        init_file = Path("trentorch/__init__.py")
+        init_file = Path("data") / "trentorch" / "__init__.py"
         assert init_file.exists(), "trentorch/__init__.py not found"
         print(f"✅ Package init: {init_file.absolute()}")
 
@@ -259,10 +259,10 @@ class TestProjectStructure:
         print(f"✅ Modules directory: {modules_dir.absolute()}")
 
     def test_src_directory(self):
-        """src/ directory must exist with source modules."""
-        src_dir = Path("src")
-        assert src_dir.exists(), "src/ directory not found"
-        assert src_dir.is_dir(), "src/ is not a directory"
+        """data/src/ directory must exist with source modules."""
+        src_dir = Path("data") / "src"
+        assert src_dir.exists(), "data/src/ directory not found"
+        assert src_dir.is_dir(), "data/src/ is not a directory"
 
         # Count module directories
         module_dirs = [d for d in src_dir.iterdir() if d.is_dir() and d.name.startswith('0')]
@@ -383,8 +383,8 @@ class TestStudentProtection:
 
     def test_src_directory_readable(self):
         """Source directory should be readable."""
-        src_dir = Path("src")
-        assert src_dir.exists(), "src/ directory not found"
+        src_dir = Path("data") / "src"
+        assert src_dir.exists(), "data/src/ directory not found"
 
         # Try to read a file
         module_dirs = list(src_dir.glob("0*"))

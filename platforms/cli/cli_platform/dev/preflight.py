@@ -274,7 +274,7 @@ class PreflightCommand(BaseCommand):
         # Required directories
         required_dirs = [
             ("data/modules/", "Module notebooks directory"),
-            ("src/", "Source files directory"),
+            ("data/src/", "Source files directory"),
             ("data/milestones/", "Milestone scripts"),
             ("tests/", "Test directory"),
             ("tren/", "CLI directory"),

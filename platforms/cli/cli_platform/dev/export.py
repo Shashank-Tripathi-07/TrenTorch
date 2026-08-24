@@ -2,7 +2,7 @@
 Developer export command: rebuilds curriculum from source files.
 
 This is a DEVELOPER command for maintainers, NOT for students.
-Workflow: src/*.py → data/modules/*.ipynb (stub) + data/solutions/*.ipynb
+Workflow: data/src/*.py → data/modules/*.ipynb (stub) + data/solutions/*.ipynb
 (reference) → trentorch package files, built from data/solutions/ so the
 package always reflects fully-working code regardless of student progress.
 
@@ -44,7 +44,7 @@ class DevExportCommand(BaseCommand):
 
     @property
     def description(self) -> str:
-        return "Rebuild curriculum: src/*.py → data/modules/ + data/solutions/ → trentorch package files"
+        return "Rebuild curriculum: data/src/*.py → data/modules/ + data/solutions/ → trentorch package files"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add export arguments."""
@@ -87,7 +87,7 @@ class DevExportCommand(BaseCommand):
         # Show developer warning
         console.print(Panel(
             "[bold yellow]⚠️  Developer Command[/bold yellow]\n\n"
-            "This rebuilds notebooks from src/*.py files.\n"
+            "This rebuilds notebooks from data/src/*.py files.\n"
             "[bold red]Student notebooks in data/modules/ will be OVERWRITTEN![/bold red]\n"
             "[dim]data/solutions/ (maintainer/CI reference) is also rebuilt.[/dim]\n\n"
             "[dim]Students: Use 'tito module complete' instead.[/dim]",
@@ -100,8 +100,8 @@ class DevExportCommand(BaseCommand):
         # Check for key files that indicate we're in the right place
         cwd = Path.cwd()
         is_tinytorch_root = (
-            (cwd / "trentorch" / "__init__.py").exists() or  # Running from repo root
-            (cwd / "src").exists() and (cwd / "pyproject.toml").exists()  # Already in trentorch/
+            (cwd / "data" / "trentorch" / "__init__.py").exists() or  # Running from repo root
+            (cwd / "data" / "src").exists() and (cwd / "pyproject.toml").exists()  # Already in trentorch/
         )
         if not is_tinytorch_root:
             console.print(Panel(
@@ -158,7 +158,7 @@ class DevExportCommand(BaseCommand):
         # Step 1: Convert each py file to both notebook variants
         for module_name in normalized_modules:
             logger.debug(f"Processing module: {module_name}")
-            module_path = Path(f"src/{module_name}")
+            module_path = Path(f"data/src/{module_name}")
 
             if not module_path.exists():
                 console.print(Panel(
@@ -171,7 +171,7 @@ class DevExportCommand(BaseCommand):
             short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
             solution_notebook = Path("data/solutions") / module_name / f"{short_name}.ipynb"
 
-            console.print(f"📝 Converting {module_name}: src/*.py → data/modules/ + data/solutions/")
+            console.print(f"📝 Converting {module_name}: data/src/*.py → data/modules/ + data/solutions/")
             if not self._convert_py_to_notebook(module_path, variant="stub", target_root="data/modules"):
                 logger.error(f"Failed to convert .py to stub notebook for {module_name}")
                 return 1
@@ -205,7 +205,7 @@ class DevExportCommand(BaseCommand):
                 "[red]❌ No modules converted.[/red]\n\n"
                 "[dim]Check that:[/dim]\n"
                 "[dim]  • jupytext is installed[/dim]\n"
-                "[dim]  • src/*.py files exist[/dim]",
+                "[dim]  • data/src/*.py files exist[/dim]",
                 title="Conversion Error", border_style="red"
             ))
             return 1
@@ -219,7 +219,7 @@ class DevExportCommand(BaseCommand):
         try:
             from nbdev.export import nb_export
 
-            lib_path = Path.cwd() / "trentorch"
+            lib_path = Path.cwd() / "data" / "trentorch"
             nbs_path = Path.cwd() / "data" / "solutions"
 
             # Export all notebooks in the solutions directory
@@ -267,7 +267,7 @@ class DevExportCommand(BaseCommand):
         """
         from nbdev.export import nb_export
         success_count = 0
-        lib_path = Path.cwd() / "trentorch"
+        lib_path = Path.cwd() / "data" / "trentorch"
 
         for notebook_path_str in notebook_paths:
             try:

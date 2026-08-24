@@ -372,7 +372,7 @@ class ModuleWorkflowCommand(BaseCommand):
         notebook_file = module_dir / f"{short_name}.ipynb"
         if not notebook_file.exists():
             # Create module from src/ using export
-            src_dir = self.config.project_root / "src" / module_name
+            src_dir = self.config.project_root / "data" / "src" / module_name
             if not src_dir.exists():
                 self.console.print(f"[red]❌ Source not found: src/{module_name}[/red]")
                 return 1
@@ -478,11 +478,11 @@ class ModuleWorkflowCommand(BaseCommand):
         """
         from platforms.cli.commands.export_utils import convert_py_to_notebook
 
-        src_path = self.config.project_root / "src" / module_name
+        src_path = self.config.project_root / "data" / "src" / module_name
         if not src_path.exists():
             return False
 
-        # Convert src/*.py to data/modules/*.ipynb using jupytext
+        # Convert data/src/*.py to data/modules/*.ipynb using jupytext
         return convert_py_to_notebook(src_path, self.venv_path, self.console)
 
     def _get_milestone_for_module(self, module_num: int) -> Optional[tuple]:
@@ -859,7 +859,7 @@ class ModuleWorkflowCommand(BaseCommand):
         """Export student's notebook to the TinyTorch package.
         
         This only runs nbdev_export on the existing notebook.
-        It does NOT convert from src/*.py (that would overwrite student work).
+        It does NOT convert from data/src/*.py (that would overwrite student work).
         
         Developers who want to rebuild from src/ should use: tito dev export
         """
@@ -900,7 +900,7 @@ class ModuleWorkflowCommand(BaseCommand):
             )
             self.console.print(f"[dim]📦 Exporting {notebook_path.name} → {target_display}[/dim]")
 
-            lib_path = Path.cwd() / "trentorch"
+            lib_path = Path.cwd() / "data" / "trentorch"
             nb_export(notebook_path, lib_path=lib_path)
 
             # Verify the export actually produced a file
@@ -1134,7 +1134,7 @@ class ModuleWorkflowCommand(BaseCommand):
             slug = folder.split("_", 1)[1] if "_" in folder else folder
             target = project_root / "data" / "modules" / folder / f"{slug}.ipynb"
         elif source:
-            target = project_root / "src" / folder / f"{folder}.py"
+            target = project_root / "data" / "src" / folder / f"{folder}.py"
         else:
             self.console.print("[red]❌ Specify --notebook or --source[/red]")
             return 1

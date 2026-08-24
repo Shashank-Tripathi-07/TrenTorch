@@ -29,7 +29,7 @@ def _find_project_root() -> Path:
     # Start from this file's location and walk up
     current = Path(__file__).resolve().parent
     while current != current.parent:
-        if (current / 'pyproject.toml').exists() and (current / 'src').exists():
+        if (current / 'pyproject.toml').exists() and (current / 'data' / 'src').exists():
             return current
         current = current.parent
     # Fallback to cwd
@@ -45,7 +45,7 @@ def _discover_modules() -> Dict[str, str]:
     Returns: {"01": "01_tensor", "02": "02_activations", ...}
     """
     project_root = _find_project_root()
-    src_dir = project_root / 'src'
+    src_dir = project_root / 'data' / 'src'
 
     if not src_dir.exists():
         return {}
@@ -198,7 +198,7 @@ def get_module_metadata(module_input: str) -> Optional[ModuleMetadata]:
         return None
 
     project_root = _find_project_root()
-    yaml_file = project_root / 'src' / folder / 'module.yaml'
+    yaml_file = project_root / 'data' / 'src' / folder / 'module.yaml'
 
     if not yaml_file.exists():
         return None

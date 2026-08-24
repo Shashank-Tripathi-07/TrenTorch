@@ -98,7 +98,7 @@ class ModuleTestCommand(BaseCommand):
         triggered by the if __name__ == "__main__" block.
         """
         console = self.console
-        src_dir = self.config.project_root / "src"
+        src_dir = self.config.project_root / "data" / "src"
         module_file = src_dir / module_name / f"{module_name}.py"
 
         if not module_file.exists():

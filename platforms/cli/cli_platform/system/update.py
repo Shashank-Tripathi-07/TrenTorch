@@ -37,7 +37,7 @@ class UpdateCommand(BaseCommand):
 
     # Directories/files to UPDATE (overwrite with new version)
     UPDATE_DIRS = [
-        "src",           # Module source notebooks
+        "data/src",      # Module source notebooks
         "tito",          # CLI tool
         "tests",         # Test suites
         "data/milestones", # Milestone scripts

@@ -110,7 +110,7 @@ class ResetCommand(BaseCommand):
         console.print(Panel("🔄 Resetting TinyTorch Package",
                            title="Package Reset", border_style="bright_yellow"))
 
-        tinytorch_path = Path("trentorch")
+        tinytorch_path = Path("data") / "trentorch"
 
         if not tinytorch_path.exists():
             console.print(Panel("[yellow]⚠️  TrenTorch package directory not found. Nothing to reset.[/yellow]",

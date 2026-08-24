@@ -1,6 +1,6 @@
 """The module test-running component, all in one place.
 
-Runs a module's inline tests (its src/*.py `if __name__ == "__main__"`
+Runs a module's inline tests (its data/src/*.py `if __name__ == "__main__"`
 block, in-process via runpy) and its progressive integration tests
 (pytest against tests/<module>/), parses both kinds of output into a
 uniform pass/fail shape, and checks a student notebook for syntax
@@ -68,7 +68,7 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> D
     unsolved stub fails here with a clear NotImplementedError, not a
     silent pass. When TREN_DEV_VERIFY_SOLUTION is set (the maintainer
     curriculum-verification loop, where no student notebook has been
-    solved), it runs the instructor's src/*.py file directly instead,
+    solved), it runs the instructor's data/src/*.py file directly instead,
     exactly as this always worked before the stub/solution split.
 
     Either way, the code is executed in-process via runpy (as if it
@@ -91,7 +91,7 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> D
 
     tmp_source: Optional[Path] = None
     if verify_solution:
-        run_target = project_root / "src" / module_name / f"{module_name}.py"
+        run_target = project_root / "data" / "src" / module_name / f"{module_name}.py"
         if not run_target.exists():
             if verbose:
                 console.print(f"   [dim yellow]No source file found: {run_target}[/dim yellow]")
