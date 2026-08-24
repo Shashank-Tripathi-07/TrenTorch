@@ -15,7 +15,7 @@ from pathlib import Path
 # Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tren.main import TrenTorchCLI
+from platforms.cli.main import TrenTorchCLI
 
 
 class TestCommandExecution:
@@ -29,7 +29,7 @@ class TestCommandExecution:
     def test_bare_tren_command(self):
         """Test bare 'tren' command shows welcome screen."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'],
+            [sys.executable, '-m', 'platforms.cli.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -45,7 +45,7 @@ class TestCommandExecution:
     def test_tren_help(self):
         """Test 'tren -h' shows help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', '-h'],
+            [sys.executable, '-m', 'platforms.cli.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -59,7 +59,7 @@ class TestCommandExecution:
     def test_tren_version(self):
         """Test 'tren --version' shows version."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', '--version'],
+            [sys.executable, '-m', 'platforms.cli.main', '--version'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -75,7 +75,7 @@ class TestCommandExecution:
     def test_command_help_works(self, command):
         """Test that each command's help can be displayed."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', command, '-h'],
+            [sys.executable, '-m', 'platforms.cli.main', command, '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -102,7 +102,7 @@ class TestCommandExecution:
     def test_subcommand_help_works(self, command, subcommand):
         """Test that subcommands can show help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', command, subcommand, '-h'],
+            [sys.executable, '-m', 'platforms.cli.main', command, subcommand, '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -126,7 +126,7 @@ class TestCommandGrouping:
     def test_student_facing_commands_discoverable(self):
         """Test that main student-facing commands are easily discoverable."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'],
+            [sys.executable, '-m', 'platforms.cli.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -143,7 +143,7 @@ class TestCommandGrouping:
     def test_developer_commands_documented(self):
         """Test that developer commands are documented in help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', '-h'],
+            [sys.executable, '-m', 'platforms.cli.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -168,7 +168,7 @@ class TestErrorMessages:
     def test_invalid_command_shows_help(self):
         """Test that invalid commands show helpful error."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', 'nonexistent'],
+            [sys.executable, '-m', 'platforms.cli.main', 'nonexistent'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -185,7 +185,7 @@ class TestErrorMessages:
         """Test that missing subcommands show help."""
         # Try module command without subcommand
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', 'module'],
+            [sys.executable, '-m', 'platforms.cli.main', 'module'],
             cwd=self.project_root,
             capture_output=True,
             text=True

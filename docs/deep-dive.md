@@ -1,6 +1,6 @@
 # TrenTorch: How It Actually Works, From First Principles
 
-*Every claim in this document is sourced from reading the actual code: `bin/tren`, `tren/main.py`, `tren/core/*.py`, `tren/commands/**/*.py`, `pyproject.toml`, `requirements.txt`, and `trentorch/__init__.py`, cross-checked against a real TrenTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `tren` source verbatim, so the mechanics below are still accurate to this fork's code. This fork also inherited upstream's `install.sh` (a one-line-curl installer hardcoded to upstream's own hosted URL and repo) and the optional community backend it could talk to; both have since been removed rather than kept pointing at someone else's infrastructure (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)).*
+*Every claim in this document is sourced from reading the actual code: `bin/tren`, `platforms/cli/main.py`, `platforms/cli/core/*.py`, `platforms/cli/**/*.py`, `pyproject.toml`, `requirements.txt`, and `trentorch/__init__.py`, cross-checked against a real TrenTorch environment on disk (measured directory sizes, not estimates). Where the code has an if/else branch, both branches are described. Where a described feature exists only in an open, unmerged pull request rather than on `dev`, that is stated explicitly, not silently assumed. Written for the upstream `harvard-edge/cs249r_book` repository; TrenTorch inherited the same `tren` source verbatim, so the mechanics below are still accurate to this fork's code. This fork also inherited upstream's `install.sh` (a one-line-curl installer hardcoded to upstream's own hosted URL and repo) and the optional community backend it could talk to; both have since been removed rather than kept pointing at someone else's infrastructure (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)).*
 
 ---
 
@@ -16,12 +16,12 @@ Path A: the installed console script (created by `pip install -e .`)
   .venv/Scripts/tren.exe   (Windows)   or   .venv/bin/tren   (Unix)
         │
         │  This is a tiny compiled/generated launcher that pip creates
-        │  from the `[project.scripts] tren = "tren.main:main"` entry in
+        │  from the `[project.scripts] tren = "platforms.cli.main:main"` entry in
         │  pyproject.toml. It only exists once `pip install -e .` has run,
         │  and only works once the venv is activated (or its Scripts/bin
         │  directory is on PATH).
         ▼
-  tren.main:main()
+  platforms.cli.main:main()
 
 Path B: bin/tren (a plain Python script, no pip install required)
 ────────────────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ Path B: bin/tren (a plain Python script, no pip install required)
         │  from. This exists for CI and for anyone who doesn't want an
         │  editable pip install at all.
         ▼
-  tren.main:main()      (same function, same code, either way)
+  platforms.cli.main:main()      (same function, same code, either way)
 ```
 
 Both paths converge on the exact same `main()`, the difference is only in how `sys.path` and the working directory get set up before that function runs.
@@ -44,7 +44,7 @@ Both paths converge on the exact same `main()`, the difference is only in how `s
 
 ## Part 2: What Happens Every Single Time You Type `tren ...`
 
-Before any subcommand's own logic runs, `tren/main.py`'s `TrenTorchCLI` does the same fixed sequence, every time, regardless of which command was typed.
+Before any subcommand's own logic runs, `platforms/cli/main.py`'s `TrenTorchCLI` does the same fixed sequence, every time, regardless of which command was typed.
 
 ```text
                           $ tren module start 01
@@ -104,7 +104,7 @@ Before any subcommand's own logic runs, `tren/main.py`'s `TrenTorchCLI` does the
 │ 5. Banner + first-run welcome                                           │
 │    print_banner() unless --no-color or the command is JSON-output-     │
 │    only (--json, or `module path`). First run ever (detected by        │
-│    .tren/ not existing yet) also shows a one-time "each notebook is    │
+│    user_data/ not existing yet) also shows a one-time "each notebook is    │
 │    stub-only, no solutions included" welcome panel, then creates       │
 │    .tren/ just to mark that the welcome was shown, so it never shows   │
 │    again.                                                              │
@@ -139,7 +139,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
 
 ### 3.1 Module identity: there is no hardcoded module list
 
-`tren/core/modules.py`'s `_discover_modules()` scans `src/` at runtime for directories matching the regex `^(\d{2})_(\w+)$` and builds the number→folder mapping from whatever it finds, cached with `@lru_cache`. **Nothing enumerates "there are 20 modules" as a constant anywhere in this discovery path.** If a 21st `src/21_whatever/` directory existed, it would simply appear. (Other parts of the codebase, like the milestone system's `PRIMARY_EXPORT_LABELS` dict, do hardcode 01-20 as display labels; that's a separate, static lookup table, not the module registry itself.)
+`platforms/cli/core/modules.py`'s `_discover_modules()` scans `src/` at runtime for directories matching the regex `^(\d{2})_(\w+)$` and builds the number→folder mapping from whatever it finds, cached with `@lru_cache`. **Nothing enumerates "there are 20 modules" as a constant anywhere in this discovery path.** If a 21st `src/21_whatever/` directory existed, it would simply appear. (Other parts of the codebase, like the milestone system's `PRIMARY_EXPORT_LABELS` dict, do hardcode 01-20 as display labels; that's a separate, static lookup table, not the module registry itself.)
 
 ### 3.2 `tren module start 01`, full decision tree
 

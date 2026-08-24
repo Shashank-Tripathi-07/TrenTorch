@@ -24,7 +24,7 @@ cs249r_book/
     dev/                  # Dev-only support tooling: scripts/, tools/, etc/ (jupyter config)
     benchmark_results/    # Local artifact output from Module 19's BenchmarkSuite
     pyproject.toml, settings.ini, MANIFEST.in, requirements.txt
-    README.md, LICENSE, CHANGELOG.md
+    README.md, LICENSE
   .github/workflows/
     validate.yml
     update-contributors.yml
@@ -86,7 +86,7 @@ subtitle: Building Blocks of ML
 description: Build the foundational Tensor class that powers all machine learning operations.
 ```
 
-Every module directory under `src/` has one of these; `tren` reads it (via `tren/core/modules.py`) to show titles and descriptions in the CLI without hardcoding them anywhere.
+Every module directory under `src/` has one of these; `tren` reads it (via `platforms/cli/core/modules.py`) to show titles and descriptions in the CLI without hardcoding them anywhere.
 
 ### 1.3 How a module becomes three other things
 
@@ -96,19 +96,19 @@ Every module directory under `src/` has one of these; `tren` reads it (via `tren
 
 ### 1.4 Module discovery
 
-`tren/core/modules.py` auto-discovers modules by scanning `src/` for directories matching `^(\d{2})_(\w+)$`, builds the `{"01": "01_tensor", ...}` mapping used throughout the CLI, and reads each module's `module.yaml` for display metadata. Nothing about the module list is hardcoded; adding a 21st module means adding a correctly-named `src/` directory with a `module.yaml`, and the CLI picks it up automatically.
+`platforms/cli/core/modules.py` auto-discovers modules by scanning `src/` for directories matching `^(\d{2})_(\w+)$`, builds the `{"01": "01_tensor", ...}` mapping used throughout the CLI, and reads each module's `module.yaml` for display metadata. Nothing about the module list is hardcoded; adding a 21st module means adding a correctly-named `src/` directory with a `module.yaml`, and the CLI picks it up automatically.
 
 ---
 
 ## 2. The `tren` CLI (`tren/`)
 
-### 2.1 Architecture (`tren/main.py`)
+### 2.1 Architecture (`platforms/cli/main.py`)
 
 `TrenTorchCLI` builds one `argparse.ArgumentParser` with subparsers, keyed off a single dictionary mapping top-level command names to command classes. Each top-level command is itself a group that registers its own nested subparser (for example, `module` registers `start`, `test`, `complete`, and so on), so effectively every command in the table below is two levels of `argparse` subcommand.
 
 `run(args)` does some deliberate custom behavior before dispatching: it intercepts `-h`/`--help` to show Rich-formatted help instead of argparse's default, gives a friendlier error for an unrecognized first argument, and (except for `tren setup`) enforces that commands run inside an activated virtual environment unless `TITO_ALLOW_SYSTEM=1` is set, since running the course tooling against a system Python is a common source of confusing failures.
 
-Every command class inherits from the abstract `BaseCommand` (`tren/commands/base.py`), which supplies `config`, a shared Rich `console`, the resolved `venv_path`, and an `execute()` wrapper that catches and formats `TrenTorchCLIError` and generic exceptions consistently.
+Every command class inherits from the abstract `BaseCommand` (`platforms/cli/commands/base.py`), which supplies `config`, a shared Rich `console`, the resolved `venv_path`, and an `execute()` wrapper that catches and formats `TrenTorchCLIError` and generic exceptions consistently.
 
 ### 2.2 Command reference
 
@@ -123,7 +123,7 @@ Every command class inherits from the abstract `BaseCommand` (`tren/commands/bas
 | `tren benchmark baseline / capstone` | `commands/benchmark.py` | `baseline` runs quick NumPy micro-benchmarks (tensor ops, matmul, forward pass) and normalizes them into a 0 to 100 score against a hardcoded reference system, saving JSON under `.tren/benchmarks/`. `capstone` scores the student's Module 20 `trentorch.olympics` submission if it exists, or falls back to a placeholder score otherwise. The "submit to website" step in both is currently a stub. |
 | `tren olympics` | `commands/olympics.py` | The not-yet-implemented placeholder described in the design doc. Only its `logo` subcommand does anything real; every other subcommand, including a registered but unimplemented `status`, falls through to a generic "coming soon" message. |
 
-### 2.3 `tren/core/` responsibilities
+### 2.3 `platforms/cli/core/` responsibilities
 
 | File | Responsibility |
 |---|---|
@@ -184,7 +184,7 @@ Each milestone directory (for example `milestones/01_1958_perceptron/`) contains
 
 ## 5. Documentation site, PDF guide, and community sync: removed
 
-This fork inherited upstream's Quarto-based docs site and PDF guide (`quarto/`), its student-progress community dashboard (`quarto/community/`), and the CLI-side login/auth/sync code that talked to it (`tren/commands/login.py`, `community.py`, `tren/core/auth.py`, `browser.py`, `submission.py`). The dashboard and CLI sync code were client-only: the backend they talked to (a Netlify-hosted login endpoint and a Supabase project) belonged to the original TrenTorch project and was never usable from this fork. The Quarto docs site and PDF guide were never deployed from this fork either, and the hand-authored `.qmd` pages had already drifted from the actual module content since nothing kept the two in sync. All of it has been removed rather than kept as dead code pointing at someone else's infrastructure or an undeployed site; see [`design.md`](design.md#community-dashboard-and-progress-sync-removed) for the fuller history. `docs/` (this file included) is the contributor-facing documentation going forward.
+This fork inherited upstream's Quarto-based docs site and PDF guide (`quarto/`), its student-progress community dashboard (`quarto/community/`), and the CLI-side login/auth/sync code that talked to it (`tren/commands/login.py`, `community.py`, `platforms/cli/core/auth.py`, `browser.py`, `submission.py`). The dashboard and CLI sync code were client-only: the backend they talked to (a Netlify-hosted login endpoint and a Supabase project) belonged to the original TrenTorch project and was never usable from this fork. The Quarto docs site and PDF guide were never deployed from this fork either, and the hand-authored `.qmd` pages had already drifted from the actual module content since nothing kept the two in sync. All of it has been removed rather than kept as dead code pointing at someone else's infrastructure or an undeployed site; see [`design.md`](design.md#community-dashboard-and-progress-sync-removed) for the fuller history. `docs/` (this file included) is the contributor-facing documentation going forward.
 
 ---
 
@@ -192,7 +192,7 @@ This fork inherited upstream's Quarto-based docs site and PDF guide (`quarto/`),
 
 ### 7.1 `pyproject.toml` (at `trentorch/`)
 
-Declares `name = "trentorch"`, current version `0.1.13`, `requires-python = ">=3.10"`, MIT license, and runtime dependencies limited to `numpy`, `rich`, `PyYAML`, `certifi`, and `pytest`. `[project.scripts]` registers `tren = "tren.main:main"` as the installed console command. Optional dependency groups: `dev` (pytest plus coverage, jupytext, nbformat, jupyter, jupyterlab, ipykernel, and a pinned nbdev range), `visualization` (matplotlib), and `docs` (jupyter-book, sphinxcontrib-mermaid, matplotlib, and Jupyter widgets). `[tool.setuptools.packages.find]` limits the built package to the `trentorch` and `tren` packages, explicitly excluding `tests`, `modules`, `site`, `docs`, `milestones`, and `assignments`.
+Declares `name = "trentorch"`, current version `0.1.13`, `requires-python = ">=3.10"`, MIT license, and runtime dependencies limited to `numpy`, `rich`, `PyYAML`, `certifi`, and `pytest`. `[project.scripts]` registers `tren = "platforms.cli.main:main"` as the installed console command. Optional dependency groups: `dev` (pytest plus coverage, jupytext, nbformat, jupyter, jupyterlab, ipykernel, and a pinned nbdev range), `visualization` (matplotlib), and `docs` (jupyter-book, sphinxcontrib-mermaid, matplotlib, and Jupyter widgets). `[tool.setuptools.packages.find]` limits the built package to the `trentorch` and `tren` packages, explicitly excluding `tests`, `modules`, `site`, `docs`, `milestones`, and `assignments`.
 
 ### 7.2 `settings.ini`
 
@@ -249,7 +249,7 @@ The upstream TinyTorch project runs five GitHub Actions workflows (validate, pre
 ### Fixing a bug in the `tren` CLI
 
 1. Locate the relevant command class (Section 2.2's table) or core module (Section 2.3's table).
-2. Make the fix. If it involves environment detection, subprocess behavior, or anything platform-specific, test on both a Unix shell and Windows if you can; this codebase has a documented history of Windows-specific bugs in exactly this kind of code (see `tren/core/runtime.py`'s CI-versus-interactive fix in the design doc's "Project history").
+2. Make the fix. If it involves environment detection, subprocess behavior, or anything platform-specific, test on both a Unix shell and Windows if you can; this codebase has a documented history of Windows-specific bugs in exactly this kind of code (see `platforms/cli/core/runtime.py`'s CI-versus-interactive fix in the design doc's "Project history").
 3. Add or update a test in `tests/cli/`. Prefer testing through the real subprocess entry point (`python -m tren.main ...`) when you're testing user-facing behavior, and importing `tren.main.TrenTorchCLI` directly when you're testing internal logic.
 4. `pytest tests/cli/` locally, then open a PR. CI's `tinytorch-validate-dev.yml` runs the CLI test stage on both Ubuntu and Windows.
 

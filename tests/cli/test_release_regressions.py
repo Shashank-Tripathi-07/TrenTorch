@@ -13,15 +13,15 @@ from pathlib import Path
 import numpy as np
 from rich.console import Console
 
-from tren.commands.export_utils import find_source_file_for_export
-from tren.platforms.processes.milestone import (
+from platforms.cli.commands.export_utils import find_source_file_for_export
+from platforms.cli.processes.milestone import (
     MILESTONE_SCRIPTS,
     _required_modules_for,
     _validate_required_exports,
 )
-from tren.platforms.processes.module_workflow.workflow import ModuleWorkflowCommand
-from tren.platforms.cli_platform.package.reset import ResetCommand
-from tren.core.config import CLIConfig
+from platforms.cli.processes.module_workflow.workflow import ModuleWorkflowCommand
+from platforms.cli.cli_platform.package.reset import ResetCommand
+from platforms.cli.core.config import CLIConfig
 
 
 TRENTORCH_ROOT = Path(__file__).resolve().parents[2]
@@ -131,7 +131,7 @@ def test_scalar_left_tensor_ops_preserve_autograd():
 
 
 def test_mlperf_optimization_loads_packaged_tinydigits():
-    script = TRENTORCH_ROOT / "milestones" / "06_2018_mlperf" / "01_optimization_olympics.py"
+    script = TRENTORCH_ROOT / "data" / "milestones" / "06_2018_mlperf" / "01_optimization_olympics.py"
     module = _import_script(script)
 
     train_images, train_labels, test_images, test_labels = module.load_tinydigits_arrays(TRENTORCH_ROOT)
@@ -146,6 +146,7 @@ def test_mlperf_optimization_loads_packaged_tinydigits():
 def test_generation_speedup_import_error_lists_actual_requirements():
     text = (
         TRENTORCH_ROOT
+        / "data"
         / "milestones"
         / "06_2018_mlperf"
         / "02_generation_speedup.py"
@@ -159,7 +160,7 @@ def test_milestone_list_uses_actual_history_start_year():
     env = os.environ.copy()
     env["TREN_ALLOW_SYSTEM"] = "1"
     result = subprocess.run(
-        [sys.executable, "-m", "tren.main", "milestone", "list", "--simple"],
+        [sys.executable, "-m", "platforms.cli.main", "milestone", "list", "--simple"],
         cwd=TRENTORCH_ROOT,
         capture_output=True,
         text=True,
@@ -189,7 +190,7 @@ def test_package_reset_success_messages_render_real_newlines(monkeypatch, tmp_pa
 
 
 def test_generated_warning_points_to_current_export_command():
-    text = (TRENTORCH_ROOT / "tren" / "commands" / "export_utils.py").read_text(encoding="utf-8")
+    text = (TRENTORCH_ROOT / "platforms" / "cli" / "commands" / "export_utils.py").read_text(encoding="utf-8")
 
     assert "tren module complete XX" in text
     assert "tren module complete <module_name>" not in text

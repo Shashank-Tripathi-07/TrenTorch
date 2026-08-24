@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tren = "tren.main:main"
+tren = "platforms.cli.main:main"
 
 [project.optional-dependencies]
 dev = [
@@ -77,8 +77,8 @@ Issues = "https://github.com/Shashank-Tripathi-07/TrenTorch/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["trentorch*", "tinytorch*", "tren*"]
-exclude = ["tests*", "data*", "site*", "docs*", "milestones*", "assignments*"]
+include = ["trentorch*", "tinytorch*", "platforms*"]
+exclude = ["tests*", "data*", "site*", "docs*", "assignments*"]
 
 # TinyTorch-specific pytest configuration (overrides parent pyproject.toml)
 [tool.pytest.ini_options]

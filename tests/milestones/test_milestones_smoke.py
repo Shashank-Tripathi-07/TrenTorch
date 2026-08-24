@@ -25,7 +25,7 @@ from unittest.mock import patch
 
 # Setup paths
 TRENTORCH_ROOT = Path(__file__).parent.parent.parent
-MILESTONES_DIR = TRENTORCH_ROOT / "milestones"
+MILESTONES_DIR = TRENTORCH_ROOT / "data" / "milestones"
 
 sys.path.insert(0, str(TRENTORCH_ROOT))
 sys.path.insert(0, str(MILESTONES_DIR))

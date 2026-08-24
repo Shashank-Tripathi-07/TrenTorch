@@ -17,9 +17,9 @@ import sys
 # Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tren.main import TrenTorchCLI
-from tren.commands.base import BaseCommand
-from tren.core.config import CLIConfig
+from platforms.cli.main import TrenTorchCLI
+from platforms.cli.commands.base import BaseCommand
+from platforms.cli.core.config import CLIConfig
 
 
 class TestCLIRegistry:
@@ -125,10 +125,10 @@ class TestCommandFiles:
     def setup_method(self):
         """Set up test fixtures."""
         self.cli = TrenTorchCLI()
-        self.tren_dir = Path(__file__).parent.parent.parent / "tren"
+        self.tren_dir = Path(__file__).parent.parent.parent / "platforms" / "cli"
         self.commands_dir = self.tren_dir / "commands"
-        self.cli_platform_dir = self.tren_dir / "platforms" / "cli_platform"
-        self.processes_dir = self.tren_dir / "platforms" / "processes"
+        self.cli_platform_dir = self.tren_dir / "cli_platform"
+        self.processes_dir = self.tren_dir / "processes"
 
     def test_command_files_exist(self):
         """Verify all registered commands have corresponding files.

@@ -277,10 +277,10 @@ class TestProjectStructure:
 
     def test_tren_cli_exists(self):
         """TREN CLI must be available."""
-        # Try to import tren
+        # Try to import the tren CLI package (platforms.cli)
         try:
-            import tren
-            print(f"✅ TREN CLI available: {tren.__file__}")
+            import platforms.cli
+            print(f"✅ TREN CLI available: {platforms.cli.__file__}")
         except ImportError:
             pytest.fail("TREN CLI not importable")
 

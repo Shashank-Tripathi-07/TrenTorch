@@ -16,7 +16,7 @@ from pathlib import Path
 # Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from tren.main import TrenTorchCLI
+from platforms.cli.main import TrenTorchCLI
 
 
 class TestHelpConsistency:
@@ -29,7 +29,7 @@ class TestHelpConsistency:
     def get_command_help(self, *args):
         """Get help output for a command."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'] + list(args) + ['-h'],
+            [sys.executable, '-m', 'platforms.cli.main'] + list(args) + ['-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -50,7 +50,7 @@ class TestHelpConsistency:
         """Verify bare 'tren' and 'tren -h' show different but related content."""
         # Get bare tren output
         bare_result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'],
+            [sys.executable, '-m', 'platforms.cli.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -58,7 +58,7 @@ class TestHelpConsistency:
 
         # Get help output
         help_result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', '-h'],
+            [sys.executable, '-m', 'platforms.cli.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -130,7 +130,7 @@ class TestWelcomeScreen:
     def test_welcome_screen_shows_quick_start(self):
         """Verify welcome screen has quick start section."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'],
+            [sys.executable, '-m', 'platforms.cli.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -143,7 +143,7 @@ class TestWelcomeScreen:
     def test_welcome_screen_shows_command_groups(self):
         """Verify welcome screen organizes commands into groups."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'],
+            [sys.executable, '-m', 'platforms.cli.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -156,7 +156,7 @@ class TestWelcomeScreen:
     def test_welcome_screen_has_examples(self):
         """Verify welcome screen shows example commands."""
         result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'],
+            [sys.executable, '-m', 'platforms.cli.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -181,7 +181,7 @@ class TestCommandDocumentation:
         """Verify all registered commands appear in welcome screen or help."""
         # Get welcome screen
         welcome_result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'],
+            [sys.executable, '-m', 'platforms.cli.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -189,7 +189,7 @@ class TestCommandDocumentation:
 
         # Get help
         help_result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', '-h'],
+            [sys.executable, '-m', 'platforms.cli.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -211,14 +211,14 @@ class TestCommandDocumentation:
         """Specifically test that milestone command is documented."""
         # This addresses the user's concern about progress tracking
         welcome_result = subprocess.run(
-            [sys.executable, '-m', 'tren.main'],
+            [sys.executable, '-m', 'platforms.cli.main'],
             cwd=self.project_root,
             capture_output=True,
             text=True
         )
 
         help_result = subprocess.run(
-            [sys.executable, '-m', 'tren.main', '-h'],
+            [sys.executable, '-m', 'platforms.cli.main', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True
@@ -231,7 +231,7 @@ class TestCommandDocumentation:
 
         # Check it has a description
         milestone_help = subprocess.run(
-            [sys.executable, '-m', 'tren.main', 'milestone', '-h'],
+            [sys.executable, '-m', 'platforms.cli.main', 'milestone', '-h'],
             cwd=self.project_root,
             capture_output=True,
             text=True

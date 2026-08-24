@@ -11,7 +11,7 @@ A student's work has to move through three representations before it counts as c
 | Dependency | Role in this codebase |
 |---|---|
 | `numpy>=2.2.6,<3.0.0` | The tensor backend. `trentorch/core/tensor.py` wraps numpy arrays directly, this is the actual math, not a convenience layer. |
-| `rich>=15.0.0` | All CLI console output. `tren/core/console.py` builds every panel, table, and progress indicator a student sees. |
+| `rich>=15.0.0` | All CLI console output. `platforms/cli/core/console.py` builds every panel, table, and progress indicator a student sees. |
 | `PyYAML>=6.0.3` | Parses milestone configuration. `tren/commands/milestone.py` loads `milestones/milestones.yml` and the per-era `milestone.yml` files with `yaml.safe_load`. |
 | `pytest>=8.0.0` | Runs as a subprocess for module-level and integration tests, and is the underlying runner CI drives through `tren dev test`. |
 | `nbdev>=3.0.15,<3.0.16` (dev group) | Does the actual export: turns notebook cells into real files inside the `trentorch/` package. Called in-process via `nbdev.export.nb_export`, not as a subprocess. |
@@ -77,7 +77,7 @@ Orange boxes are code the CLI runs directly. Purple cylinders are things written
 
 The four components that matter most for a system-design understanding:
 
-- **The `tren` dispatcher** (`tren/main.py`). A literal dict maps subcommand strings to command classes. There is no plugin discovery mechanism, adding a command means adding an entry to this dict.
+- **The `tren` dispatcher** (`platforms/cli/main.py`). A literal dict maps subcommand strings to command classes. There is no plugin discovery mechanism, adding a command means adding an entry to this dict.
 - **The module workflow subsystem** (`tren/platforms/processes/module_workflow/workflow.py`, close to 1900 lines). Owns the full lifecycle of one module: `start`, `view`, `resume`, `test`, `complete`, `reset`.
 - **The export pipeline** (`tren/commands/export_utils.py`), shared logic the module workflow calls into rather than owning itself.
 - **The milestone system** (`tren/commands/milestone.py`), which gates on completed modules.
@@ -132,7 +132,7 @@ The export pipeline itself does not raise on most failures, it returns structure
 
 ## 7. Known coupling worth understanding before you change anything
 
-The module registry (`tren/core/modules.py`) is the single place that maps a module number to a module name, and it is read by the export pipeline, the milestone system's required-modules check, and (per the module docstrings) grading tooling. A change to module numbering has to go through this one file, not be patched independently in each consumer.
+The module registry (`platforms/cli/core/modules.py`) is the single place that maps a module number to a module name, and it is read by the export pipeline, the milestone system's required-modules check, and (per the module docstrings) grading tooling. A change to module numbering has to go through this one file, not be patched independently in each consumer.
 
 The milestone unlock check is not a passive read of the progress file. It actively imports the freshly exported module and checks named attributes exist, which means a milestone can correctly report a module as "exported but not actually working" rather than trusting file existence alone. Any refactor of the export pipeline that changes where a symbol lands needs to be checked against this specific validation, not just against the export step's own success/failure return value.
 

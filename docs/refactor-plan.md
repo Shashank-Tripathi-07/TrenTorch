@@ -15,7 +15,7 @@ Four layers, each with one job:
 - **Platform**: where a process actually executes, and what that execution environment forces you to account for (GitHub Actions runners, PyPI's install contract, a learner's local Jupyter server, Docker for fresh-install verification).
 - **Other systems**: everything that supports the above three but isn't itself curriculum, transformation, or execution target, docs site, community backend, contributor tooling, dev-experience scripts.
 
-The point of naming these explicitly is that "make it faster/cheaper/more reproducible" is a different job depending on which layer you're touching. A process is sped up by doing less redundant work (this is what the CI optimization pass already did to Stage 7, see [`CHANGELOG.md`](../CHANGELOG.md)). A platform is sped up or made cheaper by choosing a cheaper runner or caching its install contract. Data isn't "sped up" at all, it's made *smaller* or *more consistent*. Collapsing these into one undifferentiated "the codebase is slow" complaint is why the last optimization pass took real profiling work to even locate the actual bottlenecks.
+The point of naming these explicitly is that "make it faster/cheaper/more reproducible" is a different job depending on which layer you're touching. A process is sped up by doing less redundant work (this is what the CI optimization pass already did to Stage 7, see [`CHANGELOG.md`](../maintainer_use/CHANGELOG.md)). A platform is sped up or made cheaper by choosing a cheaper runner or caching its install contract. Data isn't "sped up" at all, it's made *smaller* or *more consistent*. Collapsing these into one undifferentiated "the codebase is slow" complaint is why the last optimization pass took real profiling work to even locate the actual bottlenecks.
 
 ## 2. The four layers, mapped to what exists today
 
@@ -39,7 +39,7 @@ The point of naming these explicitly is that "make it faster/cheaper/more reprod
 | `tren/platforms/processes/module_workflow/` | `src/` → `data/modules/` (notebook conversion, `tren module start`) and `src/` → `trentorch/` (export, `tren module complete`), via `export_utils.py` calling `nbdev.export.nb_export` in-process. |
 | `tren/commands/build.py`, `tren/platforms/cli_platform/package/` | `trentorch/` → distributable package (wheel/sdist). |
 | `tren/platforms/cli_platform/dev/`, `tren/tools/testing.py` | Test execution: unit (`test_unit_*`), integration, CLI, E2E, run via `tren dev test`. |
-| `tren/platforms/cli_platform/system/` | State transitions on a learner's local `.tren/` directory: `system reset`, progress tracking. |
+| `tren/platforms/cli_platform/system/` | State transitions on a learner's local `user_data/` directory: `system reset`, progress tracking. |
 | `.github/workflows/validate.yml` (Stages 1-7) | The orchestration of the above processes into one pipeline, this is process composition, not a process itself. |
 | `dev/tools/maintenance/restructure-project.sh`, `merge-site-to-docs.sh`, `cleanup_history.sh` | One-off or periodic repo-structure transformations. These are processes too, just not part of the per-push pipeline. |
 
