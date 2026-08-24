@@ -61,8 +61,8 @@ def print_banner(compact: bool = False):
     else:
         # Create banner text that matches the clean block text theme
         banner_text = Text()
-        banner_text.append("Tiny", style=Theme.BRAND_ACCENT)
-        banner_text.append("🔥", style=Theme.BRAND_FLAME)
+        banner_text.append("Tren", style=Theme.BRAND_ACCENT)
+        banner_text.append("⚡️", style=Theme.BRAND_FLAME)
         banner_text.append("TORCH", style=Theme.BRAND_PRIMARY)
         banner_text.append(": Don't import it. Build it.", style=Theme.DIM)
         console.print(Panel(banner_text, style=Theme.BORDER_DEFAULT, padding=(1, 2)))
@@ -72,8 +72,8 @@ def print_compact_banner():
     console = get_console()
     # Create compact banner text
     banner_text = Text()
-    banner_text.append("Tiny", style=Theme.BRAND_ACCENT)
-    banner_text.append("\n🔥", style=Theme.BRAND_FLAME)
+    banner_text.append("Tren", style=Theme.BRAND_ACCENT)
+    banner_text.append("\n⚡️", style=Theme.BRAND_FLAME)
     banner_text.append("TORCH", style=Theme.BRAND_PRIMARY)
     banner_text.append(": Don't import it. Build it.", style=Theme.DIM)
     console.print(Panel(banner_text, style=Theme.BORDER_DEFAULT, padding=(1, 2)))
@@ -97,12 +97,12 @@ def print_ascii_logo(compact: bool = False):
 
     logo_lines = [
         # Flames positioned above T and H
-        "    🔥                                     🔥",
+        "    ⚡️                                     ⚡️",
         "    ████████╗ ██████╗ ██████╗  ██████╗██╗  ██╗",
         "    ╚T═██╔══╝██╔═══██╗██╔══██╗██╔════╝██║  ██║",
-        "     I ██║   ██║   ██║██████╔╝██║     ███████║",
-        "     N ██║   ██║   ██║██╔══██╗██║     ██╔══██║",
-        "     Y ██║   ╚██████╔╝██║  ██║╚██████╗██║  ██║",
+        "     R ██║   ██║   ██║██████╔╝██║     ███████║",
+        "     E ██║   ██║   ██║██╔══██╗██║     ██╔══██║",
+        "     N ██║   ╚██████╔╝██║  ██║╚██████╗██║  ██║",
         "       ╚═╝    ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝"
     ]
 
@@ -130,7 +130,7 @@ def print_ascii_logo(compact: bool = False):
         logo_text.append("\n")
 
     # Add tagline with flame (aligned under TORCH)
-    logo_text.append("\n           🔥 Don't import it. Build it.", style=TAGLINE_COLOR)
+    logo_text.append("\n           ⚡️ Don't import it. Build it.", style=TAGLINE_COLOR)
     logo_text.append("\n")
 
     # Combine logo and tagline

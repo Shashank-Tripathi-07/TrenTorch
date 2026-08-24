@@ -424,7 +424,7 @@ The best way to learn:
                 # Generate dynamic welcome message
                 self.console.print(Panel(
                     self._generate_welcome_text(),
-                    title="Welcome to Tren🔥Torch!",
+                    title="Welcome to Tren⚡️Torch!",
                     border_style=Theme.BORDER_WELCOME
                 ))
                 return 0

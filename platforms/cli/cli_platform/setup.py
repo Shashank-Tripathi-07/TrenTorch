@@ -524,9 +524,9 @@ class SetupCommand(BaseCommand):
     def run(self, args: Namespace) -> int:
         """Execute the setup command."""
         self.console.print(Panel(
-            "🔥 Tiny🔥Torch First-Time Setup\n\n"
+            "🔥 Tren⚡️Torch First-Time Setup\n\n"
             "This will configure your development environment for building ML systems from scratch.",
-            title="Welcome to Tiny🔥Torch!",
+            title="Welcome to Tren⚡️Torch!",
             border_style="bright_green"
         ))
 
