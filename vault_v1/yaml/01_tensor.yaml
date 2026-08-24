@@ -1,0 +1,557 @@
+id: 01_tensor
+title: 01 Tensor
+platform_target: TrenTorch Engineering Engine (DeepML/LeetCode/LeetGPU)
+runtime:
+  python: '>=3.10'
+  dependencies:
+  - numpy>=2.0.0
+description: "# Module 01: Tensor Foundation - Building Blocks of ML\n\nWelcome to\
+  \ Module 01! You're about to build the foundational Tensor class that powers all\
+  \ machine learning operations.\n\n## \U0001F517 Prerequisites & Progress\n**You've\
+  \ Built**: Nothing - this is our foundation!\n**You'll Build**: A complete Tensor\
+  \ class with arithmetic, matrix operations, and shape manipulation\n**You'll Enable**:\
+  \ Foundation for activations, layers, and all future neural network components\n\
+  \n**Connection Map**:\n```\nNumPy Arrays \u2192 Tensor \u2192 Activations (Module\
+  \ 02)\n(raw data)   (ML ops)  (intelligence)\n```\n\n## \U0001F3AF Learning Objectives\n\
+  By the end of this module, you will:\n1. Implement a complete Tensor class with\
+  \ fundamental operations\n2. Understand tensors as the universal data structure\
+  \ in ML\n3. Master broadcasting, matrix multiplication, and shape manipulation\n\
+  4. Test tensor operations with immediate validation\n\nLet's get started!\n\n##\
+  \ \U0001F4E6 Where This Code Lives in the Final Package\n\n**Learning Side:** You\
+  \ work in src/01_tensor/01_tensor.py\n**Building Side:** Code exports to trentorch.core.tensor\n\
+  \n```python\n# Final package structure:\n# Other modules will import and use this\
+  \ Tensor\n```\n\n**Why this matters:**\n- **Learning:** Complete tensor system in\
+  \ one focused module for deep understanding\n- **Production:** Proper organization\
+  \ like PyTorch's torch.Tensor with all core operations together\n- **Consistency:**\
+  \ All tensor operations and data manipulation in core.tensor\n- **Integration:**\
+  \ Foundation that every other module will build upon\n\n## \U0001F4CB Module Dependencies\n\
+  \n**Prerequisites**: NONE - This is the foundation module\n\n**External Dependencies**:\n\
+  - `numpy` (for array operations and numerical computing)\n\n**TrenTorch Dependencies**:\
+  \ NONE\n\n**Important**: This module has NO TrenTorch dependencies.\nOther modules\
+  \ will import FROM this module.\n\n**Dependency Flow**:\n```\nModule 01 (Tensor)\
+  \ \u2192 All Other Modules\n     \u2193\n  Foundation for entire TrenTorch system\n\
+  ```\n\nStudents completing this module will have built the foundation\nthat every\
+  \ other TrenTorch component depends on."
+starter_code: "import os\nimport numpy as np\nrng = np.random.default_rng(7)\n\n#\
+  \ Constants for memory calculations\nBYTES_PER_FLOAT32 = 4  # Standard float32 size\
+  \ in bytes\nKB_TO_BYTES = 1024  # Kilobytes to bytes conversion\nMB_TO_BYTES = 1024\
+  \ * 1024  # Megabytes to bytes conversion\n\nclass Tensor:\n    \"\"\"Educational\
+  \ tensor - the foundation of machine learning computation.\n\n    This class provides\
+  \ the core data structure for all ML operations:\n    - data: The actual numerical\
+  \ values (NumPy array)\n    - shape: Dimensions of the tensor\n    - ndim: Number\
+  \ of dimensions (0=scalar, 1=vector, 2=matrix, ...)\n    - size: Total number of\
+  \ elements\n    - dtype: Data type (float32)\n\n    All arithmetic, matrix, and\
+  \ shape operations are built on this foundation.\n    \"\"\"\n\n    def __init__(self,\
+  \ data):\n        \"\"\"Create a new tensor from data.\n\n        TODO: Initialize\
+  \ a Tensor by wrapping data in a NumPy array and setting attributes.\n\n       \
+  \ APPROACH:\n        1. Convert data to NumPy array with dtype=float32\n       \
+  \ 2. Store the array as self.data\n        3. Set self.shape from the array's shape\n\
+  \        4. Set self.size from the array's size\n        5. Set self.dtype from\
+  \ the array's dtype\n        EXAMPLE:\n        >>> t = Tensor([1, 2, 3])\n     \
+  \   >>> print(t.shape)\n        (3,)\n        >>> print(t.size)\n        3\n\n \
+  \       HINT: Use np.array(data, dtype=np.float32) to convert data to NumPy array\n\
+  \        \"\"\"\n        if isinstance(data, (list, tuple)) and len(data) > 0 and\
+  \ isinstance(data[0], Tensor):\n            data = np.stack([t.data for t in data])\n\
+  \        self.data = np.array(data, dtype=np.float32)\n        self.shape = self.data.shape\n\
+  \        self.size = self.data.size\n        self.dtype = self.data.dtype\n\n  \
+  \  def __repr__(self):\n        \"\"\"String representation of tensor for debugging.\"\
+  \"\"\n        return f\"Tensor(data={self.data}, shape={self.shape})\"\n\n    def\
+  \ __str__(self):\n        \"\"\"Human-readable string representation.\"\"\"\n  \
+  \      return f\"Tensor({self.data})\"\n\n    def numpy(self):\n        \"\"\"Return\
+  \ the underlying NumPy array.\"\"\"\n        return self.data\n\n    def memory_footprint(self):\n\
+  \        \"\"\"Calculate exact memory usage in bytes.\n\n        Systems Concept:\
+  \ Understanding memory footprint is fundamental to ML systems.\n        Before running\
+  \ any operation, engineers should know how much memory it requires.\n\n        Returns:\n\
+  \            int: Memory usage in bytes (e.g., 1000x1000 float32 = 4MB)\n      \
+  \  \"\"\"\n        return self.data.nbytes\n\n    @property\n    def ndim(self):\n\
+  \        \"\"\"Number of tensor dimensions (0=scalar, 1=vector, 2=matrix, ...).\"\
+  \"\"\n        return len(self.shape)\n\n    def numel(self):\n        \"\"\"Return\
+  \ total number of elements (PyTorch-compatible).\"\"\"\n        return self.size\n\
+  \n    def contiguous(self):\n        \"\"\"Return a contiguous copy of the tensor\
+  \ data (PyTorch-compatible).\"\"\"\n        return Tensor(np.ascontiguousarray(self.data))\n\
+  \n    def view(self, *shape):\n        \"\"\"Alias for reshape, matching PyTorch's\
+  \ Tensor.view() for contiguous tensors.\"\"\"\n        return self.reshape(*shape)\n\
+  \n    def masked_fill(self, mask, value):\n        \"\"\"Fill positions where mask\
+  \ is True with value, matching PyTorch's masked_fill.\n\n        Used in transformer\
+  \ attention to set padding positions to -inf before softmax.\n\n        Args:\n\
+  \            mask:  A Tensor or numpy array of booleans, same shape as self (or\
+  \ broadcastable).\n            value: Scalar fill value (e.g. float('-inf') for\
+  \ attention masking).\n\n        Returns:\n            New Tensor with masked positions\
+  \ replaced by value.\n        \"\"\"\n        mask_array = mask.data.astype(bool)\
+  \ if isinstance(mask, Tensor) else np.asarray(mask, dtype=bool)\n        result\
+  \ = self.data.copy()\n        result[mask_array] = value\n        return Tensor(result)\n\
+  \n    def __add__(self, other):\n        \"\"\"Add two tensors element-wise with\
+  \ broadcasting support.\n\n        TODO: Implement element-wise addition that works\
+  \ with both Tensors and scalars.\n\n        APPROACH:\n        1. Check if other\
+  \ is a Tensor (use isinstance)\n        2. If Tensor: add self.data + other.data\n\
+  \        3. If scalar: add self.data + other (broadcasting)\n        4. Wrap result\
+  \ in new Tensor\n\n        EXAMPLE:\n        >>> a = Tensor([1, 2, 3])\n       \
+  \ >>> b = Tensor([4, 5, 6])\n        >>> c = a + b\n        >>> print(c.data)\n\
+  \        [5. 7. 9.]\n\n        HINT: NumPy's + operator handles broadcasting automatically\n\
+  \        \"\"\"\n        if isinstance(other, Tensor):\n            return Tensor(self.data\
+  \ + other.data)\n        else:\n            return Tensor(self.data + other)\n\n\
+  \    def __radd__(self, other):\n        \"\"\"Support natural scalar arithmetic:\
+  \ scalar + tensor.\"\"\"\n        return self.__add__(other)\n\n    def __sub__(self,\
+  \ other):\n        \"\"\"Subtract two tensors element-wise.\n\n        TODO: Implement\
+  \ element-wise subtraction (same pattern as __add__).\n\n        APPROACH:\n   \
+  \     1. Check if other is a Tensor\n        2. If Tensor: subtract self.data -\
+  \ other.data\n        3. If scalar: subtract self.data - other\n        4. Return\
+  \ new Tensor with result\n\n        EXAMPLE:\n        >>> a = Tensor([5, 7, 9])\n\
+  \        >>> b = Tensor([1, 2, 3])\n        >>> c = a - b\n        >>> print(c.data)\n\
+  \        [4. 5. 6.]\n\n        HINT: Follow the same pattern as __add__ but with\
+  \ subtraction\n        \"\"\"\n        if isinstance(other, Tensor):\n         \
+  \   return Tensor(self.data - other.data)\n        else:\n            return Tensor(self.data\
+  \ - other)\n\n    def __rsub__(self, other):\n        \"\"\"Support natural scalar\
+  \ arithmetic: scalar - tensor.\"\"\"\n        if isinstance(other, Tensor):\n  \
+  \          return Tensor(other.data - self.data)\n        return Tensor(other -\
+  \ self.data)\n\n    def __mul__(self, other):\n        \"\"\"Multiply two tensors\
+  \ element-wise (NOT matrix multiplication).\n\n        TODO: Implement element-wise\
+  \ multiplication (same pattern as __add__).\n\n        APPROACH:\n        1. Check\
+  \ if other is a Tensor\n        2. If Tensor: multiply self.data * other.data\n\
+  \        3. If scalar: multiply self.data * other\n        4. Return new Tensor\
+  \ with result\n\n        EXAMPLE:\n        >>> a = Tensor([1, 2, 3])\n        >>>\
+  \ b = Tensor([4, 5, 6])\n        >>> c = a * b\n        >>> print(c.data)\n    \
+  \    [ 4. 10. 18.]\n\n        HINT: Element-wise multiplication is *, not matrix\
+  \ multiplication (@)\n        \"\"\"\n        if isinstance(other, Tensor):\n  \
+  \          return Tensor(self.data * other.data)\n        else:\n            return\
+  \ Tensor(self.data * other)\n\n    def __rmul__(self, other):\n        \"\"\"Support\
+  \ natural scalar arithmetic: scalar * tensor.\"\"\"\n        return self.__mul__(other)\n\
+  \n    def __truediv__(self, other):\n        \"\"\"Divide two tensors element-wise.\n\
+  \n        TODO: Implement element-wise division (same pattern as __add__).\n\n \
+  \       APPROACH:\n        1. Check if other is a Tensor\n        2. If Tensor:\
+  \ divide self.data / other.data\n        3. If scalar: divide self.data / other\n\
+  \        4. Return new Tensor with result\n\n        EXAMPLE:\n        >>> a = Tensor([4,\
+  \ 6, 8])\n        >>> b = Tensor([2, 2, 2])\n        >>> c = a / b\n        >>>\
+  \ print(c.data)\n        [2. 3. 4.]\n\n        HINT: Division creates float results\
+  \ automatically due to float32 dtype\n        \"\"\"\n        if isinstance(other,\
+  \ Tensor):\n            return Tensor(self.data / other.data)\n        else:\n \
+  \           return Tensor(self.data / other)\n\n    def __rtruediv__(self, other):\n\
+  \        \"\"\"Support natural scalar arithmetic: scalar / tensor.\"\"\"\n     \
+  \   if isinstance(other, Tensor):\n            return Tensor(other.data / self.data)\n\
+  \        return Tensor(other / self.data)\n\n    def _validate_matmul_shapes(self,\
+  \ other):\n        \"\"\"Validate that two tensors are compatible for matrix multiplication.\n\
+  \n        This helper checks three conditions before any computation begins:\n \
+  \       1. The other operand must be a Tensor (not a plain number or array)\n  \
+  \      2. Neither operand can be a 0D scalar (scalars use * instead)\n        3.\
+  \ For 2D+ tensors, the inner dimensions must align\n\n        TODO: Implement the\
+  \ three validation checks for matrix multiplication.\n\n        APPROACH:\n    \
+  \    1. Check isinstance(other, Tensor) - raise TypeError if not\n        2. Check\
+  \ both tensors are at least 1D - raise ValueError if 0D\n        3. For 2D+ tensors,\
+  \ check self.shape[-1] == other.shape[-2]\n\n        EXAMPLE:\n        >>> a = Tensor([[1,\
+  \ 2], [3, 4]])  # 2x2\n        >>> b = Tensor([[5, 6], [7, 8]])  # 2x2\n       \
+  \ >>> a._validate_matmul_shapes(b)  # No error - shapes are compatible\n       \
+  \ >>> c = Tensor([[1, 2, 3]])        # 1x3\n        >>> d = Tensor([[1], [2]]) \
+  \        # 2x1\n        >>> c._validate_matmul_shapes(d)   # ValueError - 3 != 2\n\
+  \n        HINT: Use len(tensor.shape) to check dimensionality and tensor.shape[-1]\n\
+  \        to access the last dimension.\n        \"\"\"\n        if not isinstance(other,\
+  \ Tensor):\n            raise TypeError(\n                f\"Matrix multiplication\
+  \ requires Tensor, got {type(other).__name__}\\n\"\n                f\"  \u274C\
+  \ Cannot perform: Tensor @ {type(other).__name__}\\n\"\n                f\"  \U0001F4A1\
+  \ Matrix multiplication (@) only works between two Tensors\\n\"\n              \
+  \  f\"  \U0001F527 Wrap your data: Tensor({other}) @ other_tensor\"\n          \
+  \  )\n        if len(self.shape) == 0 or len(other.shape) == 0:\n            raise\
+  \ ValueError(\n                f\"Matrix multiplication requires at least 1D tensors\\\
+  n\"\n                f\"  \u274C Got shapes: {self.shape} @ {other.shape}\\n\"\n\
+  \                f\"  \U0001F4A1 Scalars (0D tensors) cannot be matrix-multiplied;\
+  \ use * for element-wise\\n\"\n                f\"  \U0001F527 Reshape scalar to\
+  \ 1D: tensor.reshape(1) or use tensor * scalar\"\n            )\n        if len(self.shape)\
+  \ >= 2 and len(other.shape) >= 2:\n            if self.shape[-1] != other.shape[-2]:\n\
+  \                raise ValueError(\n                    f\"Matrix multiplication\
+  \ shape mismatch: {self.shape} @ {other.shape}\\n\"\n                    f\"  \u274C\
+  \ Inner dimensions don't match: {self.shape[-1]} vs {other.shape[-2]}\\n\"\n   \
+  \                 f\"  \U0001F4A1 For A @ B, A's last dim must equal B's second-to-last\
+  \ dim\\n\"\n                    f\"  \U0001F527 Try: other.transpose() to get shape\
+  \ {other.shape[::-1]}, or reshape self\"\n                )\n\n    def matmul(self,\
+  \ other):\n        \"\"\"Matrix multiplication of two tensors.\n\n        Validates\
+  \ shapes via _validate_matmul_shapes, then computes the product.\n        For 2D\
+  \ matrices, uses explicit nested loops so you can see exactly how\n        each\
+  \ output element is a dot product of a row and a column. For batched\n        (3D+)\
+  \ inputs, delegates to np.matmul.\n\n        TODO: Validate inputs with _validate_matmul_shapes,\
+  \ then compute the\n        matrix product using explicit loops for 2D and np.matmul\
+  \ for 3D+.\n\n        APPROACH:\n        1. Call self._validate_matmul_shapes(other)\
+  \ to check compatibility\n        2. For 2D matrices: use explicit nested loops\
+  \ with np.dot per element\n        3. For batched (3D+): use np.matmul for correctness\n\
+  \        4. Return result wrapped in Tensor\n\n        EXAMPLE:\n        >>> a =\
+  \ Tensor([[1, 2], [3, 4]])  # 2x2\n        >>> b = Tensor([[5, 6], [7, 8]])  # 2x2\n\
+  \        >>> c = a.matmul(b)\n        >>> print(c.data)\n        [[19. 22.]\n  \
+  \       [43. 50.]]\n\n        HINTS:\n        - Inner dimensions must match: (M,\
+  \ K) @ (K, N) = (M, N)\n        - For 2D case: use np.dot(a[i, :], b[:, j]) for\
+  \ each output element\n        - The validation helper already handles all error\
+  \ cases\n        \"\"\"\n        self._validate_matmul_shapes(other)\n\n       \
+  \ # Educational implementation: explicit loops to show what matrix multiplication\
+  \ does\n        # This is intentionally slower than np.matmul to demonstrate the\
+  \ value of vectorization\n\n        a = self.data\n        b = other.data\n\n  \
+  \      # Handle 2D matrices with explicit loops (educational)\n        if len(a.shape)\
+  \ == 2 and len(b.shape) == 2:\n            M, K = a.shape\n            K2, N = b.shape\n\
+  \            result_data = np.zeros((M, N), dtype=a.dtype)\n\n            # Explicit\
+  \ nested loops - students can see exactly what's happening!\n            # Each\
+  \ output element is a dot product of a row from A and a column from B\n        \
+  \    for i in range(M):\n                for j in range(N):\n                  \
+  \  # Dot product of row i from A with column j from B\n                    result_data[i,\
+  \ j] = np.dot(a[i, :], b[:, j])\n        else:\n            # For batched operations\
+  \ (3D+), use np.matmul for correctness\n            # Students will understand this\
+  \ once they grasp the 2D case\n            result_data = np.matmul(a, b)\n\n   \
+  \     return Tensor(result_data)\n\n    def __matmul__(self, other):\n        \"\
+  \"\"Enable @ operator for matrix multiplication.\"\"\"\n        return self.matmul(other)\n\
+  \n    def __getitem__(self, key):\n        \"\"\"Enable indexing and slicing operations\
+  \ on Tensors.\n\n        TODO: Implement indexing and slicing that returns a new\
+  \ Tensor.\n\n        APPROACH:\n        1. Use NumPy indexing: self.data[key]\n\
+  \        2. If result is not an ndarray, wrap in np.array\n        3. Return result\
+  \ wrapped in new Tensor\n\n        EXAMPLE:\n        >>> t = Tensor([[1, 2, 3],\
+  \ [4, 5, 6]])\n        >>> row = t[0]  # First row\n        >>> print(row.data)\n\
+  \        [1. 2. 3.]\n        >>> element = t[0, 1]  # Single element\n        >>>\
+  \ print(element.data)\n        2.0\n\n        HINT: NumPy's indexing already handles\
+  \ all complex cases (slicing, fancy indexing)\n        \"\"\"\n        result_data\
+  \ = self.data[key]\n        if not isinstance(result_data, np.ndarray):\n      \
+  \      result_data = np.array(result_data)\n        return Tensor(result_data)\n\
+  \n    def reshape(self, *shape):\n        \"\"\"Reshape tensor to new dimensions.\n\
+  \n        TODO: Reshape tensor while preserving total element count.\n\n       \
+  \ APPROACH:\n        1. Handle both reshape(2, 3) and reshape((2, 3)) calling styles\n\
+  \        2. If -1 in shape, infer that dimension from total size\n        3. Validate\
+  \ total elements match: np.prod(new_shape) == self.size\n        4. Use np.reshape\
+  \ to create new view\n        5. Return result wrapped in new Tensor\n\n       \
+  \ EXAMPLE:\n        >>> t = Tensor([1, 2, 3, 4, 5, 6])\n        >>> reshaped = t.reshape(2,\
+  \ 3)\n        >>> print(reshaped.data)\n        [[1. 2. 3.]\n         [4. 5. 6.]]\n\
+  \        >>> auto = t.reshape(2, -1)  # Infers -1 as 3\n        >>> print(auto.shape)\n\
+  \        (2, 3)\n\n        HINTS:\n        - Use isinstance(shape[0], (tuple, list))\
+  \ to detect tuple input\n        - For -1: unknown_dim = self.size // known_size\n\
+  \        - Raise ValueError if total elements don't match\n        \"\"\"\n    \
+  \    if len(shape) == 1 and isinstance(shape[0], (tuple, list)):\n            new_shape\
+  \ = tuple(shape[0])\n        else:\n            new_shape = shape\n        if -1\
+  \ in new_shape:\n            if new_shape.count(-1) > 1:\n                raise\
+  \ ValueError(\n                    f\"Cannot reshape {self.shape} with multiple\
+  \ unknown dimensions\\n\"\n                    f\"  \u274C Found {new_shape.count(-1)}\
+  \ dimensions set to -1 in {new_shape}\\n\"\n                    f\"  \U0001F4A1\
+  \ Only one dimension can be inferred; others must be specified\\n\"\n          \
+  \          f\"  \U0001F527 Replace all but one -1 with explicit sizes (total elements:\
+  \ {self.size})\"\n                )\n            known_size = 1\n            unknown_idx\
+  \ = new_shape.index(-1)\n            for i, dim in enumerate(new_shape):\n     \
+  \           if i != unknown_idx:\n                    known_size *= dim\n      \
+  \      if self.size % known_size != 0:\n                raise ValueError(\n    \
+  \                f\"Cannot infer -1 dimension: {self.size} elements is not \"\n\
+  \                    f\"divisible by the known dimensions product {known_size}\\\
+  n\"\n                    f\"  \u274C {self.size} % {known_size} = {self.size % known_size}\\\
+  n\"\n                    f\"  \U0001F4A1 The -1 dimension must be a whole number\"\
+  \n                )\n            unknown_dim = self.size // known_size\n       \
+  \     new_shape = list(new_shape)\n            new_shape[unknown_idx] = unknown_dim\n\
+  \            new_shape = tuple(new_shape)\n        if np.prod(new_shape) != self.size:\n\
+  \            target_size = int(np.prod(new_shape))\n            raise ValueError(\n\
+  \                f\"Cannot reshape {self.shape} to {new_shape}\\n\"\n          \
+  \      f\"  \u274C Element count mismatch: {self.size} elements vs {target_size}\
+  \ elements\\n\"\n                f\"  \U0001F4A1 Reshape preserves data, so total\
+  \ elements must stay the same\\n\"\n                f\"  \U0001F527 Use -1 to infer\
+  \ a dimension: reshape(-1, {new_shape[-1] if len(new_shape) > 0 else 1}) lets NumPy\
+  \ calculate\"\n            )\n        reshaped_data = np.reshape(self.data, new_shape)\n\
+  \        return Tensor(reshaped_data)\n\n    def transpose(self, dim0=None, dim1=None):\n\
+  \        \"\"\"Transpose tensor dimensions.\n\n        TODO: Swap tensor dimensions\
+  \ (default: swap last two dimensions).\n\n        APPROACH:\n        1. If no dims\
+  \ specified: swap last two dimensions (most common case)\n        2. For 1D tensors:\
+  \ return copy (no transpose needed)\n        3. If both dims specified: swap those\
+  \ specific dimensions\n        4. Use np.transpose with axes list to perform the\
+  \ swap\n        5. Return result wrapped in new Tensor\n\n        EXAMPLE:\n   \
+  \     >>> t = Tensor([[1, 2, 3], [4, 5, 6]])  # 2\xD73\n        >>> transposed =\
+  \ t.transpose()\n        >>> print(transposed.data)\n        [[1. 4.]\n        \
+  \ [2. 5.]\n         [3. 6.]]  # 3\xD72\n\n        HINTS:\n        - Create axes\
+  \ list: [0, 1, 2, ...] then swap positions\n        - For default: axes[-2], axes[-1]\
+  \ = axes[-1], axes[-2]\n        - Use np.transpose(self.data, axes)\n        \"\"\
+  \"\n        if dim0 is None and dim1 is None:\n            if len(self.shape) <\
+  \ 2:\n                return Tensor(self.data.copy())\n            else:\n     \
+  \           axes = list(range(len(self.shape)))\n                axes[-2], axes[-1]\
+  \ = axes[-1], axes[-2]\n                transposed_data = np.transpose(self.data,\
+  \ axes)\n        else:\n            if dim0 is None or dim1 is None:\n         \
+  \       provided = f\"dim0={dim0}\" if dim1 is None else f\"dim1={dim1}\"\n    \
+  \            missing = \"dim1\" if dim1 is None else \"dim0\"\n                raise\
+  \ ValueError(\n                    f\"Transpose requires both dimensions to be specified\\\
+  n\"\n                    f\"  \u274C Got {provided}, but {missing} is None\\n\"\n\
+  \                    f\"  \U0001F4A1 Either provide both dims or neither (default\
+  \ swaps last two)\\n\"\n                    f\"  \U0001F527 Use transpose({dim0\
+  \ if dim0 is not None else 0}, {dim1 if dim1 is not None else 1}) or just transpose()\"\
+  \n                )\n            axes = list(range(len(self.shape)))\n         \
+  \   axes[dim0], axes[dim1] = axes[dim1], axes[dim0]\n            transposed_data\
+  \ = np.transpose(self.data, axes)\n        return Tensor(transposed_data)\n\n  \
+  \  def sum(self, axis=None, keepdims=False):\n        \"\"\"Sum tensor along specified\
+  \ axis.\n\n        TODO: Sum all elements or along specific axes.\n\n        APPROACH:\n\
+  \        1. Use np.sum with axis and keepdims parameters\n        2. axis=None sums\
+  \ all elements (scalar result)\n        3. axis=N sums along dimension N\n     \
+  \   4. keepdims=True preserves original number of dimensions\n        5. Return\
+  \ result wrapped in Tensor\n\n        EXAMPLE:\n        >>> t = Tensor([[1, 2, 3],\
+  \ [4, 5, 6]])\n        >>> total = t.sum()\n        >>> print(total.data)\n    \
+  \    21.0\n        >>> col_sum = t.sum(axis=0)\n        >>> print(col_sum.data)\n\
+  \        [5. 7. 9.]\n\n        HINT: np.sum(data, axis=axis, keepdims=keepdims)\
+  \ does all the work\n        \"\"\"\n        result = np.sum(self.data, axis=axis,\
+  \ keepdims=keepdims)\n        return Tensor(result)\n\n    def mean(self, axis=None,\
+  \ keepdims=False):\n        \"\"\"Compute mean of tensor along specified axis.\n\
+  \n        TODO: Calculate average of elements along axis (same pattern as sum).\n\
+  \n        APPROACH:\n        1. Use np.mean with axis and keepdims parameters\n\
+  \        2. axis=None averages all elements\n        3. axis=N averages along dimension\
+  \ N\n        4. Return result wrapped in Tensor\n\n        EXAMPLE:\n        >>>\
+  \ t = Tensor([[1, 2, 3], [4, 5, 6]])\n        >>> avg = t.mean()\n        >>> print(avg.data)\n\
+  \        3.5\n        >>> col_mean = t.mean(axis=0)\n        >>> print(col_mean.data)\n\
+  \        [2.5 3.5 4.5]\n\n        HINT: Follow the same pattern as sum() but with\
+  \ np.mean\n        \"\"\"\n        result = np.mean(self.data, axis=axis, keepdims=keepdims)\n\
+  \        return Tensor(result)\n\n    def max(self, axis=None, keepdims=False):\n\
+  \        \"\"\"Find maximum values along specified axis.\n\n        TODO: Find maximum\
+  \ element(s) along axis (same pattern as sum).\n\n        APPROACH:\n        1.\
+  \ Use np.max with axis and keepdims parameters\n        2. axis=None finds maximum\
+  \ of all elements\n        3. axis=N finds maximum along dimension N\n        4.\
+  \ Return result wrapped in Tensor\n\n        EXAMPLE:\n        >>> t = Tensor([[1,\
+  \ 2, 3], [4, 5, 6]])\n        >>> maximum = t.max()\n        >>> print(maximum.data)\n\
+  \        6.0\n        >>> row_max = t.max(axis=1)\n        >>> print(row_max.data)\n\
+  \        [3. 6.]\n\n        HINT: Follow the same pattern as sum() and mean() but\
+  \ with np.max\n        \"\"\"\n        result = np.max(self.data, axis=axis, keepdims=keepdims)\n\
+  \        return Tensor(result)\n\ndef analyze_memory_layout():\n    \"\"\"\U0001F4CA\
+  \ Demonstrate cache effects with row vs column access patterns.\"\"\"\n    print(\"\
+  \U0001F4CA Analyzing Memory Access Patterns...\")\n    print(\"=\" * 60)\n\n   \
+  \ # Create a moderately-sized matrix (large enough to show cache effects)\n    size\
+  \ = 2000\n    matrix = Tensor(rng.random((size, size)))\n\n    import time\n\n \
+  \   print(f\"\\nTesting with {size}\xD7{size} matrix ({matrix.size * BYTES_PER_FLOAT32\
+  \ / MB_TO_BYTES:.1f} MB)\")\n    print(\"-\" * 60)\n\n    # Test 1: Row-wise access\
+  \ (cache-friendly)\n    # Memory layout: [row0][row1][row2]... stored contiguously\n\
+  \    print(\"\\nTest 1: Row-wise Access (Cache-Friendly)\")\n    start = time.time()\n\
+  \    row_sums = []\n    for i in range(size):\n        row_sum = matrix.data[i,\
+  \ :].sum()  # Access entire row sequentially\n        row_sums.append(row_sum)\n\
+  \    row_time = time.time() - start\n    print(f\"   Time: {row_time*1000:.1f}ms\"\
+  )\n    print(\"   Access pattern: Sequential (follows memory layout)\")\n\n    #\
+  \ Test 2: Column-wise access (cache-unfriendly)\n    # Must jump between rows, poor\
+  \ spatial locality\n    print(\"\\nTest 2: Column-wise Access (Cache-Unfriendly)\"\
+  )\n    start = time.time()\n    col_sums = []\n    for j in range(size):\n     \
+  \   col_sum = matrix.data[:, j].sum()  # Access entire column with large strides\n\
+  \        col_sums.append(col_sum)\n    col_time = time.time() - start\n    print(f\"\
+  \   Time: {col_time*1000:.1f}ms\")\n    print(f\"   Access pattern: Strided (jumps\
+  \ {size * BYTES_PER_FLOAT32} bytes per element)\")\n\n    # Calculate slowdown\n\
+  \    slowdown = col_time / row_time\n    print(\"\\n\" + \"=\" * 60)\n    print(\"\
+  \U0001F4CA PERFORMANCE IMPACT:\")\n    print(f\"   Slowdown factor: {slowdown:.2f}\xD7\
+  \ ({col_time/row_time:.1f}\xD7 slower)\")\n    print(f\"   Cache misses cause {(slowdown-1)*100:.0f}%\
+  \ performance loss\")\n\n    # Educational insights\n    print(\"\\n\U0001F4A1 KEY\
+  \ INSIGHTS:\")\n    print(\"   1. Memory layout matters: Row-major (C-style) storage\
+  \ is sequential\")\n    print(\"   2. Cache lines are ~64 bytes: Row access loads\
+  \ nearby elements \\\"for free\\\"\")\n    print(\"   3. Column access misses cache:\
+  \ Must reload from DRAM every time\")\n    print(f\"   4. This is O(n) algorithm\
+  \ but {slowdown:.1f}\xD7 different wall-clock time!\")\n\n    print(\"\\n\U0001F680\
+  \ REAL-WORLD IMPLICATIONS:\")\n    print(\"   \u2022 Image processing libraries\
+  \ use specific memory formats for cache efficiency\")\n    print(\"   \u2022 Matrix\
+  \ multiplication optimized with blocking (tile into cache-sized chunks)\")\n   \
+  \ print(f\"   \u2022 Transpose is expensive ({slowdown:.1f}\xD7) because it creates\
+  \ a non-contiguous view with poor cache locality\")\n    print(\"   \u2022 Hardware-optimized\
+  \ libraries leverage memory layout for better performance\")\n\n    print(\"\\n\"\
+  \ + \"=\" * 60)\n\n# Run the systems analysis\nif __name__ == \"__main__\" and os.environ.get(\"\
+  CI\") != \"true\":\n    # Skipped under CI: this is a performance demo/analysis,\
+  \ not a\n    # correctness check, and some of these (e.g. BPE scaling, large-N\n\
+  \    # benchmarks) take multiple minutes of real computation. Run this\n    # file\
+  \ directly (not through CI) to see the full analysis.\n    analyze_memory_layout()\n\
+  \ndef demo_tensor():\n    \"\"\"\U0001F3AF See your Tensor work just like NumPy.\"\
+  \"\"\n    print(\"\U0001F3AF AHA MOMENT: Your Tensor Works Like NumPy\")\n    print(\"\
+  =\" * 45)\n\n    # Create tensors\n    a = Tensor(np.array([1, 2, 3]))\n    b =\
+  \ Tensor(np.array([4, 5, 6]))\n\n    # Tensor operations\n    tensor_sum = a + b\n\
+  \    tensor_prod = a * b\n\n    # NumPy equivalents\n    np_sum = np.array([1, 2,\
+  \ 3]) + np.array([4, 5, 6])\n    np_prod = np.array([1, 2, 3]) * np.array([4, 5,\
+  \ 6])\n\n    print(f\"Tensor a + b: {tensor_sum.data}\")\n    print(f\"NumPy  a\
+  \ + b: {np_sum}\")\n    print(f\"Match: {np.allclose(tensor_sum.data, np_sum)}\"\
+  )\n\n    print(f\"\\nTensor a * b: {tensor_prod.data}\")\n    print(f\"NumPy  a\
+  \ * b: {np_prod}\")\n    print(f\"Match: {np.allclose(tensor_prod.data, np_prod)}\"\
+  )\n\n    print(\"\\n\u2728 Your Tensor is NumPy-compatible\u2014ready for ML!\")"
+test_suite: "def test_unit_tensor_creation():\n    \"\"\"\U0001F9EA Test Tensor creation\
+  \ with various data types.\"\"\"\n    print(\"\U0001F9EA Unit Test: Tensor Creation...\"\
+  )\n\n    # Test scalar creation\n    scalar = Tensor(5.0)\n    assert scalar.data\
+  \ == 5.0\n    assert scalar.shape == ()\n    assert scalar.size == 1\n    assert\
+  \ scalar.dtype == np.float32\n\n    # Test vector creation\n    vector = Tensor([1,\
+  \ 2, 3])\n    assert np.array_equal(vector.data, np.array([1, 2, 3], dtype=np.float32))\n\
+  \    assert vector.shape == (3,)\n    assert vector.size == 3\n\n    # Test matrix\
+  \ creation\n    matrix = Tensor([[1, 2], [3, 4]])\n    assert np.array_equal(matrix.data,\
+  \ np.array([[1, 2], [3, 4]], dtype=np.float32))\n    assert matrix.shape == (2,\
+  \ 2)\n    assert matrix.size == 4\n\n    # Test 3D tensor creation\n    tensor_3d\
+  \ = Tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])\n    assert tensor_3d.shape ==\
+  \ (2, 2, 2)\n    assert tensor_3d.size == 8\n\n    # Test PyTorch-compatible utility\
+  \ methods\n    assert scalar.ndim == 0, \"Scalar should be 0-dimensional\"\n   \
+  \ assert vector.ndim == 1, \"Vector should be 1-dimensional\"\n    assert matrix.ndim\
+  \ == 2, \"Matrix should be 2-dimensional\"\n    assert tensor_3d.ndim == 3, \"3D\
+  \ tensor should be 3-dimensional\"\n\n    assert scalar.numel() == 1, \"Scalar has\
+  \ 1 element\"\n    assert vector.numel() == 3, \"Vector has 3 elements\"\n    assert\
+  \ matrix.numel() == 4, \"2x2 matrix has 4 elements\"\n\n    # Test contiguous returns\
+  \ a copy with same data\n    contig = matrix.contiguous()\n    assert np.array_equal(contig.data,\
+  \ matrix.data)\n    assert contig.data is not matrix.data, \"contiguous() should\
+  \ return a copy\"\n\n    print(\"\u2705 Tensor creation works correctly!\")\n\n\
+  if __name__ == \"__main__\":\n    test_unit_tensor_creation()\n\ndef test_unit_arithmetic_operations():\n\
+  \    \"\"\"\U0001F9EA Test arithmetic operations with broadcasting.\"\"\"\n    print(\"\
+  \U0001F9EA Unit Test: Arithmetic Operations...\")\n\n    # Test tensor + tensor\n\
+  \    a = Tensor([1, 2, 3])\n    b = Tensor([4, 5, 6])\n    result = a + b\n    assert\
+  \ np.array_equal(result.data, np.array([5, 7, 9], dtype=np.float32))\n\n    # Test\
+  \ tensor + scalar (very common in ML)\n    result = a + 10\n    assert np.array_equal(result.data,\
+  \ np.array([11, 12, 13], dtype=np.float32))\n\n    # Scalar on the left should behave\
+  \ naturally too\n    result = 10 + a\n    assert np.array_equal(result.data, np.array([11,\
+  \ 12, 13], dtype=np.float32))\n\n    # Test broadcasting with different shapes (matrix\
+  \ + vector)\n    matrix = Tensor([[1, 2], [3, 4]])\n    vector = Tensor([10, 20])\n\
+  \    result = matrix + vector\n    expected = np.array([[11, 22], [13, 24]], dtype=np.float32)\n\
+  \    assert np.array_equal(result.data, expected)\n\n    # \u26A0\uFE0F Broadcasting\
+  \ pitfall: verify shapes match before element-wise ops\n    # In ML, predictions\
+  \ (batch, features) minus targets (features,) broadcasts\n    # silently \u2014\
+  \ the same target row repeats for every sample. Always check!\n    predictions =\
+  \ Tensor(np.ones((4, 3)))   # 4 samples, 3 features\n    targets_good = Tensor(np.zeros((4,\
+  \ 3)))  # correct: same shape\n    targets_bad = Tensor(np.zeros((3,)))     # dangerous:\
+  \ missing batch dim\n    assert predictions.shape == targets_good.shape, \"Matching\
+  \ shapes \u2014 safe\"\n    assert predictions.shape != targets_bad.shape, (\n \
+  \       f\"Shape mismatch: {predictions.shape} vs {targets_bad.shape}. \"\n    \
+  \    f\"NumPy broadcasts silently \u2014 this is almost always a bug in ML code.\"\
+  \n    )\n\n    # Test subtraction (data centering)\n    result = b - a\n    assert\
+  \ np.array_equal(result.data, np.array([3, 3, 3], dtype=np.float32))\n\n    # Test\
+  \ multiplication (scaling)\n    result = a * 2\n    assert np.array_equal(result.data,\
+  \ np.array([2, 4, 6], dtype=np.float32))\n\n    result = 2 * a\n    assert np.array_equal(result.data,\
+  \ np.array([2, 4, 6], dtype=np.float32))\n\n    # Test division (normalization)\n\
+  \    result = b / 2\n    assert np.array_equal(result.data, np.array([2.0, 2.5,\
+  \ 3.0], dtype=np.float32))\n\n    result = 12 / b\n    assert np.allclose(result.data,\
+  \ np.array([3.0, 12.0 / 5.0, 2.0], dtype=np.float32))\n\n    # Order matters for\
+  \ subtraction, but scalar-left arithmetic should still work\n    result = 10 - a\n\
+  \    assert np.array_equal(result.data, np.array([9, 8, 7], dtype=np.float32))\n\
+  \n    # Test chaining operations (common in ML pipelines)\n    normalized = (a -\
+  \ 2) / 2  # Center and scale\n    expected = np.array([-0.5, 0.0, 0.5], dtype=np.float32)\n\
+  \    assert np.allclose(normalized.data, expected)\n\n    print(\"\u2705 Arithmetic\
+  \ operations work correctly!\")\n\nif __name__ == \"__main__\":\n    test_unit_arithmetic_operations()\n\
+  \ndef test_unit_validate_matmul_shapes():\n    \"\"\"\U0001F9EA Test matmul shape\
+  \ validation catches all three error categories.\"\"\"\n    print(\"\U0001F9EA Unit\
+  \ Test: Validate Matmul Shapes...\")\n\n    # Valid shapes should pass without error\n\
+  \    a = Tensor([[1, 2], [3, 4]])  # 2x2\n    b = Tensor([[5, 6], [7, 8]])  # 2x2\n\
+  \    a._validate_matmul_shapes(b)  # No exception\n\n    # Valid rectangular shapes\n\
+  \    c = Tensor([[1, 2, 3]])       # 1x3\n    d = Tensor([[1], [2], [3]])   # 3x1\n\
+  \    c._validate_matmul_shapes(d)  # No exception (inner dim 3 matches)\n\n    #\
+  \ Check 1: TypeError when other is not a Tensor\n    try:\n        a._validate_matmul_shapes([[1,\
+  \ 2], [3, 4]])\n        assert False, \"Should have raised TypeError for non-Tensor\"\
+  \n    except TypeError as e:\n        assert \"requires Tensor\" in str(e)\n   \
+  \     assert \"list\" in str(e)\n\n    # Check 2: ValueError when either operand\
+  \ is a 0D scalar\n    try:\n        scalar = Tensor(5.0)\n        scalar._validate_matmul_shapes(a)\n\
+  \        assert False, \"Should have raised ValueError for 0D tensor\"\n    except\
+  \ ValueError as e:\n        assert \"at least 1D\" in str(e)\n\n    # Check 3: ValueError\
+  \ when inner dimensions don't match\n    try:\n        incompatible_a = Tensor([[1,\
+  \ 2]])         # 1x2\n        incompatible_b = Tensor([[1], [2], [3]])   # 3x1\n\
+  \        incompatible_a._validate_matmul_shapes(incompatible_b)\n        assert\
+  \ False, \"Should have raised ValueError for shape mismatch\"\n    except ValueError\
+  \ as e:\n        assert \"Inner dimensions don't match\" in str(e)\n        assert\
+  \ \"2 vs 3\" in str(e)\n\n    print(\"\u2705 Matmul shape validation works correctly!\"\
+  )\n\nif __name__ == \"__main__\":\n    test_unit_validate_matmul_shapes()\n\ndef\
+  \ test_unit_matrix_multiplication():\n    \"\"\"\U0001F9EA Test matrix multiplication\
+  \ operations.\"\"\"\n    print(\"\U0001F9EA Unit Test: Matrix Multiplication...\"\
+  )\n\n    # Test 2x2 matrix multiplication (basic case)\n    a = Tensor([[1, 2],\
+  \ [3, 4]])  # 2x2\n    b = Tensor([[5, 6], [7, 8]])  # 2x2\n    result = a.matmul(b)\n\
+  \    # Expected: [[1*5+2*7, 1*6+2*8], [3*5+4*7, 3*6+4*8]] = [[19, 22], [43, 50]]\n\
+  \    expected = np.array([[19, 22], [43, 50]], dtype=np.float32)\n    assert np.array_equal(result.data,\
+  \ expected)\n\n    # Test rectangular matrices (common in data transformations)\n\
+  \    c = Tensor([[1, 2, 3], [4, 5, 6]])  # 2x3 (like samples=2, features=3)\n  \
+  \  d = Tensor([[7, 8], [9, 10], [11, 12]])  # 3x2 (like features=3, outputs=2)\n\
+  \    result = c.matmul(d)\n    # Expected: [[1*7+2*9+3*11, 1*8+2*10+3*12], [4*7+5*9+6*11,\
+  \ 4*8+5*10+6*12]]\n    expected = np.array([[58, 64], [139, 154]], dtype=np.float32)\n\
+  \    assert np.array_equal(result.data, expected)\n\n    # Test matrix-vector multiplication\
+  \ (common in linear transforms)\n    matrix = Tensor([[1, 2, 3], [4, 5, 6]])  #\
+  \ 2x3\n    vector = Tensor([1, 2, 3])  # 1D vector\n    result = matrix.matmul(vector)\n\
+  \    # Expected: [1*1+2*2+3*3, 4*1+5*2+6*3] = [14, 32]\n    expected = np.array([14,\
+  \ 32], dtype=np.float32)\n    assert np.array_equal(result.data, expected)\n\n \
+  \   # Test @ operator sugar\n    result_at = a @ b\n    assert np.array_equal(result_at.data,\
+  \ np.array([[19, 22], [43, 50]], dtype=np.float32))\n\n    print(\"\u2705 Matrix\
+  \ multiplication works correctly!\")\n\nif __name__ == \"__main__\":\n    test_unit_matrix_multiplication()\n\
+  \ndef test_unit_shape_manipulation():\n    \"\"\"\U0001F9EA Test reshape and transpose\
+  \ operations.\"\"\"\n    print(\"\U0001F9EA Unit Test: Shape Manipulation...\")\n\
+  \n    # Test basic reshape (flatten \u2192 matrix)\n    tensor = Tensor([1, 2, 3,\
+  \ 4, 5, 6])  # Shape: (6,)\n    reshaped = tensor.reshape(2, 3)      # Shape: (2,\
+  \ 3)\n    assert reshaped.shape == (2, 3)\n    expected = np.array([[1, 2, 3], [4,\
+  \ 5, 6]], dtype=np.float32)\n    assert np.array_equal(reshaped.data, expected)\n\
+  \n    # Test reshape with tuple (alternative calling style)\n    reshaped2 = tensor.reshape((3,\
+  \ 2))   # Shape: (3, 2)\n    assert reshaped2.shape == (3, 2)\n    expected2 = np.array([[1,\
+  \ 2], [3, 4], [5, 6]], dtype=np.float32)\n    assert np.array_equal(reshaped2.data,\
+  \ expected2)\n\n    # Test reshape with -1 (automatic dimension inference)\n   \
+  \ auto_reshaped = tensor.reshape(2, -1)  # Should infer -1 as 3\n    assert auto_reshaped.shape\
+  \ == (2, 3)\n\n    # Test reshape validation - should raise error for incompatible\
+  \ sizes\n    try:\n        tensor.reshape(2, 2)  # 6 elements can't fit in 2\xD7\
+  2=4\n        assert False, \"Should have raised ValueError\"\n    except ValueError\
+  \ as e:\n        assert \"Element count mismatch\" in str(e)\n        assert \"\
+  6 elements vs 4 elements\" in str(e)\n\n    # Test matrix transpose (most common\
+  \ case)\n    matrix = Tensor([[1, 2, 3], [4, 5, 6]])  # (2, 3)\n    transposed =\
+  \ matrix.transpose()          # (3, 2)\n    assert transposed.shape == (3, 2)\n\
+  \    expected = np.array([[1, 4], [2, 5], [3, 6]], dtype=np.float32)\n    assert\
+  \ np.array_equal(transposed.data, expected)\n\n    # Test 1D transpose (should be\
+  \ identity)\n    vector = Tensor([1, 2, 3])\n    vector_t = vector.transpose()\n\
+  \    assert np.array_equal(vector.data, vector_t.data)\n\n    # Non-symmetric shape\
+  \ so a wrong axis swap produces the wrong shape and data.\n    tensor_3d = Tensor(np.arange(24).reshape(2,\
+  \ 3, 4))  # (2, 3, 4)\n    swapped = tensor_3d.transpose(0, 2)  # (4, 3, 2)\n  \
+  \  assert swapped.shape == (4, 3, 2), (\n        f\"transpose(0, 2) on (2,3,4) should\
+  \ give (4,3,2), got {swapped.shape}\"\n    )\n    for i in range(2):\n        for\
+  \ j in range(3):\n            for k in range(4):\n                assert swapped.data[k,\
+  \ j, i] == tensor_3d.data[i, j, k], (\n                    f\"Data mismatch at [{k},{j},{i}]:\
+  \ expected {tensor_3d.data[i,j,k]}, \"\n                    f\"got {swapped.data[k,j,i]}\"\
+  \n                )\n\n    # Test common reshape pattern (flatten multi-dimensional\
+  \ data)\n    batch_images = Tensor(rng.random((2, 3, 4)))  # (batch=2, height=3,\
+  \ width=4)\n    flattened = batch_images.reshape(2, -1)  # (batch=2, features=12)\n\
+  \    assert flattened.shape == (2, 12)\n\n    print(\"\u2705 Shape manipulation\
+  \ works correctly!\")\n\nif __name__ == \"__main__\":\n    test_unit_shape_manipulation()\n\
+  \ndef test_unit_reduction_operations():\n    \"\"\"\U0001F9EA Test reduction operations.\"\
+  \"\"\n    print(\"\U0001F9EA Unit Test: Reduction Operations...\")\n\n    matrix\
+  \ = Tensor([[1, 2, 3], [4, 5, 6]])  # Shape: (2, 3)\n\n    # Test sum all elements\
+  \ (common for loss computation)\n    total = matrix.sum()\n    assert total.data\
+  \ == 21.0  # 1+2+3+4+5+6\n    assert total.shape == ()   # Scalar result\n\n   \
+  \ # Test sum along axis 0 (columns) - batch dimension reduction\n    col_sum = matrix.sum(axis=0)\n\
+  \    expected_col = np.array([5, 7, 9], dtype=np.float32)  # [1+4, 2+5, 3+6]\n \
+  \   assert np.array_equal(col_sum.data, expected_col)\n    assert col_sum.shape\
+  \ == (3,)\n\n    # Test sum along axis 1 (rows) - feature dimension reduction\n\
+  \    row_sum = matrix.sum(axis=1)\n    expected_row = np.array([6, 15], dtype=np.float32)\
+  \  # [1+2+3, 4+5+6]\n    assert np.array_equal(row_sum.data, expected_row)\n   \
+  \ assert row_sum.shape == (2,)\n\n    # Test mean (average loss computation)\n \
+  \   avg = matrix.mean()\n    assert np.isclose(avg.data, 3.5)  # 21/6\n    assert\
+  \ avg.shape == ()\n\n    # Test mean along axis (per-column statistics)\n    col_mean\
+  \ = matrix.mean(axis=0)\n    expected_mean = np.array([2.5, 3.5, 4.5], dtype=np.float32)\
+  \  # [5/2, 7/2, 9/2]\n    assert np.allclose(col_mean.data, expected_mean)\n\n \
+  \   # Test max (finding largest value)\n    maximum = matrix.max()\n    assert maximum.data\
+  \ == 6.0\n    assert maximum.shape == ()\n\n    # Test max along axis (argmax-like\
+  \ operation)\n    row_max = matrix.max(axis=1)\n    expected_max = np.array([3,\
+  \ 6], dtype=np.float32)  # [max(1,2,3), max(4,5,6)]\n    assert np.array_equal(row_max.data,\
+  \ expected_max)\n\n    # Test keepdims (important for broadcasting)\n    sum_keepdims\
+  \ = matrix.sum(axis=1, keepdims=True)\n    assert sum_keepdims.shape == (2, 1) \
+  \ # Maintains 2D shape\n    expected_keepdims = np.array([[6], [15]], dtype=np.float32)\n\
+  \    assert np.array_equal(sum_keepdims.data, expected_keepdims)\n\n    # Test 3D\
+  \ reduction (averaging across spatial dimensions)\n    tensor_3d = Tensor([[[1,\
+  \ 2], [3, 4]], [[5, 6], [7, 8]]])  # (2, 2, 2)\n    spatial_mean = tensor_3d.mean(axis=(1,\
+  \ 2))  # Average across spatial dimensions\n    assert spatial_mean.shape == (2,)\
+  \  # One value per batch item\n\n    print(\"\u2705 Reduction operations work correctly!\"\
+  )\n\nif __name__ == \"__main__\":\n    test_unit_reduction_operations()\n\ndef test_module():\n\
+  \    \"\"\"\U0001F9EA Module Test: Complete Integration\n\n    Comprehensive test\
+  \ of entire module functionality.\n\n    This final test runs before module summary\
+  \ to ensure:\n    - All unit tests pass\n    - Functions work together correctly\n\
+  \    - Module is ready for integration with TrenTorch\n    \"\"\"\n    print(\"\U0001F9EA\
+  \ RUNNING MODULE INTEGRATION TEST\")\n    print(\"=\" * 50)\n\n    # Run all unit\
+  \ tests\n    print(\"Running unit tests...\")\n    test_unit_tensor_creation()\n\
+  \    test_unit_arithmetic_operations()\n    test_unit_validate_matmul_shapes()\n\
+  \    test_unit_matrix_multiplication()\n    test_unit_shape_manipulation()\n   \
+  \ test_unit_reduction_operations()\n\n    print(\"\\nRunning integration scenarios...\"\
+  )\n\n    # Test realistic multi-stage computation\n    print(\"\U0001F9EA Integration\
+  \ Test: Two-Stage Linear Transformation...\")\n\n    # Create input data (2 samples,\
+  \ 3 features)\n    x = Tensor([[1, 2, 3], [4, 5, 6]])\n\n    # First stage: 3 inputs\
+  \ \u2192 4 intermediate values\n    W1 = Tensor([[0.1, 0.2, 0.3, 0.4],\n       \
+  \          [0.5, 0.6, 0.7, 0.8],\n                 [0.9, 1.0, 1.1, 1.2]])\n    b1\
+  \ = Tensor([0.1, 0.2, 0.3, 0.4])\n\n    # Forward pass: hidden = xW1 + b1\n    hidden\
+  \ = x.matmul(W1) + b1\n    assert hidden.shape == (2, 4), f\"Expected (2, 4), got\
+  \ {hidden.shape}\"\n\n    # Second stage: 4 intermediate \u2192 2 outputs\n    W2\
+  \ = Tensor([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6], [0.7, 0.8]])\n    b2 = Tensor([0.1,\
+  \ 0.2])\n\n    # Output stage: output = hiddenW2 + b2\n    output = hidden.matmul(W2)\
+  \ + b2\n    assert output.shape == (2, 2), f\"Expected (2, 2), got {output.shape}\"\
+  \n\n    # Verify data flows correctly (no NaN, reasonable values)\n    assert not\
+  \ np.isnan(output.data).any(), \"Output contains NaN values\"\n    assert np.isfinite(output.data).all(),\
+  \ \"Output contains infinite values\"\n\n    print(\"\u2705 Two-stage linear transformation\
+  \ works!\")\n\n    # Test complex shape manipulations\n    print(\"\U0001F9EA Integration\
+  \ Test: Complex Shape Operations...\")\n    data = Tensor([1, 2, 3, 4, 5, 6, 7,\
+  \ 8, 9, 10, 11, 12])\n\n    # Reshape to 3D tensor (simulating batch processing)\n\
+  \    tensor_3d = data.reshape(2, 2, 3)  # (batch=2, height=2, width=3)\n    assert\
+  \ tensor_3d.shape == (2, 2, 3)\n\n    # Spatial averaging (collapse height and width)\n\
+  \    pooled = tensor_3d.mean(axis=(1, 2))  # Average across spatial dimensions\n\
+  \    assert pooled.shape == (2,), f\"Expected (2,), got {pooled.shape}\"\n\n   \
+  \ # Flatten to 2D\n    flattened = tensor_3d.reshape(2, -1)  # (batch, features)\n\
+  \    assert flattened.shape == (2, 6)\n\n    # Transpose for different operations\n\
+  \    transposed = tensor_3d.transpose()  # Should transpose last two dims\n    assert\
+  \ transposed.shape == (2, 3, 2)\n\n    print(\"\u2705 Complex shape operations work!\"\
+  )\n\n    # Test broadcasting edge cases\n    print(\"\U0001F9EA Integration Test:\
+  \ Broadcasting Edge Cases...\")\n\n    # Scalar broadcasting\n    scalar = Tensor(5.0)\n\
+  \    vector = Tensor([1, 2, 3])\n    result = scalar + vector  # Should broadcast\
+  \ scalar to vector shape\n    expected = np.array([6, 7, 8], dtype=np.float32)\n\
+  \    assert np.array_equal(result.data, expected)\n\n    # Matrix + vector broadcasting\n\
+  \    matrix = Tensor([[1, 2], [3, 4]])\n    vec = Tensor([10, 20])\n    result =\
+  \ matrix + vec\n    expected = np.array([[11, 22], [13, 24]], dtype=np.float32)\n\
+  \    assert np.array_equal(result.data, expected)\n\n    print(\"\u2705 Broadcasting\
+  \ edge cases work!\")\n\n    print(\"\\n\" + \"=\" * 50)\n    print(\"\U0001F389\
+  \ ALL TESTS PASSED! Module ready for export.\")\n    print(\"Run: tren module complete\
+  \ 01\")\n\n# Run comprehensive module test\nif __name__ == \"__main__\":\n    test_module()\n\
+  \nif __name__ == \"__main__\":\n    test_module()\n    print(\"\\n\")\n    demo_tensor()"
