@@ -21,7 +21,7 @@ Thanks to everyone who's helped build TrenTorch. Kept up to date automatically â
         <br />
         <sub>IIT Guwahati, debugs autograd for fun, ships before sunrise.</sub>
         <br />
-        <sub>Issues: 7 &middot; PRs: 2 &middot; Merged: 1</sub>
+        <sub>Issues: 8 &middot; PRs: 2 &middot; Merged: 1</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="Shivtej Gaikwad"/></a>
