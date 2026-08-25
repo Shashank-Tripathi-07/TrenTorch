@@ -26,6 +26,13 @@ project_root = Path(__file__).parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# trentorch/ lives at data/trentorch/, not at the repo root, so that needs
+# its own sys.path entry for plain `import trentorch` to resolve without
+# an editable install.
+data_dir = project_root / "data"
+if str(data_dir) not in sys.path:
+    sys.path.insert(0, str(data_dir))
+
 # Set quiet mode for trentorch imports during tests
 os.environ['TRENTORCH_QUIET'] = '1'
 
