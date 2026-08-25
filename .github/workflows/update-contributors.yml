@@ -1,4 +1,4 @@
-name: '📋 Update Contributors Table'
+name: 'Update Contributors Table'
 
 # Recomputes CONTRIBUTORS.md (issues raised, PRs raised, PRs merged per
 # person) from the real GitHub API whenever an issue or PR is opened, or a

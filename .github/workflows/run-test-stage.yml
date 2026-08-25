@@ -1,4 +1,4 @@
-name: '🔧 Reusable · Run Test Stage'
+name: 'Reusable · Run Test Stage'
 
 # Backs Stages 1-5 and 7 of validate.yml. A reusable workflow (job-level
 # reuse via workflow_call) rather than a composite action (step-level
