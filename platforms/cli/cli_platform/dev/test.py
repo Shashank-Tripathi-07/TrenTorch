@@ -732,7 +732,18 @@ class DevTestCommand(BaseCommand):
                     complete_env["TREN_PROFILE"] = "1"
                 result = subprocess.run(
                     [sys.executable, str(project_root / "bin" / "tren"),
-                     "module", "complete", module_num],
+                     "module", "complete", module_num,
+                     # The "Step 1: Export notebook" call just above already
+                     # ran `tren dev export {module}`, which both builds
+                     # the solution notebook AND nbdev-exports it to the
+                     # package. `module complete`'s own export step would
+                     # just redo that same nbdev_export on the same
+                     # notebook to the same destination -- real duplicate
+                     # work, not a different one. Skipping it here also
+                     # skips a notebook syntax re-check that only matters
+                     # for an unsolved student notebook, not this loop's
+                     # already-validated reference solution.
+                     "--skip-export"],
                     capture_output=True,
                     text=True,
                     encoding="utf-8",
