@@ -96,23 +96,28 @@ class TestConv2DLayer:
 
         STUDENT LEARNING: Output size formula (no padding, stride=1):
         output_size = input_size - kernel_size + 1
-        Example: 32 - 3 + 1 = 30
+        Example: 10 - 3 + 1 = 8
+
+        (Uses a small 10x10 input rather than a full 32x32 image: the
+        formula and its lesson are identical at any size, and the naive
+        Conv2d loop implementation made the 32x32 version take ~3.4s
+        here alone.)
         """
         conv = Conv2d(in_channels=3, out_channels=16, kernel_size=3)
 
         # Input: (batch, C, H, W) - NCHW format
-        x = Tensor(rng.standard_normal((8, 3, 32, 32)))
+        x = Tensor(rng.standard_normal((8, 3, 10, 10)))
         output = conv(x)
 
-        # 32 - 3 + 1 = 30
-        expected_shape = (8, 16, 30, 30)
+        # 10 - 3 + 1 = 8
+        expected_shape = (8, 16, 8, 8)
         assert output.shape == expected_shape, (
             f"Conv2d output shape wrong.\n"
-            f"  Input: (8, 3, 32, 32) NCHW\n"
+            f"  Input: (8, 3, 10, 10) NCHW\n"
             f"  kernel_size=3, no padding\n"
-            f"  Expected: (8, 16, 30, 30)\n"
+            f"  Expected: (8, 16, 8, 8)\n"
             f"  Got: {output.shape}\n"
-            "Formula: output = input - kernel + 1 = 32 - 3 + 1 = 30"
+            "Formula: output = input - kernel + 1 = 10 - 3 + 1 = 8"
         )
 
     def test_conv2d_simple_convolution(self):
@@ -252,19 +257,23 @@ class TestConvOutputShapes:
 
         NOTE: TrenTorch uses explicit integer padding (padding=1) rather than
         PyTorch's padding='same' string. This teaches the formula directly.
+
+        (Uses a small 10x10 input: the formula and its lesson are
+        identical at any size, and the naive Conv2d loop implementation
+        made a 32x32 input take ~1s here alone.)
         """
         # With padding=1 and kernel=3, output should match input spatial dims
-        # Formula: output = input - kernel + 2*padding + 1 = 32 - 3 + 2 + 1 = 32
+        # Formula: output = input - kernel + 2*padding + 1 = 10 - 3 + 2 + 1 = 10
         conv = Conv2d(in_channels=3, out_channels=8, kernel_size=3, padding=1)
 
         # NCHW format
-        x = Tensor(rng.standard_normal((4, 3, 32, 32)))
+        x = Tensor(rng.standard_normal((4, 3, 10, 10)))
         output = conv(x)
 
-        assert output.shape == (4, 8, 32, 32), (
+        assert output.shape == (4, 8, 10, 10), (
             f"padding=1 with kernel=3 should preserve spatial dims.\n"
-            f"  Input: (4, 3, 32, 32) NCHW\n"
-            f"  Expected: (4, 8, 32, 32)\n"
+            f"  Input: (4, 3, 10, 10) NCHW\n"
+            f"  Expected: (4, 8, 10, 10)\n"
             f"  Got: {output.shape}"
         )
 
@@ -277,20 +286,24 @@ class TestConvOutputShapes:
 
         STUDENT LEARNING: With stride=2:
         output_size = (input_size - kernel_size) / stride + 1
-        For input=32, kernel=3, stride=2: (32-3)/2 + 1 = 15
+        For input=13, kernel=3, stride=2: (13-3)/2 + 1 = 6
+
+        (Uses a small 13x13 input: the formula and its lesson are
+        identical at any size, and the naive Conv2d loop implementation
+        made a 32x32 input take ~1s here alone.)
         """
         conv = Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=2)
 
         # NCHW format
-        x = Tensor(rng.standard_normal((1, 3, 32, 32)))
+        x = Tensor(rng.standard_normal((1, 3, 13, 13)))
         output = conv(x)
 
-        # (32 - 3) / 2 + 1 = 15
-        expected_size = 15
+        # (13 - 3) / 2 + 1 = 6
+        expected_size = 6
         # In NCHW, spatial dims are at indices 2 and 3
         assert output.shape[2] == expected_size and output.shape[3] == expected_size, (
             f"Stride=2 output size wrong.\n"
-            f"  Input: 32x32, kernel=3, stride=2\n"
+            f"  Input: 13x13, kernel=3, stride=2\n"
             f"  Expected: {expected_size}x{expected_size}\n"
             f"  Got: {output.shape[2]}x{output.shape[3]}\n"
             "Formula: (input - kernel) / stride + 1"

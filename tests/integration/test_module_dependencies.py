@@ -212,8 +212,11 @@ def test_conv2d_with_tensor():
     # Create Conv2d layer
     conv = Conv2d(in_channels=3, out_channels=16, kernel_size=3)
 
-    # Test with image tensor (batch, channels, height, width)
-    x = Tensor(rng.standard_normal((8, 3, 32, 32)))
+    # Test with image tensor (batch, channels, height, width). Only
+    # batch/channel counts are asserted below, not spatial size, so this
+    # uses a small stand-in for a real image -- the naive Conv2d loop
+    # implementation made the original 32x32 size take ~3.5s here alone.
+    x = Tensor(rng.standard_normal((8, 3, 12, 12)))
     output = conv(x)
 
     # Check output shape (with valid padding, output is smaller)
@@ -230,7 +233,11 @@ def test_pooling_integration():
     conv = Conv2d(3, 32, kernel_size=3, padding=1)
     pool = MaxPool2d(kernel_size=2, stride=2)
 
-    x = Tensor(rng.standard_normal((4, 3, 28, 28)))
+    # The size assertions below are relative (halved dimensions), not
+    # absolute, so this uses a small stand-in for a real image -- the
+    # naive Conv2d loop implementation made the original 28x28 size take
+    # ~3.1s here alone.
+    x = Tensor(rng.standard_normal((4, 3, 12, 12)))
     conv_out = conv(x)
     pool_out = pool(conv_out)
 

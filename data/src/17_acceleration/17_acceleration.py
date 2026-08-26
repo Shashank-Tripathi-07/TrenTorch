@@ -736,8 +736,12 @@ def test_unit_fusion_speedup():
     """🧪 Measure the performance impact of kernel fusion."""
     print("🧪 Unit Test: Kernel Fusion Performance Impact...")
 
-    # Create moderately large tensor for meaningful timing
-    size = 2000
+    # Create moderately large tensor for meaningful timing. Only the
+    # numerical-equivalence assertion below depends on correctness; the
+    # speedup/bandwidth numbers are informational prints only (no
+    # assertion reads them), so CI only needs enough elements to
+    # exercise both code paths, not a timing-grade sample size.
+    size = 200 if os.environ.get("CI") == "true" else 2000
     x = Tensor(rng.standard_normal((size, size)).astype(np.float32))
     warmup_iterations = DEFAULT_WARMUP_ITERATIONS
     timing_iterations = DEFAULT_TIMING_ITERATIONS

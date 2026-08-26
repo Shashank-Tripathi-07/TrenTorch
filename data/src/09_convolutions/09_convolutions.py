@@ -1311,35 +1311,39 @@ and gradient tracking.
 def test_unit_conv2d():
     """Test Conv2d forward pass with multiple configurations."""
     print("Testing Conv2d...")
+    ci_mode = os.environ.get("CI") == "true"
 
     # Test 1: Basic convolution without padding
     print("  Testing basic convolution...")
     conv1 = Conv2d(in_channels=3, out_channels=16, kernel_size=3)
-    x1 = Tensor(rng.standard_normal((2, 3, 32, 32)))
+    size1 = 10 if ci_mode else 32
+    x1 = Tensor(rng.standard_normal((2, 3, size1, size1)))
     out1 = conv1(x1)
 
-    expected_h = (32 - 3) + 1  # 30
-    expected_w = (32 - 3) + 1  # 30
-    assert out1.shape == (2, 16, expected_h, expected_w), f"Expected (2, 16, 30, 30), got {out1.shape}"
+    expected_h = (size1 - 3) + 1
+    expected_w = (size1 - 3) + 1
+    assert out1.shape == (2, 16, expected_h, expected_w), f"Expected (2, 16, {expected_h}, {expected_w}), got {out1.shape}"
 
     # Test 2: Convolution with padding (same size)
     print("  Testing convolution with padding...")
     conv2 = Conv2d(in_channels=3, out_channels=8, kernel_size=3, padding=1)
-    x2 = Tensor(rng.standard_normal((1, 3, 28, 28)))
+    size2 = 10 if ci_mode else 28
+    x2 = Tensor(rng.standard_normal((1, 3, size2, size2)))
     out2 = conv2(x2)
 
     # With padding=1, output should be same size as input
-    assert out2.shape == (1, 8, 28, 28), f"Expected (1, 8, 28, 28), got {out2.shape}"
+    assert out2.shape == (1, 8, size2, size2), f"Expected (1, 8, {size2}, {size2}), got {out2.shape}"
 
     # Test 3: Convolution with stride
     print("  Testing convolution with stride...")
     conv3 = Conv2d(in_channels=1, out_channels=4, kernel_size=3, stride=2)
-    x3 = Tensor(rng.standard_normal((1, 1, 16, 16)))
+    size3 = 10 if ci_mode else 16
+    x3 = Tensor(rng.standard_normal((1, 1, size3, size3)))
     out3 = conv3(x3)
 
-    expected_h = (16 - 3) // 2 + 1  # 7
-    expected_w = (16 - 3) // 2 + 1  # 7
-    assert out3.shape == (1, 4, expected_h, expected_w), f"Expected (1, 4, 7, 7), got {out3.shape}"
+    expected_h = (size3 - 3) // 2 + 1
+    expected_w = (size3 - 3) // 2 + 1
+    assert out3.shape == (1, 4, expected_h, expected_w), f"Expected (1, 4, {expected_h}, {expected_w}), got {out3.shape}"
 
     # Test 4: Parameter counting
     print("  Testing parameter counting...")

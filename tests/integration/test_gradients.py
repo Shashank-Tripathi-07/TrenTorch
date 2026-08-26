@@ -115,12 +115,18 @@ def test_gradient_exists_deep_network():
 
 
 def test_gradient_exists_cnn():
-    """Gradients flow through CNN architecture."""
+    """Gradients flow through CNN architecture.
+
+    Only presence of a gradient is checked, not a specific value, and
+    that doesn't depend on input size -- so this uses a small stand-in
+    for a real MNIST batch. The naive Conv2d loop implementation made
+    the original (2, 1, 28, 28) size take ~4.6s here alone.
+    """
     class SimpleCNN:
         def __init__(self):
             self.conv1 = Conv2d(1, 16, kernel_size=3)
             self.conv2 = Conv2d(16, 32, kernel_size=3)
-            self.fc = Linear(32 * 5 * 5, 10)
+            self.fc = Linear(32 * 2 * 2, 10)
 
         def forward(self, x):
             x = F.relu(self.conv1(x))
@@ -141,7 +147,7 @@ def test_gradient_exists_cnn():
     # Create optimizer to enable requires_grad on layer parameters
     optimizer = SGD(model.parameters(), lr=0.01)
 
-    x = Tensor(rng.standard_normal((2, 1, 28, 28)))
+    x = Tensor(rng.standard_normal((2, 1, 16, 16)))
     y_true = Tensor(rng.standard_normal((2, 10)))
 
     y_pred = model.forward(x)
