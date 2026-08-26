@@ -144,7 +144,7 @@ class TestCommandFiles:
             'dev': self.cli_platform_dir / 'dev' / '__init__.py',
             'package': self.cli_platform_dir / 'package' / '__init__.py',
             'module': self.processes_dir / 'module_workflow' / '__init__.py',
-            'milestone': self.processes_dir / 'milestone.py',
+            'milestone': self.processes_dir / 'milestone' / '__init__.py',
             'olympics': self.processes_dir / 'olympics.py',
             'benchmark': self.processes_dir / 'benchmark.py',
         }
