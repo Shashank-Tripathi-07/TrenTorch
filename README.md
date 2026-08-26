@@ -109,7 +109,7 @@ A **complete ML framework**, built from zero. No single finish line, a set of mi
 
 **Want to explore the code?** [Browse the repository structure](#repository-structure).
 
-**Adventurous?** Local installation works, but bring a spotter. See the setup notes in [INSTRUCTOR.md](docs/INSTRUCTOR.md).
+**Adventurous?** Local installation works, but bring a spotter. See the setup notes on the [wiki's Getting Started page](https://github.com/Shashank-Tripathi-07/TrenTorch/wiki/Getting-Started).
 
 ---
 
@@ -229,60 +229,61 @@ model.fit(X, y)  # magic happens somewhere else
 
 ```text
 TrenTorch/
-├── src/                        # 💻 Python source files (edit here)
-│   ├── 01_tensor/              # Module 01: Tensor operations from scratch
-│   ├── 02_activations/         # Module 02: ReLU, Softmax activations
-│   ├── 03_layers/              # Module 03: Linear layers, Module system
-│   ├── 04_losses/              # Module 04: MSE, CrossEntropy losses
-│   ├── 05_dataloader/          # Module 05: Efficient data pipelines
-│   ├── 06_autograd/            # Module 06: Automatic differentiation
-│   ├── 07_optimizers/          # Module 07: SGD, Adam optimizers
-│   ├── 08_training/            # Module 08: Complete training loops
-│   ├── 09_convolutions/        # Module 09: Conv2d, MaxPool2d, CNNs
-│   ├── 10_tokenization/        # Module 10: Text processing
-│   ├── 11_embeddings/          # Module 11: Token & positional embeddings
-│   ├── 12_attention/           # Module 12: Multi-head attention
-│   ├── 13_transformers/        # Module 13: Complete transformer blocks
-│   ├── 14_profiling/           # Module 14: Performance analysis
-│   ├── 15_quantization/        # Module 15: Model compression (precision reduction)
-│   ├── 16_compression/         # Module 16: Pruning & distillation
-│   ├── 17_acceleration/        # Module 17: Hardware optimization
-│   ├── 18_memoization/         # Module 18: KV-cache/memoization
-│   ├── 19_benchmarking/        # Module 19: Performance measurement
-│   └── 20_capstone/            # Module 20: Complete ML systems
-│
 ├── data/
-│   ├── modules/                # 📓 Generated notebooks (learn here -- stub-only)
-│   │   └── ...                 # (20 module directories)
-│   ├── solutions/               # 🔒 Reference implementations (maintainer/CI-only)
-│   └── datasets/                # 🗂️ Curated training data (tinydigits, tinytalks)
+│   ├── src/                     # 💻 Curriculum source (edit here)
+│   │   ├── 01_tensor/           # Module 01: Tensor operations from scratch
+│   │   ├── 02_activations/      # Module 02: ReLU, Softmax activations
+│   │   ├── 03_layers/           # Module 03: Linear layers, Module system
+│   │   ├── 04_losses/           # Module 04: MSE, CrossEntropy losses
+│   │   ├── 05_dataloader/       # Module 05: Efficient data pipelines
+│   │   ├── 06_autograd/         # Module 06: Automatic differentiation
+│   │   ├── 07_optimizers/       # Module 07: SGD, Adam optimizers
+│   │   ├── 08_training/         # Module 08: Complete training loops
+│   │   ├── 09_convolutions/     # Module 09: Conv2d, MaxPool2d, CNNs
+│   │   ├── 10_tokenization/     # Module 10: Text processing
+│   │   ├── 11_embeddings/       # Module 11: Token & positional embeddings
+│   │   ├── 12_attention/        # Module 12: Multi-head attention
+│   │   ├── 13_transformers/     # Module 13: Complete transformer blocks
+│   │   ├── 14_profiling/        # Module 14: Performance analysis
+│   │   ├── 15_quantization/     # Module 15: Model compression (precision reduction)
+│   │   ├── 16_compression/      # Module 16: Pruning & distillation
+│   │   ├── 17_acceleration/     # Module 17: Hardware optimization
+│   │   ├── 18_memoization/      # Module 18: KV-cache/memoization
+│   │   ├── 19_benchmarking/     # Module 19: Performance measurement
+│   │   └── 20_capstone/         # Module 20: Complete ML systems
+│   │
+│   ├── modules/                 # 📓 Generated notebooks (learn here -- stub-only)
+│   │   └── ...                  # (20 module directories)
+│   ├── solutions/                # 🔒 Reference implementations (maintainer/CI-only)
+│   ├── datasets/                 # 🗂️ Curated training data (tinydigits, tinytalks)
+│   ├── milestones/                # 🏆 Historical ML evolution - prove what you built
+│   │   ├── 01_1958_perceptron/
+│   │   ├── 02_1969_xor/
+│   │   ├── 03_1986_mlp/
+│   │   ├── 04_1998_cnn/
+│   │   ├── 05_2017_transformer/
+│   │   └── 06_2018_mlperf/
+│   │
+│   └── trentorch/                # 📦 Generated package (import from here)
+│       ├── core/                  # Core ML components
+│       └── ...                    # The framework you built
 │
-├── milestones/                 # 🏆 Historical ML evolution - prove what you built
-│   ├── 01_1958_perceptron/
-│   ├── 02_1969_xor/
-│   ├── 03_1986_mlp/
-│   ├── 04_1998_cnn/
-│   ├── 05_2017_transformer/
-│   └── 06_2018_mlperf/
-│
-├── tren/                       # 🎛️ CLI tool for streamlined workflows
-│   ├── main.py                 # Entry point
-│   ├── core/                   # Shared plumbing: config, console, theme, runtime
-│   ├── commands/                # Genuinely shared code only: base.py, export_utils.py, jupyter.py
-│   └── platforms/               # Everything else, organized by feature
-│       ├── cli_platform/         # The CLI's own bootstrap: setup, system, package, dev tooling
-│       └── processes/             # The student-facing workflow: module_workflow, milestone, benchmark, olympics, convert
-│
-├── trentorch/                  # 📦 Generated package (import from here)
-│   ├── core/                   # Core ML components
-│   └── ...                     # The framework you built
+├── platforms/
+│   ├── cli/                     # 🎛️ The `tren` CLI itself
+│   │   ├── main.py               # Entry point
+│   │   ├── core/                  # Shared plumbing: config, console, theme, runtime
+│   │   ├── commands/               # Genuinely shared code only: base.py, export_utils.py, jupyter.py
+│   │   ├── cli_platform/           # The CLI's own bootstrap: setup, system, package, dev tooling
+│   │   ├── processes/               # The student-facing workflow: module_workflow, milestone, benchmark, olympics, convert
+│   │   └── tests/                    # The CLI's own test suite
+│   └── dev_tools/                # Maintainer scripts (release, fresh-install verification)
 │
 ├── user_data/                  # 🗃️ Your own progress, milestones, benchmarks (not committed)
 │
-└── tests/                      # ✅ Module, CLI, integration, and milestone tests
+└── tests/                      # ✅ Integration, e2e, and environment tests
 ```
 
-**Key workflow**: `src/*.py` → `data/modules/*.ipynb` (you solve it) → `trentorch/*.py`
+**Key workflow**: `data/src/*.py` → `data/modules/*.ipynb` (you solve it) → `data/trentorch/*.py`
 
 ---
 

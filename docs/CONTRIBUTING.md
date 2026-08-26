@@ -16,8 +16,8 @@ TrenTorch is an **educational framework** where every contribution should:
 
 1. **Clone and setup environment**:
    ```bash
-   git clone https://github.com/harvard-edge/cs249r_book.git
-   cd cs249r_book/trentorch
+   git clone https://github.com/Shashank-Tripathi-07/TrenTorch.git
+   cd TrenTorch
    python3 -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    pip install -r requirements.txt
@@ -32,9 +32,10 @@ TrenTorch is an **educational framework** where every contribution should:
    ```
 
 3. **Read the development guidelines**:
-   - `CONTRIBUTING.md` - Development standards (this file)
-   - `INSTRUCTOR.md` - Educational context and teaching approach
+   - `docs/CONTRIBUTING.md` - Development standards (this file)
+   - `docs/design.md` - Educational context and teaching approach
    - `README.md` - Repository structure and project overview
+   - the [wiki](https://github.com/Shashank-Tripathi-07/TrenTorch/wiki) - curriculum overview, CLI reference, architecture
 
 ## 🛠️ Types of Contributions
 
@@ -70,9 +71,9 @@ TrenTorch is an **educational framework** where every contribution should:
 # 1. Always use virtual environment
 source .venv/bin/activate
 
-# 2. Create feature branch (NEVER work on dev/main directly)
-git checkout dev
-git pull origin dev
+# 2. Create feature branch (NEVER work on main directly)
+git checkout main
+git pull origin main
 git checkout -b feature/your-improvement
 
 # 3. Make changes following standards in CONTRIBUTING.md
@@ -90,7 +91,7 @@ git commit -m "Fix tensor broadcasting bug in Module 02
 
 # 6. Push and open a pull request
 git push origin feature/your-improvement
-# Then open a PR on GitHub targeting the 'dev' branch
+# Then open a PR on GitHub targeting the 'main' branch
 ```
 
 ### **Critical Policies - NO EXCEPTIONS**
@@ -131,7 +132,7 @@ All contributions must pass:
 - **Export**: Use `tren module complete N` to export to package
 
 **For Contributors** (improving the framework):
-- **Source Files**: Edit `src/NN_name/NN_name.py` files (source of truth, e.g., `src/01_tensor/01_tensor.py`)
+- **Source Files**: Edit `data/src/NN_name/NN_name.py` files (source of truth, e.g., `data/src/01_tensor/01_tensor.py`)
 - **Notebooks**: Generated from source files using `tren dev export`
 - **Structure**: Follow the standardized module structure
 - **Testing**: Include immediate testing after each implementation
@@ -217,19 +218,7 @@ TrenTorch follows [semantic versioning](https://semver.org/):
 
 ### Release Process
 
-Releases are created via the `tinytorch-publish-live.yml` GitHub Actions workflow:
-
-1. Maintainer triggers workflow from GitHub Actions
-2. Select release type (patch/minor/major)
-3. Enter release description
-4. Workflow automatically:
-   - Bumps version in code
-   - Runs tests and preflight checks
-   - Merges dev → main
-   - Deploys to tinytorch.org
-   - Creates git tag (e.g., v0.1.1)
-   - Creates GitHub Release with notes
-   - Publishes to PyPI
+There's no automated release pipeline in this fork yet — no PyPI publish, no hosted docs deploy, no GitHub Releases. `pyproject.toml`'s version is bumped by hand as needed; `tren system update` still points at the upstream project's own release tags, not this fork's, so don't rely on it to check for updates here. Changes land by merging directly to `main` once CI (`.github/workflows/validate.yml`) is green.
 
 ### For Contributors
 
@@ -243,14 +232,14 @@ Your commits will be included in the next release with appropriate version bump.
 ## 📚 Resources
 
 ### Essential Reading
-- **`CONTRIBUTING.md`** - Development standards and workflow (this file)
-- **`INSTRUCTOR.md`** - Educational context and teaching approach
+- **`docs/CONTRIBUTING.md`** - Development standards and workflow (this file)
+- **`docs/design.md`** - Educational context and teaching approach
 - **`README.md`** - Repository structure and project overview
 
 ### Quick References
-- **Module Structure**: See any `src/NN_name/` directory (e.g., `src/01_tensor/`)
-- **Testing Patterns**: Check `tests/NN_name/` directories (e.g., `tests/01_tensor/`)
-- **Example Code**: Look at `milestones/` for end-to-end working examples
+- **Module Structure**: See any `data/src/NN_name/` directory (e.g., `data/src/01_tensor/`)
+- **Testing Patterns**: Check `data/src/NN_name/tests/` directories (e.g., `data/src/01_tensor/tests/`)
+- **Example Code**: Look at `data/milestones/` for end-to-end working examples
 
 ---
 
