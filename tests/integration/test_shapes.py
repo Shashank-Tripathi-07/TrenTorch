@@ -152,15 +152,21 @@ def test_conv2d_1x1():
 
 
 def test_conv2d_chain():
-    """Chain of conv layers (typical CNN pattern)."""
+    """Chain of conv layers (typical CNN pattern).
+
+    Shape correctness doesn't depend on batch/spatial size, only on the
+    conv formula (out = in - kernel + 1), so this uses a small input
+    rather than full MNIST scale. The naive Conv2d loop implementation
+    made the original (4, 1, 28, 28) size take ~18s here alone.
+    """
     conv1 = Conv2d(1, 32, kernel_size=3)
     conv2 = Conv2d(32, 64, kernel_size=3)
 
-    x = Tensor(rng.standard_normal((4, 1, 28, 28)))  # MNIST-like
+    x = Tensor(rng.standard_normal((2, 1, 10, 10)))
     x = conv1(x)
-    assert x.shape == (4, 32, 26, 26), f"After conv1: expected (4, 32, 26, 26), got {x.shape}"
+    assert x.shape == (2, 32, 8, 8), f"After conv1: expected (2, 32, 8, 8), got {x.shape}"
     x = conv2(x)
-    assert x.shape == (4, 64, 24, 24), f"After conv2: expected (4, 64, 24, 24), got {x.shape}"
+    assert x.shape == (2, 64, 6, 6), f"After conv2: expected (2, 64, 6, 6), got {x.shape}"
 
 
 # ============== Activation Shape Tests ==============
@@ -226,11 +232,11 @@ def test_avgpool2d_kernel_2():
 def test_pool_after_conv():
     """Pooling after convolution (common CNN pattern)."""
     conv = Conv2d(3, 32, kernel_size=5)
-    x = Tensor(rng.standard_normal((4, 3, 32, 32)))
+    x = Tensor(rng.standard_normal((2, 3, 14, 14)))
     x = conv(x)
-    assert x.shape == (4, 32, 28, 28), f"After conv: expected (4, 32, 28, 28), got {x.shape}"
+    assert x.shape == (2, 32, 10, 10), f"After conv: expected (2, 32, 10, 10), got {x.shape}"
     x = F.max_pool2d(x, 2)
-    assert x.shape == (4, 32, 14, 14), f"After pool: expected (4, 32, 14, 14), got {x.shape}"
+    assert x.shape == (2, 32, 5, 5), f"After pool: expected (2, 32, 5, 5), got {x.shape}"
 
 
 # ============== Reshape Operation Tests ==============
@@ -338,9 +344,9 @@ def test_linear_batch_flexibility(batch_size):
 def test_conv2d_batch_flexibility(batch_size):
     """Conv2d handles various batch sizes."""
     layer = Conv2d(3, 16, kernel_size=3)
-    x = Tensor(rng.standard_normal((batch_size, 3, 32, 32)))
+    x = Tensor(rng.standard_normal((batch_size, 3, 12, 12)))
     y = layer(x)
-    assert y.shape == (batch_size, 16, 30, 30), f"Batch {batch_size}: got {y.shape}"
+    assert y.shape == (batch_size, 16, 10, 10), f"Batch {batch_size}: got {y.shape}"
 
 
 @pytest.mark.parametrize("batch_size", [1, 4, 16])
@@ -384,62 +390,74 @@ def test_single_channel_conv():
 # ============== Integration Pattern Tests ==============
 
 def test_mnist_cnn_dimensions():
-    """Complete MNIST CNN dimension flow."""
-    x = Tensor(rng.standard_normal((32, 1, 28, 28)))  # MNIST batch
+    """Complete MNIST CNN dimension flow.
+
+    Only the dimension formulas are under test, which don't change with
+    batch/spatial size, so this uses a small stand-in for a real MNIST
+    batch. The naive Conv2d loop implementation made the original
+    (32, 1, 28, 28) size take ~34s here alone.
+    """
+    x = Tensor(rng.standard_normal((4, 1, 16, 16)))  # MNIST-shaped, small
 
     # Conv block 1
     conv1 = Conv2d(1, 32, kernel_size=3)
     x = conv1(x)
-    assert x.shape == (32, 32, 26, 26), f"After conv1: {x.shape}"
+    assert x.shape == (4, 32, 14, 14), f"After conv1: {x.shape}"
     x = F.max_pool2d(x, 2)
-    assert x.shape == (32, 32, 13, 13), f"After pool1: {x.shape}"
+    assert x.shape == (4, 32, 7, 7), f"After pool1: {x.shape}"
 
     # Conv block 2
     conv2 = Conv2d(32, 64, kernel_size=3)
     x = conv2(x)
-    assert x.shape == (32, 64, 11, 11), f"After conv2: {x.shape}"
+    assert x.shape == (4, 64, 5, 5), f"After conv2: {x.shape}"
     x = F.max_pool2d(x, 2)
-    assert x.shape == (32, 64, 5, 5), f"After pool2: {x.shape}"
+    assert x.shape == (4, 64, 2, 2), f"After pool2: {x.shape}"
 
     # Flatten for FC
     x = F.flatten(x, start_dim=1)
-    assert x.shape == (32, 1600), f"After flatten: {x.shape}"
+    assert x.shape == (4, 256), f"After flatten: {x.shape}"
 
     # FC layers
-    fc1 = Linear(1600, 128)
+    fc1 = Linear(256, 128)
     x = fc1(x)
-    assert x.shape == (32, 128), f"After fc1: {x.shape}"
+    assert x.shape == (4, 128), f"After fc1: {x.shape}"
 
     fc2 = Linear(128, 10)
     x = fc2(x)
-    assert x.shape == (32, 10), f"Final output: {x.shape}"
+    assert x.shape == (4, 10), f"Final output: {x.shape}"
 
 
 def test_cifar10_cnn_dimensions():
-    """Complete CIFAR-10 CNN dimension flow."""
-    x = Tensor(rng.standard_normal((16, 3, 32, 32)))  # CIFAR-10 batch
+    """Complete CIFAR-10 CNN dimension flow.
+
+    Only the dimension formulas are under test, which don't change with
+    batch/spatial size, so this uses a small stand-in for a real
+    CIFAR-10 batch. The naive Conv2d loop implementation made the
+    original (16, 3, 32, 32) size take ~27s here alone.
+    """
+    x = Tensor(rng.standard_normal((4, 3, 18, 18)))  # CIFAR-10-shaped, small
 
     # Conv block 1
     conv1 = Conv2d(3, 32, kernel_size=3)
     x = conv1(x)
-    assert x.shape == (16, 32, 30, 30), f"After conv1: {x.shape}"
+    assert x.shape == (4, 32, 16, 16), f"After conv1: {x.shape}"
     x = F.max_pool2d(x, 2)
-    assert x.shape == (16, 32, 15, 15), f"After pool1: {x.shape}"
+    assert x.shape == (4, 32, 8, 8), f"After pool1: {x.shape}"
 
     # Conv block 2
     conv2 = Conv2d(32, 64, kernel_size=3)
     x = conv2(x)
-    assert x.shape == (16, 64, 13, 13), f"After conv2: {x.shape}"
+    assert x.shape == (4, 64, 6, 6), f"After conv2: {x.shape}"
     x = F.max_pool2d(x, 2)
-    assert x.shape == (16, 64, 6, 6), f"After pool2: {x.shape}"
+    assert x.shape == (4, 64, 3, 3), f"After pool2: {x.shape}"
 
     # Flatten and FC
     x = F.flatten(x, start_dim=1)
-    assert x.shape == (16, 2304), f"After flatten: {x.shape}"
+    assert x.shape == (4, 576), f"After flatten: {x.shape}"
 
-    fc = Linear(2304, 10)
+    fc = Linear(576, 10)
     x = fc(x)
-    assert x.shape == (16, 10), f"Final output: {x.shape}"
+    assert x.shape == (4, 10), f"Final output: {x.shape}"
 
 
 if __name__ == "__main__":

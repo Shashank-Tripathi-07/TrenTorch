@@ -258,12 +258,18 @@ def test_mlp_forward():
 
 
 def test_cnn_forward():
-    """Test Convolutional Neural Network."""
+    """Test Convolutional Neural Network.
+
+    Only shape flow through the network is under test, which doesn't
+    change with batch/spatial size, so this uses a small stand-in for a
+    real MNIST batch. The naive Conv2d loop implementation made the
+    original (16, 1, 28, 28) size take ~17s here alone.
+    """
     class CNN:
         def __init__(self):
             self.conv1 = Conv2d(1, 32, 3)
             self.conv2 = Conv2d(32, 64, 3)
-            self.fc1 = Linear(64 * 5 * 5, 128)
+            self.fc1 = Linear(64 * 2 * 2, 128)
             self.fc2 = Linear(128, 10)
 
         def forward(self, x):
@@ -276,9 +282,9 @@ def test_cnn_forward():
             return self.fc2(x)
 
     model = CNN()
-    x = Tensor(rng.standard_normal((16, 1, 28, 28)))  # MNIST batch
+    x = Tensor(rng.standard_normal((2, 1, 14, 14)))  # MNIST-shaped, small
     y = model.forward(x)
-    assert y.shape == (16, 10)
+    assert y.shape == (2, 10)
 
 
 def test_transformer_forward():
@@ -309,7 +315,15 @@ def test_transformer_forward():
 
 
 def test_residual_block_forward():
-    """Test Residual Block (ResNet-style)."""
+    """Test Residual Block (ResNet-style).
+
+    Only shape preservation through the block is under test, which
+    doesn't depend on channel/spatial size, so this uses a small
+    stand-in for a real ResNet block width. The naive Conv2d loop
+    implementation (cost scales with channels squared here, since a
+    residual block's convs are channels-to-channels) made the original
+    64-channel size take ~16s here alone.
+    """
     class ResidualBlock:
         def __init__(self, channels):
             self.conv1 = Conv2d(channels, channels, 3, padding=1)
@@ -322,8 +336,8 @@ def test_residual_block_forward():
             out = out + identity  # Residual connection
             return F.relu(out)
 
-    block = ResidualBlock(64)
-    x = Tensor(rng.standard_normal((2, 64, 16, 16)))
+    block = ResidualBlock(16)
+    x = Tensor(rng.standard_normal((2, 16, 8, 8)))
     y = block.forward(x)
     assert y.shape == x.shape
 
