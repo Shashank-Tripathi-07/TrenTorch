@@ -321,10 +321,19 @@ class DevTestCommand(BaseCommand):
                 self.console.print(f"    [dim red]{result.message}[/dim red]")
 
     def _check_imports(self, project_root: Path) -> bool:
-        """Quick check if package is already built."""
+        """Quick check if package is already built.
+
+        trentorch/ lives at data/trentorch/, not the repo root, and CI
+        never runs an editable `pip install -e .` (see bin/tren and
+        conftest.py's own data/ sys.path entries for why that's normally
+        not needed). A bare `-c "from trentorch import ..."` subprocess
+        has no way to find it without that install, so it must add
+        data/ to sys.path itself first.
+        """
         try:
             result = subprocess.run(
                 [sys.executable, "-c",
+                 "import sys; sys.path.insert(0, 'data'); "
                  "from trentorch import Tensor; assert Tensor is not None"],
                 cwd=project_root,
                 capture_output=True,
@@ -801,10 +810,21 @@ class DevTestCommand(BaseCommand):
             )
 
     def _run_unit_tests(self, project_root: Path, module: Optional[str], verbose: bool, ci_mode: bool = False) -> TestResult:
-        """Run unit tests."""
+        """Run unit tests.
+
+        Per-module unit tests live at data/src/<NN_name>/tests/, moved
+        there from tests/<NN_name>/ in the vertical-slice restructuring
+        so one module's code and its tests sit together. This used to
+        target the old tests/ location, which silently collected zero
+        module unit tests after that move (pytest doesn't error on an
+        empty match under a valid parent directory, it just reports
+        nothing to run) -- CI's "Unit Tests" stage kept passing while
+        actually running only the handful of tests still loose at the
+        tests/ root, not the ~570 real per-module tests.
+        """
         if module:
             module_num = module.zfill(2)
-            test_dirs = list((project_root / "tests").glob(f"{module_num}_*"))
+            test_dirs = list((project_root / "data" / "src").glob(f"{module_num}_*"))
             if not test_dirs:
                 return TestResult(
                     name=f"Unit tests (module {module_num})",
@@ -815,19 +835,25 @@ class DevTestCommand(BaseCommand):
             test_path = str(test_dirs[0].relative_to(project_root))
             name = f"Unit tests (module {module_num})"
         else:
-            test_path = "tests"
+            test_path = "data/src"
             name = "Unit tests"
 
         return self._run_pytest(
             project_root, test_path, name, verbose,
-            extra_args=["--ignore=tests/e2e/", "--ignore=tests/integration/", "--ignore=tests/cli/", "-m", "not slow"],
+            extra_args=["-m", "not slow"],
             ci_mode=ci_mode
         )
 
     def _run_cli_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False, parallel: bool = False) -> TestResult:
-        """Run CLI tests."""
+        """Run CLI tests.
+
+        Moved to platforms/cli/tests/ in the vertical-slice restructuring
+        (from tests/cli/). Same silent-empty-collection gap as
+        _run_unit_tests above: this reported "0 tests, passed" instead of
+        actually running the CLI suite until fixed.
+        """
         extra_args = ["-n", "auto"] if parallel else None
-        return self._run_pytest(project_root, "tests/cli", "CLI tests", verbose, timeout=120, extra_args=extra_args, ci_mode=ci_mode)
+        return self._run_pytest(project_root, "platforms/cli/tests", "CLI tests", verbose, timeout=120, extra_args=extra_args, ci_mode=ci_mode)
 
     def _run_integration_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:
         """Run integration tests.
@@ -852,13 +878,16 @@ class DevTestCommand(BaseCommand):
         )
 
     def _run_milestone_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:
-        """Run milestone tests from tests/milestones/ directory.
+        """Run milestone tests from data/milestones/tests/.
 
         These are pytest-based tests that verify milestone scripts execute correctly.
         Requires the package to be fully exported with all modules completed.
+
+        Moved to data/milestones/tests/ in the vertical-slice restructuring
+        (from tests/milestones/).
         """
         return self._run_pytest(
-            project_root, "tests/milestones", "Milestone tests", verbose,
+            project_root, "data/milestones/tests", "Milestone tests", verbose,
             timeout=900, extra_args=["-m", "slow or not slow"], ci_mode=ci_mode  # 15 min, run all including slow tests
         )
 

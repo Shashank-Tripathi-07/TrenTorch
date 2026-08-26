@@ -130,6 +130,6 @@ jobs:
         with:
           name: built-package-${{ matrix.os }}
           path: |
-            trentorch/
-            modules/
+            data/trentorch/
+            data/modules/
           retention-days: 1

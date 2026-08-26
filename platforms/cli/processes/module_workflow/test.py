@@ -14,7 +14,7 @@ TESTING PHILOSOPHY:
 ==================
 When a student runs `tito module test 05`, we want them to understand:
 1. Does my implementation work? (Inline tests)
-2. Does it handle edge cases? (Module tests with --tinytorch)
+2. Does it handle edge cases? (Module tests with --trentorch)
 3. Does it integrate correctly with previous modules? (Integration tests)
 
 Each phase builds confidence and understanding.
@@ -137,23 +137,25 @@ class ModuleTestCommand(BaseCommand):
         """
         Phase 2: Run pytest on module-specific tests with educational output.
 
-        These tests use the --tinytorch flag to provide WHAT/WHY context
+        These tests use the --trentorch flag to provide WHAT/WHY context
         for each test, helping students understand what's being checked.
         """
         console = self.console
-        tests_dir = self.config.project_root / "tests" / module_name
+        # Moved to data/src/<module_name>/tests/ in the vertical-slice
+        # restructuring (from tests/<module_name>/).
+        tests_dir = self.config.project_root / "data" / "src" / module_name / "tests"
 
         if not tests_dir.exists():
             # No module-specific tests - that's OK
             return True, "No module-specific tests found"
 
         try:
-            # Run pytest with --tinytorch for educational output
+            # Run pytest with --trentorch for educational output
             # Use --no-cov to avoid root pyproject.toml coverage requirements
             cmd = [
                 sys.executable, "-m", "pytest",
                 str(tests_dir),
-                "--tinytorch",
+                "--trentorch",
                 "-v" if verbose else "-q",
                 "--tb=short",
                 "--no-cov",
@@ -257,7 +259,7 @@ class ModuleTestCommand(BaseCommand):
             cmd = [
                 sys.executable, "-m", "pytest",
                 *relevant_tests,
-                "--tinytorch",
+                "--trentorch",
                 "-v" if verbose else "-q",
                 "--tb=short",
                 "--no-cov",

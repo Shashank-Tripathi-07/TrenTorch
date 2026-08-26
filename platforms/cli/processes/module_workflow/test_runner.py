@@ -182,7 +182,9 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> D
     # test_<topic>_integration.py naming with no "_progressive" in the name at
     # all, so if neither of the above match anything, fall back further to
     # every test_*.py file in the module's test directory.
-    module_test_dir = project_root / "tests" / module_name
+    # Moved to data/src/<module_name>/tests/ in the vertical-slice
+    # restructuring (from tests/<module_name>/).
+    module_test_dir = project_root / "data" / "src" / module_name / "tests"
     integration_test_targets = []
     primary_test_file = module_test_dir / f"test_{module_name}_progressive.py"
     if primary_test_file.exists():

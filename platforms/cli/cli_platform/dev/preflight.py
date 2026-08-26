@@ -427,10 +427,15 @@ class PreflightCommand(BaseCommand):
         if verbose:
             self.console.print(f"\n[bold]📦 Package Imports[/bold]")
 
+        # trentorch/ lives at data/trentorch/, not the repo root, so a bare
+        # subprocess -c import needs data/ on sys.path first (bin/tren and
+        # conftest.py add this for in-process code; a fresh subprocess here
+        # doesn't inherit it without an editable install, which CI doesn't do).
+        _path_setup = "import sys; sys.path.insert(0, 'data'); "
         imports = [
-            ("import trentorch", "trentorch package"),
+            (_path_setup + "import trentorch", "trentorch package"),
             # Check Tensor is actually available (not None from failed import)
-            ("from trentorch import Tensor; assert Tensor is not None, 'Tensor not exported - run: tren dev export --all'", "Tensor class"),
+            (_path_setup + "from trentorch import Tensor; assert Tensor is not None, 'Tensor not exported - run: tren dev export --all'", "Tensor class"),
             ("from platforms.cli.main import TrenTorchCLI", "CLI class"),
         ]
 
