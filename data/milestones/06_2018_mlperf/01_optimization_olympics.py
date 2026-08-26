@@ -96,6 +96,7 @@ from pathlib import Path
 
 # Add project root
 sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
 
 from rich.console import Console
 from rich.panel import Panel

@@ -83,6 +83,7 @@ from rich import box
 
 # Add project root to path
 sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
 
 # Import TrenTorch components YOU BUILT!
 # Only needs Modules 01-03 (no training required)

@@ -142,14 +142,14 @@ class TestQuickVerification:
     def test_trentorch_package_importable(self):
         """TrenTorch package can be imported."""
         code, stdout, stderr = subprocess.run(
-            [sys.executable, "-c", "import trentorch; print('OK')"],
+            [sys.executable, "-c", "import sys; sys.path.insert(0, 'data'); import trentorch; print('OK')"],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True
         ).returncode, "", ""
 
         result = subprocess.run(
-            [sys.executable, "-c", "import trentorch; print('OK')"],
+            [sys.executable, "-c", "import sys; sys.path.insert(0, 'data'); import trentorch; print('OK')"],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True
