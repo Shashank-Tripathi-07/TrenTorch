@@ -341,7 +341,11 @@ def test_unit_cosine_schedule():
     print("✅ CosineSchedule works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_cosine_schedule()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_cosine_schedule: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
@@ -541,7 +545,11 @@ def test_unit_clip_grad_norm():
     print("✅ Gradient clipping works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_clip_grad_norm()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_clip_grad_norm: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
@@ -822,7 +830,11 @@ def test_unit_trainer_init():
     print("✅ Trainer.__init__ works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_trainer_init()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_trainer_init: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
@@ -1130,7 +1142,11 @@ def test_unit_trainer_process_batch():
     print("✅ Trainer._process_batch works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_trainer_process_batch()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_trainer_process_batch: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
@@ -1179,7 +1195,11 @@ def test_unit_trainer_optimizer_update():
     print("✅ Trainer._optimizer_update works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_trainer_optimizer_update()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_trainer_optimizer_update: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
@@ -1258,7 +1278,11 @@ def test_unit_trainer_train_epoch():
     print("✅ Trainer.train_epoch works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_trainer_train_epoch()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_trainer_train_epoch: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
@@ -1468,7 +1492,11 @@ def test_unit_trainer_evaluate():
     print("✅ Trainer.evaluate works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_trainer_evaluate()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_trainer_evaluate: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
@@ -1624,7 +1652,11 @@ def test_unit_trainer_save_checkpoint():
     print("✅ Trainer.save_checkpoint works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_trainer_save_checkpoint()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_trainer_save_checkpoint: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
@@ -1789,7 +1821,11 @@ def test_unit_trainer_load_checkpoint():
     print("✅ Trainer.load_checkpoint works correctly!")
 
 if __name__ == "__main__":
+    import time as _time
+    _t0 = _time.time()
     test_unit_trainer_load_checkpoint()
+    if os.environ.get("TREN_PROFILE") == "1":
+        print(f"[TREN_PROFILE] test_unit_trainer_load_checkpoint: {_time.time()-_t0:.2f}s")
 
 # %% [markdown]
 """
