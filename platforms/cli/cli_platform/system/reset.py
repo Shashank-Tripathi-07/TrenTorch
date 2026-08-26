@@ -110,7 +110,7 @@ class SystemResetCommand(BaseCommand):
                         py_file.unlink()
                         core_cleared += 1
                     except Exception as e:
-                        errors.append(f"trentorch/core/{py_file.name}: {e}")
+                        errors.append(f"data/trentorch/core/{py_file.name}: {e}")
 
         # 3. Reset progress (unless --keep-progress)
         progress_reset = False

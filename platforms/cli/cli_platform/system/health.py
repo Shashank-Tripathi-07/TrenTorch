@@ -139,15 +139,15 @@ class HealthCommand(BaseCommand):
             nb_table.add_row(
                 "Core module files",
                 "[green]✅ OK[/green]",
-                f"{len(list(core_dir.glob('*.py')))} files in trentorch/core/"
+                f"{len(list(core_dir.glob('*.py')))} files in data/trentorch/core/"
             )
         else:
             nb_table.add_row(
                 "Core module files",
                 "[red]❌ Missing[/red]",
-                "trentorch/core/tensor.py not found"
+                "data/trentorch/core/tensor.py not found"
             )
-            issues.append("trentorch/core/tensor.py missing — package may be corrupted")
+            issues.append("data/trentorch/core/tensor.py missing — package may be corrupted")
 
         # 3. Can the Tensor class actually be imported?
         try:
@@ -225,9 +225,9 @@ class HealthCommand(BaseCommand):
         struct_table.add_column("Type", style="dim", width=25)
 
         required_paths = [
-            ('src/', 'Source modules directory (student workspace)'),
-            ('tests/', 'Test suite directory'),
-            ('tren/', 'CLI infrastructure'),
+            ('data/src/', 'Source modules directory (student workspace)'),
+            ('tests/', 'Cross-cutting test suites'),
+            ('platforms/cli/', 'CLI infrastructure'),
             ('requirements.txt', 'Dependencies file')
         ]
 

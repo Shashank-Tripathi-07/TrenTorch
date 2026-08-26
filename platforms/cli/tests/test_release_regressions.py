@@ -75,8 +75,8 @@ def test_module_workflow_reports_default_exp_export_paths(monkeypatch):
     monkeypatch.chdir(TRENTORCH_ROOT)
     command = ModuleWorkflowCommand(CLIConfig.from_project_root(TRENTORCH_ROOT))
 
-    assert command._get_export_path_for_module("19_benchmarking") == "trentorch/perf/benchmarking.py"
-    assert command._get_export_path_for_module("20_capstone") == "trentorch/olympics.py"
+    assert command._get_export_path_for_module("19_benchmarking") == "data/trentorch/perf/benchmarking.py"
+    assert command._get_export_path_for_module("20_capstone") == "data/trentorch/olympics.py"
 
 
 def test_module_next_steps_use_start_subcommand():

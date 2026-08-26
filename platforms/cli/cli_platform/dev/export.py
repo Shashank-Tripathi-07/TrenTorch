@@ -107,9 +107,9 @@ class DevExportCommand(BaseCommand):
             console.print(Panel(
                 "[red]❌ Must run from TrenTorch project directory[/red]\n\n"
                 "[dim]Expected structure:[/dim]\n"
-                "[dim]  trentorch/          ← run from here[/dim]\n"
-                "[dim]  ├── src/[/dim]\n"
-                "[dim]  ├── trentorch/      ← package exports here[/dim]\n"
+                "[dim]  <repo root>/        ← run from here[/dim]\n"
+                "[dim]  ├── data/src/[/dim]\n"
+                "[dim]  ├── data/trentorch/ ← package exports here[/dim]\n"
                 "[dim]  │   └── __init__.py[/dim]\n"
                 "[dim]  └── pyproject.toml[/dim]",
                 title="Wrong Directory", border_style="red"
@@ -162,7 +162,7 @@ class DevExportCommand(BaseCommand):
 
             if not module_path.exists():
                 console.print(Panel(
-                    f"[red]❌ Module '{module_name}' not found in src/[/red]",
+                    f"[red]❌ Module '{module_name}' not found in data/src/[/red]",
                     title="Module Not Found", border_style="red"
                 ))
                 self._show_available_modules(console)
@@ -213,7 +213,7 @@ class DevExportCommand(BaseCommand):
         console.print(f"✅ Converted {len(converted_stub)} modules to data/modules/ (stub) and {len(converted_solution)} to data/solutions/ (reference)")
 
         # Step 2: Export all using nbdev Python API, from the solution
-        # (ground-truth) notebooks -- trentorch/ must always reflect
+        # (ground-truth) notebooks -- data/trentorch/ must always reflect
         # fully-working code, independent of any student's stub progress.
         console.print("🔄 Exporting all notebooks to trentorch package (from data/solutions/)...")
         try:
@@ -277,9 +277,9 @@ class DevExportCommand(BaseCommand):
                 export_target = self._get_export_target(module_path)
                 notebook_name = notebook_path.name
                 target_display = (
-                    f"trentorch/{export_target.replace('.', '/')}.py"
+                    f"data/trentorch/{export_target.replace('.', '/')}.py"
                     if export_target != "unknown"
-                    else "trentorch/..."
+                    else "data/trentorch/..."
                 )
                 console.print(f"[dim]🔄 Exporting {notebook_name} → {target_display}[/dim]")
 

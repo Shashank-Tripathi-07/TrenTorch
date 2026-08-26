@@ -49,7 +49,7 @@ class CLIConfig:
     assignments_dir: Path
     trentorch_dir: Path
     bin_dir: Path
-    modules_dir: Path  # Student working directory (src/)
+    modules_dir: Path  # Student working directory (data/src/)
 
     # Environment settings
     python_min_version: tuple = (3, 8)
@@ -111,7 +111,7 @@ class CLIConfig:
         if not in_venv:
             issues.append(f"Virtual environment not activated. Run: source {venv_path}/bin/activate")
 
-        # Check required directories (modules_dir is 'src/' where students work)
+        # Check required directories (modules_dir is 'data/src/' where students work)
         if not self.modules_dir.exists():
             issues.append(f"Modules directory not found: {self.modules_dir}")
 

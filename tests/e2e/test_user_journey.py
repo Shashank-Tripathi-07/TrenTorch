@@ -412,7 +412,7 @@ class TestInstallationPaths:
     def test_src_directory_exists(self):
         """Source directory for development exists."""
         src_dir = PROJECT_ROOT / "data" / "src"
-        assert src_dir.exists(), "src/ directory missing"
+        assert src_dir.exists(), "data/src/ directory missing"
 
     @pytest.mark.quick
     def test_pyproject_exists(self):

@@ -1023,7 +1023,7 @@ class DevTestCommand(BaseCommand):
             reset_ok = reset_result.returncode == 0 and modules_cleared and core_cleared and progress_cleared
             if ci_mode:
                 if reset_ok:
-                    print("  ✓ Reset verified: modules/, trentorch/core/, and progress all cleared")
+                    print("  ✓ Reset verified: data/modules/, data/trentorch/core/, and progress all cleared")
                 else:
                     print("  ✗ Reset verification FAILED")
                     print(f"      exit code: {reset_result.returncode}")

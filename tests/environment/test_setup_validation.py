@@ -239,16 +239,16 @@ class TestProjectStructure:
         print(f"✅ Project root: {project_root}")
 
     def test_trentorch_package_directory(self):
-        """trentorch/ package directory must exist."""
+        """data/trentorch/ package directory must exist."""
         trentorch_dir = Path("data") / "trentorch"
-        assert trentorch_dir.exists(), "trentorch/ directory not found"
-        assert trentorch_dir.is_dir(), "trentorch/ is not a directory"
+        assert trentorch_dir.exists(), "data/trentorch/ directory not found"
+        assert trentorch_dir.is_dir(), "data/trentorch/ is not a directory"
         print(f"✅ Package directory: {trentorch_dir.absolute()}")
 
     def test_trentorch_init_file(self):
-        """trentorch/__init__.py must exist."""
+        """data/trentorch/__init__.py must exist."""
         init_file = Path("data") / "trentorch" / "__init__.py"
-        assert init_file.exists(), "trentorch/__init__.py not found"
+        assert init_file.exists(), "data/trentorch/__init__.py not found"
         print(f"✅ Package init: {init_file.absolute()}")
 
     def test_modules_directory(self):

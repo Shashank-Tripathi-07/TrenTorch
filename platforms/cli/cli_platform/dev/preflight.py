@@ -276,13 +276,13 @@ class PreflightCommand(BaseCommand):
             ("data/modules/", "Module notebooks directory"),
             ("data/src/", "Source files directory"),
             ("data/milestones/", "Milestone scripts"),
-            ("tests/", "Test directory"),
-            ("tren/", "CLI directory"),
+            ("tests/", "Cross-cutting test suites (e2e/integration/environment/regression)"),
+            ("platforms/cli/", "CLI directory"),
         ]
 
         # Optional directories (generated, not in git)
         optional_dirs = [
-            ("trentorch/", "Package directory (run 'tren dev export --all' to generate)"),
+            ("data/trentorch/", "Package directory (run 'tren dev export --all' to generate)"),
         ]
 
         for dir_path, desc in required_dirs:

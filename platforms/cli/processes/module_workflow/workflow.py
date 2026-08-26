@@ -503,10 +503,10 @@ class ModuleWorkflowCommand(BaseCommand):
         module_path = Path("data") / "modules" / module_name
         export_target = get_export_target(module_path)
         if export_target != "unknown":
-            return f"trentorch/{export_target.replace('.', '/')}.py"
+            return f"data/trentorch/{export_target.replace('.', '/')}.py"
 
         short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-        return f"trentorch/core/{short_name}.py"
+        return f"data/trentorch/core/{short_name}.py"
 
     def _get_primary_export_label(self, module_name: str) -> str:
         """Return a concise user-facing label for the module's exported API."""
@@ -651,7 +651,7 @@ class ModuleWorkflowCommand(BaseCommand):
                 export_path = self._get_export_path_for_module(module_name)
                 export_label = self._get_primary_export_label(module_name)
                 self.console.print(f"   ✅ Exported: {export_path}")
-                self.console.print(f"   ✅ Updated: trentorch/__init__.py")
+                self.console.print(f"   ✅ Updated: data/trentorch/__init__.py")
                 self.console.print()
                 self.console.print(f"   [dim]Your {export_label} implementation is now part of the framework![/dim]")
 
@@ -894,9 +894,9 @@ class ModuleWorkflowCommand(BaseCommand):
             from nbdev.export import nb_export
 
             target_display = (
-                f"trentorch/{export_target.replace('.', '/')}.py"
+                f"data/trentorch/{export_target.replace('.', '/')}.py"
                 if export_target != "unknown"
-                else "trentorch/..."
+                else "data/trentorch/..."
             )
             self.console.print(f"[dim]📦 Exporting {notebook_path.name} → {target_display}[/dim]")
 

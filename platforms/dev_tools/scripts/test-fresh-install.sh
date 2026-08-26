@@ -97,7 +97,7 @@ tren --version
 # Step 3: Verify datasets are real files (not LFS pointers)
 echo ""
 echo "▶ Step 3: Checking dataset files..."
-TRAIN_PKL="datasets/tinydigits/train.pkl"
+TRAIN_PKL="data/datasets/tinydigits/train.pkl"
 if [ -f "$TRAIN_PKL" ]; then
     # Check first bytes - pickle files start with 0x80, LFS pointers start with "version"
     FIRST_CHAR=$(head -c 1 "$TRAIN_PKL" | xxd -p)
@@ -118,7 +118,7 @@ echo ""
 echo "▶ Step 4: Testing dataset loading..."
 python3 -c "
 import pickle
-with open('datasets/tinydigits/train.pkl', 'rb') as f:
+with open('data/datasets/tinydigits/train.pkl', 'rb') as f:
     data = pickle.load(f)
 print(f'✓ Loaded {len(data[\"images\"])} training images')
 "

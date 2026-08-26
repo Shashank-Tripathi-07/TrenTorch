@@ -32,7 +32,7 @@ on:
         type: string
         default: 'true'
       upload_package:
-        description: 'Whether to upload trentorch/ and modules/ as the built-package artifact after'
+        description: 'Whether to upload data/trentorch/ and data/modules/ as the built-package artifact after'
         required: false
         type: string
         default: 'false'
