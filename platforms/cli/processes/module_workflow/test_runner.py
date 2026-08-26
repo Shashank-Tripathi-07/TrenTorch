@@ -119,9 +119,6 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> D
     if path_was_added:
         sys.path.insert(0, project_root_str)
 
-    if os.environ.get("TREN_DIAG") == "1":
-        print(f"[DIAG] module={module_name} run_target={run_target} CI={os.environ.get('CI')!r}")
-
     stdout_buffer = io.StringIO()
     stderr_buffer = io.StringIO()
     returncode = 0

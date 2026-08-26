@@ -731,7 +731,19 @@ class ModuleWorkflowCommand(BaseCommand):
             ))
 
         # Step 5: Check for milestone unlocks
-        if success:
+        #
+        # Skipped during the maintainer verify-solution loop (Stage 1's
+        # progressive curriculum check): completing module 08 or 09
+        # there crosses milestone 03's or 04's required_modules
+        # threshold every single time, auto-running a real milestone
+        # (real training, minutes of wall time) as an unintended side
+        # effect of testing curriculum correctness. That's not what
+        # this loop is for; milestone behavior itself is covered
+        # separately and deliberately by Stage 7. A real student
+        # completing modules for real still gets the intended
+        # auto-unlock experience unchanged.
+        from .test_runner import VERIFY_SOLUTION_ENV
+        if success and os.environ.get(VERIFY_SOLUTION_ENV) != "1":
             check_and_run_milestone_unlocks(self.config, self.console)
 
         return 0 if success else 1
