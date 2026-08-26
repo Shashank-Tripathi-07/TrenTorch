@@ -52,6 +52,7 @@ env:
   TRENTORCH_QUIET: "1"
   PYTHONIOENCODING: "utf-8"  # Required for Windows emoji support in Rich
   PYTHONUTF8: "1"            # Force UTF-8 for all Python I/O (subprocess pipes)
+  TREN_DIAG: "1"              # TEMPORARY: diagnosing why module 09's CI fix isn't taking effect
 
 jobs:
   run:
