@@ -14,12 +14,6 @@ from pathlib import Path
 from typing import List
 
 from platforms.cli.commands.base import BaseCommand
-from trentorch.export_sanitizer import (
-    to_qmd,
-    to_ipynb,
-    to_sandbox_code,
-    to_platform_yaml,
-)
 
 
 class ConvertCommand(BaseCommand):
@@ -57,6 +51,13 @@ class ConvertCommand(BaseCommand):
         )
 
     def run(self, args: Namespace) -> int:
+        from trentorch.export_sanitizer import (
+            to_qmd,
+            to_ipynb,
+            to_sandbox_code,
+            to_platform_yaml,
+        )
+
         project_root = self.config.project_root
         src_dir = project_root / "data" / "src"
         console = self.console

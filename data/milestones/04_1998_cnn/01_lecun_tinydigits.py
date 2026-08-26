@@ -390,7 +390,11 @@ def train_cnn():
 
     # Hyperparameters
     console.print("\n[bold]⚙️  Training Configuration:[/bold]")
-    epochs = 50
+    # Under CI (tren dev test --user-journey), only pass/fail matters, not a
+    # convincing convergence curve for a human to watch -- 50 epochs of this
+    # naive-loop Conv2d took 164s here alone, the single biggest cost in
+    # that whole CI stage.
+    epochs = 5 if os.environ.get("CI") == "true" else 50
     batch_size = 32
     learning_rate = 0.01
 

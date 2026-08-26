@@ -10,7 +10,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-import yaml
 from rich import box
 from rich.panel import Panel
 
@@ -97,6 +96,8 @@ class MilestoneSystem:
 
     def _load_milestones_config(self) -> dict:
         """Load milestone configuration from YAML files (main and era-specific)."""
+        import yaml
+
         config_path = Path("data") / "milestones" / "milestones.yml"
         milestones = {}
 

@@ -11,8 +11,6 @@ from argparse import ArgumentParser, Namespace
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
-import numpy as np
-rng = np.random.default_rng(7)
 
 from rich.panel import Panel
 from rich.table import Table
@@ -404,6 +402,8 @@ class BenchmarkCommand(BaseCommand):
     def _benchmark_tensor_ops(self) -> float:
         """Benchmark basic tensor operations."""
         import time
+        import numpy as np
+        rng = np.random.default_rng(7)
 
         # Create tensors
         a = rng.standard_normal((100, 100)).astype(np.float32)
@@ -427,6 +427,8 @@ class BenchmarkCommand(BaseCommand):
     def _benchmark_matmul(self) -> float:
         """Benchmark matrix multiplication."""
         import time
+        import numpy as np
+        rng = np.random.default_rng(7)
 
         a = rng.standard_normal((100, 100)).astype(np.float32)
         b = rng.standard_normal((100, 100)).astype(np.float32)
@@ -446,6 +448,8 @@ class BenchmarkCommand(BaseCommand):
     def _benchmark_forward_pass(self) -> float:
         """Benchmark simple forward pass simulation."""
         import time
+        import numpy as np
+        rng = np.random.default_rng(7)
 
         # Simulate a simple forward pass
         x = rng.standard_normal((1, 784)).astype(np.float32)
