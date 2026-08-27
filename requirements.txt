@@ -42,7 +42,7 @@ jupyter>=1.1.1
 jupyterlab>=4.5.7
 notebook>=7.0.0
 ipykernel>=7.2.0
-nbdev>=3.0.15,<3.0.16
+nbdev>=3.0.15,<3.3.13
 # Code quality tools
 # black>=24.0.0
 # mypy>=1.11.0
