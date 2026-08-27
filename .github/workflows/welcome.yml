@@ -19,6 +19,11 @@ permissions:
 jobs:
   welcome:
     runs-on: ubuntu-latest
+    # Skip bot-authored issues/PRs (Dependabot, this repo's own
+    # update-contributors bot, etc.): first-interaction errors on bot
+    # accounts rather than greeting them, and a "thanks for contributing"
+    # message doesn't mean anything for automated dependency bumps anyway.
+    if: github.event.sender.type != 'Bot'
     steps:
       - uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
         with:
