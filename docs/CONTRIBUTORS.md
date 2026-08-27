@@ -30,7 +30,7 @@ Thanks to everyone who's helped build TrenTorch. Kept up to date automatically â
         <br />
         <sub>IIT Guwahati. Shows up, ships, moves on to the next thing.</sub>
         <br />
-        <sub>Issues: 0 &middot; PRs: 2 &middot; Merged: 2</sub>
+        <sub>Issues: 0 &middot; PRs: 5 &middot; Merged: 2</sub>
       </td>
     </tr>
   </tbody>
