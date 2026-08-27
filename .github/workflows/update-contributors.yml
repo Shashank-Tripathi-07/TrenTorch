@@ -25,6 +25,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # This workflow only ever reads/writes docs/CONTRIBUTORS.md and
+          # README.md based on live API stats, never a PR's own file
+          # changes. Explicitly pinning main matters because the default
+          # ref for a pull_request event (including Dependabot's own PRs)
+          # is refs/pull/N/merge, that PR's content merged into main, not
+          # main itself -- without this, the branch this job creates
+          # silently bundled whatever the triggering PR changed alongside
+          # the contributors update.
+          ref: main
 
       - name: Run update script
         id: update
