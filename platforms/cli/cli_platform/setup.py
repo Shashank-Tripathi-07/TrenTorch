@@ -187,12 +187,10 @@ class SetupCommand(BaseCommand):
                         self.console.print(f"[red]Error installing {pkg_spec}: {e}[/red]")
                         return False
 
-        # Install Tiny🔥Torch in development mode
         # On Windows, 'pip install -e .' fails with WinError 32 (file lock) when
-        # tito.exe is already running. Skip reinstall if already installed.
-        # Contributed by @adil-mubashir-ch (PR #1169)
+        # tren.exe is already running, so skip reinstall if already installed.
         is_windows = platform.system() == "Windows"
-        if is_windows and self._check_package_installed("tinytorch"):
+        if is_windows and self._check_package_installed("trentorch"):
             self.console.print(
                 "[green]✅ Tiny🔥Torch already installed (skipping reinstall on Windows)[/green]"
             )

@@ -179,13 +179,9 @@ class DevTestCommand(BaseCommand):
 
         results: list[TestResult] = []
 
-        # =====================================================================
-        # Step 1: Build Package (unless --no-build, release, or inline mode)
-        # =====================================================================
-        # Skip build for:
-        # - --no-build: User explicitly skips
-        # - --release: Will reset and rebuild each module
-        # - --inline: Will test and export each module progressively
+        # Step 1: build the package, unless --no-build (explicit skip),
+        # --release (resets and rebuilds each module), or --inline (tests
+        # and exports each module progressively instead).
         if not args.no_build and not run_user_journey and not run_inline:
             if not args.ci:
                 console.print("[bold]Step 1: Build Package[/bold]")
@@ -981,11 +977,9 @@ class DevTestCommand(BaseCommand):
                     encoding="utf-8",
                     errors="replace",
                     cwd=project_root,
-                    timeout=900,  # 15 min: CNN Revolution (milestone 04) alone
-                    # genuinely takes ~7.5 min end to end on a
-                    # typical CI runner, real training work, not
-                    # a hang. 300s was too tight and failed every
-                    # run regardless of correctness.
+                    # 15 min: milestone 04 alone takes ~7.5 min on a typical CI
+                    # runner (real training, not a hang) -- 300s failed every run.
+                    timeout=900,
                 )
                 milestone_duration = time.time() - milestone_start
                 if result.returncode == 0:

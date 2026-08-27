@@ -251,12 +251,9 @@ class BenchmarkCommand(BaseCommand):
             )
             return 1
 
-        # Check if Module 20 competition code is available. `tito module
-        # complete 20` exports the capstone notebook to tinytorch/olympics.py
-        # (see tito/commands/module/workflow.py's export path mapping), not
-        # tinytorch/competition/submit.py -- that module has never existed,
-        # so this check previously always failed and reported "Module 20 not
-        # complete" even for students who genuinely finished it.
+        # Module 20 exports to trentorch/olympics.py, not a
+        # trentorch/competition/submit.py that never existed -- check the
+        # real export target, not the wrong module that always failed.
         try:
             from trentorch.olympics import generate_submission  # noqa: F401 -- import-success check
         except ImportError:
@@ -610,22 +607,5 @@ class BenchmarkCommand(BaseCommand):
 
         api_url = config.get("website", {}).get("api_url")
         if api_url:
-            # TODO: Implement API call when website is ready
-            # Example:
-            # import requests
-            # try:
-            #     response = requests.post(
-            #         f"{api_url}/api/benchmarks/submit",
-            #         json=submission,
-            #         timeout=30,  # 30 second timeout for benchmark submissions
-            #         headers={"Content-Type": "application/json"}
-            #     )
-            #     response.raise_for_status()
-            #     self.console.print("[green]✅ Submitted to community leaderboard![/green]")
-            # except requests.Timeout:
-            #     self.console.print("[yellow]⚠️  Submission timed out. Saved locally.[/yellow]")
-            #     self.console.print("[dim]You can submit later or try again.[/dim]")
-            # except requests.RequestException as e:
-            #     self.console.print(f"[yellow]⚠️  Could not submit to website: {e}[/yellow]")
-            #     self.console.print("[dim]Your submission is saved locally and can be submitted later.[/dim]")
+            # TODO: POST submission to {api_url}/api/benchmarks/submit once the website exists.
             pass

@@ -166,16 +166,9 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> d
     """Run progressive integration tests using pytest."""
     project_root = Path.cwd()
 
-    # Find integration test file(s). Most modules are named
-    # tests/<module>/test_<module>_progressive.py (e.g. test_01_tensor_progressive.py),
-    # so match that first and fall back to any test_*_progressive.py in the dir.
-    # Some modules (e.g. 15_quantization, 16_compression, 17_acceleration,
-    # 19_benchmarking, 20_capstone) instead use test_<topic>_core.py /
-    # test_<topic>_integration.py naming with no "_progressive" in the name at
-    # all, so if neither of the above match anything, fall back further to
-    # every test_*.py file in the module's test directory.
-    # Moved to data/src/<module_name>/tests/ in the vertical-slice
-    # restructuring (from tests/<module_name>/).
+    # Most modules use test_<module>_progressive.py; a few (15/16/17/19/20)
+    # use test_<topic>_core.py / test_<topic>_integration.py instead, so fall
+    # back to any test_*_progressive.py, then any test_*.py in the dir.
     module_test_dir = project_root / "data" / "src" / module_name / "tests"
     integration_test_targets = []
     primary_test_file = module_test_dir / f"test_{module_name}_progressive.py"
@@ -217,18 +210,11 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> d
     tests_run = _parse_pytest_output(result.stdout, result.stderr)
 
     if not tests_run and result.returncode != 0:
-        # pytest itself errored (e.g. a collection-time import failure in
-        # the exported package) rather than legitimately having zero
-        # tests. Surface this as a failure instead of silently reporting
-        # "no integration tests for this module" -- except for two cases
-        # that are not real collection failures:
-        #   - exit code 5: pytest's own "no tests collected" signal
-        #   - exit code 4: a pytest.UsageError, which conftest.py raises
-        #     from _validate_package_exported() when core modules that
-        #     come *later* in the build order haven't been exported yet.
-        #     That check is unconditional (it requires every core file to
-        #     exist, not just the one under test), so it legitimately
-        #     trips for early modules during a progressive build.
+        # pytest itself errored (e.g. a collection-time import failure) rather
+        # than legitimately having zero tests, except two non-failure cases:
+        # exit 5 (pytest's "no tests collected") and exit 4 with the export
+        # gate message (conftest.py's unconditional check trips for early
+        # modules mid progressive-build, before later core files exist yet).
         error_msg = (result.stderr or result.stdout).strip()
         is_no_tests_collected = result.returncode == 5
         is_progressive_export_gate = result.returncode == 4 and "TINYTORCH PACKAGE NOT EXPORTED" in error_msg

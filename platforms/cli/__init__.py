@@ -9,14 +9,9 @@ import sys as _sys
 from pathlib import Path as _Path
 
 # trentorch/ lives at data/trentorch/, not the repo root. bin/tren and
-# conftest.py both add data/ to sys.path for their own entry points, but
-# anything that imports platforms.cli directly (e.g. `python -m
-# platforms.cli.main`, which the CLI test suite spawns as a subprocess)
-# bypasses both of those and has no other way to resolve `import
-# trentorch`. This package is the one thing every such invocation must
-# import before running any of its code, so fixing sys.path here -- once,
-# at the root of the package -- covers every entry point at once instead
-# of requiring each one to remember to do it itself.
+# conftest.py both add data/ to sys.path already, but anything importing
+# platforms.cli directly (e.g. as a subprocess) bypasses both, so this
+# package -- imported by every such invocation -- fixes it here once.
 _data_dir = str(_Path(__file__).resolve().parent.parent.parent / "data")
 if _data_dir not in _sys.path:
     _sys.path.insert(0, _data_dir)

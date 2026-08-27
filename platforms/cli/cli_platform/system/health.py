@@ -223,11 +223,8 @@ class HealthCommand(BaseCommand):
         console.print(struct_table)
         console.print()
 
-        # Module implementations. This used to reinvoke InfoCommand here,
-        # which just reprints the System Details table above a second time
-        # (Python version, disk space, memory) -- nothing module-related --
-        # instead of actual per-module status. Read the real completion
-        # data directly instead.
+        # Read per-module completion data directly, rather than reinvoking
+        # InfoCommand (which just reprints the System Details table above).
         from platforms.cli.core.modules import get_module_mapping
         from platforms.cli.processes.module_workflow.workflow import ModuleWorkflowCommand
 

@@ -184,11 +184,9 @@ MILESTONE_SCRIPTS = {
     },
 }
 
-# "What makes this special" bullets for the achievement panel, tailored to
-# what each milestone's required_modules actually cover. Previously every
-# milestone showed the same 3 lines including "Every gradient: YOUR
-# autograd", which was wrong for 01 and 02 (forward-pass only, no autograd
-# module required at all).
+# "What makes this special" bullets, tailored per milestone's required_modules
+# (01/02 are forward-pass only, so they can't claim "Every gradient: YOUR
+# autograd" the way later milestones do).
 MILESTONE_ACHIEVEMENT_HIGHLIGHTS = {
     "01": [
         "Every line of code: YOUR implementations",

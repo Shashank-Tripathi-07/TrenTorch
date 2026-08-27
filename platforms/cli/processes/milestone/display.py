@@ -20,12 +20,9 @@ def show_status(config, console, args: Namespace) -> int:
     milestone_system = MilestoneSystem(config)
     status = milestone_system.get_milestone_status()
 
-    # Show header with overall progress. Note: status['overall_progress']
-    # is unlock-based (it also drives the timeline progress bar elsewhere,
-    # where that's the correct meaning), so it isn't used here -- showing
-    # it next to "Milestones Achieved" would be contradictory (e.g. "0/6
-    # achieved" beside "100%"). This header's percentage is achievement-
-    # based instead, to actually match the achieved count shown above it.
+    # status['overall_progress'] is unlock-based, not achievement-based, so
+    # it isn't used here -- it would contradict "Milestones Achieved" (e.g.
+    # "0/6 achieved" beside "100%"). Compute achievement-based instead.
     total_milestones = len(milestone_system.MILESTONES)
     achievement_progress = (status["total_completed"] / total_milestones) * 100 if total_milestones > 0 else 0
     console.print(

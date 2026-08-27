@@ -98,12 +98,6 @@ def print_ascii_logo(compact: bool = False):
     # Create styled logo text with proper Rich formatting
     logo_text = Text()
 
-    # ============================================
-    # TINYTORCH LOGO - EDIT HERE!
-    # ============================================
-    # To edit: Change the ASCII characters in logo_lines
-    # Add/remove spaces at the beginning of each line to adjust positioning
-
     logo_lines = [
         # Flames positioned above T and H
         "    🔥                                     🔥",

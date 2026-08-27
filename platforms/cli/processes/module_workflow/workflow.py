@@ -261,12 +261,9 @@ class ModuleWorkflowCommand(BaseCommand):
 
                 return 1
 
-        # Prerequisites met! Check if module needs to be created from src/
-        # Notebooks are in data/modules/ directory, not src/ (which is modules_dir in config).
-        # Check for the notebook file itself, not just the directory: a directory
-        # can exist but be empty if a previous conversion attempt failed partway
-        # (e.g. jupytext wasn't on PATH yet), and directory-existence alone would
-        # then make this look already done, silently skipping regeneration.
+        # Check for the notebook file itself, not just the directory: a
+        # directory can exist but be empty if a previous conversion failed
+        # partway, which would otherwise skip regeneration silently.
         module_dir = self.config.project_root / "data" / "modules" / module_name
         short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
         notebook_file = module_dir / f"{short_name}.ipynb"
@@ -651,18 +648,10 @@ class ModuleWorkflowCommand(BaseCommand):
                 )
             )
 
-        # Step 5: Check for milestone unlocks
-        #
-        # Skipped during the maintainer verify-solution loop (Stage 1's
-        # progressive curriculum check): completing module 08 or 09
-        # there crosses milestone 03's or 04's required_modules
-        # threshold every single time, auto-running a real milestone
-        # (real training, minutes of wall time) as an unintended side
-        # effect of testing curriculum correctness. That's not what
-        # this loop is for; milestone behavior itself is covered
-        # separately and deliberately by Stage 7. A real student
-        # completing modules for real still gets the intended
-        # auto-unlock experience unchanged.
+        # Step 5: Check for milestone unlocks. Skipped during the maintainer
+        # verify-solution loop (Stage 1) to avoid auto-running a real,
+        # minutes-long milestone as a side effect of testing curriculum
+        # correctness -- milestone behavior itself is covered by Stage 7.
         from .test_runner import VERIFY_SOLUTION_ENV
 
         if success and os.environ.get(VERIFY_SOLUTION_ENV) != "1":

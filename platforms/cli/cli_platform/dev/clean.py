@@ -35,12 +35,8 @@ class DevCleanCommand(BaseCommand):
         cwd = self.config.project_root
         console.print("[cyan]🧹 Cleaning all generated files...[/cyan]")
 
-        # `make` isn't bundled with Git Bash on Windows (unlike git/python,
-        # it has no equivalent auto-installed fallback), so this is a very
-        # reachable crash for any Windows user without WSL or a separate
-        # make install: subprocess.run raises FileNotFoundError with no
-        # indication of *why*, rather than something recognizable as
-        # "install this tool".
+        # `make` isn't bundled with Git Bash on Windows, so this is a
+        # reachable crash for any Windows user without WSL or make installed.
         try:
             result = subprocess.run(["make", "clean"], cwd=str(cwd))
         except FileNotFoundError:
