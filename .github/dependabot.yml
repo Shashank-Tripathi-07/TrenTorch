@@ -10,3 +10,16 @@ updates:
     # every time an action ships a security fix.
     commit-message:
       prefix: "ci"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # requirements.txt is the single source of truth for the curriculum's
+    # runtime toolchain (NumPy, Jupyter, Jupytext, nbdev, Rich, PyYAML,
+    # psutil, pytest); pyproject.toml's own dependency list mirrors it.
+    # This is what catches a CVE in either without someone noticing by hand.
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"

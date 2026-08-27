@@ -1,11 +1,10 @@
-# TinyTorch Pre-commit Configuration
+# TrenTorch Pre-commit Configuration
 # =============================================================================
-# CLI and module validation hooks for TinyTorch (markdown collapse, CLI docs).
+# CLI and module validation hooks (markdown collapse, CLI docs).
 #
-# Not merged into the default hook set from the repo root: install with
-# `pre-commit install` still uses only `/.pre-commit-config.yaml`. Run this
-# file when you want TinyTorch-specific checks on top:
-#   cd trentorch && pre-commit run --config .pre-commit-config.yaml --all-files
+# Install: `pre-commit install` from the repo root picks up this file
+# directly (it lives at the repo root, not nested under a subdirectory).
+# Run manually with: pre-commit run --all-files
 # =============================================================================
 
 repos:
@@ -16,9 +15,9 @@ repos:
   - repo: local
     hooks:
       - id: collapse-blank-lines
-        name: "TinyTorch: Collapse extra blank lines"
+        name: "Collapse extra blank lines"
         description: "Replace 2+ consecutive blank lines with single blank line"
-        entry: python3 dev/tools/dev/collapse_blank_lines.py
+        entry: python3 platforms/dev_tools/tools/dev/collapse_blank_lines.py
         language: python
         files: \.(md|py)$
         pass_filenames: true
@@ -27,15 +26,22 @@ repos:
   # CLI DOCUMENTATION VALIDATORS
   # ===========================================================================
 
-  - repo: local
-    hooks:
-      - id: validate-cli-docs
-        name: "TinyTorch: Validate CLI documentation"
-        description: "Ensure tren commands in docs match actual CLI"
-        entry: python3 dev/tools/dev/validate_cli_docs.py
-        language: python
-        files: \.md$
-        pass_filenames: false
+  # Disabled: platforms/dev_tools/tools/dev/validate_cli_docs.py predates the
+  # data/ restructuring and the tren->platforms/cli reorg. Its DOCS_DIRS list
+  # (site/modules/tests/milestones) and VALID_COMMANDS table (still lists a
+  # removed `grade` command group, missing `convert`, out of date on
+  # `milestone`'s real subcommands) both need updating to match the current
+  # layout before this is safe to run again. See docs/cli_file_organization.md
+  # for the current, accurate command/file map in the meantime.
+  # - repo: local
+  #   hooks:
+  #     - id: validate-cli-docs
+  #       name: "Validate CLI documentation"
+  #       description: "Ensure tren commands in docs match actual CLI"
+  #       entry: python3 platforms/dev_tools/tools/dev/validate_cli_docs.py
+  #       language: python
+  #       files: \.md$
+  #       pass_filenames: false
 
   # ===========================================================================
   # PYTHON CODE QUALITY
@@ -47,11 +53,11 @@ repos:
   #   hooks:
   #     - id: black
   #       name: "Format Python code"
-  #       files: ^(src/|trentorch/|dev/tools/).*\.py$
+  #       files: ^(data/src/|data/trentorch/|platforms/).*\.py$
 
   # - repo: https://github.com/pycqa/isort
   #   rev: 5.13.2
   #   hooks:
   #     - id: isort
   #       name: "Sort imports"
-  #       files: ^(src/|trentorch/|dev/tools/).*\.py$
+  #       files: ^(data/src/|data/trentorch/|platforms/).*\.py$
