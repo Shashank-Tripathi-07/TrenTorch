@@ -2,4 +2,4 @@
 
 from .package import PackageCommand
 
-__all__ = ['PackageCommand']
+__all__ = ["PackageCommand"]

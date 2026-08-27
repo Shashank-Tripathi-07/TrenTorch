@@ -19,21 +19,22 @@ WHAT WE TEST:
 3. Model size actually decreases
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
 from trentorch.perf.quantization import (
-    Quantizer,
     QuantizedLinear,
-    quantize_int8,
+    Quantizer,
     dequantize_int8,
+    quantize_int8,
 )
 
 
@@ -116,7 +117,7 @@ class TestQuantizationAdvanced:
         q_data = q_tensor.data.astype(np.float32)
         for i in range(len(q_data) - 1):
             assert q_data[i] <= q_data[i + 1], (
-                f"Ordering not preserved: q[{i}]={q_data[i]} > q[{i+1}]={q_data[i+1]}"
+                f"Ordering not preserved: q[{i}]={q_data[i]} > q[{i + 1}]={q_data[i + 1]}"
             )
 
     def test_quantize_negative_values(self):
@@ -138,8 +139,7 @@ class TestQuantizationAdvanced:
             # Zero can go either way due to quantization noise
             if orig_sign != 0:
                 assert orig_sign == rec_sign, (
-                    f"Sign not preserved for value {original.data[i]}: "
-                    f"recovered {recovered.data[i]}"
+                    f"Sign not preserved for value {original.data[i]}: recovered {recovered.data[i]}"
                 )
 
 

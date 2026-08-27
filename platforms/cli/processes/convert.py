@@ -11,7 +11,6 @@ Converts source modules (.py) to:
 import json
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import List
 
 from platforms.cli.commands.base import BaseCommand
 
@@ -52,10 +51,10 @@ class ConvertCommand(BaseCommand):
 
     def run(self, args: Namespace) -> int:
         from trentorch.export_sanitizer import (
-            to_qmd,
             to_ipynb,
-            to_sandbox_code,
             to_platform_yaml,
+            to_qmd,
+            to_sandbox_code,
         )
 
         project_root = self.config.project_root
@@ -64,11 +63,17 @@ class ConvertCommand(BaseCommand):
 
         # Find target module directories
         if args.module == "all":
-            module_dirs = sorted([d for d in src_dir.iterdir() if d.is_dir() and not d.name.startswith((".", "_"))])
+            module_dirs = sorted(
+                [d for d in src_dir.iterdir() if d.is_dir() and not d.name.startswith((".", "_"))]
+            )
         else:
             module_dirs = []
             for d in src_dir.iterdir():
-                if d.is_dir() and (d.name == args.module or d.name.startswith(f"{args.module}_") or d.name.endswith(f"_{args.module}")):
+                if d.is_dir() and (
+                    d.name == args.module
+                    or d.name.startswith(f"{args.module}_")
+                    or d.name.endswith(f"_{args.module}")
+                ):
                     module_dirs.append(d)
                     break
             if not module_dirs:
@@ -76,7 +81,9 @@ class ConvertCommand(BaseCommand):
                 return 1
 
         formats = ["qmd", "ipynb", "txt", "yaml"] if args.format == "all" else [args.format]
-        console.print(f"[bold cyan]⚡ Converting {len(module_dirs)} module(s) to {', '.join(formats)}...[/bold cyan]")
+        console.print(
+            f"[bold cyan]⚡ Converting {len(module_dirs)} module(s) to {', '.join(formats)}...[/bold cyan]"
+        )
 
         success_count = 0
         for mod_dir in module_dirs:
@@ -104,7 +111,9 @@ class ConvertCommand(BaseCommand):
                     target_file = out_dir / f"{mod_name}.yaml"
                     target_file.write_text(to_platform_yaml(content, module_name=mod_name), encoding="utf-8")
 
-                console.print(f"  [green]✓[/green] {mod_name} → [dim]{target_file.relative_to(project_root)}[/dim]")
+                console.print(
+                    f"  [green]✓[/green] {mod_name} → [dim]{target_file.relative_to(project_root)}[/dim]"
+                )
                 success_count += 1
 
         console.print(f"\n[bold green]✅ Successfully generated {success_count} artifact(s)![/bold green]")

@@ -3,15 +3,17 @@ System command group for TinyTorch CLI: environment, configuration, and system t
 """
 
 from argparse import ArgumentParser, Namespace
+
 from rich.panel import Panel
 
 from platforms.cli.commands.base import BaseCommand
-from .info import InfoCommand
+
 from .health import HealthCommand
+from .info import InfoCommand
 from .jupyter import JupyterCommand
-from .update import UpdateCommand
 from .logo import LogoCommand
 from .reset import SystemResetCommand
+from .update import UpdateCommand
 
 
 class SystemCommand(BaseCommand):
@@ -25,55 +27,37 @@ class SystemCommand(BaseCommand):
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         subparsers = parser.add_subparsers(
-            dest='system_command',
-            help='System subcommands',
-            metavar='SUBCOMMAND'
+            dest="system_command", help="System subcommands", metavar="SUBCOMMAND"
         )
 
         # Info subcommand
-        info_parser = subparsers.add_parser(
-            'info',
-            help='Show system and environment information'
-        )
+        info_parser = subparsers.add_parser("info", help="Show system and environment information")
         info_cmd = InfoCommand(self.config)
         info_cmd.add_arguments(info_parser)
 
         # Health subcommand
-        health_parser = subparsers.add_parser(
-            'health',
-            help='Environment health check and validation'
-        )
+        health_parser = subparsers.add_parser("health", help="Environment health check and validation")
         health_cmd = HealthCommand(self.config)
         health_cmd.add_arguments(health_parser)
 
         # Jupyter subcommand
-        jupyter_parser = subparsers.add_parser(
-            'jupyter',
-            help='Start Jupyter notebook server'
-        )
+        jupyter_parser = subparsers.add_parser("jupyter", help="Start Jupyter notebook server")
         jupyter_cmd = JupyterCommand(self.config)
         jupyter_cmd.add_arguments(jupyter_parser)
 
         # Update subcommand
-        update_parser = subparsers.add_parser(
-            'update',
-            help='Check for and install updates'
-        )
+        update_parser = subparsers.add_parser("update", help="Check for and install updates")
         update_cmd = UpdateCommand(self.config)
         update_cmd.add_arguments(update_parser)
 
         # Logo subcommand
-        logo_parser = subparsers.add_parser(
-            'logo',
-            help='Learn about the TinyTorch logo and its meaning'
-        )
+        logo_parser = subparsers.add_parser("logo", help="Learn about the TinyTorch logo and its meaning")
         logo_cmd = LogoCommand(self.config)
         logo_cmd.add_arguments(logo_parser)
 
         # Reset subcommand
         reset_parser = subparsers.add_parser(
-            'reset',
-            help='Reset TinyTorch to pristine state (clear data/modules/ and trentorch/core/)'
+            "reset", help="Reset TinyTorch to pristine state (clear data/modules/ and trentorch/core/)"
         )
         reset_cmd = SystemResetCommand(self.config)
         reset_cmd.add_arguments(reset_parser)
@@ -81,45 +65,49 @@ class SystemCommand(BaseCommand):
     def run(self, args: Namespace) -> int:
         console = self.console
 
-        if not hasattr(args, 'system_command') or not args.system_command:
-            console.print(Panel(
-                "[bold cyan]System Commands[/bold cyan]\n\n"
-                "Available subcommands:\n"
-                "  • [bold]info[/bold]    - Show system/environment information\n"
-                "  • [bold]health[/bold]  - Environment health check and validation\n"
-                "  • [bold]jupyter[/bold] - Start Jupyter notebook server\n"
-                "  • [bold]update[/bold]  - Check for and install updates\n"
-                "  • [bold]logo[/bold]    - Learn about the TinyTorch logo\n"
-                "  • [bold]reset[/bold]   - Reset to pristine state (clear data/modules/ and trentorch/core/)\n\n"
-                "[dim]Example: tito system health[/dim]",
-                title="System Command Group",
-                border_style="bright_cyan"
-            ))
+        if not hasattr(args, "system_command") or not args.system_command:
+            console.print(
+                Panel(
+                    "[bold cyan]System Commands[/bold cyan]\n\n"
+                    "Available subcommands:\n"
+                    "  • [bold]info[/bold]    - Show system/environment information\n"
+                    "  • [bold]health[/bold]  - Environment health check and validation\n"
+                    "  • [bold]jupyter[/bold] - Start Jupyter notebook server\n"
+                    "  • [bold]update[/bold]  - Check for and install updates\n"
+                    "  • [bold]logo[/bold]    - Learn about the TinyTorch logo\n"
+                    "  • [bold]reset[/bold]   - Reset to pristine state (clear data/modules/ and trentorch/core/)\n\n"
+                    "[dim]Example: tito system health[/dim]",
+                    title="System Command Group",
+                    border_style="bright_cyan",
+                )
+            )
             return 0
 
         # Execute the appropriate subcommand
-        if args.system_command == 'info':
+        if args.system_command == "info":
             cmd = InfoCommand(self.config)
             return cmd.execute(args)
-        elif args.system_command == 'health':
+        elif args.system_command == "health":
             cmd = HealthCommand(self.config)
             return cmd.execute(args)
-        elif args.system_command == 'jupyter':
+        elif args.system_command == "jupyter":
             cmd = JupyterCommand(self.config)
             return cmd.execute(args)
-        elif args.system_command == 'update':
+        elif args.system_command == "update":
             cmd = UpdateCommand(self.config)
             return cmd.execute(args)
-        elif args.system_command == 'logo':
+        elif args.system_command == "logo":
             cmd = LogoCommand(self.config)
             return cmd.execute(args)
-        elif args.system_command == 'reset':
+        elif args.system_command == "reset":
             cmd = SystemResetCommand(self.config)
             return cmd.execute(args)
         else:
-            console.print(Panel(
-                f"[red]Unknown system subcommand: {args.system_command}[/red]",
-                title="Error",
-                border_style="red"
-            ))
+            console.print(
+                Panel(
+                    f"[red]Unknown system subcommand: {args.system_command}[/red]",
+                    title="Error",
+                    border_style="red",
+                )
+            )
             return 1

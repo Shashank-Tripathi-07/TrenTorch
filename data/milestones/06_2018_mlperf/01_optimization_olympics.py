@@ -85,24 +85,25 @@ Not just training models, but making them deployable. This is what separates
 ML researchers from ML engineers. YOU now have the complete toolkit!
 """
 
-import sys
 import os
-import time
-import copy
 import pickle
+import sys
+import time
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 from pathlib import Path
 
 # Add project root
 sys.path.insert(0, os.getcwd())
-sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
+sys.path.insert(0, os.path.join(os.getcwd(), "data"))  # trentorch/ lives at data/trentorch/
 
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
-from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich import box
+from rich.table import Table
 
 console = Console()
 
@@ -131,6 +132,7 @@ def load_tinydigits_arrays(project_root=None):
         test_data["images"],
         test_data["labels"],
     )
+
 
 # =============================================================================
 # 🎯 YOUR TRENTORCH MODULES IN ACTION
@@ -187,16 +189,17 @@ def load_tinydigits_arrays(project_root=None):
 # =============================================================================
 
 CONFIG = {
-    'batch_size': 32,
-    'train_epochs': 10,
-    'learning_rate': 0.01,
-    'prune_sparsity': 0.5,
+    "batch_size": 32,
+    "train_epochs": 10,
+    "learning_rate": 0.01,
+    "prune_sparsity": 0.5,
 }
 
 
 # =============================================================================
 # STEP 1: PROFILE
 # =============================================================================
+
 
 def step_1_profile(model, X_test, y_test, Profiler, Tensor):
     """
@@ -216,11 +219,13 @@ def step_1_profile(model, X_test, y_test, Profiler, Tensor):
         dict with baseline metrics (param_count, param_bytes, flops,
              latency_ms, throughput, baseline_acc)
     """
-    console.print(Panel(
-        "[bold blue]📊 STEP 1: Profile with YOUR Profiler[/bold blue]\n"
-        "Using the Profiler class you built in Module 14",
-        border_style="blue"
-    ))
+    console.print(
+        Panel(
+            "[bold blue]📊 STEP 1: Profile with YOUR Profiler[/bold blue]\n"
+            "Using the Profiler class you built in Module 14",
+            border_style="blue",
+        )
+    )
 
     profiler = Profiler()
 
@@ -259,18 +264,19 @@ def step_1_profile(model, X_test, y_test, Profiler, Tensor):
     console.print(table)
 
     return {
-        'param_count': param_count,
-        'param_bytes': param_bytes,
-        'flops': flops,
-        'latency_ms': latency_ms,
-        'throughput': throughput,
-        'baseline_acc': baseline_acc,
+        "param_count": param_count,
+        "param_bytes": param_bytes,
+        "flops": flops,
+        "latency_ms": latency_ms,
+        "throughput": throughput,
+        "baseline_acc": baseline_acc,
     }
 
 
 # =============================================================================
 # STEP 2: QUANTIZE
 # =============================================================================
+
 
 def step_2_quantize(model, param_bytes, Quantizer):
     """
@@ -289,15 +295,17 @@ def step_2_quantize(model, param_bytes, Quantizer):
     Returns:
         dict with quantization results
     """
-    console.print(Panel(
-        "[bold yellow]🗜️ STEP 2: Quantize with YOUR Quantizer[/bold yellow]\n"
-        "Using the quantization you built in Module 15\n"
-        "FP32 → INT8 = 4× smaller",
-        border_style="yellow"
-    ))
+    console.print(
+        Panel(
+            "[bold yellow]🗜️ STEP 2: Quantize with YOUR Quantizer[/bold yellow]\n"
+            "Using the quantization you built in Module 15\n"
+            "FP32 → INT8 = 4× smaller",
+            border_style="yellow",
+        )
+    )
 
     quant_result = Quantizer.quantize_model(model)
-    quant_size = int(param_bytes / quant_result['compression_ratio'])
+    quant_size = int(param_bytes / quant_result["compression_ratio"])
 
     # Display results
     table = Table(title="🗜️ After Quantization (YOUR Implementation)", box=box.ROUNDED)
@@ -310,26 +318,22 @@ def step_2_quantize(model, param_bytes, Quantizer):
         "Size",
         f"{param_bytes:,} B",
         f"{quant_size:,} B",
-        f"[green]{quant_result['compression_ratio']:.1f}× smaller[/green]"
+        f"[green]{quant_result['compression_ratio']:.1f}× smaller[/green]",
     )
-    table.add_row(
-        "Precision",
-        "FP32 (32-bit)",
-        "INT8 (8-bit)",
-        "[green]4× memory reduction[/green]"
-    )
+    table.add_row("Precision", "FP32 (32-bit)", "INT8 (8-bit)", "[green]4× memory reduction[/green]")
 
     console.print(table)
 
     return {
-        'quant_result': quant_result,
-        'quant_size': quant_size,
+        "quant_result": quant_result,
+        "quant_size": quant_size,
     }
 
 
 # =============================================================================
 # STEP 3: PRUNE
 # =============================================================================
+
 
 def step_3_prune(model, baseline_acc, X_test, y_test, Compressor, DigitMLP):
     """
@@ -349,12 +353,14 @@ def step_3_prune(model, baseline_acc, X_test, y_test, Compressor, DigitMLP):
     Returns:
         dict with pruning results
     """
-    console.print(Panel(
-        "[bold magenta]✂️ STEP 3: Prune with YOUR Compressor[/bold magenta]\n"
-        "Using the compression you built in Module 16\n"
-        f"Remove {CONFIG['prune_sparsity']:.0%} of smallest weights",
-        border_style="magenta"
-    ))
+    console.print(
+        Panel(
+            "[bold magenta]✂️ STEP 3: Prune with YOUR Compressor[/bold magenta]\n"
+            "Using the compression you built in Module 16\n"
+            f"Remove {CONFIG['prune_sparsity']:.0%} of smallest weights",
+            border_style="magenta",
+        )
+    )
 
     # Create a copy for pruning
     model_copy = DigitMLP()
@@ -364,7 +370,7 @@ def step_3_prune(model, baseline_acc, X_test, y_test, Compressor, DigitMLP):
 
     # Apply pruning
     sparsity_before = Compressor.measure_sparsity(model_copy)
-    Compressor.magnitude_prune(model_copy, sparsity=CONFIG['prune_sparsity'])
+    Compressor.magnitude_prune(model_copy, sparsity=CONFIG["prune_sparsity"])
     sparsity_after = Compressor.measure_sparsity(model_copy)
 
     # Calculate pruned accuracy
@@ -383,28 +389,29 @@ def step_3_prune(model, baseline_acc, X_test, y_test, Compressor, DigitMLP):
         "Sparsity",
         f"{sparsity_before:.1%}",
         f"{sparsity_after:.1%}",
-        f"[green]{sparsity_after:.0%} weights zeroed[/green]"
+        f"[green]{sparsity_after:.0%} weights zeroed[/green]",
     )
     prune_acc_delta = pruned_acc - baseline_acc
     table.add_row(
         "Accuracy",
         f"{baseline_acc:.1f}%",
         f"{pruned_acc:.1f}%",
-        f"[{'green' if prune_acc_delta >= 0 else 'red'}]{prune_acc_delta:+.1f}%[/]"
+        f"[{'green' if prune_acc_delta >= 0 else 'red'}]{prune_acc_delta:+.1f}%[/]",
     )
 
     console.print(table)
 
     return {
-        'sparsity_before': sparsity_before,
-        'sparsity_after': sparsity_after,
-        'pruned_acc': pruned_acc,
+        "sparsity_before": sparsity_before,
+        "sparsity_after": sparsity_after,
+        "pruned_acc": pruned_acc,
     }
 
 
 # =============================================================================
 # STEP 4: KV CACHE
 # =============================================================================
+
 
 def step_4_kv_cache(KVCache, MinimalTransformer):
     """
@@ -424,27 +431,35 @@ def step_4_kv_cache(KVCache, MinimalTransformer):
     Returns:
         dict with KV cache stats (or None if unavailable)
     """
-    console.print(Panel(
-        "[bold cyan]⚡ STEP 4: KV Cache with YOUR Module 18[/bold cyan]\n"
-        "Using KVCache for transformer generation speedup\n"
-        "Caches K,V to avoid recomputation during autoregressive generation",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]⚡ STEP 4: KV Cache with YOUR Module 18[/bold cyan]\n"
+            "Using KVCache for transformer generation speedup\n"
+            "Caches K,V to avoid recomputation during autoregressive generation",
+            border_style="cyan",
+        )
+    )
 
     try:
-        transformer = MinimalTransformer(vocab_size=27, embed_dim=32, num_heads=2, seq_len=8)
+        MinimalTransformer(vocab_size=27, embed_dim=32, num_heads=2, seq_len=8)
 
         kv_cache = KVCache(
             batch_size=1,
             max_seq_len=8,
             num_layers=1,
             num_heads=2,
-            head_dim=16  # embed_dim / num_heads
+            head_dim=16,  # embed_dim / num_heads
         )
 
-        cache_memory = (kv_cache.batch_size * kv_cache.max_seq_len *
-                       kv_cache.num_layers * kv_cache.num_heads *
-                       kv_cache.head_dim * 2 * 4)  # K+V, float32
+        cache_memory = (
+            kv_cache.batch_size
+            * kv_cache.max_seq_len
+            * kv_cache.num_layers
+            * kv_cache.num_heads
+            * kv_cache.head_dim
+            * 2
+            * 4
+        )  # K+V, float32
 
         table = Table(title="⚡ KV Cache Stats (YOUR Module 18)", box=box.ROUNDED)
         table.add_column("Property", style="cyan")
@@ -461,7 +476,7 @@ def step_4_kv_cache(KVCache, MinimalTransformer):
         console.print(table)
         console.print("  [green]✓[/green] KV Cache ready for generation!")
 
-        return {'cache_memory': cache_memory, 'kv_cache': kv_cache}
+        return {"cache_memory": cache_memory, "kv_cache": kv_cache}
 
     except Exception as e:
         console.print(f"  [yellow]⚠️ KV Cache demo skipped: {e}[/yellow]")
@@ -472,6 +487,7 @@ def step_4_kv_cache(KVCache, MinimalTransformer):
 # =============================================================================
 # STEP 5: ACCELERATION
 # =============================================================================
+
 
 def step_5_accelerate(vectorized_matmul, Tensor):
     """
@@ -492,12 +508,14 @@ def step_5_accelerate(vectorized_matmul, Tensor):
     Returns:
         dict with timing comparison
     """
-    console.print(Panel(
-        "[bold magenta]🚀 STEP 5: Acceleration with YOUR Module 17[/bold magenta]\n"
-        "Using vectorized operations for compute speedup\n"
-        "BLAS-optimized matmul and fused operations",
-        border_style="magenta"
-    ))
+    console.print(
+        Panel(
+            "[bold magenta]🚀 STEP 5: Acceleration with YOUR Module 17[/bold magenta]\n"
+            "Using vectorized operations for compute speedup\n"
+            "BLAS-optimized matmul and fused operations",
+            border_style="magenta",
+        )
+    )
 
     # Create test matrices
     A = Tensor(rng.standard_normal((64, 128)).astype(np.float32))
@@ -506,7 +524,7 @@ def step_5_accelerate(vectorized_matmul, Tensor):
     # Time standard operation
     start = time.time()
     for _ in range(100):
-        C_standard = Tensor(np.dot(A.data, B.data))
+        Tensor(np.dot(A.data, B.data))
     standard_time = (time.time() - start) * 1000
 
     # Time vectorized operation
@@ -528,14 +546,15 @@ def step_5_accelerate(vectorized_matmul, Tensor):
     console.print("  [green]✓[/green] Vectorized operations ready!")
 
     return {
-        'standard_time': standard_time,
-        'vectorized_time': vectorized_time,
+        "standard_time": standard_time,
+        "vectorized_time": vectorized_time,
     }
 
 
 # =============================================================================
 # STEP 6: BENCHMARK
 # =============================================================================
+
 
 def step_6_benchmark(model, X_test, y_test, baseline_acc, Benchmark):
     """
@@ -555,12 +574,14 @@ def step_6_benchmark(model, X_test, y_test, baseline_acc, Benchmark):
     Returns:
         dict with benchmark results
     """
-    console.print(Panel(
-        "[bold green]🏁 STEP 6: Benchmark with YOUR Modules 14 & 19[/bold green]\n"
-        "Using Benchmark class for standardized measurements\n"
-        "Reproducible, statistically rigorous",
-        border_style="green"
-    ))
+    console.print(
+        Panel(
+            "[bold green]🏁 STEP 6: Benchmark with YOUR Modules 14 & 19[/bold green]\n"
+            "Using Benchmark class for standardized measurements\n"
+            "Reproducible, statistically rigorous",
+            border_style="green",
+        )
+    )
 
     console.print("  Running standardized benchmark with YOUR implementations...")
 
@@ -597,23 +618,26 @@ def step_6_benchmark(model, X_test, y_test, baseline_acc, Benchmark):
     console.print(table)
 
     return {
-        'mean_latency': mean_latency,
-        'std_latency': std_latency,
-        'p95_latency': p95_latency,
-        'throughput': throughput,
+        "mean_latency": mean_latency,
+        "std_latency": std_latency,
+        "p95_latency": p95_latency,
+        "throughput": throughput,
     }
 
-def press_enter_to_continue() :
-    if sys.stdin.isatty() and sys.stdout.isatty() :
-        try :
+
+def press_enter_to_continue():
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        try:
             console.input("\n[yellow]Press Enter to continue...[/yellow] ")
-        except EOFError :
+        except EOFError:
             pass
         console.print()
+
 
 # =============================================================================
 # FINAL RESULTS
 # =============================================================================
+
 
 def print_final_results(baseline, quant, prune, profile_results):
     """
@@ -629,12 +653,12 @@ def print_final_results(baseline, quant, prune, profile_results):
     console.print(Panel("[bold]🏆 OPTIMIZATION OLYMPICS RESULTS[/bold]", border_style="gold1"))
     console.print()
 
-    param_bytes = baseline['param_bytes']
-    baseline_acc = baseline['baseline_acc']
-    quant_size = quant['quant_size']
-    quant_result = quant['quant_result']
-    pruned_acc = prune['pruned_acc']
-    sparsity_after = prune['sparsity_after']
+    param_bytes = baseline["param_bytes"]
+    baseline_acc = baseline["baseline_acc"]
+    quant_size = quant["quant_size"]
+    quant_result = quant["quant_result"]
+    pruned_acc = prune["pruned_acc"]
+    sparsity_after = prune["sparsity_after"]
 
     table = Table(title="🎖️ Your Optimization Journey", box=box.DOUBLE)
     table.add_column("Stage", style="cyan", width=25)
@@ -654,7 +678,7 @@ def print_final_results(baseline, quant, prune, profile_results):
         f"{baseline_acc:.1f}%",
         f"{baseline_acc:.1f}%",
         "—",
-        "Profiler (14)"
+        "Profiler (14)",
     )
     table.add_row(
         "🗜️ + Quantization",
@@ -662,15 +686,15 @@ def print_final_results(baseline, quant, prune, profile_results):
         f"{baseline_acc:.1f}%",
         f"{quant_acc:.1f}%",
         f"[green]{quant_delta:+.1f}%[/green]" if quant_delta >= 0 else f"[red]{quant_delta:+.1f}%[/red]",
-        "Quantization (15)"
+        "Quantization (15)",
     )
     table.add_row(
         "✂️ + Pruning",
-        f"~{param_bytes//2:,} B**",
+        f"~{param_bytes // 2:,} B**",
         f"{baseline_acc:.1f}%",
         f"{pruned_acc:.1f}%",
         f"[green]{prune_delta:+.1f}%[/green]" if prune_delta >= 0 else f"[red]{prune_delta:+.1f}%[/red]",
-        "Compression (16)"
+        "Compression (16)",
     )
 
     console.print(table)
@@ -678,67 +702,71 @@ def print_final_results(baseline, quant, prune, profile_results):
     console.print()
 
     # Key insights
-    console.print(Panel(
-        "[bold green]🎓 KEY INSIGHTS[/bold green]\n\n"
-        f"✅ [cyan]YOUR Profiler (Module 14):[/cyan]\n"
-        f"   • Measured {baseline['param_count']:,} parameters, {baseline['flops']:,} FLOPs\n"
-        f"   • Found baseline latency: {baseline['latency_ms']:.3f}ms\n\n"
-        f"✅ [cyan]YOUR Quantization (Module 15):[/cyan]\n"
-        f"   • Achieved {quant_result['compression_ratio']:.1f}× compression\n"
-        f"   • FP32 → INT8 reduces memory 4×\n\n"
-        f"✅ [cyan]YOUR Compression (Module 16):[/cyan]\n"
-        f"   • Pruned to {sparsity_after:.0%} sparsity\n"
-        f"   • {abs(baseline_acc - pruned_acc):.1f}% accuracy impact\n\n"
-        f"✅ [cyan]YOUR KV Cache (Module 18):[/cyan]\n"
-        f"   • Pre-allocated cache for transformer generation\n"
-        f"   • ~N× speedup for sequence length N\n\n"
-        f"✅ [cyan]YOUR Acceleration (Module 17):[/cyan]\n"
-        f"   • BLAS-optimized matrix operations\n"
-        f"   • Vectorized compute kernels\n\n"
-        f"💡 [yellow]Challenge: Combine All Techniques![/yellow]\n"
-        f"   • Quantize + Prune + KV Cache = production-ready\n"
-        f"   • This is real ML systems engineering!",
-        border_style="cyan",
-        box=box.ROUNDED
-    ))
+    console.print(
+        Panel(
+            "[bold green]🎓 KEY INSIGHTS[/bold green]\n\n"
+            f"✅ [cyan]YOUR Profiler (Module 14):[/cyan]\n"
+            f"   • Measured {baseline['param_count']:,} parameters, {baseline['flops']:,} FLOPs\n"
+            f"   • Found baseline latency: {baseline['latency_ms']:.3f}ms\n\n"
+            f"✅ [cyan]YOUR Quantization (Module 15):[/cyan]\n"
+            f"   • Achieved {quant_result['compression_ratio']:.1f}× compression\n"
+            f"   • FP32 → INT8 reduces memory 4×\n\n"
+            f"✅ [cyan]YOUR Compression (Module 16):[/cyan]\n"
+            f"   • Pruned to {sparsity_after:.0%} sparsity\n"
+            f"   • {abs(baseline_acc - pruned_acc):.1f}% accuracy impact\n\n"
+            f"✅ [cyan]YOUR KV Cache (Module 18):[/cyan]\n"
+            f"   • Pre-allocated cache for transformer generation\n"
+            f"   • ~N× speedup for sequence length N\n\n"
+            f"✅ [cyan]YOUR Acceleration (Module 17):[/cyan]\n"
+            f"   • BLAS-optimized matrix operations\n"
+            f"   • Vectorized compute kernels\n\n"
+            f"💡 [yellow]Challenge: Combine All Techniques![/yellow]\n"
+            f"   • Quantize + Prune + KV Cache = production-ready\n"
+            f"   • This is real ML systems engineering!",
+            border_style="cyan",
+            box=box.ROUNDED,
+        )
+    )
 
     press_enter_to_continue()
 
     # Success message
-    console.print(Panel(
-        "[bold green]🏆 MILESTONE COMPLETE![/bold green]\n\n"
-        "[green]You used YOUR implementations from:[/green]\n"
-        "  • Module 01-03: Tensor, Linear, ReLU\n"
-        "  • Module 14: Profiler\n"
-        "  • Module 15: Quantizer\n"
-        "  • Module 16: Compressor\n"
-        "  • Module 17: vectorized_matmul\n"
-        "  • Module 18: KVCache\n"
-        "  • Module 19: Benchmark\n\n"
-        "[bold]Everything you built... now works together![/bold]\n\n"
-        "[cyan]What you learned:[/cyan]\n"
-        "  ✅ Profile models systematically\n"
-        "  ✅ Quantize for memory efficiency\n"
-        "  ✅ Prune for sparse models\n"
-        "  ✅ Cache K,V for fast generation\n"
-        "  ✅ Accelerate with vectorized ops\n"
-        "  ✅ Benchmark with scientific rigor\n\n"
-        "[bold]You've learned ML Systems Engineering![/bold]",
-        title="🎯 Milestone 06 Complete",
-        border_style="bright_green",
-        box=box.DOUBLE,
-        padding=(1, 2)
-    ))
+    console.print(
+        Panel(
+            "[bold green]🏆 MILESTONE COMPLETE![/bold green]\n\n"
+            "[green]You used YOUR implementations from:[/green]\n"
+            "  • Module 01-03: Tensor, Linear, ReLU\n"
+            "  • Module 14: Profiler\n"
+            "  • Module 15: Quantizer\n"
+            "  • Module 16: Compressor\n"
+            "  • Module 17: vectorized_matmul\n"
+            "  • Module 18: KVCache\n"
+            "  • Module 19: Benchmark\n\n"
+            "[bold]Everything you built... now works together![/bold]\n\n"
+            "[cyan]What you learned:[/cyan]\n"
+            "  ✅ Profile models systematically\n"
+            "  ✅ Quantize for memory efficiency\n"
+            "  ✅ Prune for sparse models\n"
+            "  ✅ Cache K,V for fast generation\n"
+            "  ✅ Accelerate with vectorized ops\n"
+            "  ✅ Benchmark with scientific rigor\n\n"
+            "[bold]You've learned ML Systems Engineering![/bold]",
+            title="🎯 Milestone 06 Complete",
+            border_style="bright_green",
+            box=box.DOUBLE,
+            padding=(1, 2),
+        )
+    )
 
     press_enter_to_continue()
 
     return 0
 
 
-
 # =============================================================================
 # MAIN ENTRY POINT
 # =============================================================================
+
 
 def main():
     """
@@ -759,19 +787,21 @@ def main():
     # ─────────────────────────────────────────────────────────────────────────
     # WELCOME BANNER
     # ─────────────────────────────────────────────────────────────────────────
-    console.print(Panel(
-        "[bold magenta]╔═══ Milestone 06: MLPerf ════╗[/bold magenta]\n"
-        "[bold magenta]║[/bold magenta] [bold]🏆 THE OPTIMIZATION         [/bold][bold magenta]║[/bold magenta]\n"
-        "[bold magenta]║[/bold magenta] [bold]OLYMPICS                    [/bold][bold magenta]║[/bold magenta]\n"
-        "[bold magenta]║[/bold magenta]                             [bold magenta]║[/bold magenta]\n"
-        "[bold magenta]║[/bold magenta] MLPerf 2018: Where accuracy [bold magenta]║[/bold magenta]\n"
-        "[bold magenta]║[/bold magenta] meets efficiency            [bold magenta]║[/bold magenta]\n"
-        "[bold magenta]║[/bold magenta]                             [bold magenta]║[/bold magenta]\n"
-        "[bold magenta]║[/bold magenta] [cyan]Using YOUR implementations [/cyan] [bold magenta]║[/bold magenta]\n"
-        "[bold magenta]║[/bold magenta] [cyan]from every module!  [/cyan]        [bold magenta]║[/bold magenta]\n"
-        "[bold magenta]╚═════════════════════════════╝[/bold magenta]",
-        border_style="bright_magenta"
-    ))
+    console.print(
+        Panel(
+            "[bold magenta]╔═══ Milestone 06: MLPerf ════╗[/bold magenta]\n"
+            "[bold magenta]║[/bold magenta] [bold]🏆 THE OPTIMIZATION         [/bold][bold magenta]║[/bold magenta]\n"
+            "[bold magenta]║[/bold magenta] [bold]OLYMPICS                    [/bold][bold magenta]║[/bold magenta]\n"
+            "[bold magenta]║[/bold magenta]                             [bold magenta]║[/bold magenta]\n"
+            "[bold magenta]║[/bold magenta] MLPerf 2018: Where accuracy [bold magenta]║[/bold magenta]\n"
+            "[bold magenta]║[/bold magenta] meets efficiency            [bold magenta]║[/bold magenta]\n"
+            "[bold magenta]║[/bold magenta]                             [bold magenta]║[/bold magenta]\n"
+            "[bold magenta]║[/bold magenta] [cyan]Using YOUR implementations [/cyan] [bold magenta]║[/bold magenta]\n"
+            "[bold magenta]║[/bold magenta] [cyan]from every module!  [/cyan]        [bold magenta]║[/bold magenta]\n"
+            "[bold magenta]╚═════════════════════════════╝[/bold magenta]",
+            border_style="bright_magenta",
+        )
+    )
     press_enter_to_continue()
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -780,37 +810,49 @@ def main():
     console.print("[bold cyan]📦 Loading YOUR Tren🔥Torch implementations...[/bold cyan]\n")
 
     try:
-        from trentorch.core.tensor import Tensor
-        from trentorch.core.layers import Linear
         from trentorch.core.activations import ReLU
+        from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
+
         console.print("  [green]✓[/green] Tensor, Linear, ReLU (YOUR implementations)")
 
         from trentorch.perf.profiling import Profiler
+
         console.print("  [green]✓[/green] Profiler (YOUR Module 14)")
 
         from trentorch.perf.quantization import Quantizer
+
         console.print("  [green]✓[/green] Quantizer (YOUR Module 15)")
 
         from trentorch.perf.compression import Compressor
+
         console.print("  [green]✓[/green] Compressor (YOUR Module 16)")
 
-        from trentorch.perf.acceleration import vectorized_matmul, fused_gelu
+        from trentorch.perf.acceleration import (  # noqa: F401 -- import-success check
+            fused_gelu,
+            vectorized_matmul,
+        )
+
         console.print("  [green]✓[/green] vectorized_matmul, fused_gelu (YOUR Module 17)")
 
         from trentorch.perf.memoization import KVCache
+
         console.print("  [green]✓[/green] KVCache (YOUR Module 18)")
 
-        from trentorch.perf.benchmarking import Benchmark, MLPerf
+        from trentorch.perf.benchmarking import Benchmark, MLPerf  # noqa: F401 -- import-success check
+
         console.print("  [green]✓[/green] Benchmark, MLPerf (YOUR Module 19)")
 
     except ImportError as e:
-        console.print(Panel(
-            f"[red]Import Error: {e}[/red]\n\n"
-            f"[yellow]This milestone requires optimization modules.[/yellow]\n"
-            f"[dim]Make sure you've completed and exported modules 01-03, 14-19[/dim]",
-            title="Missing Modules",
-            border_style="red"
-        ))
+        console.print(
+            Panel(
+                f"[red]Import Error: {e}[/red]\n\n"
+                f"[yellow]This milestone requires optimization modules.[/yellow]\n"
+                f"[dim]Make sure you've completed and exported modules 01-03, 14-19[/dim]",
+                title="Missing Modules",
+                border_style="red",
+            )
+        )
         return 1
 
     console.print("\n[green]✅ All YOUR implementations loaded![/green]")
@@ -819,16 +861,18 @@ def main():
     # ─────────────────────────────────────────────────────────────────────────
     # LOAD MODEL AND DATA
     # ─────────────────────────────────────────────────────────────────────────
-    console.print(Panel(
-        "[bold cyan]🧠 Loading Model and Data[/bold cyan]\n"
-        "Using DigitMLP from Milestone 03",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]🧠 Loading Model and Data[/bold cyan]\nUsing DigitMLP from Milestone 03",
+            border_style="cyan",
+        )
+    )
 
     # Try to import from networks.py, fallback to inline definition
     try:
         sys.path.insert(0, str(Path(__file__).parent))
         from networks import DigitMLP, MinimalTransformer
+
         console.print("  [green]✓[/green] DigitMLP (from networks.py)")
         console.print("  [green]✓[/green] MinimalTransformer (from networks.py)")
     except ImportError:
@@ -878,12 +922,14 @@ def main():
         console.print(f"  [green]✓[/green] Training: {len(y_train)} samples")
         console.print(f"  [green]✓[/green] Test: {len(y_test)} samples")
     except FileNotFoundError as e:
-        console.print(Panel(
-            f"[red]{e}[/red]\n\n"
-            "[yellow]Milestone 06 uses the TinyDigits dataset shipped with TrenTorch.[/yellow]",
-            title="TinyDigits Missing",
-            border_style="red"
-        ))
+        console.print(
+            Panel(
+                f"[red]{e}[/red]\n\n"
+                "[yellow]Milestone 06 uses the TinyDigits dataset shipped with TrenTorch.[/yellow]",
+                title="TinyDigits Missing",
+                border_style="red",
+            )
+        )
         return 1
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -891,20 +937,20 @@ def main():
     # ─────────────────────────────────────────────────────────────────────────
     console.print("\n[bold cyan]🏋️ Quick training (10 epochs)...[/bold cyan]")
 
-    from trentorch.core.optimizers import SGD
     from trentorch.core.losses import CrossEntropyLoss
+    from trentorch.core.optimizers import SGD
 
-    optimizer = SGD(model.parameters(), lr=CONFIG['learning_rate'])
+    optimizer = SGD(model.parameters(), lr=CONFIG["learning_rate"])
     loss_fn = CrossEntropyLoss()
 
     with Progress(SpinnerColumn(), TextColumn("{task.description}"), transient=True) as progress:
-        task = progress.add_task("Training...", total=CONFIG['train_epochs'])
+        task = progress.add_task("Training...", total=CONFIG["train_epochs"])
 
-        for epoch in range(CONFIG['train_epochs']):
-            batch_size = CONFIG['batch_size']
+        for epoch in range(CONFIG["train_epochs"]):
+            batch_size = CONFIG["batch_size"]
             for i in range(0, min(500, len(y_train)), batch_size):
-                batch_x = Tensor(X_train.data[i:i+batch_size])
-                batch_y = y_train[i:i+batch_size]
+                batch_x = Tensor(X_train.data[i : i + batch_size])
+                batch_y = y_train[i : i + batch_size]
 
                 output = model(batch_x)
                 loss = loss_fn(output, Tensor(batch_y))
@@ -927,21 +973,23 @@ def main():
     press_enter_to_continue()
 
     # Step 2: Quantize
-    quant = step_2_quantize(model, baseline['param_bytes'], Quantizer)
+    quant = step_2_quantize(model, baseline["param_bytes"], Quantizer)
     press_enter_to_continue()
 
     # Step 3: Prune
-    prune = step_3_prune(model, baseline['baseline_acc'], X_test, y_test, Compressor, DigitMLP)
+    prune = step_3_prune(model, baseline["baseline_acc"], X_test, y_test, Compressor, DigitMLP)
     press_enter_to_continue()
 
     # Step 4: KV Cache (transformers only)
     if MinimalTransformer is not None:
         step_4_kv_cache(KVCache, MinimalTransformer)
     else:
-        console.print(Panel(
-            "[dim]⏭️ Step 4 (KV Cache) skipped - MinimalTransformer not available[/dim]",
-            border_style="dim"
-        ))
+        console.print(
+            Panel(
+                "[dim]⏭️ Step 4 (KV Cache) skipped - MinimalTransformer not available[/dim]",
+                border_style="dim",
+            )
+        )
         console.print()
     press_enter_to_continue()
 
@@ -950,7 +998,7 @@ def main():
     press_enter_to_continue()
 
     # Step 6: Benchmark
-    step_6_benchmark(model, X_test, y_test, baseline['baseline_acc'], Benchmark)
+    step_6_benchmark(model, X_test, y_test, baseline["baseline_acc"], Benchmark)
     press_enter_to_continue()
 
     # ─────────────────────────────────────────────────────────────────────────

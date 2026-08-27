@@ -15,14 +15,12 @@ This follows TrenTorch testing conventions:
 
 import sys
 import warnings
+
 import numpy as np
 import pytest
 
 pytestmark = pytest.mark.skip(
-    reason=(
-        "PyTorch-style top-level API scaffold is not part of the current TrenTorch "
-        "release surface."
-    )
+    reason=("PyTorch-style top-level API scaffold is not part of the current TrenTorch release surface.")
 )
 
 
@@ -37,7 +35,7 @@ def test_modern_api_integration():
         "integration_type": "modern_api_validation",
         "tests": [],
         "success": True,
-        "errors": []
+        "errors": [],
     }
 
     try:
@@ -46,25 +44,26 @@ def test_modern_api_integration():
             import trentorch.nn as nn
             import trentorch.nn.functional as F
             import trentorch.optim as optim
-            from trentorch.core.tensor import Tensor, Parameter
+            from trentorch.core.tensor import Parameter, Tensor  # noqa: F401 -- import-success check
 
-            results["tests"].append({
-                "name": "modern_imports",
-                "status": "✅ PASS",
-                "description": "Modern PyTorch-like imports work"
-            })
+            results["tests"].append(
+                {
+                    "name": "modern_imports",
+                    "status": "✅ PASS",
+                    "description": "Modern PyTorch-like imports work",
+                }
+            )
         except ImportError as e:
-            results["tests"].append({
-                "name": "modern_imports",
-                "status": "❌ FAIL",
-                "description": f"Modern imports failed: {e}"
-            })
+            results["tests"].append(
+                {"name": "modern_imports", "status": "❌ FAIL", "description": f"Modern imports failed: {e}"}
+            )
             results["success"] = False
             results["errors"].append(f"Import error: {e}")
             return results
 
         # Test 2: Complete MLP workflow integration
         try:
+
             class SimpleMLP(nn.Module):
                 def __init__(self):
                     super().__init__()
@@ -88,22 +87,27 @@ def test_modern_api_integration():
             assert output.shape == (1, 2), f"Expected (1, 2), got {output.shape}"
             assert len(optimizer.parameters) == 4, "Optimizer should have 4 parameters"
 
-            results["tests"].append({
-                "name": "mlp_workflow_integration",
-                "status": "✅ PASS",
-                "description": "Complete MLP workflow integrates correctly"
-            })
+            results["tests"].append(
+                {
+                    "name": "mlp_workflow_integration",
+                    "status": "✅ PASS",
+                    "description": "Complete MLP workflow integrates correctly",
+                }
+            )
         except Exception as e:
-            results["tests"].append({
-                "name": "mlp_workflow_integration",
-                "status": "❌ FAIL",
-                "description": f"MLP workflow failed: {e}"
-            })
+            results["tests"].append(
+                {
+                    "name": "mlp_workflow_integration",
+                    "status": "❌ FAIL",
+                    "description": f"MLP workflow failed: {e}",
+                }
+            )
             results["success"] = False
             results["errors"].append(f"MLP workflow error: {e}")
 
         # Test 3: Complete CNN workflow integration
         try:
+
             class SimpleCNN(nn.Module):
                 def __init__(self):
                     super().__init__()
@@ -135,17 +139,21 @@ def test_modern_api_integration():
             assert fc_weight.shape == (200, 10), f"FC weight shape: {fc_weight.shape}"
             assert fc_bias.shape == (10,), f"FC bias shape: {fc_bias.shape}"
 
-            results["tests"].append({
-                "name": "cnn_workflow_integration",
-                "status": "✅ PASS",
-                "description": "Complete CNN workflow integrates correctly"
-            })
+            results["tests"].append(
+                {
+                    "name": "cnn_workflow_integration",
+                    "status": "✅ PASS",
+                    "description": "Complete CNN workflow integrates correctly",
+                }
+            )
         except Exception as e:
-            results["tests"].append({
-                "name": "cnn_workflow_integration",
-                "status": "❌ FAIL",
-                "description": f"CNN workflow failed: {e}"
-            })
+            results["tests"].append(
+                {
+                    "name": "cnn_workflow_integration",
+                    "status": "❌ FAIL",
+                    "description": f"CNN workflow failed: {e}",
+                }
+            )
             results["success"] = False
             results["errors"].append(f"CNN workflow error: {e}")
 
@@ -163,44 +171,54 @@ def test_modern_api_integration():
             flat_out = F.flatten(x2)
             assert flat_out.shape == (1, 4), f"Flatten shape: {flat_out.shape}"
 
-            results["tests"].append({
-                "name": "functional_interface_integration",
-                "status": "✅ PASS",
-                "description": "Functional interface integrates correctly"
-            })
+            results["tests"].append(
+                {
+                    "name": "functional_interface_integration",
+                    "status": "✅ PASS",
+                    "description": "Functional interface integrates correctly",
+                }
+            )
         except Exception as e:
-            results["tests"].append({
-                "name": "functional_interface_integration",
-                "status": "❌ FAIL",
-                "description": f"Functional interface failed: {e}"
-            })
+            results["tests"].append(
+                {
+                    "name": "functional_interface_integration",
+                    "status": "❌ FAIL",
+                    "description": f"Functional interface failed: {e}",
+                }
+            )
             results["success"] = False
             results["errors"].append(f"Functional interface error: {e}")
 
         # Test 5: Backward compatibility integration
         try:
             # Test old names still work
-            from trentorch.core.layers import Linear as Dense
+            from trentorch.core.layers import Linear
             from trentorch.core.spatial import MultiChannelConv2D
 
             dense = Linear(5, 3)
             conv = MultiChannelConv2D(3, 8, (3, 3))
 
             # Should be the same classes as new names
-            assert type(dense).__name__ == 'Linear', f"Dense should be Linear, got {type(dense).__name__}"
-            assert type(conv).__name__ == 'Conv2d', f"MultiChannelConv2D should be Conv2d, got {type(conv).__name__}"
+            assert type(dense).__name__ == "Linear", f"Dense should be Linear, got {type(dense).__name__}"
+            assert type(conv).__name__ == "Conv2d", (
+                f"MultiChannelConv2D should be Conv2d, got {type(conv).__name__}"
+            )
 
-            results["tests"].append({
-                "name": "backward_compatibility_integration",
-                "status": "✅ PASS",
-                "description": "Backward compatibility maintained"
-            })
+            results["tests"].append(
+                {
+                    "name": "backward_compatibility_integration",
+                    "status": "✅ PASS",
+                    "description": "Backward compatibility maintained",
+                }
+            )
         except Exception as e:
-            results["tests"].append({
-                "name": "backward_compatibility_integration",
-                "status": "❌ FAIL",
-                "description": f"Backward compatibility failed: {e}"
-            })
+            results["tests"].append(
+                {
+                    "name": "backward_compatibility_integration",
+                    "status": "❌ FAIL",
+                    "description": f"Backward compatibility failed: {e}",
+                }
+            )
             results["success"] = False
             results["errors"].append(f"Backward compatibility error: {e}")
 
@@ -231,28 +249,30 @@ def test_modern_api_integration():
             optimizer = optim.Adam(model.parameters(), lr=0.001)
             assert len(optimizer.parameters) == 8, "Optimizer should get nested parameters"
 
-            results["tests"].append({
-                "name": "cross_module_parameter_integration",
-                "status": "✅ PASS",
-                "description": "Cross-module parameter collection works"
-            })
+            results["tests"].append(
+                {
+                    "name": "cross_module_parameter_integration",
+                    "status": "✅ PASS",
+                    "description": "Cross-module parameter collection works",
+                }
+            )
         except Exception as e:
-            results["tests"].append({
-                "name": "cross_module_parameter_integration",
-                "status": "❌ FAIL",
-                "description": f"Cross-module parameters failed: {e}"
-            })
+            results["tests"].append(
+                {
+                    "name": "cross_module_parameter_integration",
+                    "status": "❌ FAIL",
+                    "description": f"Cross-module parameters failed: {e}",
+                }
+            )
             results["success"] = False
             results["errors"].append(f"Cross-module error: {e}")
 
     except Exception as e:
         results["success"] = False
         results["errors"].append(f"Unexpected error: {e}")
-        results["tests"].append({
-            "name": "unexpected_error",
-            "status": "❌ FAIL",
-            "description": f"Unexpected error: {e}"
-        })
+        results["tests"].append(
+            {"name": "unexpected_error", "status": "❌ FAIL", "description": f"Unexpected error: {e}"}
+        )
 
     return results
 
@@ -265,7 +285,7 @@ def test_pytorch_api_compatibility():
         "integration_type": "pytorch_compatibility",
         "tests": [],
         "success": True,
-        "errors": []
+        "errors": [],
     }
 
     try:
@@ -276,6 +296,7 @@ def test_pytorch_api_compatibility():
 
         # Test 1: PyTorch-like model definition
         try:
+
             class PyTorchLikeModel(nn.Module):
                 def __init__(self):
                     super().__init__()
@@ -306,19 +327,23 @@ def test_pytorch_api_compatibility():
             # Should work exactly like PyTorch
             assert callable(model), "Model should be callable"
             assert len(list(model.parameters())) > 0, "Should have parameters"
-            assert hasattr(optimizer, 'parameters'), "Optimizer should have parameters"
+            assert hasattr(optimizer, "parameters"), "Optimizer should have parameters"
 
-            results["tests"].append({
-                "name": "pytorch_like_model_definition",
-                "status": "✅ PASS",
-                "description": "PyTorch-like model definition works"
-            })
+            results["tests"].append(
+                {
+                    "name": "pytorch_like_model_definition",
+                    "status": "✅ PASS",
+                    "description": "PyTorch-like model definition works",
+                }
+            )
         except Exception as e:
-            results["tests"].append({
-                "name": "pytorch_like_model_definition",
-                "status": "❌ FAIL",
-                "description": f"PyTorch-like definition failed: {e}"
-            })
+            results["tests"].append(
+                {
+                    "name": "pytorch_like_model_definition",
+                    "status": "❌ FAIL",
+                    "description": f"PyTorch-like definition failed: {e}",
+                }
+            )
             results["success"] = False
             results["errors"].append(f"PyTorch compatibility error: {e}")
 
@@ -330,22 +355,26 @@ def test_pytorch_api_compatibility():
 
             # Test that syntax matches PyTorch
             params = model.parameters()
-            assert hasattr(params, '__iter__'), "parameters() should be iterable"
+            assert hasattr(params, "__iter__"), "parameters() should be iterable"
 
             param_list = list(model.parameters())
             assert len(param_list) == 2, "Linear should have weight + bias"
 
-            results["tests"].append({
-                "name": "pytorch_training_setup",
-                "status": "✅ PASS",
-                "description": "PyTorch-like training setup works"
-            })
+            results["tests"].append(
+                {
+                    "name": "pytorch_training_setup",
+                    "status": "✅ PASS",
+                    "description": "PyTorch-like training setup works",
+                }
+            )
         except Exception as e:
-            results["tests"].append({
-                "name": "pytorch_training_setup",
-                "status": "❌ FAIL",
-                "description": f"Training setup failed: {e}"
-            })
+            results["tests"].append(
+                {
+                    "name": "pytorch_training_setup",
+                    "status": "❌ FAIL",
+                    "description": f"Training setup failed: {e}",
+                }
+            )
             results["success"] = False
             results["errors"].append(f"Training setup error: {e}")
 
@@ -356,7 +385,7 @@ def test_pytorch_api_compatibility():
     return results
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("🧪 TrenTorch API Simplification Integration Tests")
     print("=" * 60)
 
@@ -370,7 +399,7 @@ if __name__ == '__main__':
     total_passed = sum(len([t for t in r["tests"] if t["status"] == "✅ PASS"]) for r in all_results)
     total_failed = total_tests - total_passed
 
-    print(f"\n📊 Integration Test Summary:")
+    print("\n📊 Integration Test Summary:")
     print(f"   Total tests: {total_tests}")
     print(f"   ✅ Passed: {total_passed}")
     print(f"   ❌ Failed: {total_failed}")

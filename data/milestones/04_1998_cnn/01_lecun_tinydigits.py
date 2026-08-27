@@ -85,27 +85,28 @@ MLP from Milestone 03 on the SAME dataset. This proves spatial operations matter
    real 32×32 color images using YOUR DataLoader!
 """
 
-import sys
 import os
-import time
 import pickle
-import numpy as np
+import sys
+import time
 from pathlib import Path
+
+import numpy as np
+from rich import box
 from rich.console import Console
+from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
-from rich.live import Live
 from rich.text import Text
-from rich import box
 
 # Add paths for local development
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 # Import TrenTorch components
-from trentorch import Tensor, SGD, CrossEntropyLoss
-from trentorch.core.spatial import Conv2d, MaxPool2d
-from trentorch.core.layers import Linear, ReLU
+from trentorch import SGD, CrossEntropyLoss, Tensor
 from trentorch.core.dataloader import DataLoader, TensorDataset
+from trentorch.core.layers import Linear, ReLU
+from trentorch.core.spatial import Conv2d, MaxPool2d
 
 console = Console()
 
@@ -158,6 +159,7 @@ console = Console()
 # 📊 DATA LOADING
 # ============================================================================
 
+
 def load_digits_dataset():
     """
     Load the TinyDigits dataset (8×8 curated digits).
@@ -172,39 +174,40 @@ def load_digits_dataset():
     test_path = project_root / "data" / "datasets" / "tinydigits" / "test.pkl"
 
     if not train_path.exists() or not test_path.exists():
-        console.print(f"[red]✗ TinyDigits dataset not found![/red]")
+        console.print("[red]✗ TinyDigits dataset not found![/red]")
         console.print(f"[yellow]Expected location: {train_path.parent}[/yellow]")
         console.print("[yellow]Run: python3 datasets/tinydigits/create_tinydigits.py[/yellow]")
         sys.exit(1)
 
     # Load training data
-    with open(train_path, 'rb') as f:
+    with open(train_path, "rb") as f:
         train_data = pickle.load(f)
-    train_images = train_data['images']  # (150, 8, 8)
-    train_labels = train_data['labels']  # (150,)
+    train_images = train_data["images"]  # (150, 8, 8)
+    train_labels = train_data["labels"]  # (150,)
 
     # Load test data
-    with open(test_path, 'rb') as f:
+    with open(test_path, "rb") as f:
         test_data = pickle.load(f)
-    test_images = test_data['images']  # (47, 8, 8)
-    test_labels = test_data['labels']  # (47,)
+    test_images = test_data["images"]  # (47, 8, 8)
+    test_labels = test_data["labels"]  # (47,)
 
     # CNN expects (batch, channels, height, width)
     # Add channel dimension: (N, 8, 8) → (N, 1, 8, 8)
     train_images = train_images[:, np.newaxis, :, :]  # (150, 1, 8, 8)
-    test_images = test_images[:, np.newaxis, :, :]    # (47, 1, 8, 8)
+    test_images = test_images[:, np.newaxis, :, :]  # (47, 1, 8, 8)
 
     return (
         Tensor(train_images.astype(np.float32)),
         Tensor(train_labels.astype(np.int64)),
         Tensor(test_images.astype(np.float32)),
-        Tensor(test_labels.astype(np.int64))
+        Tensor(test_labels.astype(np.int64)),
     )
 
 
 # ============================================================================
 # 🏗️ NETWORK ARCHITECTURE
 # ============================================================================
+
 
 class SimpleCNN:
     """
@@ -267,6 +270,7 @@ class SimpleCNN:
 # 🎯 TRAINING & EVALUATION
 # ============================================================================
 
+
 def train_epoch(model, dataloader, criterion, optimizer):
     """Train for one epoch."""
     total_loss = 0.0
@@ -298,17 +302,20 @@ def evaluate_accuracy(model, images, labels):
     avg_loss = np.mean((predictions - labels.data) ** 2)
     return accuracy, avg_loss
 
-def press_enter_to_continue() :
-    if sys.stdin.isatty() and sys.stdout.isatty() :
-        try :
+
+def press_enter_to_continue():
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        try:
             console.input("\n[yellow]Press Enter to continue...[/yellow] ")
-        except EOFError :
+        except EOFError:
             pass
         console.print()
+
 
 # ============================================================================
 # 🎬 MAIN MILESTONE DEMONSTRATION
 # ============================================================================
+
 
 def train_cnn():
     """Main training loop following 5-Act structure."""
@@ -317,22 +324,24 @@ def train_cnn():
     # ACT 1: THE CHALLENGE 🎯
     # ═══════════════════════════════════════════════════════════════════════
 
-    console.print(Panel.fit(
-        "[bold cyan]1998: The Computer Vision Challenge[/bold cyan]\n\n"
-        "[yellow]The Problem:[/yellow]\n"
-        "MLPs flatten images → lose spatial structure\n"
-        "Each pixel treated independently\n"
-        "Millions of parameters needed for larger images\n\n"
-        "[green]The Innovation:[/green]\n"
-        "Convolutional Neural Networks (CNNs)\n"
-        "  • Shared weights across space (convolution)\n"
-        "  • Local connectivity (receptive fields)\n"
-        "  • Pooling for translation invariance\n\n"
-        "[bold]Can spatial operations outperform dense layers?[/bold]",
-        title="🎯 ACT 1: THE CHALLENGE",
-        border_style="cyan",
-        box=box.DOUBLE
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]1998: The Computer Vision Challenge[/bold cyan]\n\n"
+            "[yellow]The Problem:[/yellow]\n"
+            "MLPs flatten images → lose spatial structure\n"
+            "Each pixel treated independently\n"
+            "Millions of parameters needed for larger images\n\n"
+            "[green]The Innovation:[/green]\n"
+            "Convolutional Neural Networks (CNNs)\n"
+            "  • Shared weights across space (convolution)\n"
+            "  • Local connectivity (receptive fields)\n"
+            "  • Pooling for translation invariance\n\n"
+            "[bold]Can spatial operations outperform dense layers?[/bold]",
+            title="🎯 ACT 1: THE CHALLENGE",
+            border_style="cyan",
+            box=box.DOUBLE,
+        )
+    )
 
     press_enter_to_continue()
 
@@ -343,10 +352,10 @@ def train_cnn():
     console.print(f"  Training samples: [cyan]{len(train_images.data)}[/cyan]")
     console.print(f"  Test samples: [cyan]{len(test_images.data)}[/cyan]")
     console.print(f"  Image shape: [cyan]{train_images.data[0].shape}[/cyan] (1 channel, 8×8 pixels)")
-    console.print(f"  Classes: [cyan]10[/cyan] (digits 0-9)")
+    console.print("  Classes: [cyan]10[/cyan] (digits 0-9)")
 
     # Show training data structure
-    console.print(f"\n  [dim]Sample digit values (first image, top-left 3×3):[/dim]")
+    console.print("\n  [dim]Sample digit values (first image, top-left 3×3):[/dim]")
     sample = train_images.data[0, 0, :3, :3]
     for row in sample:
         console.print(f"    {' '.join(f'{val:.2f}' for val in row)}")
@@ -430,7 +439,7 @@ def train_cnn():
     history = {
         "train_loss": [],
         "test_accuracy": [],
-        "train_accuracy": []  # Track training accuracy to detect overfitting
+        "train_accuracy": [],  # Track training accuracy to detect overfitting
     }
     start_time = time.time()
 
@@ -440,7 +449,7 @@ def train_cnn():
             # Update spinner before training
             spinner_text = Text()
             spinner_text.append("⠋ ", style="cyan")
-            spinner_text.append(f"Epoch {epoch+1:3d}/{epochs}  Training...")
+            spinner_text.append(f"Epoch {epoch + 1:3d}/{epochs}  Training...")
             live.update(spinner_text)
 
             # Train
@@ -458,7 +467,7 @@ def train_cnn():
                 gap = train_acc - test_acc
                 gap_indicator = "⚠️" if gap > 10 else "✓"
                 live.console.print(
-                    f"Epoch {epoch+1:3d}/{epochs}  "
+                    f"Epoch {epoch + 1:3d}/{epochs}  "
                     f"Loss: {train_loss:.4f}  "
                     f"Train: {train_acc:.1f}%  "
                     f"Test: {test_acc:.1f}%  "
@@ -477,7 +486,7 @@ def train_cnn():
 
     final_train_acc = history["train_accuracy"][-1]
     final_test_acc = history["test_accuracy"][-1]
-    final_loss = history["train_loss"][-1]
+    history["train_loss"][-1]
     overfitting_gap = final_train_acc - final_test_acc
 
     table = Table(title="Training Outcome", box=box.ROUNDED)
@@ -485,26 +494,12 @@ def train_cnn():
     table.add_column("Value", style="green", width=20)
     table.add_column("Status", style="magenta", width=20)
 
+    table.add_row("Train Accuracy", f"{final_train_acc:.1f}%", f"↑ +{final_train_acc - initial_acc:.1f}%")
+    table.add_row("Test Accuracy", f"{final_test_acc:.1f}%", f"↑ +{final_test_acc - initial_acc:.1f}%")
     table.add_row(
-        "Train Accuracy",
-        f"{final_train_acc:.1f}%",
-        f"↑ +{final_train_acc - initial_acc:.1f}%"
+        "Overfitting Gap", f"{overfitting_gap:.1f}%", "✓ Healthy" if overfitting_gap < 10 else "⚠️ Overfitting"
     )
-    table.add_row(
-        "Test Accuracy",
-        f"{final_test_acc:.1f}%",
-        f"↑ +{final_test_acc - initial_acc:.1f}%"
-    )
-    table.add_row(
-        "Overfitting Gap",
-        f"{overfitting_gap:.1f}%",
-        "✓ Healthy" if overfitting_gap < 10 else "⚠️ Overfitting"
-    )
-    table.add_row(
-        "Training Time",
-        f"{training_time*1000:.0f}ms",
-        "—"
-    )
+    table.add_row("Training Time", f"{training_time * 1000:.0f}ms", "—")
 
     console.print(table)
 
@@ -532,9 +527,9 @@ def train_cnn():
 
     # Key insights
     console.print("\n[bold]💡 Key Insights:[/bold]")
-    console.print(f"  • CNNs preserve spatial structure")
-    console.print(f"  • Conv layers detect local patterns (edges → digits)")
-    console.print(f"  • Pooling provides translation invariance")
+    console.print("  • CNNs preserve spatial structure")
+    console.print("  • Conv layers detect local patterns (edges → digits)")
+    console.print("  • Pooling provides translation invariance")
     console.print(f"  • {total_params} params vs ~5,000 for MLP with similar accuracy!")
 
     press_enter_to_continue()
@@ -543,56 +538,49 @@ def train_cnn():
     # ACT 5: THE REFLECTION 🌟
     # ═══════════════════════════════════════════════════════════════════════
 
-    console.print(Panel.fit(
-        "[bold green]🎉 Success! Your CNN Learned to Recognize Digits![/bold green]\n\n"
-
-        f"Test accuracy: [bold]{final_test_acc:.1f}%[/bold] (Gap: {overfitting_gap:.1f}%)\n\n"
-
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-        "[bold]💡 What YOU Just Accomplished:[/bold]\n"
-        "  ✓ Built a Convolutional Neural Network from scratch\n"
-        "  ✓ Used Conv2d for spatial feature extraction\n"
-        "  ✓ Applied MaxPooling for translation invariance\n"
-        f"  ✓ Achieved {final_test_acc:.1f}% test accuracy!\n"
-        f"  ✓ Model generalizes well (gap: {overfitting_gap:.1f}%)\n"
-        "  ✓ Used 100× fewer parameters than MLP!\n\n"
-
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-        "[bold]🎓 Why This Matters:[/bold]\n"
-        "  LeNet-5 (1998) proved CNNs work for real-world vision.\n"
-        "  This breakthrough led to:\n"
-        "  • AlexNet (2012) - ImageNet revolution\n"
-        "  • VGG, ResNet, modern computer vision\n"
-        "  • Self-driving cars, medical imaging, face recognition\n\n"
-
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-        "[bold]📌 The Key Breakthrough:[/bold]\n"
-        "  [yellow]Spatial structure matters![/yellow]\n"
-        "  MLPs: Every pixel connects to everything → explosion\n"
-        "  CNNs: Local connectivity + shared weights → efficiency\n"
-        "  \n"
-        "  This is why CNNs dominate computer vision today!\n\n"
-
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-        "[bold]🚀 What's Next:[/bold]\n"
-        "[dim]You've now built the complete ML training pipeline:\n"
-        "  Tensors → Layers → Optimizers → DataLoaders → CNNs\n"
-        "  \n"
-        "  Next modules will add modern techniques:\n"
-        "  • Normalization, Dropout, Advanced architectures\n"
-        "  • Attention mechanisms, Transformers\n"
-        "  • Production systems, Optimization, Deployment![/dim]",
-
-        title="🌟 1998 CNN Revolution Complete",
-        border_style="green",
-        box=box.DOUBLE
-    ))
+    console.print(
+        Panel.fit(
+            "[bold green]🎉 Success! Your CNN Learned to Recognize Digits![/bold green]\n\n"
+            f"Test accuracy: [bold]{final_test_acc:.1f}%[/bold] (Gap: {overfitting_gap:.1f}%)\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "[bold]💡 What YOU Just Accomplished:[/bold]\n"
+            "  ✓ Built a Convolutional Neural Network from scratch\n"
+            "  ✓ Used Conv2d for spatial feature extraction\n"
+            "  ✓ Applied MaxPooling for translation invariance\n"
+            f"  ✓ Achieved {final_test_acc:.1f}% test accuracy!\n"
+            f"  ✓ Model generalizes well (gap: {overfitting_gap:.1f}%)\n"
+            "  ✓ Used 100× fewer parameters than MLP!\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "[bold]🎓 Why This Matters:[/bold]\n"
+            "  LeNet-5 (1998) proved CNNs work for real-world vision.\n"
+            "  This breakthrough led to:\n"
+            "  • AlexNet (2012) - ImageNet revolution\n"
+            "  • VGG, ResNet, modern computer vision\n"
+            "  • Self-driving cars, medical imaging, face recognition\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "[bold]📌 The Key Breakthrough:[/bold]\n"
+            "  [yellow]Spatial structure matters![/yellow]\n"
+            "  MLPs: Every pixel connects to everything → explosion\n"
+            "  CNNs: Local connectivity + shared weights → efficiency\n"
+            "  \n"
+            "  This is why CNNs dominate computer vision today!\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "[bold]🚀 What's Next:[/bold]\n"
+            "[dim]You've now built the complete ML training pipeline:\n"
+            "  Tensors → Layers → Optimizers → DataLoaders → CNNs\n"
+            "  \n"
+            "  Next modules will add modern techniques:\n"
+            "  • Normalization, Dropout, Advanced architectures\n"
+            "  • Attention mechanisms, Transformers\n"
+            "  • Production systems, Optimization, Deployment![/dim]",
+            title="🌟 1998 CNN Revolution Complete",
+            border_style="green",
+            box=box.DOUBLE,
+        )
+    )
 
     press_enter_to_continue()
+
 
 if __name__ == "__main__":
     train_cnn()

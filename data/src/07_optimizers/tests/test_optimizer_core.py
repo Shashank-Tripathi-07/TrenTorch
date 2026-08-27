@@ -25,8 +25,9 @@ CONNECTION TO OTHER MODULES:
 - Enables Training (Module 08) - optimizers make learning possible
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -34,9 +35,9 @@ from pathlib import Path
 # Add project root
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.optimizers import SGD, Adam
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.optimizers import SGD, Adam
+from trentorch.core.tensor import Tensor
 
 enable_autograd()
 
@@ -166,9 +167,7 @@ class TestAdamBasics:
 
         optimizer.step()
 
-        assert not np.allclose(param.data, initial_values), (
-            "Adam.step() did not change weights!"
-        )
+        assert not np.allclose(param.data, initial_values), "Adam.step() did not change weights!"
 
     def test_adam_momentum_accumulates(self):
         """

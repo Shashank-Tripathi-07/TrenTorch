@@ -27,6 +27,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Add project root to path
@@ -96,7 +97,7 @@ class TestFoundationStackStillWorks:
             loss = loss_fn(output, target)
 
             # Backward pass (if supported)
-            if hasattr(loss, 'backward'):
+            if hasattr(loss, "backward"):
                 try:
                     loss.backward()
                     # Check gradients exist (optional - autograd may not be complete)
@@ -146,8 +147,8 @@ class TestModule07OptimizersCore:
             params[0].grad = Tensor(np.ones((3, 3)))  # Set gradient
 
             # Test that optimizer has required methods
-            assert hasattr(optimizer, 'step'), "SGD missing step() method"
-            assert hasattr(optimizer, 'zero_grad'), "SGD missing zero_grad() method"
+            assert hasattr(optimizer, "step"), "SGD missing step() method"
+            assert hasattr(optimizer, "zero_grad"), "SGD missing zero_grad() method"
 
             # Test parameter update
             original_value = params[0].data.copy()
@@ -224,16 +225,15 @@ class TestModule07OptimizersCore:
             params[0].grad = Tensor(np.ones((3, 3)))
 
             # Test required methods
-            assert hasattr(optimizer, 'step'), "Adam missing step() method"
-            assert hasattr(optimizer, 'zero_grad'), "Adam missing zero_grad() method"
+            assert hasattr(optimizer, "step"), "Adam missing step() method"
+            assert hasattr(optimizer, "zero_grad"), "Adam missing zero_grad() method"
 
             # Test parameter update
             original_value = params[0].data.copy()
             optimizer.step()
 
             # Parameters should change
-            assert not np.array_equal(params[0].data, original_value), \
-                "Adam step() not updating parameters"
+            assert not np.array_equal(params[0].data, original_value), "Adam step() not updating parameters"
 
         except ImportError:
             assert True, "Adam optimizer not implemented yet (expected)"
@@ -315,7 +315,7 @@ class TestOptimizerIntegration:
             # Get initial loss
             initial_output = layer(x)
             initial_loss = loss_fn(initial_output, target)
-            initial_loss_value = initial_loss.data.copy()
+            initial_loss.data.copy()
 
             # Training step
             optimizer.zero_grad()
@@ -375,7 +375,7 @@ class TestOptimizerIntegration:
                 losses.append(float(loss.data))
 
                 # Try backward if available
-                if hasattr(loss, 'backward'):
+                if hasattr(loss, "backward"):
                     try:
                         loss.backward()
                     except (TypeError, AttributeError):
@@ -419,8 +419,9 @@ class TestRegressionPrevention:
 
             # Gradient of sum(x^2) is 2x
             expected_grad = np.array([4.0, 6.0])
-            assert np.allclose(x.grad.data, expected_grad), \
+            assert np.allclose(x.grad.data, expected_grad), (
                 f"Autograd broken. Expected {expected_grad}, got {x.grad.data}"
+            )
 
         except Exception as e:
             assert False, f"Module 06 (autograd) broken: {str(e)}"

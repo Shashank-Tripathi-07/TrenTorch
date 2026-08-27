@@ -95,7 +95,7 @@ y = w·x + b
 
 # MLP (solves XOR)
 h = tanh(W1·x + b1)  # Hidden layer learns features
-y = σ(W2·h + b2)     # Output layer combines features
+y = σ(W2·h + b2)  # Output layer combines features
 ```
 
 Here's the thing: without non-linearity, stacking layers doesn't help. Two linear layers collapse into one:
@@ -112,7 +112,7 @@ The activation function (tanh, sigmoid, ReLU) is what makes depth meaningful.
 
 ```python
 # XOR: 4 samples, 2 features
-X = [[0,0], [0,1], [1,0], [1,1]]
+X = [[0, 0], [0, 1], [1, 0], [1, 1]]
 
 # Digits: 1000 samples, 64 features (8×8 images)
 X = load_tiny_digits()  # Real-world complexity
@@ -129,10 +129,8 @@ That's what the MLP milestone demonstrates.
 
 ```python
 # MLP: Flatten destroys structure
-image = [[1,2,3],
-         [4,5,6],
-         [7,8,9]]
-flat = [1,2,3,4,5,6,7,8,9]  # Lost neighborhood info!
+image = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+flat = [1, 2, 3, 4, 5, 6, 7, 8, 9]  # Lost neighborhood info!
 
 # CNN: Preserve structure
 conv = Conv2d(1, 8, kernel_size=3)

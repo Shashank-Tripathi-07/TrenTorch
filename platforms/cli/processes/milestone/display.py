@@ -27,16 +27,18 @@ def show_status(config, console, args: Namespace) -> int:
     # achieved" beside "100%"). This header's percentage is achievement-
     # based instead, to actually match the achieved count shown above it.
     total_milestones = len(milestone_system.MILESTONES)
-    achievement_progress = (status['total_completed'] / total_milestones) * 100 if total_milestones > 0 else 0
-    console.print(Panel(
-        f"[bold cyan]🎮 TinyTorch Milestone Progress[/bold cyan]\n\n"
-        f"[bold]Capabilities Unlocked:[/bold] {status['total_unlocked']}/{total_milestones} milestones\n"
-        f"[bold]Milestones Achieved:[/bold] {status['total_completed']}/{total_milestones} milestones\n"
-        f"[bold]Overall Progress:[/bold] {achievement_progress:.0f}%\n\n"
-        f"[dim]Transform from student to ML Systems Engineer![/dim]",
-        title="🚀 Your Epic Journey",
-        border_style="bright_blue"
-    ))
+    achievement_progress = (status["total_completed"] / total_milestones) * 100 if total_milestones > 0 else 0
+    console.print(
+        Panel(
+            f"[bold cyan]🎮 TinyTorch Milestone Progress[/bold cyan]\n\n"
+            f"[bold]Capabilities Unlocked:[/bold] {status['total_unlocked']}/{total_milestones} milestones\n"
+            f"[bold]Milestones Achieved:[/bold] {status['total_completed']}/{total_milestones} milestones\n"
+            f"[bold]Overall Progress:[/bold] {achievement_progress:.0f}%\n\n"
+            f"[dim]Transform from student to ML Systems Engineer![/dim]",
+            title="🚀 Your Epic Journey",
+            border_style="bright_blue",
+        )
+    )
 
     # Show milestone status
     for milestone_id in sorted(milestone_system.MILESTONES.keys()):
@@ -46,32 +48,38 @@ def show_status(config, console, args: Namespace) -> int:
     # Show next steps
     if status["next_milestone"]:
         next_milestone = status["milestones"][status["next_milestone"]]
-        console.print(Panel(
-            f"[bold cyan]🎯 Next Achievement[/bold cyan]\n\n"
-            f"[bold yellow]{next_milestone['emoji']} {next_milestone['title']}[/bold yellow]\n"
-            f"[dim]{next_milestone['victory_condition']}[/dim]\n\n"
-            f"[green]Ready to run![/green]\n"
-            f"[dim]tito milestone run {next_milestone['id']}[/dim]",
-            title="Next Milestone",
-            border_style="bright_green"
-        ))
+        console.print(
+            Panel(
+                f"[bold cyan]🎯 Next Achievement[/bold cyan]\n\n"
+                f"[bold yellow]{next_milestone['emoji']} {next_milestone['title']}[/bold yellow]\n"
+                f"[dim]{next_milestone['victory_condition']}[/dim]\n\n"
+                f"[green]Ready to run![/green]\n"
+                f"[dim]tito milestone run {next_milestone['id']}[/dim]",
+                title="Next Milestone",
+                border_style="bright_green",
+            )
+        )
     elif status["total_completed"] == total_milestones:
-        console.print(Panel(
-            f"[bold green]🏆 QUEST COMPLETE! 🏆[/bold green]\n\n"
-            f"[green]You've achieved all {total_milestones} epic milestones![/green]\n"
-            f"[bold white]You are now an ML Systems Engineer![/bold white]\n\n"
-            f"[cyan]Share your achievement and inspire others![/cyan]",
-            title="🌟 FULL MASTERY ACHIEVED",
-            border_style="bright_green"
-        ))
+        console.print(
+            Panel(
+                f"[bold green]🏆 QUEST COMPLETE! 🏆[/bold green]\n\n"
+                f"[green]You've achieved all {total_milestones} epic milestones![/green]\n"
+                f"[bold white]You are now an ML Systems Engineer![/bold white]\n\n"
+                f"[cyan]Share your achievement and inspire others![/cyan]",
+                title="🌟 FULL MASTERY ACHIEVED",
+                border_style="bright_green",
+            )
+        )
     elif status["total_unlocked"] == total_milestones:
-        console.print(Panel(
-            f"[bold yellow]⚡ All milestones unlocked![/bold yellow]\n\n"
-            f"[yellow]Every milestone is ready to run.[/yellow]\n"
-            f"[dim]Run each with tito milestone run <id> to actually achieve it.[/dim]",
-            title="🔓 All Milestones Ready",
-            border_style="bright_yellow"
-        ))
+        console.print(
+            Panel(
+                "[bold yellow]⚡ All milestones unlocked![/bold yellow]\n\n"
+                "[yellow]Every milestone is ready to run.[/yellow]\n"
+                "[dim]Run each with tito milestone run <id> to actually achieve it.[/dim]",
+                title="🔓 All Milestones Ready",
+                border_style="bright_yellow",
+            )
+        )
 
     return 0
 
@@ -82,26 +90,18 @@ def _show_milestone_status(console, milestone: dict, detailed: bool = False) -> 
     if milestone["is_completed"]:
         status_icon = "✅"
         status_color = "bold green"
-        status_text = "ACHIEVED"
     elif milestone["is_unlocked"]:
         status_icon = "🔓"
         status_color = "green"
-        status_text = "UNLOCKED"
     elif milestone["can_unlock"]:
         status_icon = "⚡"
         status_color = "yellow"
-        status_text = "READY TO UNLOCK"
     elif milestone["required_complete"] and not milestone["trigger_complete"]:
         status_icon = "🔒"
         status_color = "cyan"
-        if milestone["trigger_module"]:
-            status_text = f"COMPLETE: {milestone['trigger_module']}"
-        else:
-            status_text = "READY"
     else:
         status_icon = "🔒"
         status_color = "dim"
-        status_text = "LOCKED"
 
     # Basic display
     milestone_content = (
@@ -119,7 +119,7 @@ def _show_milestone_status(console, milestone: dict, detailed: bool = False) -> 
             trigger_status = "•"
             trigger_text = "N/A"
 
-        required_modules_str = ', '.join(f"{m:02d}" for m in milestone.get('required_modules', []))
+        required_modules_str = ", ".join(f"{m:02d}" for m in milestone.get("required_modules", []))
 
         milestone_content += (
             f"\n\n[bold]Requirements:[/bold]\n"
@@ -133,11 +133,7 @@ def _show_milestone_status(console, milestone: dict, detailed: bool = False) -> 
             unlock_date = datetime.fromisoformat(milestone["unlock_date"]).strftime("%Y-%m-%d")
             milestone_content += f"\n[dim]Unlocked: {unlock_date}[/dim]"
 
-    console.print(Panel(
-        milestone_content,
-        title=f"Milestone {milestone['id']}",
-        border_style=status_color
-    ))
+    console.print(Panel(milestone_content, title=f"Milestone {milestone['id']}", border_style=status_color))
 
 
 def show_timeline(config, console, args: Namespace) -> int:
@@ -156,12 +152,14 @@ def show_timeline(config, console, args: Namespace) -> int:
 def _show_horizontal_timeline(console, status: dict, milestone_system: MilestoneSystem) -> None:
     """Show horizontal progress bar timeline."""
     total_milestones = len(milestone_system.MILESTONES)
-    console.print(Panel(
-        f"[bold cyan]🎮 Milestone Timeline[/bold cyan]\n\n"
-        f"[bold]Progress:[/bold] {status['total_unlocked']}/{total_milestones} milestones unlocked",
-        title="Your Epic Journey",
-        border_style="bright_blue"
-    ))
+    console.print(
+        Panel(
+            f"[bold cyan]🎮 Milestone Timeline[/bold cyan]\n\n"
+            f"[bold]Progress:[/bold] {status['total_unlocked']}/{total_milestones} milestones unlocked",
+            title="Your Epic Journey",
+            border_style="bright_blue",
+        )
+    )
 
     # Create progress bar
     progress_width = 50
@@ -194,12 +192,14 @@ def _show_horizontal_timeline(console, status: dict, milestone_system: Milestone
 
 def _show_tree_timeline(console, status: dict, milestone_system: MilestoneSystem) -> None:
     """Show tree-style milestone timeline."""
-    console.print(Panel(
-        f"[bold cyan]🎮 Milestone Progression Tree[/bold cyan]\n\n"
-        f"[bold]Your journey from student to ML Systems Engineer[/bold]",
-        title="Epic Timeline",
-        border_style="bright_blue"
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]🎮 Milestone Progression Tree[/bold cyan]\n\n"
+            "[bold]Your journey from student to ML Systems Engineer[/bold]",
+            title="Epic Timeline",
+            border_style="bright_blue",
+        )
+    )
 
     # Create tree structure
     tree = Tree("🚀 [bold]TinyTorch Mastery Journey[/bold]")
@@ -217,16 +217,14 @@ def _show_tree_timeline(console, status: dict, milestone_system: MilestoneSystem
             node_style = "dim"
             icon = "🔒"
 
-        branch = tree.add(
-            f"[{node_style}]{icon} {milestone['emoji']} {milestone['title']}[/{node_style}]"
-        )
+        branch = tree.add(f"[{node_style}]{icon} {milestone['emoji']} {milestone['title']}[/{node_style}]")
 
         # Add capability description
         branch.add(f"[dim]{milestone['capability']}[/dim]")
 
         # Add trigger module info
         if not milestone["trigger_module"]:
-            required_modules_str = ', '.join(f"{m:02d}" for m in milestone.get('required_modules', []))
+            required_modules_str = ", ".join(f"{m:02d}" for m in milestone.get("required_modules", []))
             if milestone["required_complete"]:
                 branch.add(f"[green]✅ Prerequisites complete: {required_modules_str}[/green]")
             else:
@@ -242,12 +240,14 @@ def _show_tree_timeline(console, status: dict, milestone_system: MilestoneSystem
 
 def show_list(config, console, args: Namespace) -> int:
     """Handle milestone list command - show available milestones."""
-    console.print(Panel(
-        "[bold cyan]🏆 TinyTorch Milestones[/bold cyan]\n\n"
-        "[dim]Recreate ML history from 1958 to 2018[/dim]",
-        title="Available Milestones",
-        border_style="bright_cyan"
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]🏆 TinyTorch Milestones[/bold cyan]\n\n"
+            "[dim]Recreate ML history from 1958 to 2018[/dim]",
+            title="Available Milestones",
+            border_style="bright_cyan",
+        )
+    )
 
     # Check module completion status from the canonical module progress file.
     completed_module_nums = _load_completed_module_numbers()
@@ -268,19 +268,18 @@ def show_list(config, console, args: Namespace) -> int:
         if is_complete:
             status_icon = "✅"
             status_color = "green"
-            status_text = "COMPLETE"
         elif prereqs_met:
             status_icon = "🎯"
             status_color = "yellow"
-            status_text = "READY TO RUN"
         else:
             status_icon = "🔒"
             status_color = "dim"
-            status_text = "LOCKED"
 
         # Build display
         if args.simple:
-            console.print(f"[{status_color}]{status_icon} {milestone['id']} - {milestone['name']}[/{status_color}]")
+            console.print(
+                f"[{status_color}]{status_icon} {milestone['id']} - {milestone['name']}[/{status_color}]"
+            )
         else:
             milestone_display = (
                 f"[{status_color}]{status_icon} {milestone['emoji']} {milestone['name']}[/{status_color}]\n"
@@ -290,16 +289,20 @@ def show_list(config, console, args: Namespace) -> int:
             )
 
             if prereqs_met and not is_complete:
-                milestone_display += f"[bold yellow]▶ Run now:[/bold yellow] [cyan]tito milestone run {milestone_id}[/cyan]\n"
+                milestone_display += (
+                    f"[bold yellow]▶ Run now:[/bold yellow] [cyan]tito milestone run {milestone_id}[/cyan]\n"
+                )
             elif not prereqs_met:
                 missing = [f"{m:02d}" for m in required_modules if m not in completed_module_nums]
                 milestone_display += f"[dim]Required: Complete modules {', '.join(missing)}[/dim]\n"
 
-            console.print(Panel(
-                milestone_display.strip(),
-                title=f"Milestone {milestone['id']} ({milestone['year']})",
-                border_style=status_color
-            ))
+            console.print(
+                Panel(
+                    milestone_display.strip(),
+                    title=f"Milestone {milestone['id']} ({milestone['year']})",
+                    border_style=status_color,
+                )
+            )
 
     return 0
 
@@ -315,14 +318,16 @@ def show_info(config, console, args: Namespace) -> int:
         milestone_id = MILESTONE_ALIASES[milestone_id.lower()]
 
     if milestone_id not in MILESTONE_SCRIPTS:
-        alias_list = ', '.join(sorted(MILESTONE_ALIASES.keys()))
-        console.print(Panel(
-            f"[red]Invalid milestone: {args.milestone_id}[/red]\n\n"
-            f"Valid IDs: {', '.join(sorted(MILESTONE_SCRIPTS.keys()))}\n"
-            f"Valid names: {alias_list}",
-            title="Invalid Milestone",
-            border_style="red"
-        ))
+        alias_list = ", ".join(sorted(MILESTONE_ALIASES.keys()))
+        console.print(
+            Panel(
+                f"[red]Invalid milestone: {args.milestone_id}[/red]\n\n"
+                f"Valid IDs: {', '.join(sorted(MILESTONE_SCRIPTS.keys()))}\n"
+                f"Valid names: {alias_list}",
+                title="Invalid Milestone",
+                border_style="red",
+            )
+        )
         return 1
 
     milestone = MILESTONE_SCRIPTS[milestone_id]
@@ -359,16 +364,20 @@ def show_info(config, console, args: Namespace) -> int:
         info_text += f"\n[yellow]📂 Script:[/yellow] {milestone['script']}\n"
 
     if prereqs_met:
-        info_text += f"\n[bold green]✅ Ready to run![/bold green]\n[cyan]tito milestone run {milestone_id}[/cyan]"
+        info_text += (
+            f"\n[bold green]✅ Ready to run![/bold green]\n[cyan]tito milestone run {milestone_id}[/cyan]"
+        )
     else:
         missing = [m for m in milestone["required_modules"] if m not in completed_module_nums]
         info_text += f"\n[bold yellow]🔒 Locked[/bold yellow]\nComplete modules: {', '.join(f'{m:02d}' for m in missing)}"
 
-    console.print(Panel(
-        info_text,
-        title=f"Milestone {milestone_id} Information",
-        border_style="bright_cyan",
-        padding=(1, 2)
-    ))
+    console.print(
+        Panel(
+            info_text,
+            title=f"Milestone {milestone_id} Information",
+            border_style="bright_cyan",
+            padding=(1, 2),
+        )
+    )
 
     return 0

@@ -6,7 +6,9 @@ Tests MLPerf-style benchmarking and performance measurement
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
+
 
 def test_benchmarking_integration():
     """Test benchmarking system integration."""
@@ -17,6 +19,7 @@ def test_benchmarking_integration():
     # - Test comparison with baselines
     # - Test leaderboard submission
     pass
+
 
 if __name__ == "__main__":
     test_benchmarking_integration()

@@ -59,10 +59,10 @@ from trentorch.core.tokenization import Tokenizer, CharTokenizer, BPETokenizer
 #| default_exp core.tokenization
 #| export
 
+import os
 from collections import Counter
 from typing import Dict, List, Optional, Set, Tuple
 
-import os
 import numpy as np
 
 # Constants for memory calculations
@@ -304,63 +304,11 @@ Tokenizer Interface:
 This ensures consistent behavior across different tokenization strategies.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "base-tokenizer", "solution": true}
-
-class Tokenizer:
-    """
-    Base tokenizer class providing the interface for all tokenizers.
-
-    This defines the contract that all tokenizers must follow:
-    - encode(): text → list of token IDs
-    - decode(): list of token IDs → text
-    """
-
-    # Predefined symbolic tokens for common use cases
-    TOK_UNKNOWN = '<UNK>'   # UNKNOWN
-    TOK_EOW = '</w>'        # END OF WORD
-
-    def encode(self, text: str) -> List[int]:
-        """
-        Convert text to a list of token IDs.
-
-        TODO: Implement encoding logic in subclasses
-
-        APPROACH:
-        1. Subclasses will override this method
-        2. Return list of integer token IDs
-
-        EXAMPLE:
-        >>> tokenizer = CharTokenizer(['a', 'b', 'c'])
-        >>> tokenizer.encode("abc")
-        [1, 2, 3]
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tokenizer.encode")
-        ### END SOLUTION
-
-    def decode(self, tokens: List[int]) -> str:
-        """
-        Convert list of token IDs back to text.
-
-        TODO: Implement decoding logic in subclasses
-
-        APPROACH:
-        1. Subclasses will override this method
-        2. Return reconstructed text string
-
-        EXAMPLE:
-        >>> tokenizer = CharTokenizer(['a', 'b', 'c'])
-        >>> tokenizer.decode([1, 2, 3])
-        "abc"
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tokenizer.decode")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
 
+
 class Tokenizer:
     """
     Base tokenizer class providing the interface for all tokenizers.
@@ -371,10 +319,10 @@ class Tokenizer:
     """
 
     # Predefined symbolic tokens for common use cases
-    TOK_UNKNOWN = '<UNK>'   # UNKNOWN
-    TOK_EOW = '</w>'        # END OF WORD
+    TOK_UNKNOWN = "<UNK>"  # UNKNOWN
+    TOK_EOW = "</w>"  # END OF WORD
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str) -> list[int]:
         """
         Convert text to a list of token IDs.
 
@@ -398,7 +346,7 @@ class Tokenizer:
         )
         ### END SOLUTION
 
-    def decode(self, tokens: List[int]) -> str:
+    def decode(self, tokens: list[int]) -> str:
         """
         Convert list of token IDs back to text.
 
@@ -422,6 +370,7 @@ class Tokenizer:
         )
         ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: Base Tokenizer Interface
@@ -432,6 +381,7 @@ This test validates our base tokenizer defines the correct interface for all imp
 **Why it matters**: Ensures consistent API across all tokenizer types
 **Expected**: Base class raises NotImplementedError for both encode and decode
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-base-tokenizer", "locked": true, "points": 5}
 def test_unit_base_tokenizer():
@@ -455,6 +405,7 @@ def test_unit_base_tokenizer():
         pass
 
     print("✅ Base tokenizer interface works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_base_tokenizer()
@@ -494,100 +445,11 @@ Result: "hello"
 ```
 """
 
-# %% nbgrader={"grade": false, "grade_id": "char-tokenizer", "solution": true}
-
-class CharTokenizer(Tokenizer):
-    """
-    Character-level tokenizer that treats each character as a separate token.
-
-    This is the simplest tokenization approach - every character in the
-    vocabulary gets its own unique ID.
-    """
-
-    def __init__(self, vocab: Optional[List[str]] = None):
-        """
-        Initialize character tokenizer.
-
-        TODO: Set up vocabulary mappings
-
-        APPROACH:
-        1. Store vocabulary list
-        2. Create char→id and id→char mappings
-        3. Handle special tokens (unknown character)
-
-        EXAMPLE:
-        >>> tokenizer = CharTokenizer(['a', 'b', 'c'])
-        >>> tokenizer.vocab_size
-        4  # 3 chars + 1 unknown token
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement CharTokenizer.__init__")
-        ### END SOLUTION
-
-    def build_vocab(self, corpus: List[str]) -> None:
-        """
-        Build vocabulary from a corpus of text.
-
-        TODO: Extract unique characters and build vocabulary
-
-        APPROACH:
-        1. Collect all unique characters from corpus
-        2. Sort for consistent ordering
-        3. Rebuild mappings with new vocabulary
-
-        HINTS:
-        - Use set() to find unique characters
-        - Join all texts then convert to set
-        - Don't forget the <UNK> token
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement CharTokenizer.build_vocab")
-        ### END SOLUTION
-
-    def encode(self, text: str) -> List[int]:
-        """
-        Encode text to list of character IDs.
-
-        TODO: Convert each character to its vocabulary ID
-
-        APPROACH:
-        1. Iterate through each character in text
-        2. Look up character ID in vocabulary
-        3. Use unknown token ID for unseen characters
-
-        EXAMPLE:
-        >>> tokenizer = CharTokenizer(['h', 'e', 'l', 'o'])
-        >>> tokenizer.encode("hello")
-        [1, 2, 3, 3, 4]  # maps to h,e,l,l,o
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement CharTokenizer.encode")
-        ### END SOLUTION
-
-    def decode(self, tokens: List[int]) -> str:
-        """
-        Decode list of token IDs back to text.
-
-        TODO: Convert each token ID back to its character
-
-        APPROACH:
-        1. Look up each token ID in vocabulary
-        2. Join characters into string
-        3. Handle invalid token IDs gracefully
-
-        EXAMPLE:
-        >>> tokenizer = CharTokenizer(['h', 'e', 'l', 'o'])
-        >>> tokenizer.decode([1, 2, 3, 3, 4])
-        "hello"
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement CharTokenizer.decode")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
 
+
 class CharTokenizer(Tokenizer):
     """
     Character-level tokenizer that treats each character as a separate token.
@@ -596,7 +458,7 @@ class CharTokenizer(Tokenizer):
     vocabulary gets its own unique ID.
     """
 
-    def __init__(self, vocab: Optional[List[str]] = None):
+    def __init__(self, vocab: list[str] | None = None):
         """
         Initialize character tokenizer.
 
@@ -628,7 +490,7 @@ class CharTokenizer(Tokenizer):
         self.unk_id = 0
         ### END SOLUTION
 
-    def build_vocab(self, corpus: List[str]) -> None:
+    def build_vocab(self, corpus: list[str]) -> None:
         """
         Build vocabulary from a corpus of text.
 
@@ -662,7 +524,7 @@ class CharTokenizer(Tokenizer):
         self.id_to_char = {idx: char for idx, char in enumerate(self.vocab)}
         ### END SOLUTION
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str) -> list[int]:
         """
         Encode text to list of character IDs.
 
@@ -685,7 +547,7 @@ class CharTokenizer(Tokenizer):
         return tokens
         ### END SOLUTION
 
-    def decode(self, tokens: List[int]) -> str:
+    def decode(self, tokens: list[int]) -> str:
         """
         Decode list of token IDs back to text.
 
@@ -707,8 +569,9 @@ class CharTokenizer(Tokenizer):
             # Use unknown token for invalid IDs
             char = self.id_to_char.get(token_id, Tokenizer.TOK_UNKNOWN)
             chars.append(char)
-        return ''.join(chars)
+        return "".join(chars)
         ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -721,19 +584,20 @@ This test validates our character tokenizer works correctly with vocabulary buil
 **Expected**: Correct encoding/decoding, unknown character handling, vocabulary building
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-char-tokenizer", "locked": true, "points": 15}
 def test_unit_char_tokenizer():
     """🧪 Test character tokenizer implementation."""
     print("🧪 Unit Test: Character Tokenizer...")
 
     # Test basic functionality
-    vocab = ['h', 'e', 'l', 'o', ' ', 'w', 'r', 'd']
+    vocab = ["h", "e", "l", "o", " ", "w", "r", "d"]
     tokenizer = CharTokenizer(vocab)
 
     # Test vocabulary setup
     assert tokenizer.vocab_size == 9  # 8 chars + UNK
     assert tokenizer.vocab[0] == Tokenizer.TOK_UNKNOWN
-    assert 'h' in tokenizer.char_to_id
+    assert "h" in tokenizer.char_to_id
 
     # Test encoding
     text = "hello"
@@ -754,11 +618,12 @@ def test_unit_char_tokenizer():
     # in __init__ above, so after this the 'w' should no longer be a token
     corpus = ["hola mundo", "test text"]
     tokenizer.build_vocab(corpus)
-    assert 'w' not in tokenizer.char_to_id
-    assert 't' in tokenizer.char_to_id
-    assert 'x' in tokenizer.char_to_id
+    assert "w" not in tokenizer.char_to_id
+    assert "t" in tokenizer.char_to_id
+    assert "x" in tokenizer.char_to_id
 
     print("✅ Character tokenizer works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_char_tokenizer()
@@ -882,7 +747,8 @@ Count Pairs Across All Words (weighted by frequency):
 
 # %% nbgrader={"grade": false, "grade_id": "bpe-count-pairs", "solution": true}
 
-def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> Counter:
+
+def _count_byte_pairs(word_tokens: dict[str, list[str]], word_freq: Counter) -> Counter:
     """
     Count frequency of all adjacent token pairs across all words.
 
@@ -910,11 +776,13 @@ def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> 
     raise NotImplementedError("TODO: implement _count_byte_pairs")
     ### END SOLUTION
 
+
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> Counter:
+
+def _count_byte_pairs(word_tokens: dict[str, list[str]], word_freq: Counter) -> Counter:
     """
     Count frequency of all adjacent token pairs across all words.
 
@@ -951,6 +819,7 @@ def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> 
     return pair_counts
     ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: Count Byte Pairs
@@ -960,6 +829,7 @@ def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> 
 **Expected**: Pairs appearing in frequent words get higher counts
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-bpe-count-pairs", "locked": true, "points": 5}
 def test_unit_count_byte_pairs():
     """🧪 Test byte pair counting with frequency weighting."""
@@ -967,30 +837,33 @@ def test_unit_count_byte_pairs():
 
     # Two words: "hello" appears 3 times, "help" appears 1 time
     word_tokens = {
-        "hello": ['h', 'e', 'l', 'l', 'o'+Tokenizer.TOK_EOW],
-        "help": ['h', 'e', 'l', 'p'+Tokenizer.TOK_EOW]
+        "hello": ["h", "e", "l", "l", "o" + Tokenizer.TOK_EOW],
+        "help": ["h", "e", "l", "p" + Tokenizer.TOK_EOW],
     }
     word_freq = Counter({"hello": 3, "help": 1})
 
     counts = _count_byte_pairs(word_tokens, word_freq)
 
     # ('h','e') appears in both words: 3 + 1 = 4
-    assert counts[('h', 'e')] == 4, f"Expected 4, got {counts[('h', 'e')]}"
+    assert counts[("h", "e")] == 4, f"Expected 4, got {counts[('h', 'e')]}"
 
     # ('e','l') appears in both words: 3 + 1 = 4
-    assert counts[('e', 'l')] == 4, f"Expected 4, got {counts[('e', 'l')]}"
+    assert counts[("e", "l")] == 4, f"Expected 4, got {counts[('e', 'l')]}"
 
     # ('l','l') appears only in "hello" (freq 3)
-    assert counts[('l', 'l')] == 3, f"Expected 3, got {counts[('l', 'l')]}"
+    assert counts[("l", "l")] == 3, f"Expected 3, got {counts[('l', 'l')]}"
 
     # ('l','p'+Tokenizer.TOK_EOW) appears only in "help" (freq 1)
-    assert counts[('l', 'p'+Tokenizer.TOK_EOW)] == 1, f"Expected 1, got {counts[('l', 'p'+Tokenizer.TOK_EOW)]}"
+    assert counts[("l", "p" + Tokenizer.TOK_EOW)] == 1, (
+        f"Expected 1, got {counts[('l', 'p' + Tokenizer.TOK_EOW)]}"
+    )
 
     # Empty case
     empty_counts = _count_byte_pairs({}, Counter())
     assert len(empty_counts) == 0
 
     print("✅ Byte pair counting works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_count_byte_pairs()
@@ -1019,7 +892,8 @@ Algorithm (linear scan per word):
 
 # %% nbgrader={"grade": false, "grade_id": "bpe-merge-pair", "solution": true}
 
-def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str:
+
+def _merge_pair(word_tokens: dict[str, list[str]], pair: tuple[str, str]) -> str:
     """
     Merge the most frequent pair in all word token lists.
 
@@ -1052,11 +926,13 @@ def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str
     raise NotImplementedError("TODO: implement _merge_pair")
     ### END SOLUTION
 
+
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str:
+
+def _merge_pair(word_tokens: dict[str, list[str]], pair: tuple[str, str]) -> str:
     """
     Merge the most frequent pair in all word token lists.
 
@@ -1093,9 +969,7 @@ def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str
         new_tokens = []
         i = 0
         while i < len(tokens):
-            if (i < len(tokens) - 1 and
-                tokens[i] == pair[0] and
-                tokens[i + 1] == pair[1]):
+            if i < len(tokens) - 1 and tokens[i] == pair[0] and tokens[i + 1] == pair[1]:
                 # Merge pair
                 new_tokens.append(merged_token)
                 i += 2
@@ -1107,6 +981,7 @@ def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str
     return merged_token
     ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: Merge Pair
@@ -1116,6 +991,7 @@ def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str
 **Expected**: Adjacent pair occurrences replaced by concatenated token, non-matching tokens preserved
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-bpe-merge-pair", "locked": true, "points": 10}
 def test_unit_merge_pair():
     """🧪 Test byte pair merging across word token lists."""
@@ -1123,228 +999,48 @@ def test_unit_merge_pair():
 
     # Set up word tokens
     word_tokens = {
-        "hello": ['h', 'e', 'l', 'l', 'o'+Tokenizer.TOK_EOW],
-        "help": ['h', 'e', 'l', 'p'+Tokenizer.TOK_EOW]
+        "hello": ["h", "e", "l", "l", "o" + Tokenizer.TOK_EOW],
+        "help": ["h", "e", "l", "p" + Tokenizer.TOK_EOW],
     }
 
     # Merge ('h', 'e') → 'he'
-    merged = _merge_pair(word_tokens, ('h', 'e'))
-    assert merged == 'he', f"Expected 'he', got '{merged}'"
-    assert word_tokens["hello"] == ['he', 'l', 'l', 'o'+Tokenizer.TOK_EOW], \
+    merged = _merge_pair(word_tokens, ("h", "e"))
+    assert merged == "he", f"Expected 'he', got '{merged}'"
+    assert word_tokens["hello"] == ["he", "l", "l", "o" + Tokenizer.TOK_EOW], (
         f"Expected ['he', 'l', 'l', 'o'+TOK_EOW], got {word_tokens['hello']}"
-    assert word_tokens["help"] == ['he', 'l', 'p'+Tokenizer.TOK_EOW], \
+    )
+    assert word_tokens["help"] == ["he", "l", "p" + Tokenizer.TOK_EOW], (
         f"Expected ['he', 'l', 'p'+TOK_EOW], got {word_tokens['help']}"
+    )
 
     # Now merge ('l', 'l') → 'll' (only affects "hello")
-    merged2 = _merge_pair(word_tokens, ('l', 'l'))
-    assert merged2 == 'll', f"Expected 'll', got '{merged2}'"
-    assert word_tokens["hello"] == ['he', 'll', 'o'+Tokenizer.TOK_EOW], \
+    merged2 = _merge_pair(word_tokens, ("l", "l"))
+    assert merged2 == "ll", f"Expected 'll', got '{merged2}'"
+    assert word_tokens["hello"] == ["he", "ll", "o" + Tokenizer.TOK_EOW], (
         f"Expected ['he', 'll', 'o'+TOK_EOW], got {word_tokens['hello']}"
+    )
     # "help" unchanged (no 'l','l' pair)
-    assert word_tokens["help"] == ['he', 'l', 'p'+Tokenizer.TOK_EOW], \
+    assert word_tokens["help"] == ["he", "l", "p" + Tokenizer.TOK_EOW], (
         f"help should be unchanged, got {word_tokens['help']}"
+    )
 
     # Edge case: pair not present
-    word_tokens_empty = {"ab": ['a', 'b'+Tokenizer.TOK_EOW]}
-    _merge_pair(word_tokens_empty, ('x', 'y'))
-    assert word_tokens_empty["ab"] == ['a', 'b'+Tokenizer.TOK_EOW], "No-match merge should leave tokens unchanged"
+    word_tokens_empty = {"ab": ["a", "b" + Tokenizer.TOK_EOW]}
+    _merge_pair(word_tokens_empty, ("x", "y"))
+    assert word_tokens_empty["ab"] == ["a", "b" + Tokenizer.TOK_EOW], (
+        "No-match merge should leave tokens unchanged"
+    )
 
     print("✅ Byte pair merging works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_merge_pair()
 
-# %% nbgrader={"grade": false, "grade_id": "bpe-tokenizer", "solution": true}
-
-class BPETokenizer(Tokenizer):
-    """
-    Byte Pair Encoding (BPE) tokenizer that learns subword units.
-
-    BPE works by:
-    1. Starting with character-level vocabulary
-    2. Finding most frequent character pairs
-    3. Merging frequent pairs into single tokens
-    4. Repeating until desired vocabulary size
-    """
-
-    def __init__(self, vocab_size: int = 1000):
-        """
-        Initialize BPE tokenizer.
-
-        TODO: Set up basic tokenizer state
-
-        APPROACH:
-        1. Store target vocabulary size
-        2. Initialize empty vocabulary and merge rules
-        3. Set up mappings for encoding/decoding
-
-        EXAMPLE:
-        >>> tokenizer = BPETokenizer(vocab_size=1000)
-        >>> tokenizer.vocab_size
-        1000
-
-        HINT: Initialize vocab and merges as empty lists, mappings as empty dicts
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BPETokenizer.__init__")
-        ### END SOLUTION
-
-    def _get_word_tokens(self, word: str) -> List[str]:
-        """
-        Convert word to list of characters with end-of-word marker.
-
-        TODO: Tokenize word into character sequence
-
-        APPROACH:
-        1. Split word into characters
-        2. Add </w> marker to last character
-        3. Return list of tokens
-
-        EXAMPLE:
-        >>> tokenizer._get_word_tokens("hello")
-        ['h', 'e', 'l', 'l', 'o'+Tokenizer.TOK_EOW]
-
-        HINT: Use list() to split word into characters, then modify the last element
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BPETokenizer._get_word_tokens")
-        ### END SOLUTION
-
-    def _get_pairs(self, word_tokens: List[str]) -> Set[Tuple[str, str]]:
-        """
-        Get all adjacent pairs from word tokens.
-
-        TODO: Extract all consecutive character pairs
-
-        APPROACH:
-        1. Iterate through adjacent tokens
-        2. Create pairs of consecutive tokens
-        3. Return set of unique pairs
-
-        EXAMPLE:
-        >>> tokenizer._get_pairs(['h', 'e', 'l', 'l', 'o'+Tokenizer.TOK_EOW])
-        {('h', 'e'), ('e', 'l'), ('l', 'l'), ('l', 'o'+Tokenizer.TOK_EOW)}
-
-        HINT: Loop from 0 to len(word_tokens)-1 and create tuple pairs
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BPETokenizer._get_pairs")
-        ### END SOLUTION
-
-    def train(self, corpus: List[str], vocab_size: int = None) -> None:
-        """
-        Train BPE on corpus to learn merge rules.
-
-        This is the composition function: it initializes character vocabulary,
-        then runs a greedy merge loop using _count_byte_pairs() to find the
-        best pair and _merge_pair() to apply it.
-
-        TODO: Implement BPE training using the greedy merge loop
-
-        APPROACH:
-        1. Build initial character vocabulary from corpus words
-        2. Loop: count pairs, find best, merge it, add to vocab
-        3. Stop when vocab reaches target size or no pairs remain
-        4. Build final mappings
-
-        EXAMPLE:
-        >>> corpus = ["hello", "hello", "help"]
-        >>> tokenizer = BPETokenizer(vocab_size=20)
-        >>> tokenizer.train(corpus)
-        >>> len(tokenizer.vocab) <= 20
-        True
-
-        HINTS:
-        - Use _get_word_tokens() for initial character tokenization
-        - Use _count_byte_pairs(word_tokens, word_freq) to find pair frequencies
-        - Use _merge_pair(word_tokens, best_pair) to apply the merge
-        - Don't forget to call _build_mappings() at the end
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BPETokenizer.train")
-        ### END SOLUTION
-
-    def _build_mappings(self):
-        """Build token-to-ID and ID-to-token mappings."""
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BPETokenizer._build_mappings")
-        ### END SOLUTION
-
-    def _apply_merges(self, tokens: List[str]) -> List[str]:
-        """
-        Apply learned merge rules to token sequence.
-
-        TODO: Apply BPE merges to token list
-
-        APPROACH:
-        1. Start with character-level tokens
-        2. Apply each merge rule in order
-        3. Continue until no more merges possible
-
-        EXAMPLE:
-        >>> # After training, merges might be [('h','e'), ('l','l')]
-        >>> tokenizer._apply_merges(['h','e','l','l','o'+Tokenizer.TOK_EOW])
-        ['he','ll','o'+Tokenizer.TOK_EOW]  # Applied both merges
-
-        HINT: For each merge pair, scan through tokens and replace adjacent pairs
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BPETokenizer._apply_merges")
-        ### END SOLUTION
-
-    def encode(self, text: str) -> List[int]:
-        """
-        Encode text using BPE.
-
-        TODO: Apply BPE encoding to text
-
-        APPROACH:
-        1. Split text into words
-        2. Convert each word to character tokens
-        3. Apply BPE merges
-        4. Convert to token IDs
-
-        EXAMPLE:
-        >>> tokenizer.encode("hello world")
-        [12, 45, 78]  # Token IDs after BPE merging
-
-        HINTS:
-        - Use text.split() for simple word splitting
-        - Use _get_word_tokens() to get character-level tokens for each word
-        - Use _apply_merges() to apply learned merge rules
-        - Use token_to_id dictionary with 0 (UNK) as default
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BPETokenizer.encode")
-        ### END SOLUTION
-
-    def decode(self, tokens: List[int]) -> str:
-        """
-        Decode token IDs back to text.
-
-        TODO: Convert token IDs back to readable text
-
-        APPROACH:
-        1. Convert IDs to tokens
-        2. Join tokens together
-        3. Clean up word boundaries and markers
-
-        EXAMPLE:
-        >>> tokenizer.decode([12, 45, 78])
-        "hello world"  # Reconstructed text
-
-        HINTS:
-        - Use id_to_token dictionary with Tokenizer.TOK_UNKNOWN as default
-        - Join all tokens into single string with ''.join()
-        - Replace Tokenizer.TOK_EOW markers with spaces for word boundaries
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BPETokenizer.decode")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class BPETokenizer(Tokenizer):
     """
@@ -1383,7 +1079,7 @@ class BPETokenizer(Tokenizer):
         self.id_to_token = {}
         ### END SOLUTION
 
-    def _get_word_tokens(self, word: str) -> List[str]:
+    def _get_word_tokens(self, word: str) -> list[str]:
         """
         Convert word to list of characters with end-of-word marker.
 
@@ -1409,7 +1105,7 @@ class BPETokenizer(Tokenizer):
         return tokens
         ### END SOLUTION
 
-    def _get_pairs(self, word_tokens: List[str]) -> Set[Tuple[str, str]]:
+    def _get_pairs(self, word_tokens: list[str]) -> set[tuple[str, str]]:
         """
         Get all adjacent pairs from word tokens.
 
@@ -1433,7 +1129,7 @@ class BPETokenizer(Tokenizer):
         return pairs
         ### END SOLUTION
 
-    def train(self, corpus: List[str], vocab_size: int = None) -> None:
+    def train(self, corpus: list[str], vocab_size: int = None) -> None:
         """
         Train BPE on corpus to learn merge rules.
 
@@ -1503,7 +1199,7 @@ class BPETokenizer(Tokenizer):
         self.id_to_token = {idx: token for idx, token in enumerate(self.vocab)}
         ### END SOLUTION
 
-    def _apply_merges(self, tokens: List[str]) -> List[str]:
+    def _apply_merges(self, tokens: list[str]) -> list[str]:
         """
         Apply learned merge rules to token sequence.
 
@@ -1529,9 +1225,7 @@ class BPETokenizer(Tokenizer):
             new_tokens = []
             i = 0
             while i < len(tokens):
-                if (i < len(tokens) - 1 and
-                    tokens[i] == merge_pair[0] and
-                    tokens[i + 1] == merge_pair[1]):
+                if i < len(tokens) - 1 and tokens[i] == merge_pair[0] and tokens[i + 1] == merge_pair[1]:
                     # Apply merge
                     new_tokens.append(merge_pair[0] + merge_pair[1])
                     i += 2
@@ -1543,7 +1237,7 @@ class BPETokenizer(Tokenizer):
         return tokens
         ### END SOLUTION
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str) -> list[int]:
         """
         Encode text using BPE.
 
@@ -1590,7 +1284,7 @@ class BPETokenizer(Tokenizer):
         return token_ids
         ### END SOLUTION
 
-    def decode(self, tokens: List[int]) -> str:
+    def decode(self, tokens: list[int]) -> str:
         """
         Decode token IDs back to text.
 
@@ -1621,16 +1315,17 @@ class BPETokenizer(Tokenizer):
             token_strings.append(token)
 
         # Join and clean up
-        text = ''.join(token_strings)
+        text = "".join(token_strings)
 
         # Replace end-of-word markers with spaces
-        text = text.replace(Tokenizer.TOK_EOW, ' ')
+        text = text.replace(Tokenizer.TOK_EOW, " ")
 
         # Clean up extra spaces
-        text = ' '.join(text.split())
+        text = " ".join(text.split())
 
         return text
         ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -1642,6 +1337,7 @@ This test validates our BPE tokenizer learns merge rules and correctly encodes/d
 **Why it matters**: BPE is the standard tokenization for modern language models
 **Expected**: Vocabulary building, proper merging, reasonable round-trip on training data
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-bpe-tokenizer", "locked": true, "points": 20}
 def test_unit_bpe_tokenizer():
@@ -1661,9 +1357,9 @@ def test_unit_bpe_tokenizer():
     word_tokens = tokenizer._get_word_tokens("test")
     assert word_tokens[-1].endswith(Tokenizer.TOK_EOW), "Should have end-of-word marker"
 
-    pairs = tokenizer._get_pairs(['h', 'e', 'l', 'l', 'o'+Tokenizer.TOK_EOW])
-    assert ('h', 'e') in pairs
-    assert ('l', 'l') in pairs
+    pairs = tokenizer._get_pairs(["h", "e", "l", "l", "o" + Tokenizer.TOK_EOW])
+    assert ("h", "e") in pairs
+    assert ("l", "l") in pairs
 
     # Test encoding/decoding
     text = "hello"
@@ -1682,6 +1378,7 @@ def test_unit_bpe_tokenizer():
         assert len(decoded.strip()) > 0
 
     print("✅ BPE tokenizer works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_bpe_tokenizer()
@@ -1741,90 +1438,12 @@ This simulation shows how our tokenization components combine to create the prep
 - **Round-Trip Validation**: Ensure text can be recovered from tokens
 """
 
-# %% nbgrader={"grade": false, "grade_id": "tokenization-utils", "solution": true}
-
-def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: List[str] = None) -> Tokenizer:
-    """
-    Factory function to create and train tokenizers.
-
-    TODO: Create appropriate tokenizer based on strategy
-
-    APPROACH:
-    1. Check strategy type
-    2. Create appropriate tokenizer class
-    3. Train on corpus if provided
-    4. Return configured tokenizer
-
-    EXAMPLE:
-    >>> corpus = ["hello world", "test text"]
-    >>> tokenizer = create_tokenizer("char", corpus=corpus)
-    >>> tokens = tokenizer.encode("hello")
-    """
-    ### BEGIN SOLUTION
-    raise NotImplementedError("TODO: implement create_tokenizer")
-    ### END SOLUTION
-
-#| export
-def tokenize_dataset(texts: List[str], tokenizer: Tokenizer, max_length: int = None) -> List[List[int]]:
-    """
-    Tokenize a dataset with optional length limits.
-
-    TODO: Tokenize all texts with consistent preprocessing
-
-    APPROACH:
-    1. Encode each text with the tokenizer
-    2. Apply max_length truncation if specified
-    3. Return list of tokenized sequences
-
-    EXAMPLE:
-    >>> texts = ["hello world", "tokenize this"]
-    >>> tokenizer = CharTokenizer(['h','e','l','o',' ','w','r','d','t','k','n','i','z','s'])
-    >>> tokenized = tokenize_dataset(texts, tokenizer, max_length=10)
-    >>> all(len(seq) <= 10 for seq in tokenized)
-    True
-
-    HINTS:
-    - Handle empty texts gracefully (empty list is fine)
-    - Truncate from the end if too long: tokens[:max_length]
-    """
-    ### BEGIN SOLUTION
-    raise NotImplementedError("TODO: implement tokenize_dataset")
-    ### END SOLUTION
-
-#| export
-def analyze_tokenization(texts: List[str], tokenizer: Tokenizer) -> Dict[str, float]:
-    """
-    Analyze tokenization statistics.
-
-    TODO: Compute useful statistics about tokenization
-
-    APPROACH:
-    1. Tokenize all texts
-    2. Compute sequence length statistics
-    3. Calculate compression ratio
-    4. Return analysis dictionary
-
-    EXAMPLE:
-    >>> texts = ["hello", "world"]
-    >>> tokenizer = CharTokenizer(['h','e','l','o','w','r','d'])
-    >>> stats = analyze_tokenization(texts, tokenizer)
-    >>> 'vocab_size' in stats and 'avg_sequence_length' in stats
-    True
-
-    HINTS:
-    - Use np.mean() for average sequence length
-    - Compression ratio = total_characters / total_tokens
-    - Return dict with vocab_size, avg_sequence_length, max_sequence_length, etc.
-    """
-    ### BEGIN SOLUTION
-    raise NotImplementedError("TODO: implement analyze_tokenization")
-    ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
 
-def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: List[str] = None) -> Tokenizer:
+
+def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: list[str] = None) -> Tokenizer:
     """
     Factory function to create and train tokenizers.
 
@@ -1861,8 +1480,9 @@ def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: Lis
     return tokenizer
     ### END SOLUTION
 
+
 #| export
-def tokenize_dataset(texts: List[str], tokenizer: Tokenizer, max_length: int = None) -> List[List[int]]:
+def tokenize_dataset(texts: list[str], tokenizer: Tokenizer, max_length: int = None) -> list[list[int]]:
     """
     Tokenize a dataset with optional length limits.
 
@@ -1898,8 +1518,9 @@ def tokenize_dataset(texts: List[str], tokenizer: Tokenizer, max_length: int = N
     return tokenized
     ### END SOLUTION
 
+
 #| export
-def analyze_tokenization(texts: List[str], tokenizer: Tokenizer) -> Dict[str, float]:
+def analyze_tokenization(texts: list[str], tokenizer: Tokenizer) -> dict[str, float]:
     """
     Analyze tokenization statistics.
 
@@ -1936,16 +1557,17 @@ def analyze_tokenization(texts: List[str], tokenizer: Tokenizer) -> Dict[str, fl
     tokenized_lengths = [len(tokenizer.encode(text)) for text in texts]
 
     stats = {
-        'vocab_size': tokenizer.vocab_size,
-        'avg_sequence_length': np.mean(tokenized_lengths),
-        'max_sequence_length': max(tokenized_lengths) if tokenized_lengths else 0,
-        'total_tokens': len(all_tokens),
-        'compression_ratio': total_chars / len(all_tokens) if all_tokens else 0,
-        'unique_tokens': len(set(all_tokens))
+        "vocab_size": tokenizer.vocab_size,
+        "avg_sequence_length": np.mean(tokenized_lengths),
+        "max_sequence_length": max(tokenized_lengths) if tokenized_lengths else 0,
+        "total_tokens": len(all_tokens),
+        "compression_ratio": total_chars / len(all_tokens) if all_tokens else 0,
+        "unique_tokens": len(set(all_tokens)),
     }
 
     return stats
     ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -1957,6 +1579,7 @@ This test validates our utility functions for tokenizer creation, dataset proces
 **Why it matters**: Essential for building NLP pipelines with consistent preprocessing
 **Expected**: Correct tokenizer creation, length limits respected, meaningful statistics
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-tokenization-utils", "locked": true, "points": 10}
 def test_unit_tokenization_utils():
@@ -1981,12 +1604,13 @@ def test_unit_tokenization_utils():
 
     # Test analysis
     stats = analyze_tokenization(texts, char_tokenizer)
-    assert 'vocab_size' in stats
-    assert 'avg_sequence_length' in stats
-    assert 'compression_ratio' in stats
-    assert stats['total_tokens'] > 0
+    assert "vocab_size" in stats
+    assert "avg_sequence_length" in stats
+    assert "compression_ratio" in stats
+    assert stats["total_tokens"] > 0
 
     print("✅ Tokenization utils work correctly!")
+
 
 if __name__ == "__main__":
     test_unit_tokenization_utils()
@@ -2000,6 +1624,7 @@ Let's understand the key systems concepts in tokenization: **vocabulary size vs 
 This analysis reveals why different tokenization strategies make different choices for different use cases.
 """
 
+
 # %%
 def analyze_tokenization_strategies():
     """📊 Compare different tokenization strategies on various texts."""
@@ -2012,14 +1637,14 @@ def analyze_tokenization_strategies():
         "The quick brown fox jumps over the lazy dog",
         "Machine learning is transforming artificial intelligence",
         "Tokenization is fundamental to natural language processing",
-        "Subword units balance vocabulary size and sequence length"
+        "Subword units balance vocabulary size and sequence length",
     ]
 
     # Test different strategies
     strategies = [
         ("Character", create_tokenizer("char", corpus=corpus)),
         ("BPE-100", create_tokenizer("bpe", vocab_size=100, corpus=corpus)),
-        ("BPE-500", create_tokenizer("bpe", vocab_size=500, corpus=corpus))
+        ("BPE-500", create_tokenizer("bpe", vocab_size=500, corpus=corpus)),
     ]
 
     print(f"{'Strategy':<12} {'Vocab':<8} {'Avg Len':<8} {'Compression':<12} {'Coverage':<10}")
@@ -2028,10 +1653,12 @@ def analyze_tokenization_strategies():
     for name, tokenizer in strategies:
         stats = analyze_tokenization(corpus, tokenizer)
 
-        print(f"{name:<12} {stats['vocab_size']:<8} "
-              f"{stats['avg_sequence_length']:<8.1f} "
-              f"{stats['compression_ratio']:<12.2f} "
-              f"{stats['unique_tokens']:<10}")
+        print(
+            f"{name:<12} {stats['vocab_size']:<8} "
+            f"{stats['avg_sequence_length']:<8.1f} "
+            f"{stats['compression_ratio']:<12.2f} "
+            f"{stats['unique_tokens']:<10}"
+        )
 
     print("\n💡 KEY INSIGHTS:")
     print("   1. Character tokenization: Small vocab, long sequences, perfect coverage")
@@ -2044,6 +1671,7 @@ def analyze_tokenization_strategies():
     print("   - Embedding table size scales with vocabulary size")
 
     print("\n" + "=" * 60)
+
 
 # Run the systems analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -2060,6 +1688,7 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
 Let's measure the real memory footprint of different tokenization strategies. This is crucial for understanding resource requirements in production systems.
 """
 
+
 # %%
 def analyze_tokenization_memory():
     """📊 Measure actual memory usage of different tokenizers."""
@@ -2075,9 +1704,11 @@ def analyze_tokenization_memory():
 
     results = []
 
-    for corpus_name, corpus in [("Small (100)", corpus_small),
-                                  ("Medium (1K)", corpus_medium),
-                                  ("Large (5K)", corpus_large)]:
+    for corpus_name, corpus in [
+        ("Small (100)", corpus_small),
+        ("Medium (1K)", corpus_medium),
+        ("Large (5K)", corpus_large),
+    ]:
         # Character tokenizer memory
         tracemalloc.start()
         char_tok = CharTokenizer()
@@ -2092,21 +1723,25 @@ def analyze_tokenization_memory():
         bpe_current, bpe_peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
-        results.append({
-            'corpus': corpus_name,
-            'char_kb': char_peak / KB_TO_BYTES,
-            'bpe_kb': bpe_peak / KB_TO_BYTES,
-            'char_vocab': char_tok.vocab_size,
-            'bpe_vocab': len(bpe_tok.vocab)
-        })
+        results.append(
+            {
+                "corpus": corpus_name,
+                "char_kb": char_peak / KB_TO_BYTES,
+                "bpe_kb": bpe_peak / KB_TO_BYTES,
+                "char_vocab": char_tok.vocab_size,
+                "bpe_vocab": len(bpe_tok.vocab),
+            }
+        )
 
     # Display results
     print(f"{'Corpus':<15} {'Char Mem (KB)':<15} {'BPE Mem (KB)':<15} {'Char Vocab':<12} {'BPE Vocab':<12}")
     print("-" * 70)
 
     for r in results:
-        print(f"{r['corpus']:<15} {r['char_kb']:<15.1f} {r['bpe_kb']:<15.1f} "
-              f"{r['char_vocab']:<12} {r['bpe_vocab']:<12}")
+        print(
+            f"{r['corpus']:<15} {r['char_kb']:<15.1f} {r['bpe_kb']:<15.1f} "
+            f"{r['char_vocab']:<12} {r['bpe_vocab']:<12}"
+        )
 
     print("\n💡 Key Insights:")
     print("- Character tokenizer: Minimal memory (small vocab ~100 tokens)")
@@ -2114,6 +1749,7 @@ def analyze_tokenization_memory():
     print("- Memory scales with vocabulary size, NOT corpus size")
     print("- BPE merge rules add overhead (list of tuples)")
     print("\n🚀 Production: Use memory-mapped vocabularies for 50K+ token models")
+
 
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -2130,6 +1766,7 @@ Speed matters in production! Let's measure how fast different tokenizers can pro
 This helps understand computational bottlenecks in NLP pipelines.
 """
 
+
 # %%
 def benchmark_tokenization_speed():
     """📊 Measure encoding/decoding speed for different strategies."""
@@ -2143,7 +1780,7 @@ def benchmark_tokenization_speed():
         "hello world",
         "the quick brown fox jumps over the lazy dog",
         "machine learning is transforming artificial intelligence",
-        "tokenization enables natural language processing in neural networks"
+        "tokenization enables natural language processing in neural networks",
     ] * 250  # 1000 total texts
 
     # Build tokenizers on training corpus
@@ -2151,7 +1788,7 @@ def benchmark_tokenization_speed():
     tokenizers = [
         ("Character", create_tokenizer("char", corpus=corpus)),
         ("BPE-500", create_tokenizer("bpe", vocab_size=500, corpus=corpus)),
-        ("BPE-2000", create_tokenizer("bpe", vocab_size=2000, corpus=corpus))
+        ("BPE-2000", create_tokenizer("bpe", vocab_size=2000, corpus=corpus)),
     ]
 
     print(f"{'Strategy':<12} {'Encode (ms)':<15} {'Decode (ms)':<15} {'Total Tokens':<15}")
@@ -2165,7 +1802,7 @@ def benchmark_tokenization_speed():
 
         # Benchmark decoding
         start = time.perf_counter()
-        decoded = [tokenizer.decode(tokens) for tokens in all_tokens]
+        [tokenizer.decode(tokens) for tokens in all_tokens]
         decode_time = (time.perf_counter() - start) * 1000
 
         total_tokens = sum(len(t) for t in all_tokens)
@@ -2179,6 +1816,7 @@ def benchmark_tokenization_speed():
     print("- Decoding is typically faster than encoding")
     print("\n🚀 Production: Use Rust-based tokenizers (Hugging Face tokenizers library)")
     print("   Compiled tokenizers can be 10-100× faster than pure Python!")
+
 
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -2195,6 +1833,7 @@ Understanding algorithmic complexity helps us predict performance on larger data
 Let's measure how BPE training time scales with corpus size.
 """
 
+
 # %%
 def analyze_bpe_scaling():
     """📊 Analyze how BPE training scales with corpus size."""
@@ -2207,7 +1846,8 @@ def analyze_bpe_scaling():
     def generate_random_text(length=10):
         import random
         import string
-        return ''.join(random.choices(string.ascii_lowercase + ' ', k=length))
+
+        return "".join(random.choices(string.ascii_lowercase + " ", k=length))
 
     corpus_sizes = [100, 500, 1000, 2500]
 
@@ -2220,6 +1860,7 @@ def analyze_bpe_scaling():
 
         # Measure training time and memory
         import tracemalloc
+
         tracemalloc.start()
 
         start = time.perf_counter()
@@ -2241,6 +1882,7 @@ def analyze_bpe_scaling():
     print("   - Sample representative subset for training (~1M sentences)")
     print("   - Use incremental training with checkpointing")
     print("   - Cache pair frequency counts between iterations")
+
 
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -2303,6 +1945,7 @@ Key Trade-off:
 Let's test our complete tokenization system to ensure everything works together.
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-module", "locked": true, "points": 20}
 def test_module():
     """🧪 Module Test: Complete Integration
@@ -2337,7 +1980,7 @@ def test_module():
         "Machine learning models",
         "Neural networks learn",
         "Tokenization enables text processing",
-        "Embeddings represent meaning"
+        "Embeddings represent meaning",
     ]
 
     # Train different tokenizers
@@ -2371,15 +2014,16 @@ def test_module():
     char_stats = analyze_tokenization(test_dataset, char_tokenizer)
     bpe_stats = analyze_tokenization(test_dataset, bpe_tokenizer)
 
-    assert char_stats['vocab_size'] > 0
-    assert bpe_stats['vocab_size'] > 0
-    assert char_stats['compression_ratio'] < bpe_stats['compression_ratio']  # BPE should compress better
+    assert char_stats["vocab_size"] > 0
+    assert bpe_stats["vocab_size"] > 0
+    assert char_stats["compression_ratio"] < bpe_stats["compression_ratio"]  # BPE should compress better
 
     print("✅ End-to-end tokenization pipeline works!")
 
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 10")
+
 
 # Call the comprehensive test only when running directly
 
@@ -2460,6 +2104,7 @@ model from GPT to Claude uses tokenization as the first step in understanding te
 Your tokenization system is ready for NLP applications.
 """
 
+
 # %%
 def demo_tokenization():
     """🎯 See text become tokens."""
@@ -2494,6 +2139,7 @@ def demo_tokenization():
 
     print("\n✨ Text becomes tokens - language models start here!")
 
+
 # %%
 if __name__ == "__main__":
     if os.environ.get("CI") == "true":
@@ -2507,7 +2153,9 @@ if __name__ == "__main__":
         # coverage here. Skipping both keeps the actual
         # verification (every individual test above) while
         # cutting the redundant full re-run.
-        print("\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant).")
+        print(
+            "\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant)."
+        )
     else:
         test_module()
         print("\n")

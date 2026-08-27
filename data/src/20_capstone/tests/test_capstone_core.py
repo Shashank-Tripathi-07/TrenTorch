@@ -19,17 +19,18 @@ WHAT THIS MODULE TIES TOGETHER:
 - Optimization modules (14-18) show performance gains
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.layers import Linear
-from trentorch.perf.benchmarking import BenchmarkSuite, BenchmarkResult
+from trentorch.core.tensor import Tensor
+from trentorch.perf.benchmarking import BenchmarkResult, BenchmarkSuite
 
 
 class TestBenchmarkSuite:
@@ -41,10 +42,12 @@ class TestBenchmarkSuite:
 
     def test_benchmark_suite_can_instantiate(self):
         """Verify BenchmarkSuite can be created with models and datasets."""
+
         # BenchmarkSuite requires models and datasets lists
         class MockModel:
             def __init__(self, name):
                 self.name = name
+
             def forward(self, x):
                 return x
 
@@ -64,6 +67,7 @@ class TestCapstoneValidation:
     def test_benchmarking_available(self):
         """Verify benchmarking module is available."""
         from trentorch.perf import benchmarking
+
         assert benchmarking is not None
 
     def test_validate_tensor_operations(self):
@@ -91,6 +95,7 @@ class TestCapstoneValidation:
         the model cannot learn.
         """
         from trentorch.core.autograd import enable_autograd
+
         enable_autograd()
 
         x = Tensor([2.0], requires_grad=True)
@@ -99,9 +104,7 @@ class TestCapstoneValidation:
 
         # dy/dx = 2x = 4.0
         assert x.grad is not None, "x didn't receive gradient"
-        assert np.isclose(x.grad[0], 4.0), (
-            f"Gradient should be 4.0 (2*x where x=2), got {x.grad[0]}"
-        )
+        assert np.isclose(x.grad[0], 4.0), f"Gradient should be 4.0 (2*x where x=2), got {x.grad[0]}"
 
     def test_validate_layer_forward(self):
         """
@@ -129,6 +132,7 @@ class TestEndToEndIntegration:
         """
         from trentorch.core.autograd import enable_autograd
         from trentorch.core.optimizers import SGD
+
         enable_autograd()
 
         # Simple model

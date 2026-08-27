@@ -23,12 +23,11 @@ Usage:
     transformer = MinimalTransformer()  # YOUR Attention, Embeddings
 """
 
-import numpy as np
-
 
 # ============================================================================
 # MILESTONE 01: Perceptron (1958 - Rosenblatt)
 # ============================================================================
+
 
 class Perceptron:
     """
@@ -64,6 +63,7 @@ class Perceptron:
 # MILESTONE 03: Multi-Layer Perceptron (1986 - Rumelhart, Hinton, Williams)
 # ============================================================================
 
+
 class DigitMLP:
     """
     Multi-Layer Perceptron for digit classification from Milestone 03.
@@ -75,8 +75,8 @@ class DigitMLP:
     """
 
     def __init__(self, input_size=64, hidden_size=32, num_classes=10):
-        from trentorch.core.layers import Linear
         from trentorch.core.activations import ReLU
+        from trentorch.core.layers import Linear
 
         self.fc1 = Linear(input_size, hidden_size)
         self.relu = ReLU()
@@ -109,6 +109,7 @@ class DigitMLP:
 # MILESTONE 04: Convolutional Neural Network (1998 - LeCun)
 # ============================================================================
 
+
 class SimpleCNN:
     """
     Simple CNN for digit classification from Milestone 04.
@@ -119,9 +120,9 @@ class SimpleCNN:
     """
 
     def __init__(self, num_classes=10):
-        from trentorch.core.spatial import Conv2d, MaxPool2d
-        from trentorch.core.layers import Linear
         from trentorch.core.activations import ReLU
+        from trentorch.core.layers import Linear
+        from trentorch.core.spatial import Conv2d, MaxPool2d
 
         # Convolutional layers
         self.conv1 = Conv2d(in_channels=1, out_channels=4, kernel_size=3, padding=1)
@@ -173,6 +174,7 @@ class SimpleCNN:
 # MILESTONE 05: Minimal Transformer (2017 - Vaswani et al.)
 # ============================================================================
 
+
 class MinimalTransformer:
     """
     Minimal Transformer for sequence tasks from Milestone 05.
@@ -183,10 +185,10 @@ class MinimalTransformer:
     """
 
     def __init__(self, vocab_size=27, embed_dim=32, num_heads=2, seq_len=8):
-        from trentorch.core.embeddings import Embedding, PositionalEncoding
-        from trentorch.core.attention import MultiHeadAttention
-        from trentorch.core.layers import Linear
         from trentorch.core.activations import ReLU
+        from trentorch.core.attention import MultiHeadAttention
+        from trentorch.core.embeddings import Embedding, PositionalEncoding
+        from trentorch.core.layers import Linear
 
         self.vocab_size = vocab_size
         self.embed_dim = embed_dim
@@ -235,7 +237,7 @@ class MinimalTransformer:
     def parameters(self):
         params = []
         for layer in self.layers:
-            if hasattr(layer, 'parameters'):
+            if hasattr(layer, "parameters"):
                 params.extend(layer.parameters())
         return params
 
@@ -244,13 +246,14 @@ class MinimalTransformer:
 # UTILITY: Get all networks
 # ============================================================================
 
+
 def get_all_networks():
     """Get a dictionary of all milestone networks."""
     return {
-        'perceptron': Perceptron,
-        'mlp': DigitMLP,
-        'cnn': SimpleCNN,
-        'transformer': MinimalTransformer,
+        "perceptron": Perceptron,
+        "mlp": DigitMLP,
+        "cnn": SimpleCNN,
+        "transformer": MinimalTransformer,
     }
 
 

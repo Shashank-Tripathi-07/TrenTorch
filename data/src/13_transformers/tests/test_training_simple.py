@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Add parent directory to path for imports
@@ -32,9 +33,9 @@ def test_transformer_memorization():
     - All parameters receive gradients
     - Training completes in reasonable time (<120s)
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST: Transformer Memorization Capability")
-    print("="*70)
+    print("=" * 70)
 
     # Tiny dataset (5 patterns)
     patterns = [
@@ -51,13 +52,7 @@ def test_transformer_memorization():
     print(f"   Vocabulary size: {tokenizer.vocab_size}")
 
     # Create model (small for fast testing)
-    model = GPT(
-        vocab_size=tokenizer.vocab_size,
-        embed_dim=32,
-        num_layers=1,
-        num_heads=4,
-        max_seq_len=64
-    )
+    model = GPT(vocab_size=tokenizer.vocab_size, embed_dim=32, num_layers=1, num_heads=4, max_seq_len=64)
 
     num_params = sum(np.prod(p.shape) for p in model.parameters())
     print(f"   Model parameters: {num_params:,}")
@@ -94,8 +89,8 @@ def test_transformer_memorization():
 
         # Forward pass
         logits = model.forward(x)
-        logits_flat = logits.reshape(len(tokens)-1, tokenizer.vocab_size)
-        y_flat = y.reshape(len(tokens)-1)
+        logits_flat = logits.reshape(len(tokens) - 1, tokenizer.vocab_size)
+        y_flat = y.reshape(len(tokens) - 1)
         loss = loss_fn(logits_flat, y_flat)
 
         # Check for NaN/Inf
@@ -108,13 +103,15 @@ def test_transformer_memorization():
 
         # Check gradients on first step
         if step == 0:
-            params_with_grad = sum(1 for p in model.parameters()
-                                   if p.grad is not None and np.abs(p.grad).max() > 1e-10)
+            params_with_grad = sum(
+                1 for p in model.parameters() if p.grad is not None and np.abs(p.grad).max() > 1e-10
+            )
             total_params = len(model.parameters())
             # Note: positional embeddings may not receive gradients in some sequences
             # (positions beyond actual sequence length). Allow 1 parameter without grad.
-            assert params_with_grad >= total_params - 1, \
+            assert params_with_grad >= total_params - 1, (
                 f"Only {params_with_grad}/{total_params} parameters have gradients (expected at least {total_params - 1})"
+            )
 
         # Gradient clipping
         for p in model.parameters():
@@ -142,11 +139,11 @@ def test_transformer_memorization():
 
     # Assertions
     assert elapsed < 120, f"Training too slow: {elapsed:.1f}s > 120s"
-    assert loss_decrease_pct > 80, \
+    assert loss_decrease_pct > 80, (
         f"Insufficient learning: loss decreased only {loss_decrease_pct:.1f}% (expected >80%)"
+    )
     # Relaxed threshold: loss should decrease significantly, final value depends on model capacity
-    assert final_loss < 1.0, \
-        f"Final loss too high: {final_loss:.3f} (expected <1.0 for memorization)"
+    assert final_loss < 1.0, f"Final loss too high: {final_loss:.3f} (expected <1.0 for memorization)"
 
     print("\n✅ Transformer successfully memorized dataset!")
     print(f"   Loss decreased {loss_decrease_pct:.1f}% in {elapsed:.1f}s")
@@ -159,9 +156,9 @@ def test_transformer_convergence_rate():
 
     This is a regression test to catch training instabilities.
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST: Transformer Convergence Rate")
-    print("="*70)
+    print("=" * 70)
 
     # Setup (same as memorization test)
     patterns = [
@@ -172,13 +169,7 @@ def test_transformer_convergence_rate():
     tokenizer = CharTokenizer()
     tokenizer.build_vocab(patterns)
 
-    model = GPT(
-        vocab_size=tokenizer.vocab_size,
-        embed_dim=32,
-        num_layers=1,
-        num_heads=4,
-        max_seq_len=64
-    )
+    model = GPT(vocab_size=tokenizer.vocab_size, embed_dim=32, num_layers=1, num_heads=4, max_seq_len=64)
 
     optimizer = Adam(model.parameters(), lr=0.001)
     loss_fn = CrossEntropyLoss()
@@ -196,7 +187,7 @@ def test_transformer_convergence_rate():
 
     # Train until loss < 0.1
     step = 0
-    loss_val = float('inf')
+    loss_val = float("inf")
 
     print("   Training until loss < 0.1...")
 
@@ -206,8 +197,8 @@ def test_transformer_convergence_rate():
         y = Tensor(np.array([tokens[1:]], dtype=np.int32))
 
         logits = model.forward(x)
-        logits_flat = logits.reshape(len(tokens)-1, tokenizer.vocab_size)
-        y_flat = y.reshape(len(tokens)-1)
+        logits_flat = logits.reshape(len(tokens) - 1, tokenizer.vocab_size)
+        y_flat = y.reshape(len(tokens) - 1)
         loss = loss_fn(logits_flat, y_flat)
 
         optimizer.zero_grad()
@@ -226,21 +217,20 @@ def test_transformer_convergence_rate():
 
     # Regression check: should converge in < 700 steps for 2 patterns
     # Educational implementations may have slightly slower convergence
-    assert step < 700, \
-        f"Convergence too slow: {step} steps (expected <700). Training may be unstable."
+    assert step < 700, f"Convergence too slow: {step} steps (expected <700). Training may be unstable."
 
     print(f"✅ Convergence rate is acceptable ({step} steps)")
     return True
 
 
 if __name__ == "__main__":
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TRANSFORMER TRAINING TEST SUITE")
-    print("="*70)
+    print("=" * 70)
 
     test_transformer_memorization()
     test_transformer_convergence_rate()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ ALL TRAINING TESTS PASSED")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")

@@ -24,16 +24,18 @@ WHAT STUDENTS LEARN:
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
-import pytest
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.spatial import Conv2d, MaxPool2d, AvgPool2d
-from trentorch.core.tensor import Tensor
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.spatial import AvgPool2d, Conv2d, MaxPool2d
+from trentorch.core.tensor import Tensor
 
 
 class TestConv2DLayer:
@@ -78,7 +80,7 @@ class TestConv2DLayer:
 
         # Weights: (out_channels, in_channels, kH, kW)
         expected_shape = (16, 3, 5, 5)
-        weight = conv.weight if hasattr(conv, 'weight') else conv.weights
+        weight = conv.weight if hasattr(conv, "weight") else conv.weights
 
         assert weight.shape == expected_shape, (
             f"Conv2d weight shape wrong.\n"
@@ -134,7 +136,7 @@ class TestConv2DLayer:
         conv = Conv2d(in_channels=1, out_channels=1, kernel_size=3)
 
         # Set kernel to all ones (sum kernel)
-        weight = conv.weight if hasattr(conv, 'weight') else conv.weights
+        weight = conv.weight if hasattr(conv, "weight") else conv.weights
         weight.data = np.ones((1, 1, 3, 3))
 
         # All-ones input in NCHW format
@@ -147,7 +149,7 @@ class TestConv2DLayer:
                 f"Convolution value wrong.\n"
                 f"  All-ones kernel (3x3) on all-ones input\n"
                 f"  Each output should be 9 (sum of 9 ones)\n"
-                f"  Got: {output.data[0,0,0,0]}"
+                f"  Got: {output.data[0, 0, 0, 0]}"
             )
 
 
@@ -190,12 +192,18 @@ class TestPoolingLayers:
         pool = MaxPool2d(kernel_size=2, stride=2)
 
         # Simple 4x4 input with known values
-        x = Tensor(np.array([[
-            [[1], [2], [5], [6]],
-            [[3], [4], [7], [8]],
-            [[9], [10], [13], [14]],
-            [[11], [12], [15], [16]]
-        ]]))  # (1, 4, 4, 1)
+        x = Tensor(
+            np.array(
+                [
+                    [
+                        [[1], [2], [5], [6]],
+                        [[3], [4], [7], [8]],
+                        [[9], [10], [13], [14]],
+                        [[11], [12], [15], [16]],
+                    ]
+                ]
+            )
+        )  # (1, 4, 4, 1)
 
         output = pool(x)
 
@@ -207,9 +215,7 @@ class TestPoolingLayers:
 
         if output.shape == (1, 2, 2, 1):
             assert np.array_equal(output.data, expected), (
-                f"MaxPool values wrong.\n"
-                f"  Expected: {expected.squeeze()}\n"
-                f"  Got: {output.data.squeeze()}"
+                f"MaxPool values wrong.\n  Expected: {expected.squeeze()}\n  Got: {output.data.squeeze()}"
             )
 
     def test_avgpool2d_forward(self):
@@ -231,8 +237,7 @@ class TestPoolingLayers:
 
         if output.shape == (1, 2, 2, 1):
             assert np.allclose(output.data, 1.0), (
-                f"AvgPool of all-ones should be 1.0\n"
-                f"  Got: {output.data[0,0,0,0]}"
+                f"AvgPool of all-ones should be 1.0\n  Got: {output.data[0, 0, 0, 0]}"
             )
 
 
@@ -339,8 +344,7 @@ class TestConvGradientFlow:
         loss.backward()
 
         assert x.grad is not None, (
-            "Input didn't receive gradients through Conv2d.\n"
-            "This means backprop through the conv is broken."
+            "Input didn't receive gradients through Conv2d.\nThis means backprop through the conv is broken."
         )
 
     def test_conv2d_gradient_to_weights(self):
@@ -364,10 +368,9 @@ class TestConvGradientFlow:
         loss = output.sum()
         loss.backward()
 
-        weight = conv.weight if hasattr(conv, 'weight') else conv.weights
+        weight = conv.weight if hasattr(conv, "weight") else conv.weights
         assert weight.grad is not None, (
-            "Conv weights didn't receive gradients.\n"
-            "This means the conv layer cannot learn."
+            "Conv weights didn't receive gradients.\nThis means the conv layer cannot learn."
         )
 
 

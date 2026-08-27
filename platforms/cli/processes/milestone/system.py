@@ -14,6 +14,7 @@ from rich import box
 from rich.panel import Panel
 
 from platforms.cli.core.console import get_console
+
 from .constants import MILESTONE_SCRIPTS, MODULE_EXPORT_CHECKS
 
 
@@ -38,9 +39,9 @@ def _load_completed_module_numbers() -> set:
         return completed
 
     try:
-        with open(progress_file, 'r') as f:
+        with open(progress_file) as f:
             progress_data = json.load(f)
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return completed
 
     for module_value in progress_data.get("completed_modules", []):
@@ -104,12 +105,12 @@ class MilestoneSystem:
         # Try to load main milestones.yml first
         if config_path.exists():
             try:
-                with open(config_path, 'r') as f:
+                with open(config_path) as f:
                     config = yaml.safe_load(f)
 
                 # Convert to expected format
-                for milestone_id, milestone_data in config['milestones'].items():
-                    milestone_data['id'] = str(milestone_id)
+                for milestone_id, milestone_data in config["milestones"].items():
+                    milestone_data["id"] = str(milestone_id)
                     milestones[str(milestone_id)] = milestone_data
 
             except Exception as e:
@@ -119,18 +120,18 @@ class MilestoneSystem:
         era_paths = [
             Path("data") / "milestones" / "foundation" / "milestone.yml",
             Path("data") / "milestones" / "revolution" / "milestone.yml",
-            Path("data") / "milestones" / "generation" / "milestone.yml"
+            Path("data") / "milestones" / "generation" / "milestone.yml",
         ]
 
         for era_path in era_paths:
             if era_path.exists():
                 try:
-                    with open(era_path, 'r') as f:
+                    with open(era_path) as f:
                         era_config = yaml.safe_load(f)
 
-                    if 'milestone' in era_config:
-                        milestone_data = era_config['milestone']
-                        milestone_id = milestone_data['id']
+                    if "milestone" in era_config:
+                        milestone_data = era_config["milestone"]
+                        milestone_id = milestone_data["id"]
                         milestones[str(milestone_id)] = milestone_data
 
                 except Exception as e:
@@ -151,7 +152,7 @@ class MilestoneSystem:
             "overall_progress": 0,
             "total_unlocked": 0,
             "total_completed": 0,
-            "next_milestone": None
+            "next_milestone": None,
         }
 
         total_milestones = len(self.MILESTONES)
@@ -161,10 +162,7 @@ class MilestoneSystem:
         for milestone_id, milestone in self.MILESTONES.items():
             # Check if all required modules are complete (no more checkpoint dependencies)
             required_modules = _required_modules_for(milestone)
-            required_complete = all(
-                self._is_module_completed(f"{mod:02d}")
-                for mod in required_modules
-            )
+            required_complete = all(self._is_module_completed(f"{mod:02d}") for mod in required_modules)
 
             # Check if milestone is unlocked (ready to run, not the same as actually
             # run and achieved -- see is_completed below)
@@ -190,13 +188,15 @@ class MilestoneSystem:
                 "required_modules": required_modules,
                 "victory_condition": milestone.get("victory_condition", milestone.get("description", "")),
                 "capability": milestone.get("capability", milestone.get("description", "")),
-                "real_world_impact": milestone.get("real_world_impact", milestone.get("historical_context", "")),
+                "real_world_impact": milestone.get(
+                    "real_world_impact", milestone.get("historical_context", "")
+                ),
                 "required_complete": required_complete,
                 "trigger_complete": trigger_complete,
                 "is_unlocked": is_unlocked,
                 "is_completed": is_completed,
                 "can_unlock": required_complete and trigger_complete and not is_unlocked,
-                "unlock_date": milestone_data.get("unlock_dates", {}).get(milestone_id)
+                "unlock_date": milestone_data.get("unlock_dates", {}).get(milestone_id),
             }
 
             status["milestones"][milestone_id] = milestone_status
@@ -233,7 +233,7 @@ class MilestoneSystem:
             return {
                 "success": False,
                 "error": f"Required modules not completed: {', '.join(failed_modules)}",
-                "milestone_name": milestone["name"]
+                "milestone_name": milestone["name"],
             }
 
         # Check trigger module completion
@@ -242,7 +242,7 @@ class MilestoneSystem:
             return {
                 "success": False,
                 "error": f"Trigger module {trigger_module} not completed",
-                "milestone_name": milestone["name"]
+                "milestone_name": milestone["name"],
             }
 
         # All tests passed
@@ -252,7 +252,7 @@ class MilestoneSystem:
             "milestone_name": milestone["name"],
             "title": milestone.get("title", ""),
             "capability": milestone.get("capability", milestone.get("description", "")),
-            "victory_condition": milestone.get("victory_condition", "")
+            "victory_condition": milestone.get("victory_condition", ""),
         }
 
     def _unlock_milestone(self, milestone_id: str) -> None:
@@ -272,15 +272,14 @@ class MilestoneSystem:
         progress_file = Path("user_data") / "progress.json"
         if progress_file.exists():
             try:
-                with open(progress_file, 'r') as f:
+                with open(progress_file) as f:
                     progress_data = json.load(f)
                     module_num = _module_progress_to_int(module_name)
                     completed_nums = {
-                        _module_progress_to_int(mod)
-                        for mod in progress_data.get("completed_modules", [])
+                        _module_progress_to_int(mod) for mod in progress_data.get("completed_modules", [])
                     }
                     return module_num in completed_nums
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 pass
         return False
 
@@ -293,9 +292,9 @@ class MilestoneSystem:
 
         if progress_file.exists():
             try:
-                with open(progress_file, 'r') as f:
+                with open(progress_file) as f:
                     return json.load(f)
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 pass
 
         return {
@@ -304,7 +303,7 @@ class MilestoneSystem:
             "unlocked_milestones": [],
             "unlock_dates": {},
             "total_unlocked": 0,
-            "achievements": []
+            "achievements": [],
         }
 
     def _save_milestone_progress_data(self, milestone_data: dict) -> None:
@@ -315,9 +314,9 @@ class MilestoneSystem:
         progress_dir.mkdir(exist_ok=True)
 
         try:
-            with open(progress_file, 'w') as f:
+            with open(progress_file, "w") as f:
                 json.dump(milestone_data, f, indent=2)
-        except IOError:
+        except OSError:
             pass
 
 
@@ -339,7 +338,7 @@ def check_and_run_milestone_unlocks(config, console) -> None:
     try:
         progress_file = config.project_root / "user_data" / "progress.json"
         try:
-            with open(progress_file, 'r') as f:
+            with open(progress_file) as f:
                 progress = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             progress = {}
@@ -353,7 +352,7 @@ def check_and_run_milestone_unlocks(config, console) -> None:
         milestones_file.parent.mkdir(parents=True, exist_ok=True)
         if milestones_file.exists():
             try:
-                with open(milestones_file, 'r') as f:
+                with open(milestones_file) as f:
                     milestone_progress = json.load(f)
             except Exception:
                 milestone_progress = {}
@@ -383,19 +382,21 @@ def check_and_run_milestone_unlocks(config, console) -> None:
         milestone_progress["total_unlocked"] = len(unlocked)
         milestone_progress.setdefault("achievements", [])
 
-        with open(milestones_file, 'w') as f:
+        with open(milestones_file, "w") as f:
             json.dump(milestone_progress, f, indent=2)
 
         for milestone_id, milestone in newly_unlocked:
             console.print()
-            console.print(Panel.fit(
-                f"[bold green]Milestone unlocked[/bold green]\n\n"
-                f"[bold cyan]Milestone {milestone_id}: {milestone['name']}[/bold cyan]\n"
-                f"{milestone['description']}\n\n"
-                f"[dim]Running it now...[/dim]",
-                border_style="green",
-                box=box.DOUBLE,
-            ))
+            console.print(
+                Panel.fit(
+                    f"[bold green]Milestone unlocked[/bold green]\n\n"
+                    f"[bold cyan]Milestone {milestone_id}: {milestone['name']}[/bold cyan]\n"
+                    f"{milestone['description']}\n\n"
+                    f"[dim]Running it now...[/dim]",
+                    border_style="green",
+                    box=box.DOUBLE,
+                )
+            )
             console.print()
 
             # Local import: MilestoneCommand lives in command.py, which
@@ -403,8 +404,9 @@ def check_and_run_milestone_unlocks(config, console) -> None:
             # A module-level import here would be circular; deferring it to
             # call time (this function only ever runs after both modules
             # are already fully loaded) breaks that cycle.
-            from .command import MilestoneCommand
             from argparse import Namespace
+
+            from .command import MilestoneCommand
 
             # skip_checks=True: the required-modules check above just
             # confirmed this milestone's prerequisites are met, no need

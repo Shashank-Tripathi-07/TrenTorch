@@ -1,4 +1,6 @@
-import os, sys, json
+import json
+import os
+import sys
 from pathlib import Path
 
 DEFAULT_VENV = ".venv"

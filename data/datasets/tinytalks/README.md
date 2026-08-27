@@ -155,11 +155,11 @@ A: Pepperoni is a popular choice!
 
 ```python
 # Load full dataset
-with open('datasets/tinytalks/tinytalks_v1.txt', 'r') as f:
+with open("datasets/tinytalks/tinytalks_v1.txt", "r") as f:
     text = f.read()
 
 # Or use pre-split versions
-with open('datasets/tinytalks/splits/train.txt', 'r') as f:
+with open("datasets/tinytalks/splits/train.txt", "r") as f:
     train_text = f.read()
 ```
 
@@ -174,13 +174,7 @@ from tinytorch.text.tokenization import CharTokenizer
 tokenizer = CharTokenizer()
 tokenizer.fit(train_text)
 
-model = GPT(
-    vocab_size=len(tokenizer),
-    embed_dim=128,
-    num_layers=4,
-    num_heads=4,
-    max_seq_len=64
-)
+model = GPT(vocab_size=len(tokenizer), embed_dim=128, num_layers=4, num_heads=4, max_seq_len=64)
 
 # Train for 5 minutes → See meaningful results!
 ```

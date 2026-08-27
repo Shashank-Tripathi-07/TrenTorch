@@ -9,19 +9,17 @@ Tests that optimizers correctly integrate with:
 - Module 04: Losses (MSE, CrossEntropy)
 """
 
-import sys
-import os
 import numpy as np
+
 rng = np.random.default_rng(7)
-import pytest
 
 # Import from trentorch package
-from trentorch.core.tensor import Tensor
 from trentorch.core.activations import ReLU, Sigmoid, Softmax, Tanh
-from trentorch.core.layers import Linear, Layer, Dropout
 from trentorch.core.autograd import enable_autograd
-from trentorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
+from trentorch.core.layers import Dropout, Linear
+from trentorch.core.losses import BinaryCrossEntropyLoss, CrossEntropyLoss, MSELoss
 from trentorch.core.optimizers import SGD, Adam, AdamW
+from trentorch.core.tensor import Tensor
 
 # Enable autograd
 enable_autograd()
@@ -145,8 +143,7 @@ def test_optimizer_with_activations():
     output = sigmoid(layer2(h))
 
     # Check sigmoid output range
-    assert np.all(output.data >= 0) and np.all(output.data <= 1), \
-        "Sigmoid should output in [0, 1]"
+    assert np.all(output.data >= 0) and np.all(output.data <= 1), "Sigmoid should output in [0, 1]"
 
     loss = output.sum()
     optimizer.zero_grad()
@@ -172,7 +169,7 @@ def test_learning_rate_scheduler():
         param.grad = Tensor(np.array([1.0]))
         optimizer.step()
         # Decay learning rate
-        optimizer.lr = initial_lr * (0.9 ** epoch)
+        optimizer.lr = initial_lr * (0.9**epoch)
 
     assert optimizer.lr < initial_lr, "Learning rate should have decayed"
     print("✅ LR scheduler works with optimizer!")
@@ -209,6 +206,7 @@ def test_optimizer_memory_consistency():
 # ============================================================================
 # Unit tests for individual components (originally loaded from modules)
 # ============================================================================
+
 
 def test_unit_tensor_creation():
     """Test basic tensor creation."""
@@ -320,7 +318,7 @@ def test_unit_dropout_layer():
     x_eval = Tensor(np.ones((10, 10)))
 
     # During eval, all values should pass through
-    if hasattr(dropout, 'eval'):
+    if hasattr(dropout, "eval"):
         dropout.eval()
         output_eval = dropout(x_eval)
         assert np.allclose(output_eval.data, x_eval.data)

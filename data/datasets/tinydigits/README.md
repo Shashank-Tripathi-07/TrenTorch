@@ -25,16 +25,16 @@ datasets/tinydigits/
 import pickle
 
 # Load training data
-with open('datasets/tinydigits/train.pkl', 'rb') as f:
+with open("datasets/tinydigits/train.pkl", "rb") as f:
     data = pickle.load(f)
-    train_images = data['images']  # (1000, 8, 8)
-    train_labels = data['labels']  # (1000,)
+    train_images = data["images"]  # (1000, 8, 8)
+    train_labels = data["labels"]  # (1000,)
 
 # Load test data
-with open('datasets/tinydigits/test.pkl', 'rb') as f:
+with open("datasets/tinydigits/test.pkl", "rb") as f:
     data = pickle.load(f)
-    test_images = data['images']   # (200, 8, 8)
-    test_labels = data['labels']   # (200,)
+    test_images = data["images"]  # (200, 8, 8)
+    test_labels = data["labels"]  # (200,)
 ```
 
 ## Purpose

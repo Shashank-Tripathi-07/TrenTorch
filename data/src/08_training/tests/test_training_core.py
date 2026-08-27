@@ -17,10 +17,11 @@ WHAT STUDENTS LEARN:
 3. Why we need zero_grad()
 """
 
-import numpy as np
-import pytest
 import sys
 from pathlib import Path
+
+import numpy as np
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
@@ -39,10 +40,10 @@ class TestTrainingLoop:
         loss.backward() → computes gradients
         optimizer.step() → applies gradients to weights
         """
-        from trentorch.core.tensor import Tensor
+        from trentorch.core.autograd import enable_autograd
         from trentorch.core.layers import Linear
         from trentorch.core.optimizers import SGD
-        from trentorch.core.autograd import enable_autograd
+        from trentorch.core.tensor import Tensor
 
         enable_autograd()
 
@@ -64,8 +65,7 @@ class TestTrainingLoop:
 
         # Weights should have changed
         assert not np.allclose(layer.weight.data, initial_weights), (
-            "Weights didn't change after optimizer.step().\n"
-            "This means the model cannot learn."
+            "Weights didn't change after optimizer.step().\nThis means the model cannot learn."
         )
 
     def test_loss_decreases(self):
@@ -80,10 +80,10 @@ class TestTrainingLoop:
         - Flat = stuck (learning rate too small?)
         - Increasing = exploding (learning rate too large?)
         """
-        from trentorch.core.tensor import Tensor
+        from trentorch.core.autograd import enable_autograd
         from trentorch.core.layers import Linear
         from trentorch.core.optimizers import SGD
-        from trentorch.core.autograd import enable_autograd
+        from trentorch.core.tensor import Tensor
 
         enable_autograd()
 
@@ -126,12 +126,12 @@ class TestTrainingLoop:
         STUDENT LEARNING: Accumulation trades memory for compute
         while keeping the same effective learning behavior.
         """
-        from trentorch.core.tensor import Tensor
+        from trentorch.core.autograd import enable_autograd
         from trentorch.core.layers import Linear
         from trentorch.core.losses import MSELoss
         from trentorch.core.optimizers import SGD
+        from trentorch.core.tensor import Tensor
         from trentorch.core.training import Trainer
-        from trentorch.core.autograd import enable_autograd
 
         enable_autograd()
 
@@ -147,19 +147,11 @@ class TestTrainingLoop:
         one_batch = [(x, y)]
 
         model_accum = build_model()
-        trainer_accum = Trainer(
-            model_accum,
-            SGD(model_accum.parameters(), lr=0.1),
-            MSELoss()
-        )
+        trainer_accum = Trainer(model_accum, SGD(model_accum.parameters(), lr=0.1), MSELoss())
         trainer_accum.train_epoch(two_batches, accumulation_steps=2)
 
         model_single = build_model()
-        trainer_single = Trainer(
-            model_single,
-            SGD(model_single.parameters(), lr=0.1),
-            MSELoss()
-        )
+        trainer_single = Trainer(model_single, SGD(model_single.parameters(), lr=0.1), MSELoss())
         trainer_single.train_epoch(one_batch, accumulation_steps=1)
 
         assert np.allclose(model_accum.weight.data, model_single.weight.data), (
@@ -184,10 +176,10 @@ class TestTrainingUtilities:
         STUDENT LEARNING: Always call zero_grad() at the START of each
         training iteration, BEFORE the forward pass.
         """
-        from trentorch.core.tensor import Tensor
+        from trentorch.core.autograd import enable_autograd
         from trentorch.core.layers import Linear
         from trentorch.core.optimizers import SGD
-        from trentorch.core.autograd import enable_autograd
+        from trentorch.core.tensor import Tensor
 
         enable_autograd()
 
@@ -205,9 +197,7 @@ class TestTrainingUtilities:
         # Gradients should be cleared
         for param in layer.parameters():
             if param.grad is not None:
-                assert np.allclose(param.grad, 0), (
-                    "zero_grad() should clear all gradients to 0"
-                )
+                assert np.allclose(param.grad, 0), "zero_grad() should clear all gradients to 0"
 
     def test_evaluate_handles_generator_dataloader(self):
         """
@@ -251,11 +241,7 @@ class TestTrainingUtilities:
             for _ in range(3):
                 yield Tensor([1.0]), Tensor([1.0])
 
-        trainer = Trainer(
-            ConstantModel(1.0),
-            DummyOptimizer(),
-            ConstantLoss()
-        )
+        trainer = Trainer(ConstantModel(1.0), DummyOptimizer(), ConstantLoss())
 
         avg_loss, accuracy = trainer.evaluate(data_generator())
         assert np.allclose(avg_loss, 1.0), "Average loss should be 1.0 for constant loss."

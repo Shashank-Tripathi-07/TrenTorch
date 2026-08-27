@@ -4,6 +4,7 @@ Tests that activations work with Tensor and enable non-linear networks
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -62,12 +63,12 @@ class TestActivationNetworkIntegration:
 
     def test_xor_requires_nonlinearity(self):
         """Test that XOR problem demonstrates need for activations."""
-        from trentorch.core.tensor import Tensor
         from trentorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
 
         # XOR inputs and targets
         X = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]))
-        Y_target = np.array([0, 1, 1, 0])
+        np.array([0, 1, 1, 0])
 
         # Simple linear transformation (no activation)
         W = Tensor(np.array([[1, -1], [-1, 1]]))  # Arbitrary weights

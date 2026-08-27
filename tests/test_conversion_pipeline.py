@@ -11,15 +11,14 @@ try:
 except ImportError:
     yaml = None
 
+from trentorch.core.platform import PlatformDetector
 from trentorch.export_sanitizer import (
-    to_qmd,
-    to_ipynb,
-    to_sandbox_code,
-    to_platform_yaml,
     extract_frontmatter_and_cells,
+    to_ipynb,
+    to_platform_yaml,
+    to_qmd,
+    to_sandbox_code,
 )
-from trentorch.core.platform import PlatformDetector, setup_platform_runtime
-
 
 SAMPLE_JUPYTEXT_SOURCE = '''# ---
 # jupyter:
@@ -70,7 +69,7 @@ def test_extract_cells():
 
 def test_to_qmd():
     qmd = to_qmd(SAMPLE_JUPYTEXT_SOURCE, title="Tensor Operations")
-    assert "title: \"Tensor Operations\"" in qmd
+    assert 'title: "Tensor Operations"' in qmd
     assert "```{python}" in qmd
     assert "class Tensor:" in qmd
     assert "#| default_exp" not in qmd  # stripped nbdev directives
@@ -98,7 +97,7 @@ def test_to_sandbox_code():
 
 def test_to_platform_yaml():
     yaml_str = to_platform_yaml(SAMPLE_JUPYTEXT_SOURCE, module_name="01_tensor")
-    assert "id: 01_tensor" in yaml_str or "id: \"01_tensor\"" in yaml_str
+    assert "id: 01_tensor" in yaml_str or 'id: "01_tensor"' in yaml_str
     assert "starter_code:" in yaml_str
     assert "class Tensor:" in yaml_str
     if yaml is not None:
@@ -121,10 +120,10 @@ def test_real_module_conversion():
         sandbox_code = to_sandbox_code(raw_code)
         assert len(sandbox_code) > 100
         assert "class Tensor" in sandbox_code
-        
+
         qmd_code = to_qmd(raw_code)
         assert "```{python}" in qmd_code
-        
+
         yaml_code = to_platform_yaml(raw_code, module_name="01_tensor")
         assert "starter_code:" in yaml_code
         if yaml is not None:

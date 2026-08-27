@@ -10,11 +10,10 @@ exported before any tests run. If exports are missing, tests fail fast
 with a clear error message.
 """
 
-import sys
 import os
 import re
+import sys
 from pathlib import Path
-from typing import Optional
 
 import pytest
 
@@ -34,7 +33,7 @@ if str(data_dir) not in sys.path:
     sys.path.insert(0, str(data_dir))
 
 # Set quiet mode for trentorch imports during tests
-os.environ['TRENTORCH_QUIET'] = '1'
+os.environ["TRENTORCH_QUIET"] = "1"
 
 
 # =============================================================================
@@ -42,6 +41,7 @@ os.environ['TRENTORCH_QUIET'] = '1'
 # =============================================================================
 # This runs BEFORE any tests to ensure the package is properly built.
 # Without this, tests would silently pass because imports return None.
+
 
 def _validate_package_exported():
     """
@@ -73,6 +73,7 @@ def _validate_package_exported():
     # Check 2: Tensor class is actually importable (not None)
     try:
         from trentorch import Tensor
+
         if Tensor is None:
             errors.append("Tensor is None (import failed silently)")
     except ImportError as e:
@@ -81,12 +82,13 @@ def _validate_package_exported():
     # Check 3: Verify Tensor is actually the class, not a stub
     try:
         from trentorch import Tensor
+
         if Tensor is not None:
             # Try to instantiate - this catches incomplete implementations
             t = Tensor([1, 2, 3])
-            if not hasattr(t, 'data'):
+            if not hasattr(t, "data"):
                 errors.append("Tensor missing 'data' attribute")
-            if not hasattr(t, 'shape'):
+            if not hasattr(t, "shape"):
                 errors.append("Tensor missing 'shape' attribute")
     except Exception as e:
         errors.append(f"Tensor instantiation failed: {e}")
@@ -99,40 +101,40 @@ def _validate_package_exported():
 def pytest_configure(config):
     """Configure pytest with TrenTorch-specific settings."""
     # Register custom markers
-    config.addinivalue_line(
-        "markers", "module(name): mark test as belonging to a specific module"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow running"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test"
-    )
+    config.addinivalue_line("markers", "module(name): mark test as belonging to a specific module")
+    config.addinivalue_line("markers", "slow: mark test as slow running")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
 
     # CRITICAL: Validate package is exported before running tests
     # Skip validation if explicitly disabled (e.g., for export tests)
-    if os.environ.get('TRENTORCH_SKIP_EXPORT_CHECK') != '1':
+    if os.environ.get("TRENTORCH_SKIP_EXPORT_CHECK") != "1":
         is_valid, errors = _validate_package_exported()
         if not is_valid:
             error_msg = "\n".join(f"  • {e}" for e in errors)
             raise pytest.UsageError(
                 f"\n\n"
-                f"{'='*70}\n"
+                f"{'=' * 70}\n"
                 f"❌ TRENTORCH PACKAGE NOT EXPORTED\n"
-                f"{'='*70}\n\n"
+                f"{'=' * 70}\n\n"
                 f"The trentorch package is not properly built. Tests cannot run.\n\n"
                 f"Errors found:\n{error_msg}\n\n"
                 f"To fix this, run:\n\n"
                 f"    tren dev export --all\n\n"
                 f"This exports all module notebooks to the trentorch package.\n"
-                f"{'='*70}\n"
+                f"{'=' * 70}\n"
             )
+
 
 # Import test utilities to make them available
 try:
-    from test_utils import setup_integration_test, create_test_tensor, assert_tensors_close
+    from test_utils import (  # noqa: F401 -- re-exported for other test files
+        assert_tensors_close,
+        create_test_tensor,
+        setup_integration_test,
+    )
 except ImportError:
     pass  # test_utils not yet created or has issues
+
 
 # Register the --trentorch CLI flag (the pytest_trentorch plugin was removed
 # during test cleanup, but tren module test still passes this flag)
@@ -150,38 +152,41 @@ def pytest_addoption(parser):
 # Educational Test Output Plugin
 # =============================================================================
 
-def extract_test_purpose(docstring: Optional[str]) -> dict:
+
+def extract_test_purpose(docstring: str | None) -> dict:
     """
     Extract WHAT/WHY/HOW from test docstrings.
 
     Returns dict with keys: 'what', 'why', 'learning', 'raw'
     """
     if not docstring:
-        return {'what': None, 'why': None, 'learning': None, 'raw': None}
+        return {"what": None, "why": None, "learning": None, "raw": None}
 
-    result = {'raw': docstring.strip()}
+    result = {"raw": docstring.strip()}
 
     # Extract WHAT section
-    what_match = re.search(r'WHAT:\s*(.+?)(?=\n\s*\n|WHY:|$)', docstring, re.DOTALL | re.IGNORECASE)
+    what_match = re.search(r"WHAT:\s*(.+?)(?=\n\s*\n|WHY:|$)", docstring, re.DOTALL | re.IGNORECASE)
     if what_match:
-        result['what'] = what_match.group(1).strip()
+        result["what"] = what_match.group(1).strip()
 
     # Extract WHY section
-    why_match = re.search(r'WHY:\s*(.+?)(?=\n\s*\n|STUDENT|HOW:|$)', docstring, re.DOTALL | re.IGNORECASE)
+    why_match = re.search(r"WHY:\s*(.+?)(?=\n\s*\n|STUDENT|HOW:|$)", docstring, re.DOTALL | re.IGNORECASE)
     if why_match:
-        result['why'] = why_match.group(1).strip()
+        result["why"] = why_match.group(1).strip()
 
     # Extract STUDENT LEARNING section
-    learning_match = re.search(r'STUDENT LEARNING:\s*(.+?)(?=\n\s*\n|$)', docstring, re.DOTALL | re.IGNORECASE)
+    learning_match = re.search(
+        r"STUDENT LEARNING:\s*(.+?)(?=\n\s*\n|$)", docstring, re.DOTALL | re.IGNORECASE
+    )
     if learning_match:
-        result['learning'] = learning_match.group(1).strip()
+        result["learning"] = learning_match.group(1).strip()
 
     return result
 
 
-def get_module_from_path(path: str) -> Optional[str]:
+def get_module_from_path(path: str) -> str | None:
     """Extract module number from test file path."""
-    match = re.search(r'/(\d{2})_(\w+)/', str(path))
+    match = re.search(r"/(\d{2})_(\w+)/", str(path))
     if match:
         return f"Module {match.group(1)}: {match.group(2).title()}"
     return None
@@ -199,14 +204,13 @@ class TrenTorchTestReporter:
 
         try:
             from rich.console import Console
-            from rich.panel import Panel
-            from rich.text import Text
+
             self.console = Console()
             self.use_rich = True
         except ImportError:
             self.console = None
 
-    def print_test_start(self, nodeid: str, docstring: Optional[str]):
+    def print_test_start(self, nodeid: str, docstring: str | None):
         """Print when a test starts (only in verbose mode)."""
         if not self.use_rich:
             return
@@ -223,17 +227,16 @@ class TrenTorchTestReporter:
 
         # Get purpose from docstring
         purpose = extract_test_purpose(docstring)
-        what = purpose.get('what')
+        what = purpose.get("what")
 
         if what:
             # Truncate to first line/sentence
-            what_short = what.split('\n')[0][:60]
+            what_short = what.split("\n")[0][:60]
             self.console.print(f"  [dim]⏳[/dim] {test_name}: {what_short}...")
         else:
             self.console.print(f"  [dim]⏳[/dim] {test_name}...")
 
-    def print_test_result(self, nodeid: str, outcome: str, docstring: Optional[str] = None,
-                          longrepr=None):
+    def print_test_result(self, nodeid: str, outcome: str, docstring: str | None = None, longrepr=None):
         """Print test result with educational context."""
         if not self.use_rich:
             return
@@ -253,20 +256,21 @@ class TrenTorchTestReporter:
 
             # Show educational context on failure
             purpose = extract_test_purpose(docstring)
-            if purpose.get('what') or purpose.get('why'):
+            if purpose.get("what") or purpose.get("why"):
                 from rich.panel import Panel
                 from rich.text import Text
 
                 content = Text()
-                if purpose.get('what'):
+                if purpose.get("what"):
                     content.append("WHAT: ", style="bold cyan")
-                    content.append(purpose['what'][:200] + "\n\n")
-                if purpose.get('why'):
+                    content.append(purpose["what"][:200] + "\n\n")
+                if purpose.get("why"):
                     content.append("WHY THIS MATTERS: ", style="bold yellow")
-                    content.append(purpose['why'][:300])
+                    content.append(purpose["why"][:300])
 
-                self.console.print(Panel(content, title="[red]Test Failed[/red]",
-                                        border_style="red", padding=(0, 1)))
+                self.console.print(
+                    Panel(content, title="[red]Test Failed[/red]", border_style="red", padding=(0, 1))
+                )
 
     def print_summary(self):
         """Print final summary."""
@@ -277,7 +281,9 @@ class TrenTorchTestReporter:
 
         self.console.print("\n" + "━" * 50)
         status = "[green]ALL PASSED[/green]" if self.failed == 0 else f"[red]{self.failed} FAILED[/red]"
-        self.console.print(f"[bold]{status}[/bold] | {self.passed} passed, {self.skipped} skipped, {total} total")
+        self.console.print(
+            f"[bold]{status}[/bold] | {self.passed} passed, {self.skipped} skipped, {total} total"
+        )
 
 
 # Global reporter instance
@@ -287,6 +293,7 @@ _reporter = TrenTorchTestReporter()
 # =============================================================================
 # Pytest Hooks
 # =============================================================================
+
 
 def pytest_collection_modifyitems(session, config, items):
     """Modify test collection to add educational metadata."""
@@ -307,7 +314,7 @@ def pytest_runtest_makereport(item, call):
     # Only process the "call" phase (not setup/teardown)
     if report.when == "call":
         # Get docstring from test function
-        docstring = item.function.__doc__ if hasattr(item, 'function') else None
+        docstring = item.function.__doc__ if hasattr(item, "function") else None
 
         # Store for later use if needed
         report._trentorch_docstring = docstring
@@ -324,6 +331,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 # Custom Test Runner Command (for tren test)
 # =============================================================================
 
+
 def run_tests_with_rich_output(test_path: str = None, verbose: bool = True):
     """
     Run tests with Rich educational output.
@@ -336,11 +344,12 @@ def run_tests_with_rich_output(test_path: str = None, verbose: bool = True):
     console = Console()
 
     # Header
-    console.print(Panel(
-        "[bold]🧪 TrenTorch Test Runner[/bold]\n"
-        "Running tests with educational context...",
-        border_style="blue"
-    ))
+    console.print(
+        Panel(
+            "[bold]🧪 TrenTorch Test Runner[/bold]\nRunning tests with educational context...",
+            border_style="blue",
+        )
+    )
 
     # Build pytest args
     args = ["-v", "--tb=short"]

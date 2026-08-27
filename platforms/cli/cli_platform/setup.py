@@ -8,23 +8,22 @@ This replaces the old 01_setup module with a proper CLI command that handles:
 - Workspace initialization for Tiny🔥Torch development
 """
 
-import json
+import datetime
+import platform
 import subprocess
 import sys
-import platform
-import datetime
-from pathlib import Path
 from argparse import ArgumentParser, Namespace
-from typing import Dict, Any, Optional
+from pathlib import Path
+from typing import Any
 
 from rich.panel import Panel
-from rich.text import Text
-from rich.prompt import Prompt, Confirm
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.prompt import Confirm, Prompt
+from rich.text import Text
 
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.commands.jupyter import register_jupyter_magic
-from platforms.cli.core.console import get_console
+
 
 def _print_file_update(console, file_path: Path) -> None:
     """Print a notification when a file is created or updated."""
@@ -36,6 +35,7 @@ def _print_file_update(console, file_path: Path) -> None:
             console.print(f"[dim]📝 Updated: {file_path}[/dim]")
     except (ValueError, AttributeError):
         console.print(f"[dim]📝 Updated: {file_path}[/dim]")
+
 
 class SetupCommand(BaseCommand):
     """First-time setup command for Tiny🔥Torch development environment."""
@@ -60,28 +60,14 @@ class SetupCommand(BaseCommand):
             "  3. Create user profile (~/.tinytorch/profile.json)\n"
             "  4. Validate environment"
         )
+        parser.add_argument("--skip-venv", action="store_true", help="Skip virtual environment creation")
+        parser.add_argument("--skip-packages", action="store_true", help="Skip package installation")
+        parser.add_argument("--skip-profile", action="store_true", help="Skip user profile creation")
         parser.add_argument(
-            '--skip-venv',
-            action='store_true',
-            help='Skip virtual environment creation'
-        )
-        parser.add_argument(
-            '--skip-packages',
-            action='store_true',
-            help='Skip package installation'
-        )
-        parser.add_argument(
-            '--skip-profile',
-            action='store_true',
-            help='Skip user profile creation'
-        )
-        parser.add_argument(
-            '--force',
-            action='store_true',
-            help='Prompt to recreate existing components (venv, profile)'
+            "--force", action="store_true", help="Prompt to recreate existing components (venv, profile)"
         )
 
-    def get_existing_venv_path(self) -> Optional[Path]:
+    def get_existing_venv_path(self) -> Path | None:
         """Return the path to an existing venv, or None if not found."""
         venv_paths = [
             self.config.project_root / ".venv",
@@ -97,7 +83,7 @@ class SetupCommand(BaseCommand):
         """Return the path to the profile file."""
         return Path.home() / ".tinytorch" / "profile.json"
 
-    def check_existing_setup(self) -> Dict[str, Any]:
+    def check_existing_setup(self) -> dict[str, Any]:
         """Check what parts of setup already exist.
 
         Returns a dict with status of each component.
@@ -117,7 +103,11 @@ class SetupCommand(BaseCommand):
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "pip", "show", package_name],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
             )
             return result.returncode == 0
         except Exception:
@@ -147,7 +137,7 @@ class SetupCommand(BaseCommand):
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             console=self.console,
-            transient=True
+            transient=True,
         ) as progress:
             task = progress.add_task("Checking installed packages...", total=None)
             for pkg_name, pkg_spec in packages:
@@ -157,7 +147,9 @@ class SetupCommand(BaseCommand):
                     to_install.append((pkg_name, pkg_spec))
 
         if already_installed:
-            self.console.print(f"[green]✅ Already installed:[/green] [dim]{', '.join(already_installed)}[/dim]")
+            self.console.print(
+                f"[green]✅ Already installed:[/green] [dim]{', '.join(already_installed)}[/dim]"
+            )
 
         if not to_install:
             self.console.print("[green]✅ All dependencies already installed[/green]")
@@ -165,18 +157,20 @@ class SetupCommand(BaseCommand):
             self.console.print(f"[cyan]📦 Installing:[/cyan] {', '.join(p[0] for p in to_install)}")
 
             with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                console=self.console
+                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=self.console
             ) as progress:
-
                 for pkg_name, pkg_spec in to_install:
                     task = progress.add_task(f"Installing {pkg_name}...", total=None)
 
                     try:
-                        result = subprocess.run([
-                            sys.executable, "-m", "pip", "install", "-q", pkg_spec
-                        ], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+                        result = subprocess.run(
+                            [sys.executable, "-m", "pip", "install", "-q", pkg_spec],
+                            capture_output=True,
+                            text=True,
+                            encoding="utf-8",
+                            errors="replace",
+                            timeout=120,
+                        )
 
                         if result.returncode == 0:
                             progress.update(task, description=f"[green]✅ {pkg_name}[/green]")
@@ -204,16 +198,20 @@ class SetupCommand(BaseCommand):
             )
         else:
             with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                console=self.console
+                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=self.console
             ) as progress:
                 task = progress.add_task("Installing Tiny🔥Torch in development mode...", total=None)
 
                 try:
-                    result = subprocess.run([
-                        sys.executable, "-m", "pip", "install", "-q", "-e", "."
-                    ], cwd=self.config.project_root, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+                    result = subprocess.run(
+                        [sys.executable, "-m", "pip", "install", "-q", "-e", "."],
+                        cwd=self.config.project_root,
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                        timeout=120,
+                    )
 
                     if result.returncode == 0:
                         progress.update(task, description="[green]✅ Tiny🔥Torch installed[/green]")
@@ -231,12 +229,24 @@ class SetupCommand(BaseCommand):
         self.console.print()
         self.console.print("[bold]Registering Jupyter kernel...[/bold]")
         try:
-            result = subprocess.run([
-                sys.executable, "-m", "ipykernel", "install",
-                "--user",
-                "--name", "tinytorch",
-                "--display-name", "TinyTorch (Python 3)"
-            ], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "ipykernel",
+                    "install",
+                    "--user",
+                    "--name",
+                    "tinytorch",
+                    "--display-name",
+                    "TinyTorch (Python 3)",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=60,
+            )
 
             if result.returncode == 0:
                 self.console.print("[green]✅ Jupyter kernel 'tinytorch' registered[/green]")
@@ -245,8 +255,10 @@ class SetupCommand(BaseCommand):
             else:
                 self.console.print("[red]❌ Jupyter kernel registration failed[/red]")
                 self.console.print(f"[dim]   {result.stderr.strip()}[/dim]")
-                self.console.print("[yellow]   Fix: pip install ipykernel && "
-                                  "python -m ipykernel install --user --name tinytorch[/yellow]")
+                self.console.print(
+                    "[yellow]   Fix: pip install ipykernel && "
+                    "python -m ipykernel install --user --name tinytorch[/yellow]"
+                )
                 return False
         except FileNotFoundError:
             self.console.print("[red]❌ ipykernel not found — cannot register Jupyter kernel[/red]")
@@ -269,17 +281,21 @@ class SetupCommand(BaseCommand):
         if venv_path.exists():
             if not force:
                 # Silently use existing - this is idempotent behavior
-                self.console.print(f"[green]✅ Using existing virtual environment[/green] [dim]({venv_path})[/dim]")
+                self.console.print(
+                    f"[green]✅ Using existing virtual environment[/green] [dim]({venv_path})[/dim]"
+                )
                 return True
 
             # Force mode - ask before destroying
             self.console.print()
-            self.console.print(Panel(
-                "[bold yellow]⚠️  This will delete the existing virtual environment[/bold yellow]\n\n"
-                f"[dim]Path: {venv_path}[/dim]",
-                title="Warning",
-                border_style="yellow"
-            ))
+            self.console.print(
+                Panel(
+                    "[bold yellow]⚠️  This will delete the existing virtual environment[/bold yellow]\n\n"
+                    f"[dim]Path: {venv_path}[/dim]",
+                    title="Warning",
+                    border_style="yellow",
+                )
+            )
             self.console.print()
             if not Confirm.ask("[yellow]Recreate virtual environment?[/yellow]"):
                 self.console.print("[green]✅ Keeping existing virtual environment[/green]")
@@ -287,6 +303,7 @@ class SetupCommand(BaseCommand):
 
             self.console.print("🐍 Recreating virtual environment...")
             import shutil
+
             shutil.rmtree(venv_path)
         else:
             self.console.print("🐍 Creating virtual environment...")
@@ -299,31 +316,46 @@ class SetupCommand(BaseCommand):
             if platform.system() == "Darwin" and arch == "x86_64":
                 # Check if we're on Apple Silicon but running Rosetta
                 import subprocess as sp
+
                 try:
                     # Check actual hardware
                     hw_check = sp.run(
                         ["sysctl", "-n", "machdep.cpu.brand_string"],
-                        capture_output=True, text=True, encoding="utf-8", errors="replace"
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
                     )
                     if "Apple" in hw_check.stdout:
-                        self.console.print("[yellow]⚠️  Detected Apple Silicon but Python is running in Rosetta (x86_64)[/yellow]")
-                        self.console.print("[cyan]🔧 Creating arm64 native environment for better performance...[/cyan]")
+                        self.console.print(
+                            "[yellow]⚠️  Detected Apple Silicon but Python is running in Rosetta (x86_64)[/yellow]"
+                        )
+                        self.console.print(
+                            "[cyan]🔧 Creating arm64 native environment for better performance...[/cyan]"
+                        )
                         # Force arm64 Python
                         python_exe = f"arch -arm64 {python_exe}"
-                except:
+                except Exception:
                     pass
 
             # Create virtual environment (potentially with arch prefix)
             if "arch -arm64" in python_exe:
                 result = subprocess.run(
-                    f'{python_exe} -m venv {venv_path}',
+                    f"{python_exe} -m venv {venv_path}",
                     shell=True,
-                    capture_output=True, text=True, encoding="utf-8", errors="replace"
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
                 )
             else:
-                result = subprocess.run([
-                    python_exe, "-m", "venv", str(venv_path)
-                ], capture_output=True, text=True, encoding="utf-8", errors="replace")
+                result = subprocess.run(
+                    [python_exe, "-m", "venv", str(venv_path)],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                )
 
             if result.returncode != 0:
                 self.console.print(f"[red]Failed to create virtual environment: {result.stderr}[/red]")
@@ -333,12 +365,16 @@ class SetupCommand(BaseCommand):
 
             # Verify architecture
             from platforms.cli.core.virtual_env_manager import get_venv_bin_dir
+
             venv_bin = get_venv_bin_dir(venv_path)
             venv_python = venv_bin / ("python.exe" if sys.platform == "win32" else "python3")
             if venv_python.exists():
                 arch_check = subprocess.run(
                     [str(venv_python), "-c", "import platform; print(platform.machine())"],
-                    capture_output=True, text=True, encoding="utf-8", errors="replace"
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
                 )
                 if arch_check.returncode == 0:
                     venv_arch = arch_check.stdout.strip()
@@ -350,8 +386,7 @@ class SetupCommand(BaseCommand):
             self.console.print(f"[red]Error creating virtual environment: {e}[/red]")
             return False
 
-
-    def create_user_profile(self, force: bool = False) -> Dict[str, Any]:
+    def create_user_profile(self, force: bool = False) -> dict[str, Any]:
         """Create user profile for development tracking.
 
         Args:
@@ -364,12 +399,15 @@ class SetupCommand(BaseCommand):
 
         if profile_path.exists():
             import json
-            with open(profile_path, 'r') as f:
+
+            with open(profile_path) as f:
                 existing_profile = json.load(f)
 
             if not force:
                 # Silently use existing profile
-                self.console.print(f"[green]✅ Using existing profile[/green] [dim]({existing_profile.get('name', 'Unknown')})[/dim]")
+                self.console.print(
+                    f"[green]✅ Using existing profile[/green] [dim]({existing_profile.get('name', 'Unknown')})[/dim]"
+                )
                 return existing_profile
 
             # Force mode - ask before overwriting
@@ -394,12 +432,13 @@ class SetupCommand(BaseCommand):
             "created": datetime.datetime.now().isoformat(),
             "setup_version": "2.0",
             "modules_completed": [],
-            "last_active": datetime.datetime.now().isoformat()
+            "last_active": datetime.datetime.now().isoformat(),
         }
 
         # Save profile
         import json
-        with open(profile_path, 'w') as f:
+
+        with open(profile_path, "w") as f:
             json.dump(profile, f, indent=2)
 
         _print_file_update(self.console, profile_path)
@@ -413,7 +452,7 @@ class SetupCommand(BaseCommand):
             ("NumPy", self.check_numpy),
             ("Jupyter", self.check_jupyter),
             ("Jupyter kernel (tinytorch)", self.check_jupyter_kernel),
-            ("TinyTorch CLI", self.check_tinytorch_package)
+            ("TrenTorch package", self.check_trentorch_package),
         ]
 
         all_passed = True
@@ -423,9 +462,9 @@ class SetupCommand(BaseCommand):
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             console=self.console,
-            transient=True
+            transient=True,
         ) as progress:
-            task = progress.add_task("Validating environment...", total=None)
+            progress.add_task("Validating environment...", total=None)
             for check_name, check_func in checks:
                 try:
                     passed = check_func()
@@ -455,6 +494,7 @@ class SetupCommand(BaseCommand):
         """Check if NumPy is installed and working."""
         try:
             import numpy as np
+
             # Test basic operation
             arr = np.array([1, 2, 3])
             return len(arr) == 3
@@ -464,8 +504,9 @@ class SetupCommand(BaseCommand):
     def check_jupyter(self) -> bool:
         """Check if Jupyter is installed."""
         try:
-            import jupyter
-            import jupyterlab
+            import jupyter  # noqa: F401 -- import-success check
+            import jupyterlab  # noqa: F401 -- import-success check
+
             return True
         except ImportError:
             return False
@@ -475,21 +516,26 @@ class SetupCommand(BaseCommand):
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "jupyter", "kernelspec", "list"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
             )
             return result.returncode == 0 and "tinytorch" in result.stdout
         except Exception:
             return False
 
-    def check_tinytorch_package(self) -> bool:
-        """Check if Tiny🔥Torch package is installed (tito CLI)."""
+    def check_trentorch_package(self) -> bool:
+        """Check if the trentorch package is installed."""
         try:
-            import tito
+            import trentorch  # noqa: F401 -- import-success check
+
             return True
         except ImportError:
             return False
 
-    def print_success_message(self, profile: Dict[str, Any]) -> None:
+    def print_success_message(self, profile: dict[str, Any]) -> None:
         """Print success message with next steps."""
         success_text = Text()
         success_text.append("🎉 Tiny🔥Torch setup completed successfully!\n\n", style="bold green")
@@ -515,27 +561,27 @@ class SetupCommand(BaseCommand):
         success_text.append("tito module status", style="green")
         success_text.append(" - Track progress\n", style="dim")
 
-        self.console.print(Panel(
-            success_text,
-            title="🔥 Tiny🔥Torch Setup Complete!",
-            border_style="green"
-        ))
+        self.console.print(Panel(success_text, title="🔥 Tiny🔥Torch Setup Complete!", border_style="green"))
 
     def run(self, args: Namespace) -> int:
         """Execute the setup command."""
-        self.console.print(Panel(
-            "🔥 Tiny🔥Torch First-Time Setup\n\n"
-            "This will configure your development environment for building ML systems from scratch.",
-            title="Welcome to Tiny🔥Torch!",
-            border_style="bright_green"
-        ))
+        self.console.print(
+            Panel(
+                "🔥 Tiny🔥Torch First-Time Setup\n\n"
+                "This will configure your development environment for building ML systems from scratch.",
+                title="Welcome to Tiny🔥Torch!",
+                border_style="bright_green",
+            )
+        )
 
         # Check existing setup status
         status = self.check_existing_setup()
         is_fresh_install = not status["has_venv"] and not status["has_profile"]
 
         if args.force:
-            self.console.print("[yellow]⚠️  Force mode: will prompt to recreate existing components[/yellow]\n")
+            self.console.print(
+                "[yellow]⚠️  Force mode: will prompt to recreate existing components[/yellow]\n"
+            )
         elif not is_fresh_install:
             self.console.print("[dim]Checking existing setup...[/dim]\n")
 
@@ -544,7 +590,9 @@ class SetupCommand(BaseCommand):
             self.console.print("[bold]Step 1/4:[/bold] Virtual Environment")
             if not args.skip_venv:
                 if not self.create_virtual_environment(force=args.force):
-                    self.console.print("[yellow]⚠️  Virtual environment setup failed, but continuing...[/yellow]")
+                    self.console.print(
+                        "[yellow]⚠️  Virtual environment setup failed, but continuing...[/yellow]"
+                    )
             else:
                 self.console.print("[dim]  ⏭️  Skipped (--skip-venv)[/dim]")
             self.console.print()

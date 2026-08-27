@@ -3,13 +3,13 @@ Logo command for TinyTorch CLI: explains the symbolism and meaning behind TinyTo
 """
 
 from argparse import ArgumentParser, Namespace
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
-from rich.align import Align
 from pathlib import Path
 
+from rich.panel import Panel
+from rich.text import Text
+
 from platforms.cli.commands.base import BaseCommand
+
 
 class LogoCommand(BaseCommand):
     @property
@@ -21,14 +21,14 @@ class LogoCommand(BaseCommand):
         return "Learn about the TinyTorch logo and its meaning"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
-        parser.add_argument("--image", action="store_true",
-                          help="Show path to the actual logo image file")
+        parser.add_argument("--image", action="store_true", help="Show path to the actual logo image file")
 
     def run(self, args: Namespace) -> int:
         console = self.console
 
         # Display the ASCII logo first
         from platforms.cli.core.console import print_ascii_logo
+
         print_ascii_logo()
 
         # Create the explanation text
@@ -44,7 +44,7 @@ class LogoCommand(BaseCommand):
             "starts with a small flame that can grow into mastery. Just as a torch "
             "lights the way in darkness, TinyTorch illuminates the path to understanding "
             "neural networks from first principles.\n\n",
-            style="dim"
+            style="dim",
         )
 
         # The sparks
@@ -53,7 +53,7 @@ class LogoCommand(BaseCommand):
             "In our full logo, sparks fly from the flame - representing how knowledge "
             "spreads. Each concept you learn sends off sparks that ignite understanding "
             "in other areas. What starts small can catch fire and grow into something powerful.\n\n",
-            style="dim"
+            style="dim",
         )
 
         # The "tiny" philosophy
@@ -64,7 +64,7 @@ class LogoCommand(BaseCommand):
             "By keeping things small and focused, complex concepts become approachable. "
             "Every giant neural network started with tiny building blocks - tensors, gradients, "
             "and simple operations.\n\n",
-            style="dim"
+            style="dim",
         )
 
         # The "Torch" connection
@@ -75,7 +75,7 @@ class LogoCommand(BaseCommand):
             "TinyTorch distills those same concepts into their essence, letting you "
             "build and understand every component. You're not just using a framework - "
             "you're building one.\n\n",
-            style="dim"
+            style="dim",
         )
 
         # The neural network in the flame
@@ -85,7 +85,7 @@ class LogoCommand(BaseCommand):
             "This represents the core truth: inside every ML system, no matter how complex, "
             "are simple, connected components working together. The flame contains the network, "
             "just as understanding contains mastery.\n\n",
-            style="dim"
+            style="dim",
         )
 
         # The philosophy
@@ -94,7 +94,7 @@ class LogoCommand(BaseCommand):
             "TinyTorch embodies the belief that anyone can understand ML systems by building them. "
             "Start small, understand deeply, build everything. What begins as a tiny flame of "
             "curiosity becomes the torch that lights your path to ML engineering mastery.\n\n",
-            style="dim"
+            style="dim",
         )
 
         # Personal message from the creator
@@ -108,26 +108,28 @@ class LogoCommand(BaseCommand):
             "thousands of students, both online and in person, I realized something was missing: there "
             "was no way to truly engineer ML systems from the ground up. So that's why I built "
             "TinyTorch—a hands-on companion to ",
-            style="italic dim"
+            style="italic dim",
         )
         explanation.append("www.mlsysbook.ai", style="italic magenta")
         explanation.append(
             ", where you don't just import libraries, you engineer every component yourself. "
             "Think of it as building the Lego blocks for your favorite Star Wars set.\n\n",
-            style="italic dim"
+            style="italic dim",
         )
         explanation.append("So don't just ", style="bold cyan")
-        explanation.append("\"import torch\"", style="white")
+        explanation.append('"import torch"', style="white")
         explanation.append(", build it.", style="bold cyan")
         explanation.append("\n\n", style="dim")
 
         # Display in a nice panel
-        console.print(Panel(
-            explanation,
-            title="[bold]About the TinyTorch Logo[/bold]",
-            border_style="orange1",
-            padding=(1, 2)
-        ))
+        console.print(
+            Panel(
+                explanation,
+                title="[bold]About the TinyTorch Logo[/bold]",
+                border_style="orange1",
+                padding=(1, 2),
+            )
+        )
 
         # Show logo file path if requested
         if args.image:
@@ -136,7 +138,7 @@ class LogoCommand(BaseCommand):
                 console.print(f"\n[cyan]Logo image location:[/cyan] {logo_path}")
                 console.print("[dim]Open this file to see the full logo with sparks[/dim]")
             else:
-                console.print(f"\n[yellow]Logo image not found at expected location[/yellow]")
+                console.print("\n[yellow]Logo image not found at expected location[/yellow]")
 
         # Final inspiring message
         console.print("\n[yellow]🔥 [/yellow][italic]Start tiny. Go deep. Build big.[/italic]\n")

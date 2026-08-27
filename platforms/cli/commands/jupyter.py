@@ -62,7 +62,11 @@ def find_running_jupyter_server(project_root: Path):
     try:
         result = subprocess.run(
             ["jupyter", "server", "list"],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
         )
     except FileNotFoundError:
         return None, None
@@ -75,7 +79,9 @@ def find_running_jupyter_server(project_root: Path):
         if not match:
             continue
         url, token, root_dir = match.groups()
-        if os.path.normcase(os.path.normpath(root_dir.strip())) == os.path.normcase(os.path.normpath(project_root_str)):
+        if os.path.normcase(os.path.normpath(root_dir.strip())) == os.path.normcase(
+            os.path.normpath(project_root_str)
+        ):
             return url, token
     return None, None
 
@@ -89,7 +95,8 @@ def start_jupyter_server(project_root: Path) -> bool:
     """
     try:
         cmd = [
-            "jupyter", "lab",
+            "jupyter",
+            "lab",
             "--no-browser",
             f"--notebook-dir={project_root}",
         ]
@@ -196,7 +203,11 @@ def register_jupyter_magic(config, console) -> None:
     try:
         result = subprocess.run(
             [sys.executable, "-m", "jupyter", "--data-dir"],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=15
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
         )
         if result.returncode != 0:
             return

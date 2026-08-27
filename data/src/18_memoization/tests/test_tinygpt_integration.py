@@ -4,9 +4,12 @@ Tests language model components and GPT-style transformer integration.
 """
 
 import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 from pathlib import Path
+
 
 def run_integration_test():
     """Run integration test for TinyGPT module."""
@@ -16,15 +19,22 @@ def run_integration_test():
         # Test 1: Import validation
         print("1. Import validation...")
         import trentorch.tinygpt as tgpt
+
         print("   ✅ trentorch.tinygpt imported successfully")
 
         # Test 2: Component availability
         print("2. Component availability...")
         expected_components = [
-            'CharTokenizer', 'MultiHeadAttention', 'create_causal_mask',
-            'LayerNorm', 'TransformerBlock', 'PositionalEncoding',
-            'TinyGPT', 'LanguageModelLoss', 'LanguageModelAccuracy',
-            'LanguageModelTrainer'
+            "CharTokenizer",
+            "MultiHeadAttention",
+            "create_causal_mask",
+            "LayerNorm",
+            "TransformerBlock",
+            "PositionalEncoding",
+            "TinyGPT",
+            "LanguageModelLoss",
+            "LanguageModelAccuracy",
+            "LanguageModelTrainer",
         ]
 
         available_components = tgpt.__all__
@@ -99,7 +109,7 @@ def run_integration_test():
             if generated.shape[1] > test_input.shape[1]:
                 print(f"   ✅ Text generation: {test_input.shape[1]} -> {generated.shape[1]} tokens")
             else:
-                print(f"   ❌ Text generation failed: no new tokens generated")
+                print("   ❌ Text generation failed: no new tokens generated")
                 return False
         except Exception as e:
             print(f"   ⚠️ Text generation issue (non-critical): {e}")
@@ -126,16 +136,13 @@ def run_integration_test():
             "success": True,
             "message": "TinyGPT integration test passed",
             "components_tested": 8,
-            "module_name": "18_memoization"
+            "module_name": "18_memoization",
         }
 
     except Exception as e:
         print(f"❌ TinyGPT integration test FAILED: {e}")
-        return {
-            "success": False,
-            "error": str(e),
-            "module_name": "18_memoization"
-        }
+        return {"success": False, "error": str(e), "module_name": "18_memoization"}
+
 
 if __name__ == "__main__":
     result = run_integration_test()

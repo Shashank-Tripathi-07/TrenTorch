@@ -5,17 +5,19 @@ This test suite validates that all arithmetic operations and activations
 properly preserve gradient tracking and enable backpropagation.
 """
 
-import numpy as np
-import pytest
 import sys
 from pathlib import Path
+
+import numpy as np
+import pytest
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.autograd import enable_autograd
 from trentorch.core.activations import GELU
+from trentorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
+
 # Try to import transformer for mean/sqrt monkey-patches (Module 13)
 # This is optional - tests will skip if not available
 try:
@@ -34,22 +36,22 @@ def test_arithmetic_gradient_flow():
     # Test addition
     z_add = x + y
     assert z_add.requires_grad, "Addition should preserve requires_grad"
-    assert hasattr(z_add, '_grad_fn'), "Addition should set _grad_fn"
+    assert hasattr(z_add, "_grad_fn"), "Addition should set _grad_fn"
 
     # Test subtraction
     z_sub = x - y
     assert z_sub.requires_grad, "Subtraction should preserve requires_grad"
-    assert hasattr(z_sub, '_grad_fn'), "Subtraction should set _grad_fn"
+    assert hasattr(z_sub, "_grad_fn"), "Subtraction should set _grad_fn"
 
     # Test multiplication
     z_mul = x * y
     assert z_mul.requires_grad, "Multiplication should preserve requires_grad"
-    assert hasattr(z_mul, '_grad_fn'), "Multiplication should set _grad_fn"
+    assert hasattr(z_mul, "_grad_fn"), "Multiplication should set _grad_fn"
 
     # Test division
     z_div = x / y
     assert z_div.requires_grad, "Division should preserve requires_grad"
-    assert hasattr(z_div, '_grad_fn'), "Division should set _grad_fn"
+    assert hasattr(z_div, "_grad_fn"), "Division should set _grad_fn"
 
     print("✅ All arithmetic operations preserve gradient tracking")
 
@@ -95,7 +97,7 @@ def test_division_backward():
     assert a.grad is not None, "Gradient should flow to a"
     assert b.grad is not None, "Gradient should flow to b"
     assert np.allclose(a.grad, 1.0 / b.data), "Gradient wrt a should be 1/b"
-    expected_b_grad = -a.data / (b.data ** 2)
+    expected_b_grad = -a.data / (b.data**2)
     assert np.allclose(b.grad, expected_b_grad), "Gradient wrt b should be -a/b²"
 
     print("✅ Division backward pass correct")
@@ -111,7 +113,7 @@ def test_gelu_gradient_flow():
     # Forward
     y = gelu(x)
     assert y.requires_grad, "GELU output should have requires_grad=True"
-    assert hasattr(y, '_grad_fn'), "GELU should set _grad_fn"
+    assert hasattr(y, "_grad_fn"), "GELU should set _grad_fn"
 
     # Backward
     loss = y.sum()
@@ -136,7 +138,7 @@ def test_reshape_gradient_flow():
     y = x.reshape(4)
 
     assert y.requires_grad, "Reshape should preserve requires_grad"
-    assert hasattr(y, '_grad_fn'), "Reshape should set _grad_fn"
+    assert hasattr(y, "_grad_fn"), "Reshape should set _grad_fn"
 
     # Backward
     loss = y.sum()
@@ -149,17 +151,16 @@ def test_reshape_gradient_flow():
 
 
 if __name__ == "__main__":
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("GRADIENT FLOW TEST SUITE")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     test_arithmetic_gradient_flow()
     test_subtraction_backward()
     test_division_backward()
     test_gelu_gradient_flow()
-    test_layernorm_operations()
     test_reshape_gradient_flow()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ ALL GRADIENT FLOW TESTS PASSED")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")

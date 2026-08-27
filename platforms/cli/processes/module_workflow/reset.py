@@ -9,8 +9,6 @@ Simple reset functionality:
 import json
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
-from pathlib import Path
-from typing import Optional
 
 from rich.panel import Panel
 from rich.table import Table
@@ -34,21 +32,16 @@ class ModuleResetCommand(BaseCommand):
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add reset command arguments."""
         parser.add_argument(
-            "module_number", nargs="?", default=None,
-            help="Module number to reset (01, 02, etc.)"
+            "module_number", nargs="?", default=None, help="Module number to reset (01, 02, etc.)"
         )
         parser.add_argument(
             "--all",
             action="store_true",
             help="Reset ALL modules to pristine state",
         )
-        parser.add_argument(
-            "--force",
-            action="store_true",
-            help="Skip confirmation prompts"
-        )
+        parser.add_argument("--force", action="store_true", help="Skip confirmation prompts")
 
-    def _prompt_for_module(self) -> Optional[str]:
+    def _prompt_for_module(self) -> str | None:
         """Prompt user to select a module to reset."""
         console = self.console
         module_mapping = get_module_mapping()
@@ -70,7 +63,7 @@ class ModuleResetCommand(BaseCommand):
 
         try:
             response = input("Enter module number (or 'q' to cancel): ").strip()
-            if response.lower() in ['q', 'quit', 'cancel', '']:
+            if response.lower() in ["q", "quit", "cancel", ""]:
                 return None
             return response
         except (KeyboardInterrupt, EOFError):
@@ -81,16 +74,12 @@ class ModuleResetCommand(BaseCommand):
         """Ask user for confirmation."""
         console = self.console
         console.print()
-        console.print(Panel(
-            f"[yellow]{message}[/yellow]",
-            title="Warning",
-            border_style="yellow"
-        ))
+        console.print(Panel(f"[yellow]{message}[/yellow]", title="Warning", border_style="yellow"))
         console.print()
 
         try:
             response = input("Are you sure? (y/N): ").strip().lower()
-            return response in ['y', 'yes']
+            return response in ["y", "yes"]
         except (KeyboardInterrupt, EOFError):
             console.print()
             return False
@@ -169,7 +158,7 @@ class ModuleResetCommand(BaseCommand):
 
             src_path = self.config.project_root / "data" / "src" / module_name
             if not src_path.exists():
-                console.print(f"[yellow]  ⚠ Source not found, skipping[/yellow]")
+                console.print("[yellow]  ⚠ Source not found, skipping[/yellow]")
                 continue
 
             success = convert_py_to_notebook(src_path, self.venv_path, console)
@@ -224,7 +213,7 @@ class ModuleResetCommand(BaseCommand):
 
         if progress_file.exists():
             try:
-                with open(progress_file, "r") as f:
+                with open(progress_file) as f:
                     progress = json.load(f)
 
                 # Remove from completed and started modules
@@ -250,28 +239,31 @@ class ModuleResetCommand(BaseCommand):
 
         # Reset user_data/progress.json
         progress_file = user_data_dir / "progress.json"
-        progress_file.write_text(json.dumps({
-            "version": "1.0",
-            "started_modules": [],
-            "completed_modules": [],
-            "last_worked": None,
-            "last_updated": datetime.now().isoformat()
-        }, indent=2))
+        progress_file.write_text(
+            json.dumps(
+                {
+                    "version": "1.0",
+                    "started_modules": [],
+                    "completed_modules": [],
+                    "last_worked": None,
+                    "last_updated": datetime.now().isoformat(),
+                },
+                indent=2,
+            )
+        )
 
         # Reset milestones
         milestones_file = user_data_dir / "milestones.json"
-        milestones_file.write_text(json.dumps({
-            "version": "1.0",
-            "completed_milestones": [],
-            "completion_dates": {}
-        }, indent=2))
+        milestones_file.write_text(
+            json.dumps({"version": "1.0", "completed_milestones": [], "completion_dates": {}}, indent=2)
+        )
 
     def run(self, args: Namespace) -> int:
         """Execute the reset command."""
         console = self.console
 
         # Handle --all (reset all modules)
-        if getattr(args, 'all', False):
+        if getattr(args, "all", False):
             if not args.force:
                 if not self._confirm_reset("This will reset ALL modules and clear all progress."):
                     console.print("[cyan]Reset cancelled.[/cyan]")
@@ -299,7 +291,9 @@ class ModuleResetCommand(BaseCommand):
 
         # Confirm reset
         if not args.force:
-            if not self._confirm_reset(f"This will reset module {normalized} ({module_name}) to its pristine state."):
+            if not self._confirm_reset(
+                f"This will reset module {normalized} ({module_name}) to its pristine state."
+            ):
                 console.print("[cyan]Reset cancelled.[/cyan]")
                 return 0
 

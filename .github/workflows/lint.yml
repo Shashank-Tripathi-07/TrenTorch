@@ -1,0 +1,44 @@
+name: Lint
+
+# Ruff check (style/correctness) + format check, on every push/PR to main.
+# Deliberately no paths-ignore: unlike validate.yml's test suite, this is
+# fast enough (sub-second) that skipping it for "only touches one file"
+# pushes isn't worth the required-check path-filter footgun (see
+# codeql.yml's comment on the same issue).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: lint-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  ruff:
+    name: Ruff
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+
+      - name: Install ruff
+        run: pip install ruff>=0.6.0
+
+      - name: Ruff check (lint)
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .

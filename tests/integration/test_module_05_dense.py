@@ -4,8 +4,9 @@ These tests verify that the module exports correctly and works as expected.
 Run with pytest for detailed reporting.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -20,14 +21,16 @@ class TestDenseModuleExports:
     def test_dense_class_exports(self):
         """Test Dense class exports from layers module."""
         from trentorch.core.layers import Linear as Dense
+
         assert Dense is not None, "Dense class should be exported"
 
     def test_dense_is_callable(self):
         """Test Dense can be instantiated."""
         from trentorch.core.layers import Linear as Dense
+
         layer = Dense(10, 5)
         assert layer is not None, "Should create Dense layer instance"
-        assert hasattr(layer, 'forward'), "Dense should have forward method"
+        assert hasattr(layer, "forward"), "Dense should have forward method"
 
 
 class TestDenseLayerFunctionality:
@@ -58,7 +61,7 @@ class TestDenseLayerFunctionality:
         from trentorch.core.tensor import Tensor
 
         layer = Dense(10, 5, bias=True)
-        assert hasattr(layer, 'bias'), "Layer should have bias"
+        assert hasattr(layer, "bias"), "Layer should have bias"
         assert layer.bias is not None, "Bias should be initialized"
 
         x = Tensor(rng.standard_normal((1, 10)))
@@ -98,12 +101,13 @@ class TestNetworkComposition:
     def test_sequential_exists(self):
         """Test if Sequential is available for network composition."""
         from trentorch.core.layers import Sequential
+
         assert Sequential is not None, "Sequential should be importable from trentorch.core.layers"
 
     def test_multi_layer_network(self):
         """Test building a multi-layer network."""
-        from trentorch.core.layers import Linear as Dense
         from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.layers import Linear as Dense
         from trentorch.core.tensor import Tensor
 
         # Build network manually (without Sequential)
@@ -134,8 +138,8 @@ class TestXORCapability:
 
     def test_xor_network_structure(self):
         """Test building XOR network structure."""
-        from trentorch.core.layers import Linear as Dense
         from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.layers import Linear as Dense
         from trentorch.core.tensor import Tensor
 
         # XOR network: 2 -> 4 -> 1
@@ -154,22 +158,23 @@ class TestXORCapability:
         predictions = sigmoid(out)
 
         assert predictions.shape == (4, 1), "XOR network should produce 4 predictions"
-        assert np.all(predictions.data >= 0) and np.all(predictions.data <= 1), "Predictions should be probabilities"
+        assert np.all(predictions.data >= 0) and np.all(predictions.data <= 1), (
+            "Predictions should be probabilities"
+        )
 
 
 def run_integration_tests():
     """Run all integration tests and return summary."""
     # This would be called by tren module complete
-    pytest.main([__file__, '-v', '--tb=short'])
+    pytest.main([__file__, "-v", "--tb=short"])
 
 
 if __name__ == "__main__":
     # Run tests with pytest
     import subprocess
+
     result = subprocess.run(
-        [sys.executable, '-m', 'pytest', __file__, '-v', '--tb=short'],
-        capture_output=True,
-        text=True
+        [sys.executable, "-m", "pytest", __file__, "-v", "--tb=short"], capture_output=True, text=True
     )
 
     print(result.stdout)

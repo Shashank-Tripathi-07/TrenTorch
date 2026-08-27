@@ -19,8 +19,9 @@ WHAT WE TEST:
 3. Cache works across multiple layers
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -132,10 +133,10 @@ class TestKVCacheAdvanced:
             expected_v_val = layer_idx * 10 + 1
 
             assert cached_K.data[0, 0, 0, 0] == expected_k_val, (
-                f"Layer {layer_idx} K wrong: expected {expected_k_val}, got {cached_K.data[0,0,0,0]}"
+                f"Layer {layer_idx} K wrong: expected {expected_k_val}, got {cached_K.data[0, 0, 0, 0]}"
             )
             assert cached_V.data[0, 0, 0, 0] == expected_v_val, (
-                f"Layer {layer_idx} V wrong: expected {expected_v_val}, got {cached_V.data[0,0,0,0]}"
+                f"Layer {layer_idx} V wrong: expected {expected_v_val}, got {cached_V.data[0, 0, 0, 0]}"
             )
 
     def test_kv_cache_seq_pos_tracking(self):
@@ -156,9 +157,7 @@ class TestKVCacheAdvanced:
             V = Tensor(np.zeros((1, 2, 1, 8)))
             cache.update(0, K, V)
             cache.advance()
-            assert cache.seq_pos == expected_pos, (
-                f"seq_pos should be {expected_pos}, got {cache.seq_pos}"
-            )
+            assert cache.seq_pos == expected_pos, f"seq_pos should be {expected_pos}, got {cache.seq_pos}"
 
     def test_kv_cache_raises_on_invalid_layer(self):
         """

@@ -4,9 +4,8 @@ Configuration management for TinyTorch CLI.
 
 import os
 import sys
-from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass
+from pathlib import Path
 
 
 def migrate_progress_dir(project_root: Path) -> None:
@@ -24,10 +23,10 @@ def migrate_progress_dir(project_root: Path) -> None:
     neither legacy directory just gets user_data/ created normally by
     whichever command needs it, with nothing to migrate.
     """
-    user_data_dir = project_root / 'user_data'
+    user_data_dir = project_root / "user_data"
     if user_data_dir.exists():
         return
-    for legacy_name in ('.tren', '.tito'):
+    for legacy_name in (".tren", ".tito"):
         legacy_dir = project_root / legacy_name
         if legacy_dir.exists():
             try:
@@ -63,48 +62,53 @@ class CLIConfig:
         """Initialize default values."""
         if self.required_packages is None:
             # Core dependencies from requirements.txt (required section)
-            self.required_packages = ['numpy', 'rich', 'yaml', 'pytest', 'jupytext']
+            self.required_packages = ["numpy", "rich", "yaml", "pytest", "jupytext"]
 
     @classmethod
-    def from_project_root(cls, project_root: Optional[Path] = None) -> 'CLIConfig':
+    def from_project_root(cls, project_root: Path | None = None) -> "CLIConfig":
         """Create config from project root directory."""
         if project_root is None:
             # Auto-detect project root
             current = Path.cwd()
             while current != current.parent:
-                if (current / 'pyproject.toml').exists():
+                if (current / "pyproject.toml").exists():
                     project_root = current
                     break
                 current = current.parent
             else:
                 project_root = Path.cwd()
 
-        modules_path = project_root / 'data' / 'src'
+        modules_path = project_root / "data" / "src"
         return cls(
             project_root=project_root,
-            assignments_dir=project_root / 'assignments',
+            assignments_dir=project_root / "assignments",
             modules_dir=modules_path,
-            trentorch_dir=project_root / 'data' / 'trentorch',
-            bin_dir=project_root / 'bin'
+            trentorch_dir=project_root / "data" / "trentorch",
+            bin_dir=project_root / "bin",
         )
 
-    def validate(self, venv_path: Union[Path, str]='.venv') -> List[str]:
+    def validate(self, venv_path: Path | str = ".venv") -> list[str]:
         """Validate the configuration and return any issues."""
         issues = []
 
         # Check Python version
         if sys.version_info < self.python_min_version:
-            issues.append(f"Python {'.'.join(map(str, self.python_min_version))}+ required, "
-                         f"found {sys.version_info.major}.{sys.version_info.minor}")
+            issues.append(
+                f"Python {'.'.join(map(str, self.python_min_version))}+ required, "
+                f"found {sys.version_info.major}.{sys.version_info.minor}"
+            )
 
         # Check virtual environment (more robust detection)
         in_venv = (
             # Method 1: Check VIRTUAL_ENV environment variable
-            os.environ.get('VIRTUAL_ENV') is not None or
+            os.environ.get("VIRTUAL_ENV") is not None
+            or
             # Method 2: Check sys.prefix vs sys.base_prefix
-            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
+            (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
+            or
             # Method 3: Check for sys.real_prefix (older Python versions)
-            hasattr(sys, 'real_prefix') or
+            hasattr(sys, "real_prefix")
+            or
             # Method 4: Check if .venv directory exists and packages are available
             (venv_path.exists() and self._packages_available())
         )

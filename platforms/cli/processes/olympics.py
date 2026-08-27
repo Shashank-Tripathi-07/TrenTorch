@@ -5,12 +5,14 @@ Special competition events where students learn and compete together.
 """
 
 from argparse import ArgumentParser, Namespace
-from rich.panel import Panel
+
 from rich.align import Align
-from rich.text import Text
 from rich.console import Group
+from rich.panel import Panel
+from rich.text import Text
 
 from platforms.cli.commands.base import BaseCommand
+
 
 class OlympicsCommand(BaseCommand):
     """🏅 TinyTorch Olympics - Future competition events"""
@@ -26,26 +28,19 @@ class OlympicsCommand(BaseCommand):
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add olympics subcommands (coming soon)."""
         subparsers = parser.add_subparsers(
-            dest='olympics_command',
-            help='Olympics operations',
-            metavar='COMMAND'
+            dest="olympics_command", help="Olympics operations", metavar="COMMAND"
         )
 
         # Logo subcommand
-        subparsers.add_parser(
-            'logo',
-            help='Display the Neural Networks Olympics logo'
-        )
+        subparsers.add_parser("logo", help="Display the Neural Networks Olympics logo")
 
         # Status/info subcommand
-        subparsers.add_parser(
-            'status',
-            help='Check your Olympics participation status'
-        )
+        subparsers.add_parser("status", help="Check your Olympics participation status")
 
     def _build_logo(self) -> Text:
         """Build the Olympic rings ASCII art (blue/white/red on top, yellow/green on bottom, interlocking)."""
-        logo_lines = ["",
+        logo_lines = [
+            "",
             "[blue]⠀⠀⢀⣠⢖⠗⠟⠛⠛⠟⢶⢦⣀[/]⠀⠀⠀⠀⠀⠀⠀[bright_white]⣠⣶⡿⠿⠿⠿⣿⣷⣦⣄[/]⠀⠀⠀⠀⠀⠀⠀[red]⣄⡴⡳⠛⠛⠛⠟⢞⣦⣄[/]⠀⠀⠀",
             "[blue]⠀⣠⢾⠑⠁⠀⠀⠀⠀⠀⠀⠉⠫⣷⡀[/]⠀⠀⠀[bright_white]⣠⣾⡟⠉⠀⠀⠀⠀⠀⠀⠙⢻⣷⣄[/]⠀⠀⠀[red]⢠⢾⠕⠉⠀⠀⠀⠀⠀⠀⠈⠚⡷⡄[/]⠀",
             "[blue]⢰⡯⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣳⠄[/]⠀[bright_white]⣰⣿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⡆[/]⠀[red]⢠⣟⠅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣟⠆[/]",
@@ -67,13 +62,15 @@ class OlympicsCommand(BaseCommand):
         logo = self._build_logo()
 
         # Handle subcommands
-        if hasattr(args, 'olympics_command') and args.olympics_command == 'logo':
-            console.print(Panel(
-                Align.center(logo),
-                title="⚡ TINYTORCH OLYMPICS ⚡",
-                border_style="bright_yellow",
-                padding=(1, 2)
-            ))
+        if hasattr(args, "olympics_command") and args.olympics_command == "logo":
+            console.print(
+                Panel(
+                    Align.center(logo),
+                    title="⚡ TINYTORCH OLYMPICS ⚡",
+                    border_style="bright_yellow",
+                    padding=(1, 2),
+                )
+            )
             return 0
 
         message = Text()
@@ -111,11 +108,8 @@ class OlympicsCommand(BaseCommand):
             Align.center(message),
         )
 
-        console.print(Panel(
-            content,
-            title="⚡ TINYTORCH OLYMPICS ⚡",
-            border_style="bright_yellow",
-            padding=(1, 2)
-        ))
+        console.print(
+            Panel(content, title="⚡ TINYTORCH OLYMPICS ⚡", border_style="bright_yellow", padding=(1, 2))
+        )
 
         return 0

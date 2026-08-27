@@ -81,36 +81,37 @@ This milestone shows you WHY training is essential - the model won't work withou
 - You'll see random weights become learned representations
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 # Unseeded RNG: each run draws different cluster points so the demo lives up
 # to the on-screen "No random seed - each run will be different!" promise.
 rng = np.random.default_rng()
-import argparse
 
 # Add project root to path for correct trentorch imports
 # This allows the script to be run from the root of the project
 sys.path.insert(0, os.getcwd())
-sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
+sys.path.insert(0, os.path.join(os.getcwd(), "data"))  # trentorch/ lives at data/trentorch/
 
 # Import TrenTorch components YOU BUILT!
-from trentorch.core.tensor import Tensor        # Module 01: YOU built this!
-from trentorch.core.layers import Linear        # Module 03: YOU built this!
-from trentorch.core.activations import Sigmoid  # Module 02: YOU built this!
+from rich import box
 
 # Import Rich for beautiful CLI output
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
-from rich import box
-from rich.text import Text
+from rich.table import Table
+from trentorch.core.activations import Sigmoid  # Module 02: YOU built this!
+from trentorch.core.layers import Linear  # Module 03: YOU built this!
+from trentorch.core.tensor import Tensor  # Module 01: YOU built this!
 
 console = Console()
 
 # ============================================================================
 # 🎓 STUDENT CODE: This is what YOU built with Modules 01-03!
 # ============================================================================
+
 
 class Perceptron:
     """
@@ -144,9 +145,11 @@ class Perceptron:
         """PyTorch-style: model(x) calls forward(x)"""
         return self.forward(x)
 
+
 # ============================================================================
 # 📊 VISUALIZATION CODE: Rich CLI formatting (you can ignore this!)
 # ============================================================================
+
 
 def draw_network_architecture():
     """Draw the perceptron architecture using ASCII art."""
@@ -174,11 +177,12 @@ def draw_network_architecture():
     """
     return network.strip()
 
+
 def visualize_data_points(X, y, predictions=None, weights=None):
     """Create ASCII visualization of data points with decision boundary."""
     # Create a simple scatter plot
     grid_size = 20
-    grid = [[' ' for _ in range(grid_size)] for _ in range(grid_size)]
+    grid = [[" " for _ in range(grid_size)] for _ in range(grid_size)]
 
     # Find bounds
     x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
@@ -191,7 +195,7 @@ def visualize_data_points(X, y, predictions=None, weights=None):
         if abs(w2) > 0.001:  # Avoid division by zero
             # Determine slope for choosing line character
             slope = -w1 / w2
-            line_char = '/' if slope > 0 else '\\'
+            line_char = "/" if slope > 0 else "\\"
 
             for gx in range(grid_size):
                 # Map grid x to real x
@@ -202,7 +206,7 @@ def visualize_data_points(X, y, predictions=None, weights=None):
                 gy = int((py - y_min) / (y_max - y_min) * (grid_size - 1))
                 gy = grid_size - 1 - gy  # Flip y-axis
 
-                if 0 <= gy < grid_size and grid[gy][gx] == ' ':
+                if 0 <= gy < grid_size and grid[gy][gx] == " ":
                     grid[gy][gx] = line_char  # Decision boundary line
 
     # Plot points (after boundary so they overlap)
@@ -218,11 +222,11 @@ def visualize_data_points(X, y, predictions=None, weights=None):
                 pred_label = int(predictions[i])
                 # Show correct (green) vs incorrect (red) predictions
                 if true_label == pred_label:
-                    grid[gy][gx] = '●' if true_label == 1 else '○'
+                    grid[gy][gx] = "●" if true_label == 1 else "○"
                 else:
-                    grid[gy][gx] = '✗'  # Wrong prediction
+                    grid[gy][gx] = "✗"  # Wrong prediction
             else:
-                grid[gy][gx] = '●' if true_label == 1 else '○'
+                grid[gy][gx] = "●" if true_label == 1 else "○"
 
     # Build the plot
     lines = []
@@ -239,25 +243,29 @@ def visualize_data_points(X, y, predictions=None, weights=None):
 
     return "\n".join(lines)
 
-def press_enter_to_continue() :
-    if sys.stdin.isatty() and sys.stdout.isatty() :
-        try :
+
+def press_enter_to_continue():
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        try:
             console.input("\n[yellow]Press Enter to continue...[/yellow] ")
-        except EOFError :
+        except EOFError:
             pass
         console.print()
+
 
 def main():
     """Demonstrate Rosenblatt's Perceptron using YOUR Tren🔥Torch system!"""
 
     # Header
     console.print()
-    console.print(Panel.fit(
-        "[bold cyan]🎯 MILESTONE 1: The Perceptron (1958)[/bold cyan]\n"
-        "[yellow]⚠️  FORWARD PASS ONLY - Random Weights[/yellow]\n\n"
-        "[dim]Components: YOUR Tensor + YOUR Linear + YOUR Sigmoid[/dim]",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]🎯 MILESTONE 1: The Perceptron (1958)[/bold cyan]\n"
+            "[yellow]⚠️  FORWARD PASS ONLY - Random Weights[/yellow]\n\n"
+            "[dim]Components: YOUR Tensor + YOUR Linear + YOUR Sigmoid[/dim]",
+            border_style="cyan",
+        )
+    )
     press_enter_to_continue()
 
     # Introduction - What to expect
@@ -285,8 +293,8 @@ def main():
     console.print("   [dim]This is a SIMPLE problem - training is what makes it learn[/dim]")
     console.print("   [yellow]⚠️  No random seed - each run will be different![/yellow]")
 
-    cluster1 = rng.normal([2, 2], 0.5, (5, 2))   # Class 1: top-right
-    cluster2 = rng.normal([-2, -2], 0.5, (5, 2)) # Class 0: bottom-left
+    cluster1 = rng.normal([2, 2], 0.5, (5, 2))  # Class 1: top-right
+    cluster2 = rng.normal([-2, -2], 0.5, (5, 2))  # Class 0: bottom-left
     X = np.vstack([cluster1, cluster2]).astype(np.float32)
     y = np.array([1, 1, 1, 1, 1, 0, 0, 0, 0, 0], dtype=np.float32)  # True labels
 
@@ -307,17 +315,22 @@ def main():
     # default in trentorch.core.layers is seeded for test reproducibility;
     # we only override here, in this milestone script.
     import trentorch.core.layers as _layers
+
     _layers.rng = np.random.default_rng()
 
     model = Perceptron(input_size=2, output_size=1)
 
-    console.print(f"      [green]✓[/green] Linear layer: 2 → 1 [dim](YOUR Module 03!)[/dim]")
-    console.print(f"      [green]✓[/green] Activation: Sigmoid [dim](YOUR Module 02!)[/dim]")
+    console.print("      [green]✓[/green] Linear layer: 2 → 1 [dim](YOUR Module 03!)[/dim]")
+    console.print("      [green]✓[/green] Activation: Sigmoid [dim](YOUR Module 02!)[/dim]")
     console.print("   [yellow]⚠️  Model assembled - but weights are RANDOM![/yellow]\n")
 
     # Show network architecture
     network_diagram = draw_network_architecture()
-    console.print(Panel(network_diagram, title="[cyan]🏗️  Network Architecture (1957 Design)[/cyan]", border_style="cyan"))
+    console.print(
+        Panel(
+            network_diagram, title="[cyan]🏗️  Network Architecture (1957 Design)[/cyan]", border_style="cyan"
+        )
+    )
     press_enter_to_continue()
 
     # Step 3: Test with random weights
@@ -332,9 +345,9 @@ def main():
     accuracy = (pred_classes == y).mean()
 
     # Format arrays nicely for display
-    true_str = ' '.join([f"{int(val)}" for val in y])
-    pred_str = ' '.join([f"{val}" for val in pred_classes])
-    match_str = ' '.join(['[green]✓[/green]' if m else '[red]✗[/red]' for m in (pred_classes == y)])
+    true_str = " ".join([f"{int(val)}" for val in y])
+    pred_str = " ".join([f"{val}" for val in pred_classes])
+    match_str = " ".join(["[green]✓[/green]" if m else "[red]✗[/red]" for m in (pred_classes == y)])
 
     # Create results table
     results_table = Table(title="📊 Prediction Results", box=box.ROUNDED, border_style="cyan")
@@ -360,21 +373,27 @@ def main():
     press_enter_to_continue()
 
     # Extract weights for visualization and display
-    w1 = model.linear.weight.data[0,0]
-    w2 = model.linear.weight.data[1,0]
+    w1 = model.linear.weight.data[0, 0]
+    w2 = model.linear.weight.data[1, 0]
     b = model.linear.bias.data[0]
 
     # Calculate z values (linear output before sigmoid)
-    z_values = X @ np.array([[w1], [w2]]) + b
+    X @ np.array([[w1], [w2]]) + b
 
     # Show visualization with predictions AND decision boundary
     pred_viz = visualize_data_points(X, y, pred_classes, weights=(w1, w2, b))
-    console.print(Panel(pred_viz, title="[cyan]Predictions with Decision Boundary[/cyan]", border_style=status_color))
+    console.print(
+        Panel(pred_viz, title="[cyan]Predictions with Decision Boundary[/cyan]", border_style=status_color)
+    )
     press_enter_to_continue()
-    
+
     # Show weights AND equation
     decision_eq = f"z = {w1:.4f}·x₁ + {w2:.4f}·x₂ + {b:.4f}"
-    boundary_eq = f"Decision boundary (z=0): x₂ = {-w1/w2:.4f}·x₁ + {-b/w2:.4f}" if abs(w2) > 0.001 else "Decision boundary: vertical line"
+    boundary_eq = (
+        f"Decision boundary (z=0): x₂ = {-w1 / w2:.4f}·x₁ + {-b / w2:.4f}"
+        if abs(w2) > 0.001
+        else "Decision boundary: vertical line"
+    )
 
     weights_content = (
         f"[bold]Random Weights:[/bold]\n"
@@ -406,7 +425,13 @@ def main():
             "   won't generalize. You need [bold]TRAINING[/bold]!"
         )
 
-    console.print(Panel(diagnosis, title=f"[{status_color}]🔍 Diagnosis: {status}[/{status_color}]", border_style=status_color))
+    console.print(
+        Panel(
+            diagnosis,
+            title=f"[{status_color}]🔍 Diagnosis: {status}[/{status_color}]",
+            border_style=status_color,
+        )
+    )
     press_enter_to_continue()
 
     # Tip for multiple runs
@@ -433,6 +458,7 @@ def main():
     )
     console.print(Panel(next_steps, title="[bold green]🚀 Next Steps[/bold green]", border_style="green"))
     press_enter_to_continue()
+
 
 if __name__ == "__main__":
     main()

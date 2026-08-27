@@ -10,6 +10,7 @@ Prevents regression of gradient flow issues discovered in milestone testing.
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -17,9 +18,9 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.autograd import enable_autograd
 from trentorch.core.embeddings import Embedding
+from trentorch.core.tensor import Tensor
 
 
 def test_embedding_has_backward_function():
@@ -34,10 +35,11 @@ def test_embedding_has_backward_function():
     output = embed(indices)
 
     # Check _grad_fn is attached
-    assert hasattr(output, '_grad_fn'), "Embedding output should have _grad_fn"
+    assert hasattr(output, "_grad_fn"), "Embedding output should have _grad_fn"
     assert output._grad_fn is not None, "Embedding output._grad_fn should not be None"
-    assert type(output._grad_fn).__name__ == "EmbeddingBackward", \
+    assert type(output._grad_fn).__name__ == "EmbeddingBackward", (
         f"Expected EmbeddingBackward, got {type(output._grad_fn).__name__}"
+    )
 
     print("✅ Embedding properly attaches EmbeddingBackward")
 
@@ -63,8 +65,7 @@ def test_embedding_weight_gradient_flow():
 
     # Check that gradient exists and is non-zero overall
     # (Individual index checks skipped due to implementation details)
-    assert not np.allclose(embed.weight.grad.data, 0), \
-        "Embedding weight gradient should be non-zero"
+    assert not np.allclose(embed.weight.grad.data, 0), "Embedding weight gradient should be non-zero"
 
     print(f"✅ Embedding weight gradient: mean = {np.abs(embed.weight.grad.data).mean():.6f}")
 
@@ -94,7 +95,7 @@ def test_embedding_sparse_gradients():
     # Note: Detailed sparse gradient checking depends on EmbeddingBackward implementation
     # The milestone tests validate end-to-end sparse behavior
 
-    print(f"✅ Embedding sparse gradients: gradient flows correctly")
+    print("✅ Embedding sparse gradients: gradient flows correctly")
 
 
 def test_embedding_batch_gradient_flow():
@@ -171,7 +172,7 @@ def test_embedding_data_bypass_detection():
 
     # Correct way (should have _grad_fn)
     output_correct = embed(indices)
-    assert hasattr(output_correct, '_grad_fn'), "Correct usage should have _grad_fn"
+    assert hasattr(output_correct, "_grad_fn"), "Correct usage should have _grad_fn"
 
     # Document the wrong way (but don't actually do it)
     # output_wrong = Tensor(embed(indices).data)  # This would break gradient flow
@@ -180,9 +181,9 @@ def test_embedding_data_bypass_detection():
 
 
 if __name__ == "__main__":
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("EMBEDDING GRADIENT FLOW TESTS")
-    print("="*70)
+    print("=" * 70)
 
     tests = [
         test_embedding_has_backward_function,
@@ -207,9 +208,9 @@ if __name__ == "__main__":
             print(f"❌ {test.__name__} ERROR: {e}")
             failed += 1
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(f"Results: {passed} passed, {failed} failed")
-    print("="*70)
+    print("=" * 70)
 
     if failed > 0:
         sys.exit(1)

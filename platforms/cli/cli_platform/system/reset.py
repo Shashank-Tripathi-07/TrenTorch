@@ -14,7 +14,6 @@ This is useful for:
 
 import shutil
 from argparse import ArgumentParser, Namespace
-from pathlib import Path
 
 from rich.panel import Panel
 
@@ -35,21 +34,11 @@ class SystemResetCommand(BaseCommand):
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add reset command arguments."""
+        parser.add_argument("--force", "-f", action="store_true", help="Skip confirmation prompt")
         parser.add_argument(
-            "--force", "-f",
-            action="store_true",
-            help="Skip confirmation prompt"
+            "--keep-progress", action="store_true", help="Keep progress tracking data (only reset code)"
         )
-        parser.add_argument(
-            "--keep-progress",
-            action="store_true",
-            help="Keep progress tracking data (only reset code)"
-        )
-        parser.add_argument(
-            "--ci",
-            action="store_true",
-            help="CI mode: no prompts, exit codes only"
-        )
+        parser.add_argument("--ci", action="store_true", help="CI mode: no prompts, exit codes only")
 
     def run(self, args: Namespace) -> int:
         """Execute the system reset."""
@@ -59,25 +48,31 @@ class SystemResetCommand(BaseCommand):
         # Show what will be reset
         if not args.ci:
             console.print()
-            console.print(Panel(
-                "[bold red]⚠️  SYSTEM RESET[/bold red]\n\n"
-                "This will remove:\n"
-                "  • [bold]data/modules/[/bold] - All student notebooks (01_tensor/, 02_activations/, etc.)\n"
-                "  • [bold]tinytorch/core/[/bold] - All exported module code\n"
-                + ("" if args.keep_progress else "  • [bold]Progress tracking[/bold] - Completion history\n") +
-                "\n"
-                "[dim]The src/ files remain untouched - you can rebuild everything with:[/dim]\n"
-                "  [cyan]tito module complete --all[/cyan]",
-                title="🔄 System Reset",
-                border_style="red"
-            ))
+            console.print(
+                Panel(
+                    "[bold red]⚠️  SYSTEM RESET[/bold red]\n\n"
+                    "This will remove:\n"
+                    "  • [bold]data/modules/[/bold] - All student notebooks (01_tensor/, 02_activations/, etc.)\n"
+                    "  • [bold]tinytorch/core/[/bold] - All exported module code\n"
+                    + (
+                        ""
+                        if args.keep_progress
+                        else "  • [bold]Progress tracking[/bold] - Completion history\n"
+                    )
+                    + "\n"
+                    "[dim]The src/ files remain untouched - you can rebuild everything with:[/dim]\n"
+                    "  [cyan]tito module complete --all[/cyan]",
+                    title="🔄 System Reset",
+                    border_style="red",
+                )
+            )
             console.print()
 
         # Confirm unless --force or --ci
         if not args.force and not args.ci:
             try:
                 response = input("Are you sure you want to reset? (type 'yes' to confirm): ").strip().lower()
-                if response != 'yes':
+                if response != "yes":
                     console.print("[yellow]Reset cancelled.[/yellow]")
                     return 0
             except (KeyboardInterrupt, EOFError):
@@ -91,7 +86,7 @@ class SystemResetCommand(BaseCommand):
         modules_dir = project_root / "data" / "modules"
         modules_cleared = 0
         if modules_dir.exists():
-            module_mapping = get_module_mapping()
+            get_module_mapping()
             for item in modules_dir.iterdir():
                 if item.is_dir() and item.name[0].isdigit():
                     try:
@@ -136,12 +131,13 @@ class SystemResetCommand(BaseCommand):
                 return 0
         else:
             if errors:
-                console.print(Panel(
-                    f"[red]Reset completed with errors:[/red]\n\n" +
-                    "\n".join(f"  • {e}" for e in errors),
-                    title="⚠️ Partial Reset",
-                    border_style="yellow"
-                ))
+                console.print(
+                    Panel(
+                        "[red]Reset completed with errors:[/red]\n\n" + "\n".join(f"  • {e}" for e in errors),
+                        title="⚠️ Partial Reset",
+                        border_style="yellow",
+                    )
+                )
                 return 1
             else:
                 summary = []
@@ -152,12 +148,14 @@ class SystemResetCommand(BaseCommand):
                 if progress_reset:
                     summary.append("progress tracking")
 
-                console.print(Panel(
-                    f"[green]✅ Reset complete![/green]\n\n"
-                    f"Cleared: {', '.join(summary) if summary else 'nothing to clear'}\n\n"
-                    "[dim]To rebuild the package:[/dim]\n"
-                    "  [cyan]tito module complete --all[/cyan]",
-                    title="🔄 System Reset Complete",
-                    border_style="green"
-                ))
+                console.print(
+                    Panel(
+                        f"[green]✅ Reset complete![/green]\n\n"
+                        f"Cleared: {', '.join(summary) if summary else 'nothing to clear'}\n\n"
+                        "[dim]To rebuild the package:[/dim]\n"
+                        "  [cyan]tito module complete --all[/cyan]",
+                        title="🔄 System Reset Complete",
+                        border_style="green",
+                    )
+                )
                 return 0

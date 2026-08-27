@@ -13,39 +13,41 @@ Tests that gradients flow correctly through:
 This ensures backpropagation works correctly end-to-end.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
-import pytest
 
 # Add project root to path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear, Dropout
-from trentorch.core.activations import ReLU, Sigmoid, Softmax
-from trentorch.core.losses import MSELoss, BinaryCrossEntropyLoss, CrossEntropyLoss
-from trentorch.core.optimizers import SGD, Adam
-from trentorch.core.spatial import Conv2d, MaxPool2d
+from trentorch.core.activations import ReLU
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.layers import Linear
+from trentorch.core.losses import MSELoss
+from trentorch.core.optimizers import SGD
+from trentorch.core.spatial import Conv2d
+from trentorch.core.tensor import Tensor
 
 # Enable autograd
 enable_autograd()
 
+
 def test_simple_linear_gradient_flow():
     """Test gradients flow through a single linear layer"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 1: Simple Linear Layer Gradient Flow")
-    print("="*70)
+    print("=" * 70)
 
     # Create simple network: Linear(2->1)
     layer = Linear(2, 1)
 
     # Create optimizer - this enables requires_grad on layer parameters
     # (reflects real usage: students always create optimizer before training)
-    optimizer = SGD(layer.parameters(), lr=0.01)
+    SGD(layer.parameters(), lr=0.01)
 
     # Input
     x = Tensor([[1.0, 2.0]], requires_grad=True)
@@ -89,9 +91,9 @@ def test_simple_linear_gradient_flow():
 
 def test_mlp_gradient_flow():
     """Test gradients flow through multi-layer perceptron"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 2: Multi-Layer Perceptron Gradient Flow")
-    print("="*70)
+    print("=" * 70)
 
     # Create MLP: Input(4) -> Linear(4->8) -> ReLU -> Linear(8->2)
     layer1 = Linear(4, 8)
@@ -99,7 +101,7 @@ def test_mlp_gradient_flow():
     layer2 = Linear(8, 2)
 
     # Create optimizer - this enables requires_grad on layer parameters
-    optimizer = SGD(layer1.parameters() + layer2.parameters(), lr=0.01)
+    SGD(layer1.parameters() + layer2.parameters(), lr=0.01)
 
     # Input and target
     x = Tensor(rng.standard_normal((3, 4)), requires_grad=True)
@@ -153,9 +155,9 @@ def test_mlp_gradient_flow():
 
 def test_mlp_training_updates():
     """Test that MLP actually learns (loss decreases)"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 3: MLP Training - Loss Reduction")
-    print("="*70)
+    print("=" * 70)
 
     # Create simple MLP
     layer1 = Linear(2, 4)
@@ -191,7 +193,7 @@ def test_mlp_training_updates():
         optimizer.step()
 
         if (epoch + 1) % 10 == 0:
-            print(f"Epoch {epoch+1:2d}: Loss = {float(loss.data):.6f}")
+            print(f"Epoch {epoch + 1:2d}: Loss = {float(loss.data):.6f}")
 
     # Check loss decreased
     initial_loss = losses[0]
@@ -212,9 +214,9 @@ def test_mlp_training_updates():
 
 def test_cnn_gradient_flow():
     """Test gradients flow through convolutional layers"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 4: CNN Gradient Flow")
-    print("="*70)
+    print("=" * 70)
 
     # Create simple CNN: Conv2d -> ReLU -> Linear
     conv = Conv2d(in_channels=1, out_channels=4, kernel_size=3, stride=1, padding=0)
@@ -242,7 +244,7 @@ def test_cnn_gradient_flow():
 
     # Create optimizer - enables requires_grad on all layer parameters
     all_params = [conv.weight, conv.bias, linear.weight, linear.bias]
-    optimizer = SGD(all_params, lr=0.01)
+    SGD(all_params, lr=0.01)
 
     output = linear.forward(flattened)
 
@@ -282,9 +284,9 @@ def test_cnn_gradient_flow():
 
 def test_cnn_training_updates():
     """Test that CNN actually learns on simple data"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 5: CNN Training - Loss Reduction")
-    print("="*70)
+    print("=" * 70)
 
     # Simple CNN
     conv = Conv2d(1, 2, kernel_size=3, stride=1, padding=1)
@@ -336,7 +338,7 @@ def test_cnn_training_updates():
         optimizer.step()
 
         if (epoch + 1) % 10 == 0:
-            print(f"Epoch {epoch+1:2d}: Loss = {float(loss.data):.6f}")
+            print(f"Epoch {epoch + 1:2d}: Loss = {float(loss.data):.6f}")
 
     # Check loss decreased
     initial_loss = losses[0]
@@ -356,14 +358,14 @@ def test_cnn_training_updates():
 
 def test_gradient_accumulation():
     """Test that gradients accumulate correctly across batches"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TEST 6: Gradient Accumulation")
-    print("="*70)
+    print("=" * 70)
 
     layer = Linear(2, 1)
 
     # Create optimizer - enables requires_grad on layer parameters
-    optimizer = SGD(layer.parameters(), lr=0.01)
+    SGD(layer.parameters(), lr=0.01)
 
     # Two batches
     x1 = Tensor([[1.0, 2.0]], requires_grad=True)
@@ -401,9 +403,9 @@ def test_gradient_accumulation():
 
 def main():
     """Run all gradient flow tests"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("  TRENTORCH GRADIENT FLOW TEST SUITE")
-    print("="*70)
+    print("=" * 70)
 
     tests = [
         ("Simple Linear", test_simple_linear_gradient_flow),
@@ -424,13 +426,14 @@ def main():
             print(f"\n❌ TEST FAILED: {name}")
             print(f"Error: {str(e)}")
             import traceback
+
             traceback.print_exc()
             results.append((name, "FAILED"))
 
     # Summary
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("  TEST SUMMARY")
-    print("="*70)
+    print("=" * 70)
 
     passed = sum(1 for _, status in results if status == "PASSED")
     total = len(results)

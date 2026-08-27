@@ -6,7 +6,9 @@ Tests operator fusion, kernel optimization, and hardware acceleration
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
+
 
 def test_acceleration_integration():
     """Test acceleration system integration."""
@@ -17,6 +19,7 @@ def test_acceleration_integration():
     # - Test speedup measurements
     # - Test correctness after optimization
     pass
+
 
 if __name__ == "__main__":
     test_acceleration_integration()

@@ -16,44 +16,35 @@ Categories:
     -k full_journey  # Complete journey: 20 modules + 6 milestones (~7-8min on CI)
 """
 
-import pytest
-import subprocess
-import sys
 import json
 import shutil
-import tempfile
+import subprocess
+import sys
 from pathlib import Path
-from typing import Optional, Tuple
+
+import pytest
 
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 
-def run_tren(args: list, cwd: Optional[Path] = None, timeout: int = 60) -> Tuple[int, str, str]:
+def run_tren(args: list, cwd: Path | None = None, timeout: int = 60) -> tuple[int, str, str]:
     """Run a tren command and return (exit_code, stdout, stderr)."""
     import os
+
     cmd = [sys.executable, "-m", "platforms.cli.main"] + args
     env = os.environ.copy()
     env["TREN_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
     result = subprocess.run(
-        cmd,
-        cwd=cwd or PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        env=env
+        cmd, cwd=cwd or PROJECT_ROOT, capture_output=True, text=True, timeout=timeout, env=env
     )
     return result.returncode, result.stdout, result.stderr
 
 
-def run_python_script(script_path: Path, timeout: int = 120) -> Tuple[int, str, str]:
+def run_python_script(script_path: Path, timeout: int = 120) -> tuple[int, str, str]:
     """Run a Python script and return (exit_code, stdout, stderr)."""
     result = subprocess.run(
-        [sys.executable, str(script_path)],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        timeout=timeout
+        [sys.executable, str(script_path)], cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=timeout
     )
     return result.returncode, result.stdout, result.stderr
 
@@ -141,18 +132,11 @@ class TestQuickVerification:
     @pytest.mark.quick
     def test_trentorch_package_importable(self):
         """TrenTorch package can be imported."""
-        code, stdout, stderr = subprocess.run(
-            [sys.executable, "-c", "import sys; sys.path.insert(0, 'data'); import trentorch; print('OK')"],
-            cwd=PROJECT_ROOT,
-            capture_output=True,
-            text=True
-        ).returncode, "", ""
-
         result = subprocess.run(
             [sys.executable, "-c", "import sys; sys.path.insert(0, 'data'); import trentorch; print('OK')"],
             cwd=PROJECT_ROOT,
             capture_output=True,
-            text=True
+            text=True,
         )
         assert result.returncode == 0, f"Cannot import trentorch: {result.stderr}"
         assert "OK" in result.stdout
@@ -208,7 +192,7 @@ class TestModuleFlow:
         # This tests that the complete command works (skip export to be faster)
         code, stdout, stderr = run_tren(
             ["module", "complete", "01", "--skip-export"],
-            timeout=120  # Tests may take a while
+            timeout=120,  # Tests may take a while
         )
         # Check that tests ran (may pass or fail depending on state)
         combined = stdout + stderr
@@ -222,11 +206,9 @@ class TestModuleFlow:
         progress_file = tren_dir / "progress.json"
 
         # Set a known state
-        progress_file.write_text(json.dumps({
-            "started_modules": ["01"],
-            "completed_modules": [],
-            "last_worked": "01"
-        }))
+        progress_file.write_text(
+            json.dumps({"started_modules": ["01"], "completed_modules": [], "last_worked": "01"})
+        )
 
         # Run status command
         code, stdout, stderr = run_tren(["module", "status"])
@@ -240,10 +222,7 @@ class TestModuleFlow:
     @pytest.mark.module_flow
     def test_module_test_command_works(self):
         """'tren module test 01' runs module tests."""
-        code, stdout, stderr = run_tren(
-            ["module", "test", "01"],
-            timeout=120
-        )
+        code, stdout, stderr = run_tren(["module", "test", "01"], timeout=120)
         # Should run tests (may pass or fail)
         combined = stdout + stderr
         # Test command should produce some output
@@ -290,9 +269,7 @@ class TestMilestoneFlow:
         tren_dir = PROJECT_ROOT / "user_data"
         tren_dir.mkdir(exist_ok=True)
         progress_file = tren_dir / "progress.json"
-        progress_file.write_text(json.dumps({
-            "completed_modules": []
-        }))
+        progress_file.write_text(json.dumps({"completed_modules": []}))
 
         # Try to run milestone 03 (requires many modules)
         code, stdout, stderr = run_tren(["milestone", "run", "03", "--skip-checks"], timeout=5)
@@ -320,10 +297,7 @@ class TestFullJourney:
         assert code == 0
 
         # Step 2: Test the module
-        code, stdout, stderr = run_tren(
-            ["module", "test", "01"],
-            timeout=180
-        )
+        code, stdout, stderr = run_tren(["module", "test", "01"], timeout=180)
         # Tests should run (may pass or fail based on implementation)
         combined = stdout + stderr
         assert "test" in combined.lower() or "Test" in combined
@@ -333,13 +307,12 @@ class TestFullJourney:
             [sys.executable, "-c", "from trentorch import Tensor; print('OK')"],
             cwd=PROJECT_ROOT,
             capture_output=True,
-            text=True
+            text=True,
         )
         # This tests that the package structure is correct
         # If Tensor is not exported, that's a test failure
         assert result.returncode == 0, (
-            f"Tensor not exported from trentorch. "
-            f"Run 'tren module complete 01' first. Error: {result.stderr}"
+            f"Tensor not exported from trentorch. Run 'tren module complete 01' first. Error: {result.stderr}"
         )
 
     @pytest.mark.full_journey
@@ -351,14 +324,18 @@ class TestFullJourney:
         """
         # Check if prerequisite modules are available
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [
+                sys.executable,
+                "-c",
+                """
 from trentorch import Tensor, ReLU, Linear
 print('OK')
-"""],
+""",
+            ],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
         assert result.returncode == 0, (
             f"Required modules (Tensor, ReLU, Linear) not exported from trentorch. "

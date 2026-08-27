@@ -45,28 +45,24 @@ BADGE_RE = re.compile(
 CELL_RE = re.compile(
     r'<a href="https://github\.com/([^"]+)">'
     r'<img[^>]*alt="([^"]*)"\s*/?>'
-    r'</a>\s*<br\s*/?>\s*'
-    r'<b>([^<]+)</b>\s*<br\s*/?>\s*'
-    r'<sub>([^<]*)</sub>',
+    r"</a>\s*<br\s*/?>\s*"
+    r"<b>([^<]+)</b>\s*<br\s*/?>\s*"
+    r"<sub>([^<]*)</sub>",
     re.DOTALL,
 )
 
 
 def gh_json(args):
-    result = subprocess.run(
-        ["gh"] + args, capture_output=True, text=True, check=True
-    )
+    result = subprocess.run(["gh"] + args, capture_output=True, text=True, check=True)
     return json.loads(result.stdout)
 
 
 def fetch_counts():
     prs = gh_json(
-        ["pr", "list", "--repo", REPO, "--state", "all", "--limit", "1000",
-         "--json", "author,state"]
+        ["pr", "list", "--repo", REPO, "--state", "all", "--limit", "1000", "--json", "author,state"]
     )
     issues = gh_json(
-        ["issue", "list", "--repo", REPO, "--state", "all", "--limit", "1000",
-         "--json", "author"]
+        ["issue", "list", "--repo", REPO, "--state", "all", "--limit", "1000", "--json", "author"]
     )
 
     counts = {}
@@ -107,7 +103,7 @@ def parse_existing(path: Path):
 
 
 def build_grid(counts: dict, existing: dict) -> str:
-    logins = sorted(counts, key=lambda l: l.lower())
+    logins = sorted(counts, key=lambda login: login.lower())
     cells = []
     width = round(100 / COLUMNS, 2)
     for login in logins:
@@ -119,24 +115,21 @@ def build_grid(counts: dict, existing: dict) -> str:
             f'      <td align="center" valign="top" width="{width}%">\n'
             f'        <a href="https://github.com/{login}">'
             f'<img src="{avatar_src}" width="80px;" alt="{name}"/></a>\n'
-            f'        <br />\n'
-            f'        <b>{name}</b>\n'
-            f'        <br />\n'
-            f'        <sub>{intro}</sub>\n'
-            f'        <br />\n'
-            f'        <sub>{stats}</sub>\n'
-            f'      </td>'
+            f"        <br />\n"
+            f"        <b>{name}</b>\n"
+            f"        <br />\n"
+            f"        <sub>{intro}</sub>\n"
+            f"        <br />\n"
+            f"        <sub>{stats}</sub>\n"
+            f"      </td>"
         )
 
     rows = []
     for i in range(0, len(cells), COLUMNS):
-        row_cells = "\n".join(cells[i:i + COLUMNS])
+        row_cells = "\n".join(cells[i : i + COLUMNS])
         rows.append(f"    <tr>\n{row_cells}\n    </tr>")
 
-    return (
-        '<table width="100%" style="width:100%">\n'
-        "  <tbody>\n" + "\n".join(rows) + "\n  </tbody>\n</table>"
-    )
+    return '<table width="100%" style="width:100%">\n  <tbody>\n' + "\n".join(rows) + "\n  </tbody>\n</table>"
 
 
 def update_readme_badge(count: int) -> bool:

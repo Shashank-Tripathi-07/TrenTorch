@@ -44,9 +44,7 @@ notebook>=7.0.0
 ipykernel>=7.2.0
 nbdev>=3.0.15,<3.0.16
 # Code quality tools
-# black>=24.0.0
-# mypy>=1.11.0
-# ruff>=0.6.0
+ruff>=0.6.0
 
 # Type hints for older Python versions
 # typing-extensions>=4.12.0

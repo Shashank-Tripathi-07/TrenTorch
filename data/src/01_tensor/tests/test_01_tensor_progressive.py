@@ -7,6 +7,7 @@ This ensures students can trace back exactly where issues originate.
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -26,7 +27,7 @@ class TestModule01Prerequisites:
         # Project structure - check directories that exist in student install
         project_root = Path(__file__).parent.parent.parent.parent.parent
         # data/src is the student working directory, tests/ and platforms/cli are CLI infrastructure
-        required_dirs = ['data/src', 'tests', 'platforms/cli']
+        required_dirs = ["data/src", "tests", "platforms/cli"]
         for dir_name in required_dirs:
             dir_path = project_root / dir_name
             assert dir_path.exists(), f"Setup failed: {dir_name} directory missing"
@@ -34,7 +35,7 @@ class TestModule01Prerequisites:
     def test_development_environment_ready(self):
         """Verify development environment is properly configured."""
         # Required packages
-        required_packages = ['numpy', 'pathlib']
+        required_packages = ["numpy", "pathlib"]
         for package in required_packages:
             try:
                 __import__(package)
@@ -71,7 +72,7 @@ class TestModule01TensorCore:
             t2 = Tensor([4, 5, 6])
 
             # Test operations if implemented
-            if hasattr(t1, '__add__'):
+            if hasattr(t1, "__add__"):
                 result = t1 + t2
                 expected = np.array([5, 7, 9])
                 assert np.array_equal(result.data, expected), "Tensor addition failed"
@@ -87,6 +88,7 @@ class TestProgressiveStack:
         """Test that the environment supports tensor functionality."""
         # 1. Environment should support numpy
         import numpy as np
+
         assert np.__version__ is not None, "Numpy not properly set up"
 
         # 2. Project structure should support tensor module (in src/ for students)
@@ -119,12 +121,14 @@ class TestDependencyValidation:
         """Test Module 01 (Tensor) exports are available."""
         try:
             from trentorch.core.tensor import Tensor
+
             t = Tensor([1, 2, 3])
             assert t.shape == (3,), "Module 01 Tensor export broken"
         except ImportError:
             # If not implemented, verify basic environment works
             import platform
-            assert platform.system() in ['Darwin', 'Linux', 'Windows'], "Basic environment broken"
+
+            assert platform.system() in ["Darwin", "Linux", "Windows"], "Basic environment broken"
 
     def test_module_01_tensor_uses_numpy(self):
         """Test Module 01 Tensor correctly uses NumPy foundation."""
@@ -136,7 +140,7 @@ class TestDependencyValidation:
             assert isinstance(t.data, np.ndarray), "Tensor should use numpy internally"
 
             # Should support optional features
-            if hasattr(t, 'device') or hasattr(t, 'dtype'):
+            if hasattr(t, "device") or hasattr(t, "dtype"):
                 # Advanced tensor features
                 assert True, "Module 01 advanced features present"
 
@@ -160,16 +164,17 @@ class TestRegressionPrevention:
 
         # Package imports
         import numpy as np
+
         assert np is not None, "Package management broken"
 
     def test_progressive_compatibility(self):
         """Test that Module 01 maintains backwards compatibility."""
         # Basic imports should still work
-        import sys
         import os
+        import sys
         from pathlib import Path
 
         # These capabilities should never break
         assert callable(Path), "Path functionality broken"
-        assert hasattr(sys, 'version_info'), "System info broken"
-        assert hasattr(os, 'environ'), "Environment access broken"
+        assert hasattr(sys, "version_info"), "System info broken"
+        assert hasattr(os, "environ"), "Environment access broken"

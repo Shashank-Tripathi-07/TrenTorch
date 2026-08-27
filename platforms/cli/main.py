@@ -14,7 +14,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Type, Optional, List
 
 # Fix encoding issues on Windows (emoji/unicode output).
 # See: https://github.com/harvard-edge/cs249r_book/discussions/1145
@@ -35,23 +34,25 @@ if sys.platform == "win32" or os.name == "nt":
             _stream.reconfigure(encoding="utf-8", errors="replace")
 
 # Set TINYTORCH_QUIET before any tinytorch imports to suppress autograd messages
-os.environ['TINYTORCH_QUIET'] = '1'
+os.environ["TINYTORCH_QUIET"] = "1"
 
+from platforms.cli.cli_platform.dev import DevCommand
+from platforms.cli.cli_platform.package import PackageCommand
+from platforms.cli.cli_platform.setup import SetupCommand
+from platforms.cli.cli_platform.system import SystemCommand
+from platforms.cli.processes.benchmark import BenchmarkCommand
+from platforms.cli.processes.convert import ConvertCommand
+from platforms.cli.processes.milestone import MilestoneCommand
+from platforms.cli.processes.module_workflow import ModuleWorkflowCommand
+from platforms.cli.processes.olympics import OlympicsCommand
+
+from .commands.base import BaseCommand
 from .core.config import CLIConfig, migrate_progress_dir
-from .core.virtual_env_manager import get_venv_path
-from .core.console import get_console, print_banner, print_error, print_ascii_logo, Panel
+from .core.console import Panel, get_console, print_ascii_logo, print_banner, print_error
 from .core.exceptions import TinyTorchCLIError
 from .core.theme import Theme
-from .commands.base import BaseCommand
-from platforms.cli.cli_platform.system import SystemCommand
-from platforms.cli.processes.module_workflow import ModuleWorkflowCommand
-from platforms.cli.cli_platform.package import PackageCommand
-from platforms.cli.processes.milestone import MilestoneCommand
-from platforms.cli.cli_platform.setup import SetupCommand
-from platforms.cli.processes.benchmark import BenchmarkCommand
-from platforms.cli.cli_platform.dev import DevCommand
-from platforms.cli.processes.olympics import OlympicsCommand
-from platforms.cli.processes.convert import ConvertCommand
+from .core.virtual_env_manager import get_venv_path
+
 
 # Get version from pyproject.toml (single source of truth)
 def _get_version() -> str:
@@ -70,19 +71,18 @@ def _get_version() -> str:
         pass
     return "unknown"
 
+
 __version__ = _get_version()
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('tren-cli.log'),
-        logging.StreamHandler(sys.stderr)
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("tren-cli.log"), logging.StreamHandler(sys.stderr)],
 )
 
 logger = logging.getLogger(__name__)
+
 
 class TrenTorchCLI:
     """Main CLI application class."""
@@ -92,43 +92,55 @@ class TrenTorchCLI:
         self.config = CLIConfig.from_project_root()
         migrate_progress_dir(self.config.project_root)
         self.console = get_console()
-        self._user_data_dir = self.config.project_root / 'user_data'
+        self._user_data_dir = self.config.project_root / "user_data"
         # SINGLE SOURCE OF TRUTH: All valid commands registered here
-        self.commands: Dict[str, Type[BaseCommand]] = {
+        self.commands: dict[str, type[BaseCommand]] = {
             # Essential
-            'setup': SetupCommand,
+            "setup": SetupCommand,
             # Workflow (student-facing)
-            'system': SystemCommand,
-            'module': ModuleWorkflowCommand,
+            "system": SystemCommand,
+            "module": ModuleWorkflowCommand,
             # Developer tools
-            'dev': DevCommand,
-            'package': PackageCommand,
+            "dev": DevCommand,
+            "package": PackageCommand,
             # Progress tracking
-            'milestone': MilestoneCommand,
-            'benchmark': BenchmarkCommand,
-            'olympics': OlympicsCommand,
-            'convert': ConvertCommand,
+            "milestone": MilestoneCommand,
+            "benchmark": BenchmarkCommand,
+            "olympics": OlympicsCommand,
+            "convert": ConvertCommand,
         }
 
         # Command categorization for help display
-        self.student_commands = ['module', 'milestone', 'benchmark', 'olympics']
-        self.developer_commands = ['dev', 'system', 'package']
+        self.student_commands = ["module", "milestone", "benchmark", "olympics"]
+        self.developer_commands = ["dev", "system", "package"]
 
         # Welcome screen sections (used for both tito and tito --help)
         self.welcome_sections = {
-            'quick_start': [
-                (f'[{Theme.CAT_QUICKSTART}]tren setup[/{Theme.CAT_QUICKSTART}]', 'First-time setup (includes verification)'),
-                (f'[{Theme.CAT_QUICKSTART}]tren module start 01[/{Theme.CAT_QUICKSTART}]', 'Start Module 01 (tensors)'),
-                (f'[{Theme.CAT_QUICKSTART}]tren module complete 01[/{Theme.CAT_QUICKSTART}]', 'Test, export, and track progress'),
+            "quick_start": [
+                (
+                    f"[{Theme.CAT_QUICKSTART}]tren setup[/{Theme.CAT_QUICKSTART}]",
+                    "First-time setup (includes verification)",
+                ),
+                (
+                    f"[{Theme.CAT_QUICKSTART}]tren module start 01[/{Theme.CAT_QUICKSTART}]",
+                    "Start Module 01 (tensors)",
+                ),
+                (
+                    f"[{Theme.CAT_QUICKSTART}]tren module complete 01[/{Theme.CAT_QUICKSTART}]",
+                    "Test, export, and track progress",
+                ),
             ],
-            'track_progress': [
-                (f'[{Theme.CAT_PROGRESS}]tren module status[/{Theme.CAT_PROGRESS}]', 'View module progress'),
-                (f'[{Theme.CAT_PROGRESS}]tren milestone status[/{Theme.CAT_PROGRESS}]', 'View unlocked capabilities'),
+            "track_progress": [
+                (f"[{Theme.CAT_PROGRESS}]tren module status[/{Theme.CAT_PROGRESS}]", "View module progress"),
+                (
+                    f"[{Theme.CAT_PROGRESS}]tren milestone status[/{Theme.CAT_PROGRESS}]",
+                    "View unlocked capabilities",
+                ),
             ],
-            'help_docs': [
-                (f'[{Theme.CAT_HELP}]tren system health[/{Theme.CAT_HELP}]', 'Check environment health'),
-                (f'[{Theme.CAT_HELP}]tren --help[/{Theme.CAT_HELP}]', 'See all commands'),
-            ]
+            "help_docs": [
+                (f"[{Theme.CAT_HELP}]tren system health[/{Theme.CAT_HELP}]", "Check environment health"),
+                (f"[{Theme.CAT_HELP}]tren --help[/{Theme.CAT_HELP}]", "See all commands"),
+            ],
         }
 
     def _generate_welcome_text(self) -> str:
@@ -137,17 +149,17 @@ class TrenTorchCLI:
 
         # Quick Start
         lines.append(f"[{Theme.SECTION}]Quick Start:[/{Theme.SECTION}]")
-        for cmd, desc in self.welcome_sections['quick_start']:
+        for cmd, desc in self.welcome_sections["quick_start"]:
             lines.append(f"  {cmd:<38} {desc}")
 
         # Track Progress
         lines.append(f"\n[{Theme.SECTION}]Track Progress:[/{Theme.SECTION}]")
-        for cmd, desc in self.welcome_sections['track_progress']:
+        for cmd, desc in self.welcome_sections["track_progress"]:
             lines.append(f"  {cmd:<38} {desc}")
 
         # Help & Docs
         lines.append(f"\n[{Theme.SECTION}]Help & Docs:[/{Theme.SECTION}]")
-        for cmd, desc in self.welcome_sections['help_docs']:
+        for cmd, desc in self.welcome_sections["help_docs"]:
             lines.append(f"  {cmd:<38} {desc}")
 
         return "\n".join(lines)
@@ -182,12 +194,14 @@ The best way to learn:
    Found something? → [{Theme.INFO}]github.com/harvard-edge/cs249r_book/discussions[/{Theme.INFO}]"""
 
         self.console.print()
-        self.console.print(Panel(
-            welcome_text,
-            title="[bold]Welcome to TrenTorch (Pre-release)[/bold]",
-            border_style=Theme.BORDER_WELCOME,
-            box=box.ROUNDED
-        ))
+        self.console.print(
+            Panel(
+                welcome_text,
+                title="[bold]Welcome to TrenTorch (Pre-release)[/bold]",
+                border_style=Theme.BORDER_WELCOME,
+                box=box.ROUNDED,
+            )
+        )
         self.console.print()
 
         # Mark as shown so it only appears once
@@ -203,7 +217,7 @@ The best way to learn:
             if cmd_name in self.commands:
                 cmd = self.commands[cmd_name](self.config)
                 # Simplify description for epilog (first sentence or shorter version)
-                desc = cmd.description.split('.')[0].split('-')[0].strip()
+                desc = cmd.description.split(".")[0].split("-")[0].strip()
                 lines.append(f"  {cmd_name:<12} {desc}")
         lines.append("")
 
@@ -212,15 +226,15 @@ The best way to learn:
         for cmd_name in self.developer_commands:
             if cmd_name in self.commands:
                 cmd = self.commands[cmd_name](self.config)
-                desc = cmd.description.split('.')[0].split('-')[0].strip()
+                desc = cmd.description.split(".")[0].split("-")[0].strip()
                 lines.append(f"  {cmd_name:<12} {desc}")
         lines.append("")
 
         # Quick Start section (strip Rich formatting for plain text)
         lines.append("Quick Start:")
-        for cmd, desc in self.welcome_sections['quick_start']:
+        for cmd, desc in self.welcome_sections["quick_start"]:
             # Remove Rich color tags for plain epilog
-            plain_cmd = cmd.replace('[green]', '').replace('[/green]', '')
+            plain_cmd = cmd.replace("[green]", "").replace("[/green]", "")
             lines.append(f"  {plain_cmd:<28} {desc}")
 
         return "\n".join(lines)
@@ -231,32 +245,16 @@ The best way to learn:
             prog="tren",
             description="Tren🔥Torch CLI - Build ML systems from scratch",
             formatter_class=argparse.RawDescriptionHelpFormatter,
-            epilog=self._generate_epilog()
+            epilog=self._generate_epilog(),
         )
 
         # Global options
-        parser.add_argument(
-            '--version',
-            action='version',
-            version=f'Tren🔥Torch v{__version__}'
-        )
-        parser.add_argument(
-            '--verbose', '-v',
-            action='store_true',
-            help='Enable verbose output'
-        )
-        parser.add_argument(
-            '--no-color',
-            action='store_true',
-            help='Disable colored output'
-        )
+        parser.add_argument("--version", action="version", version=f"Tren🔥Torch v{__version__}")
+        parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+        parser.add_argument("--no-color", action="store_true", help="Disable colored output")
 
         # Subcommands
-        subparsers = parser.add_subparsers(
-            dest='command',
-            help='Available commands',
-            metavar='COMMAND'
-        )
+        subparsers = parser.add_subparsers(dest="command", help="Available commands", metavar="COMMAND")
 
         # Add command parsers
         for command_name, command_class in self.commands.items():
@@ -265,7 +263,7 @@ The best way to learn:
             cmd_parser = subparsers.add_parser(
                 command_name,
                 help=temp_command.description,
-                formatter_class=argparse.RawDescriptionHelpFormatter
+                formatter_class=argparse.RawDescriptionHelpFormatter,
             )
             temp_command.add_arguments(cmd_parser)
 
@@ -278,7 +276,7 @@ The best way to learn:
         if issues:
             print_error(
                 "Environment validation failed:\n" + "\n".join(f"  • {issue}" for issue in issues),
-                "Environment Issues"
+                "Environment Issues",
             )
             self.console.print("\n[dim]Run 'tren system health' for detailed diagnosis[/dim]")
             # Return True to allow command execution despite validation issues
@@ -305,9 +303,13 @@ The best way to learn:
             table.add_row(cmd_name, cmd.description)
 
         self.console.print()
-        self.console.print(f"[{Theme.SECTION}]Tiny🔥Torch CLI[/{Theme.SECTION}] - Build ML systems from scratch")
+        self.console.print(
+            f"[{Theme.SECTION}]Tiny🔥Torch CLI[/{Theme.SECTION}] - Build ML systems from scratch"
+        )
         self.console.print()
-        self.console.print(f"[{Theme.EMPHASIS}]Usage:[/{Theme.EMPHASIS}] [{Theme.INFO}]tito[/{Theme.INFO}] [{Theme.OPTION}]COMMAND[/{Theme.OPTION}] [{Theme.DIM}][OPTIONS][/{Theme.DIM}]")
+        self.console.print(
+            f"[{Theme.EMPHASIS}]Usage:[/{Theme.EMPHASIS}] [{Theme.INFO}]tito[/{Theme.INFO}] [{Theme.OPTION}]COMMAND[/{Theme.OPTION}] [{Theme.DIM}][OPTIONS][/{Theme.DIM}]"
+        )
         self.console.print()
         self.console.print(f"[{Theme.SECTION}]Available Commands:[/{Theme.SECTION}]")
         self.console.print(table)
@@ -323,7 +325,7 @@ The best way to learn:
 
         return 0
 
-    def _check_invalid_command(self, args: Optional[List[str]]) -> Optional[int]:
+    def _check_invalid_command(self, args: list[str] | None) -> int | None:
         """Check for invalid commands and provide a helpful error message.
 
         Returns exit code if handled, None to continue normal parsing.
@@ -334,7 +336,7 @@ The best way to learn:
         first_arg = args[0]
 
         # Skip flags (--help, --version, etc.)
-        if first_arg.startswith('-'):
+        if first_arg.startswith("-"):
             return None
 
         # Check if it's an invalid command
@@ -342,22 +344,24 @@ The best way to learn:
             from rich.panel import Panel
 
             self.console.print()
-            self.console.print(Panel(
-                f"[yellow]'{first_arg}' is not a valid command.[/yellow]\n\n"
-                f"[dim]Run 'tren --help' to see all available commands.[/dim]",
-                title="[bold]Command Not Found[/bold]",
-                border_style="yellow"
-            ))
+            self.console.print(
+                Panel(
+                    f"[yellow]'{first_arg}' is not a valid command.[/yellow]\n\n"
+                    f"[dim]Run 'tren --help' to see all available commands.[/dim]",
+                    title="[bold]Command Not Found[/bold]",
+                    border_style="yellow",
+                )
+            )
             self.console.print()
             return 1
 
         return None
 
-    def run(self, args: Optional[List[str]] = None) -> int:
+    def run(self, args: list[str] | None = None) -> int:
         """Run the CLI application."""
         try:
             # Check for help flag before argparse to use Rich formatting
-            if args and ('-h' in args or '--help' in args) and len(args) == 1:
+            if args and ("-h" in args or "--help" in args) and len(args) == 1:
                 return self._show_help()
 
             # Check for invalid commands before argparse (cleaner error message)
@@ -369,15 +373,15 @@ The best way to learn:
             parsed_args = parser.parse_args(args)
 
             # Update config with global options
-            if hasattr(parsed_args, 'verbose') and parsed_args.verbose:
+            if hasattr(parsed_args, "verbose") and parsed_args.verbose:
                 self.config.verbose = True
                 logging.getLogger().setLevel(logging.DEBUG)
 
-            if hasattr(parsed_args, 'no_color') and parsed_args.no_color:
+            if hasattr(parsed_args, "no_color") and parsed_args.no_color:
                 self.config.no_color = True
 
             # Guard against running outside a virtual environment unless explicitly allowed
-            if parsed_args.command not in ['setup', None]:
+            if parsed_args.command not in ["setup", None]:
                 # Check both sys.prefix (traditional activation) and VIRTUAL_ENV (direnv/PATH-based)
                 in_venv = sys.prefix != sys.base_prefix or os.environ.get("VIRTUAL_ENV") is not None
                 allow_system = os.environ.get("TITO_ALLOW_SYSTEM") == "1"
@@ -386,16 +390,15 @@ The best way to learn:
                         "TinyTorch must run inside a virtual environment.\n"
                         "Activate your project venv (for example, source .venv/bin/activate) "
                         "or set TITO_ALLOW_SYSTEM=1 to proceed at your own risk.",
-                        "Virtual Environment Required"
+                        "Virtual Environment Required",
                     )
                     return 1
 
             # Skip banner for machine-readable output (--json flag, module path)
-            skip_banner = (
-                (hasattr(parsed_args, 'json') and parsed_args.json) or
-                (parsed_args.command == 'module' and
-                 hasattr(parsed_args, 'module_command') and
-                 parsed_args.module_command == 'path')
+            skip_banner = (hasattr(parsed_args, "json") and parsed_args.json) or (
+                parsed_args.command == "module"
+                and hasattr(parsed_args, "module_command")
+                and parsed_args.module_command == "path"
             )
             if parsed_args.command and not self.config.no_color and not skip_banner:
                 print_banner()
@@ -403,11 +406,10 @@ The best way to learn:
                 self._show_first_run_welcome()
 
             # Validate environment for most commands (skip for health)
-            skip_validation = (
-                parsed_args.command in [None, 'version', 'help'] or
-                (parsed_args.command == 'system' and
-                 hasattr(parsed_args, 'system_command') and
-                 parsed_args.system_command == 'health')
+            skip_validation = parsed_args.command in [None, "version", "help"] or (
+                parsed_args.command == "system"
+                and hasattr(parsed_args, "system_command")
+                and parsed_args.system_command == "health"
             )
             if not skip_validation:
                 if not self.validate_environment():
@@ -422,11 +424,13 @@ The best way to learn:
                 self._show_first_run_welcome()
 
                 # Generate dynamic welcome message
-                self.console.print(Panel(
-                    self._generate_welcome_text(),
-                    title="Welcome to Tren🔥Torch!",
-                    border_style=Theme.BORDER_WELCOME
-                ))
+                self.console.print(
+                    Panel(
+                        self._generate_welcome_text(),
+                        title="Welcome to Tren🔥Torch!",
+                        border_style=Theme.BORDER_WELCOME,
+                    )
+                )
                 return 0
 
             # Execute command
@@ -450,10 +454,12 @@ The best way to learn:
             print_error(f"Unexpected error: {e}")
             return 1
 
+
 def main() -> int:
     """Main entry point for the CLI."""
     cli = TrenTorchCLI()
     return cli.run(sys.argv[1:])
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -2,21 +2,21 @@
 Base command class for TinyTorch CLI.
 """
 
+import logging
+import os
+import sys
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser, Namespace
-from typing import Optional
-from pathlib import Path
-import logging
-import sys
-import os
 from contextlib import contextmanager
+from pathlib import Path
 
 from ..core.config import CLIConfig
-from ..core.virtual_env_manager import get_venv_path
 from ..core.console import get_console
 from ..core.exceptions import TinyTorchCLIError
+from ..core.virtual_env_manager import get_venv_path
 
 logger = logging.getLogger(__name__)
+
 
 @contextmanager
 def suppress_output():
@@ -24,14 +24,15 @@ def suppress_output():
     old_stdout = sys.stdout
     old_stderr = sys.stderr
     try:
-        sys.stdout = open(os.devnull, 'w')
-        sys.stderr = open(os.devnull, 'w')
+        sys.stdout = open(os.devnull, "w")
+        sys.stderr = open(os.devnull, "w")
         yield
     finally:
         sys.stdout.close()
         sys.stderr.close()
         sys.stdout = old_stdout
         sys.stderr = old_stderr
+
 
 class BaseCommand(ABC):
     """Base class for all CLI commands."""

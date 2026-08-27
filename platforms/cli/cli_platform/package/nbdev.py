@@ -4,9 +4,11 @@ nbdev command for TinyTorch CLI: runs nbdev commands for notebook development.
 
 import subprocess
 from argparse import ArgumentParser, Namespace
+
 from rich.panel import Panel
 
 from platforms.cli.commands.base import BaseCommand
+
 
 class NbdevCommand(BaseCommand):
     @property
@@ -28,12 +30,14 @@ class NbdevCommand(BaseCommand):
     def run(self, args: Namespace) -> int:
         console = self.console
 
-        console.print(Panel("📓 nbdev Notebook Development",
-                           title="Notebook Tools", border_style="bright_cyan"))
+        console.print(
+            Panel("📓 nbdev Notebook Development", title="Notebook Tools", border_style="bright_cyan")
+        )
 
         if args.export:
             # Use the export command logic
             from ..dev.export import DevExportCommand
+
             export_cmd = DevExportCommand(self.config)
             export_args = ArgumentParser()
             export_cmd.add_arguments(export_args)
@@ -61,8 +65,13 @@ class NbdevCommand(BaseCommand):
             return self._run_nbdev_tool("nbdev-clean", "Clean", console)
 
         else:
-            console.print(Panel("[yellow]⚠️  No nbdev action specified. Use --export, --build-docs, --test, or --clean[/yellow]",
-                              title="No Action", border_style="yellow"))
+            console.print(
+                Panel(
+                    "[yellow]⚠️  No nbdev action specified. Use --export, --build-docs, --test, or --clean[/yellow]",
+                    title="No Action",
+                    border_style="yellow",
+                )
+            )
             return 1
 
     def _run_nbdev_tool(self, command: str, label: str, console) -> int:
@@ -77,18 +86,27 @@ class NbdevCommand(BaseCommand):
                 [command], capture_output=True, text=True, encoding="utf-8", errors="replace"
             )
         except FileNotFoundError:
-            console.print(Panel(
-                f"[red]❌ '{command}' not found[/red]\n\n"
-                "This requires nbdev to be installed:\n"
-                "  [cyan]pip install nbdev[/cyan]",
-                title=f"{label} Error", border_style="red"
-            ))
+            console.print(
+                Panel(
+                    f"[red]❌ '{command}' not found[/red]\n\n"
+                    "This requires nbdev to be installed:\n"
+                    "  [cyan]pip install nbdev[/cyan]",
+                    title=f"{label} Error",
+                    border_style="red",
+                )
+            )
             return 1
 
         if result.returncode == 0:
-            console.print(Panel(f"[green]✅ {label} succeeded![/green]",
-                              title=f"{label} Success", border_style="green"))
+            console.print(
+                Panel(f"[green]✅ {label} succeeded![/green]", title=f"{label} Success", border_style="green")
+            )
         else:
-            console.print(Panel(f"[red]❌ {label} failed: {result.stderr}[/red]",
-                              title=f"{label} Error", border_style="red"))
+            console.print(
+                Panel(
+                    f"[red]❌ {label} failed: {result.stderr}[/red]",
+                    title=f"{label} Error",
+                    border_style="red",
+                )
+            )
         return result.returncode

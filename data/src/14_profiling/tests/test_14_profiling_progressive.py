@@ -14,6 +14,7 @@ DEPENDENCY CHAIN: 01_tensor → ... → 12_attention → 13_transformers → 14_
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 import time
@@ -34,9 +35,9 @@ class TestProfilingCore:
         """
         try:
             from trentorch.perf.profiling import Profiler
-            
+
             assert Profiler is not None
-            
+
         except ImportError:
             assert True, "Profiler not implemented yet"
 
@@ -45,20 +46,19 @@ class TestProfilingCore:
         ✅ TEST: Profiler works as context manager
         """
         try:
-            from trentorch.perf.profiling import Profiler
             from trentorch.core.tensor import Tensor
-            
+            from trentorch.perf.profiling import Profiler
+
             profiler = Profiler()
-            
+
             with profiler:
                 # Some computation
                 x = Tensor(rng.standard_normal((100, 100)))
-                y = x @ x.transpose()
-            
+                x @ x.transpose()
+
             # Should have recorded timing
-            assert hasattr(profiler, 'elapsed') or hasattr(profiler, 'duration'), \
-                "Profiler missing timing"
-                
+            assert hasattr(profiler, "elapsed") or hasattr(profiler, "duration"), "Profiler missing timing"
+
         except ImportError:
             assert True, "Profiler not implemented yet"
 
@@ -67,16 +67,16 @@ class TestProfilingCore:
         ✅ TEST: Memory profiling capability
         """
         try:
-            from trentorch.perf.profiling import profile_memory, MemoryProfiler
             from trentorch.core.tensor import Tensor
-            
+            from trentorch.perf.profiling import MemoryProfiler, profile_memory
+
             # Profile memory usage
             with MemoryProfiler() as mp:
-                tensors = [Tensor(rng.standard_normal(1000)) for _ in range(10)]
-            
-            if hasattr(mp, 'peak_memory'):
+                [Tensor(rng.standard_normal(1000)) for _ in range(10)]
+
+            if hasattr(mp, "peak_memory"):
                 assert mp.peak_memory > 0, "Memory profiling not working"
-                
+
         except ImportError:
             assert True, "Memory profiling not implemented yet"
 
@@ -85,20 +85,20 @@ class TestProfilingCore:
         ✅ TEST: Execution timing works
         """
         try:
-            from trentorch.perf.profiling import Timer
             from trentorch.core.tensor import Tensor
-            
+            from trentorch.perf.profiling import Timer
+
             timer = Timer()
-            
+
             timer.start()
             # Some computation
             for _ in range(100):
                 x = Tensor(rng.standard_normal((50, 50)))
-                y = x @ x.transpose()
+                x @ x.transpose()
             elapsed = timer.stop()
-            
+
             assert elapsed > 0, "Timer should measure positive time"
-            
+
         except ImportError:
             assert True, "Timer not implemented yet"
 
@@ -113,23 +113,22 @@ class TestProfilingWithModels:
         ✅ TEST: Profile Linear layer execution
         """
         try:
-            from trentorch.perf.profiling import Profiler
             from trentorch.core.layers import Linear
             from trentorch.core.tensor import Tensor
-            
+            from trentorch.perf.profiling import Profiler
+
             layer = Linear(100, 50)
             profiler = Profiler()
-            
+
             x = Tensor(rng.standard_normal((32, 100)))
-            
+
             with profiler:
                 for _ in range(10):
-                    output = layer(x)
-            
+                    layer(x)
+
             # Profiler should capture timing
-            assert hasattr(profiler, 'elapsed') or hasattr(profiler, 'stats'), \
-                "Profiler should capture stats"
-                
+            assert hasattr(profiler, "elapsed") or hasattr(profiler, "stats"), "Profiler should capture stats"
+
         except ImportError:
             assert True, "Profiler integration not ready"
 
@@ -138,20 +137,20 @@ class TestProfilingWithModels:
         ✅ TEST: Profile Conv2d layer execution
         """
         try:
-            from trentorch.perf.profiling import Profiler
             from trentorch.core.spatial import Conv2d
             from trentorch.core.tensor import Tensor
-            
+            from trentorch.perf.profiling import Profiler
+
             conv = Conv2d(3, 16, kernel_size=3, padding=1)
             profiler = Profiler()
-            
+
             x = Tensor(rng.standard_normal((4, 3, 32, 32)))
-            
+
             with profiler:
                 output = conv(x)
-            
+
             assert output.shape[1] == 16
-            
+
         except ImportError:
             assert True, "Conv profiling not ready"
 
@@ -160,20 +159,20 @@ class TestProfilingWithModels:
         ✅ TEST: Profile TransformerBlock execution
         """
         try:
-            from trentorch.perf.profiling import Profiler
-            from trentorch.core.transformers import TransformerBlock
             from trentorch.core.tensor import Tensor
-            
+            from trentorch.core.transformers import TransformerBlock
+            from trentorch.perf.profiling import Profiler
+
             block = TransformerBlock(64, 8, ff_dim=256)
             profiler = Profiler()
-            
+
             x = Tensor(rng.standard_normal((2, 10, 64)))
-            
+
             with profiler:
                 output = block(x)
-            
+
             assert output.shape == x.shape
-            
+
         except ImportError:
             assert True, "Transformer profiling not ready"
 
@@ -188,32 +187,32 @@ class TestProfilingWithTraining:
         ✅ TEST: Profile training step
         """
         try:
-            from trentorch.perf.profiling import Profiler
             from trentorch.core.layers import Linear
             from trentorch.core.losses import MSELoss
             from trentorch.core.optimizers import SGD
             from trentorch.core.tensor import Tensor
-            
+            from trentorch.perf.profiling import Profiler
+
             layer = Linear(10, 5)
             loss_fn = MSELoss()
             optimizer = SGD(layer.parameters(), lr=0.1)
-            
+
             profiler = Profiler()
-            
+
             x = Tensor(rng.standard_normal((4, 10)))
             target = Tensor(rng.standard_normal((4, 5)))
-            
+
             with profiler:
                 pred = layer(x)
                 loss = loss_fn(pred, target)
-                
-                if hasattr(loss, 'backward'):
+
+                if hasattr(loss, "backward"):
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
-            
+
             assert loss.data.size == 1
-            
+
         except ImportError:
             assert True, "Training profiling not ready"
 
@@ -226,13 +225,15 @@ class TestRegressionPrevention:
     def test_tensor_still_works(self):
         """✅ Module 01"""
         from trentorch.core.tensor import Tensor
+
         a = Tensor([1, 2, 3])
         assert a.shape == (3,)
 
     def test_activations_still_work(self):
         """✅ Module 02"""
-        from trentorch.core.tensor import Tensor
         from trentorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+
         relu = ReLU()
         x = Tensor([-1, 0, 1])
         y = relu(x)
@@ -240,8 +241,9 @@ class TestRegressionPrevention:
 
     def test_layers_still_work(self):
         """✅ Module 03"""
-        from trentorch.core.tensor import Tensor
         from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
+
         layer = Linear(4, 2)
         x = Tensor(rng.standard_normal((2, 4)))
         y = layer(x)
@@ -249,16 +251,18 @@ class TestRegressionPrevention:
 
     def test_losses_still_work(self):
         """✅ Module 04"""
-        from trentorch.core.tensor import Tensor
         from trentorch.core.losses import MSELoss
+        from trentorch.core.tensor import Tensor
+
         loss_fn = MSELoss()
         loss = loss_fn(Tensor([[1.0]]), Tensor([[2.0]]))
         assert loss.data.size == 1
 
     def test_dataloader_still_works(self):
         """✅ Module 05"""
+        from trentorch.core.dataloader import DataLoader, TensorDataset
         from trentorch.core.tensor import Tensor
-        from trentorch.core.dataloader import TensorDataset, DataLoader
+
         data = Tensor(rng.standard_normal((10, 3)))
         targets = Tensor(np.arange(10).astype(float))
         dataset = TensorDataset(data, targets)
@@ -267,17 +271,19 @@ class TestRegressionPrevention:
 
     def test_optimizers_still_work(self):
         """✅ Module 07"""
-        from trentorch.core.optimizers import SGD
         from trentorch.core.layers import Linear
+        from trentorch.core.optimizers import SGD
+
         layer = Linear(3, 2)
         opt = SGD(layer.parameters(), lr=0.01)
-        assert hasattr(opt, 'step')
+        assert hasattr(opt, "step")
 
     def test_convolutions_still_work(self):
         """✅ Module 09"""
         try:
             from trentorch.core.spatial import Conv2d
             from trentorch.core.tensor import Tensor
+
             conv = Conv2d(3, 8, kernel_size=3, padding=1)
             x = Tensor(rng.standard_normal((2, 3, 8, 8)))
             y = conv(x)
@@ -290,6 +296,7 @@ class TestRegressionPrevention:
         try:
             from trentorch.core.attention import MultiHeadAttention
             from trentorch.core.tensor import Tensor
+
             mha = MultiHeadAttention(32, 4)
             x = Tensor(rng.standard_normal((1, 5, 32)))
             out = mha(x)
@@ -300,8 +307,9 @@ class TestRegressionPrevention:
     def test_transformers_still_work(self):
         """✅ Module 13"""
         try:
-            from trentorch.core.transformers import TransformerBlock
             from trentorch.core.tensor import Tensor
+            from trentorch.core.transformers import TransformerBlock
+
             block = TransformerBlock(32, 4, ff_dim=128)
             x = Tensor(rng.standard_normal((1, 5, 32)))
             out = block(x)
@@ -318,34 +326,34 @@ class TestModule14Completion:
     def test_profiling_foundation_complete(self):
         """
         ✅ FINAL TEST: Profiling ready for quantization
-        
+
         🎯 SUCCESS = Ready for Module 15: Quantization!
         """
         capabilities = {
             "Profiler exists": False,
             "Timing works": False,
         }
-        
+
         try:
             from trentorch.perf.profiling import Profiler
-            
+
             # Test 1: Profiler exists
             capabilities["Profiler exists"] = True
-            
+
             # Test 2: Timing
             profiler = Profiler()
-            start = time.time()
+            time.time()
             with profiler:
                 _ = [i**2 for i in range(1000)]
-            
-            if hasattr(profiler, 'elapsed') or hasattr(profiler, 'duration') or hasattr(profiler, 'stats'):
+
+            if hasattr(profiler, "elapsed") or hasattr(profiler, "duration") or hasattr(profiler, "stats"):
                 capabilities["Timing works"] = True
             else:
                 # At minimum, context manager should work
                 capabilities["Timing works"] = True
-            
+
             completed = sum(capabilities.values())
             assert completed >= 1, f"Profiling not ready: {capabilities}"
-            
+
         except ImportError:
             assert True, "Profiler not implemented yet"

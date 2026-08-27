@@ -36,7 +36,7 @@ real-world problems. Let's recreate that breakthrough using YOUR Tren🔥Torch!
 
     Sample 8×8 Digit Images:              What the Hidden Layer Learns:
 
-can 
+can
        "0"         "1"
 
 🔍 MLP LIMITATION (Why CNNs will be better):
@@ -65,27 +65,28 @@ can
 - 📌 BASELINE: CNN (Milestone 04) will show improvement by using spatial structure!
 """
 
-import sys
 import os
-import numpy as np
 import pickle
+import sys
 from pathlib import Path
+
+import numpy as np
 
 # Add project root to path
 sys.path.insert(0, os.getcwd())
-sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
+sys.path.insert(0, os.path.join(os.getcwd(), "data"))  # trentorch/ lives at data/trentorch/
 
 # Import TrenTorch components YOU BUILT!
-from trentorch import Tensor, Linear, ReLU, CrossEntropyLoss, SGD
-from trentorch.core.dataloader import TensorDataset, DataLoader
+from rich import box
 
 # Rich for beautiful output
 from rich.console import Console
+from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
-from rich.live import Live
 from rich.text import Text
-from rich import box
+from trentorch import SGD, CrossEntropyLoss, Linear, ReLU, Tensor
+from trentorch.core.dataloader import DataLoader, TensorDataset
 
 console = Console()
 
@@ -142,6 +143,7 @@ console = Console()
 # 🎓 STUDENT CODE: Multi-Layer Perceptron
 # ============================================================================
 
+
 class DigitMLP:
     """
     Multi-Layer Perceptron for digit classification.
@@ -163,8 +165,7 @@ class DigitMLP:
         console.print(f"  ✓ Hidden layer: {input_size} → {hidden_size} (with ReLU)")
         console.print(f"  ✓ Output layer: {hidden_size} → {num_classes}")
 
-        total_params = (input_size * hidden_size + hidden_size) + \
-                      (hidden_size * num_classes + num_classes)
+        total_params = (input_size * hidden_size + hidden_size) + (hidden_size * num_classes + num_classes)
         console.print(f"  ✓ Total parameters: {total_params:,}\n")
 
     def __call__(self, x):
@@ -188,18 +189,19 @@ class DigitMLP:
 
     def parameters(self):
         """Get all trainable parameters."""
-        return [self.fc1.weight, self.fc1.bias,
-                self.fc2.weight, self.fc2.bias]
+        return [self.fc1.weight, self.fc1.bias, self.fc2.weight, self.fc2.bias]
 
 
 def load_digit_dataset():
     """Load the TinyDigits dataset (8×8 curated digits)."""
-    console.print(Panel.fit(
-        "[bold]Loading TinyDigits Dataset[/bold]\n"
-        "Curated 8×8 handwritten digits optimized for fast learning",
-        title="📊 Dataset",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]Loading TinyDigits Dataset[/bold]\n"
+            "Curated 8×8 handwritten digits optimized for fast learning",
+            title="📊 Dataset",
+            border_style="cyan",
+        )
+    )
 
     # Load from TinyDigits dataset (shipped with TrenTorch)
     project_root = Path(__file__).parent.parent.parent.parent
@@ -207,22 +209,22 @@ def load_digit_dataset():
     test_path = project_root / "data" / "datasets" / "tinydigits" / "test.pkl"
 
     if not train_path.exists() or not test_path.exists():
-        console.print(f"[red]✗ TinyDigits dataset not found![/red]")
+        console.print("[red]✗ TinyDigits dataset not found![/red]")
         console.print(f"[yellow]Expected location: {train_path.parent}[/yellow]")
         console.print("[yellow]Run: python3 datasets/tinydigits/create_tinydigits.py[/yellow]")
         sys.exit(1)
 
     # Load training data
-    with open(train_path, 'rb') as f:
+    with open(train_path, "rb") as f:
         train_data = pickle.load(f)
-    train_images_np = train_data['images']  # (150, 8, 8)
-    train_labels_np = train_data['labels']  # (150,)
+    train_images_np = train_data["images"]  # (150, 8, 8)
+    train_labels_np = train_data["labels"]  # (150,)
 
     # Load test data
-    with open(test_path, 'rb') as f:
+    with open(test_path, "rb") as f:
         test_data = pickle.load(f)
-    test_images_np = test_data['images']  # (47, 8, 8)
-    test_labels_np = test_data['labels']  # (47,)
+    test_images_np = test_data["images"]  # (47, 8, 8)
+    test_labels_np = test_data["labels"]  # (47,)
 
     console.print(f"✓ TinyDigits loaded ({train_images_np.shape[0] + test_images_np.shape[0]} total samples)")
     console.print(f"✓ Image shape: {train_images_np[0].shape}")
@@ -234,7 +236,7 @@ def load_digit_dataset():
     test_images = Tensor(test_images_np.astype(np.float32))
     test_labels = Tensor(test_labels_np.astype(np.int64))
 
-    console.print(f"\n📊 Split:")
+    console.print("\n📊 Split:")
     console.print(f"  Training: {len(train_images.data)} samples")
     console.print(f"  Testing:  {len(test_images.data)} samples\n")
 
@@ -256,13 +258,15 @@ def evaluate_accuracy(model, images, labels):
 
     return accuracy, predictions
 
-def press_enter_to_continue() :
-    if sys.stdin.isatty() and sys.stdout.isatty() :
-        try :
+
+def press_enter_to_continue():
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        try:
             console.input("\n[yellow]Press Enter to continue...[/yellow] ")
-        except EOFError :
+        except EOFError:
             pass
         console.print()
+
 
 def compare_batch_sizes(train_images, train_labels, test_images, test_labels):
     """
@@ -274,13 +278,15 @@ def compare_batch_sizes(train_images, train_labels, test_images, test_labels):
     """
     import time
 
-    console.print(Panel.fit(
-        "[bold cyan]🔬 Systems Experiment: Batch Size Impact[/bold cyan]\n\n"
-        "[dim]Let's explore how batch size affects training speed and learning.\n"
-        "This shows YOUR DataLoader in action![/dim]",
-        title="⚙️ DataLoader Capabilities",
-        border_style="yellow"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]🔬 Systems Experiment: Batch Size Impact[/bold cyan]\n\n"
+            "[dim]Let's explore how batch size affects training speed and learning.\n"
+            "This shows YOUR DataLoader in action![/dim]",
+            title="⚙️ DataLoader Capabilities",
+            border_style="yellow",
+        )
+    )
 
     press_enter_to_continue()
 
@@ -323,15 +329,17 @@ def compare_batch_sizes(train_images, train_labels, test_images, test_labels):
         samples_per_sec = total_samples / elapsed
         updates = len(train_loader) * epochs
 
-        results.append({
-            'batch_size': batch_size,
-            'time': elapsed,
-            'accuracy': final_acc,
-            'updates': updates,
-            'throughput': samples_per_sec
-        })
+        results.append(
+            {
+                "batch_size": batch_size,
+                "time": elapsed,
+                "accuracy": final_acc,
+                "updates": updates,
+                "throughput": samples_per_sec,
+            }
+        )
 
-        console.print(f"  Time: {elapsed*1000:.0f}ms, Accuracy: {final_acc:.1f}%")
+        console.print(f"  Time: {elapsed * 1000:.0f}ms, Accuracy: {final_acc:.1f}%")
         press_enter_to_continue()
 
     # Show comparison table
@@ -344,11 +352,11 @@ def compare_batch_sizes(train_images, train_labels, test_images, test_labels):
 
     for r in results:
         table.add_row(
-            str(r['batch_size']),
-            f"{r['time']*1000:.0f}ms",
-            str(r['updates']),
+            str(r["batch_size"]),
+            f"{r['time'] * 1000:.0f}ms",
+            str(r["updates"]),
             f"{r['accuracy']:.1f}%",
-            f"{r['throughput']:.0f} samples/s"
+            f"{r['throughput']:.0f} samples/s",
         )
 
     console.print(table)
@@ -356,26 +364,29 @@ def compare_batch_sizes(train_images, train_labels, test_images, test_labels):
     press_enter_to_continue()
 
     # Key insights
-    console.print(Panel.fit(
-        "[bold]💡 Key Systems Insights:[/bold]\n\n"
-        "[green]✓ Larger batches process data faster[/green] (fewer Python loops)\n"
-        "[green]✓ Smaller batches give more gradient updates[/green] (more optimization steps)\n"
-        "[green]✓ Throughput vs update frequency trade-off[/green]\n\n"
-        "[bold]What This Shows:[/bold]\n"
-        f"  • Batch 16:  Slowest but {results[0]['updates']} updates\n"
-        f"  • Batch 64:  Balanced - {results[1]['updates']} updates\n"
-        f"  • Batch 256: Fastest but only {results[2]['updates']} updates\n\n"
-        "[bold]🚀 Production Tip:[/bold] In real systems, batch size is limited by:\n"
-        "  • GPU memory (larger batches need more VRAM)\n"
-        "  • Gradient noise (tiny batches → unstable training)\n"
-        "  • Sweet spot: Usually 32-128 for most tasks\n\n"
-        "[dim]YOUR DataLoader makes experimenting with this trivial -\n"
-        "just change one number and the whole pipeline adapts![/dim]",
-        title="⚙️ DataLoader Impact",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]💡 Key Systems Insights:[/bold]\n\n"
+            "[green]✓ Larger batches process data faster[/green] (fewer Python loops)\n"
+            "[green]✓ Smaller batches give more gradient updates[/green] (more optimization steps)\n"
+            "[green]✓ Throughput vs update frequency trade-off[/green]\n\n"
+            "[bold]What This Shows:[/bold]\n"
+            f"  • Batch 16:  Slowest but {results[0]['updates']} updates\n"
+            f"  • Batch 64:  Balanced - {results[1]['updates']} updates\n"
+            f"  • Batch 256: Fastest but only {results[2]['updates']} updates\n\n"
+            "[bold]🚀 Production Tip:[/bold] In real systems, batch size is limited by:\n"
+            "  • GPU memory (larger batches need more VRAM)\n"
+            "  • Gradient noise (tiny batches → unstable training)\n"
+            "  • Sweet spot: Usually 32-128 for most tasks\n\n"
+            "[dim]YOUR DataLoader makes experimenting with this trivial -\n"
+            "just change one number and the whole pipeline adapts![/dim]",
+            title="⚙️ DataLoader Impact",
+            border_style="cyan",
+        )
+    )
 
     press_enter_to_continue()
+
 
 def train_mlp():
     """Train MLP on digit recognition task."""
@@ -384,14 +395,16 @@ def train_mlp():
     # ACT 1: THE CHALLENGE 🎯
     # ═══════════════════════════════════════════════════════════════════════
 
-    console.print(Panel.fit(
-        "[bold cyan]🎯 1986 - Deep Learning on Real Data[/bold cyan]\n\n"
-        "[dim]Can multi-layer networks learn from real handwritten digits?[/dim]\n"
-        "[dim]Rumelhart, Hinton & Williams prove backprop works on real tasks![/dim]",
-        title="🔥 1986 Backpropagation Revolution",
-        border_style="cyan",
-        box=box.DOUBLE
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]🎯 1986 - Deep Learning on Real Data[/bold cyan]\n\n"
+            "[dim]Can multi-layer networks learn from real handwritten digits?[/dim]\n"
+            "[dim]Rumelhart, Hinton & Williams prove backprop works on real tasks![/dim]",
+            title="🔥 1986 Backpropagation Revolution",
+            border_style="cyan",
+            box=box.DOUBLE,
+        )
+    )
     press_enter_to_continue()
 
     console.print("[bold]📊 The Data:[/bold]")
@@ -423,7 +436,7 @@ def train_mlp():
     console.print("  • Hidden layer: 64 → 32 (learns digit features)")
     console.print("  • ReLU activation: Non-linear transformations")
     console.print("  • Output layer: 32 → 10 (one per digit class)")
-    console.print(f"  • Total parameters: ~{64*32 + 32 + 32*10 + 10:,}")
+    console.print(f"  • Total parameters: ~{64 * 32 + 32 + 32 * 10 + 10:,}")
 
     console.print("\n[bold]⚙️ Hyperparameters:[/bold]")
     console.print("  • Batch size: 32 (using YOUR DataLoader!)")
@@ -459,11 +472,7 @@ def train_mlp():
 
     epochs = 20
     initial_loss = None
-    history = {
-        "train_loss": [],
-        "train_accuracy": [],
-        "test_accuracy": []
-    }
+    history = {"train_loss": [], "train_accuracy": [], "test_accuracy": []}
 
     # Use Live display with spinner for real-time feedback
     with Live(console=console, refresh_per_second=10) as live:
@@ -489,7 +498,7 @@ def train_mlp():
                 # Update spinner with current batch progress
                 spinner_text = Text()
                 spinner_text.append("⠋ ", style="cyan")
-                spinner_text.append(f"Epoch {epoch+1:2d}/{epochs}  Batch {batch_count}/{len(train_loader)}")
+                spinner_text.append(f"Epoch {epoch + 1:2d}/{epochs}  Batch {batch_count}/{len(train_loader)}")
                 live.update(spinner_text)
 
             avg_loss = epoch_loss / batch_count
@@ -510,7 +519,7 @@ def train_mlp():
                 gap = train_acc - test_acc
                 gap_indicator = "⚠️" if gap > 10 else "✓"
                 live.console.print(
-                    f"Epoch {epoch+1:2d}/{epochs}  "
+                    f"Epoch {epoch + 1:2d}/{epochs}  "
                     f"Loss: {avg_loss:.4f}  "
                     f"Train: {train_acc:.1f}%  "
                     f"Test: {test_acc:.1f}%  "
@@ -536,20 +545,10 @@ def train_mlp():
     table.add_column("Value", style="green", width=20)
     table.add_column("Status", style="magenta", width=20)
 
+    table.add_row("Train Accuracy", f"{final_train_acc:.1f}%", f"↑ +{final_train_acc - initial_acc:.1f}%")
+    table.add_row("Test Accuracy", f"{final_test_acc:.1f}%", f"↑ +{final_test_acc - initial_acc:.1f}%")
     table.add_row(
-        "Train Accuracy",
-        f"{final_train_acc:.1f}%",
-        f"↑ +{final_train_acc - initial_acc:.1f}%"
-    )
-    table.add_row(
-        "Test Accuracy",
-        f"{final_test_acc:.1f}%",
-        f"↑ +{final_test_acc - initial_acc:.1f}%"
-    )
-    table.add_row(
-        "Overfitting Gap",
-        f"{overfitting_gap:.1f}%",
-        "✓ Healthy" if overfitting_gap < 10 else "⚠️ Overfitting"
+        "Overfitting Gap", f"{overfitting_gap:.1f}%", "✓ Healthy" if overfitting_gap < 10 else "⚠️ Overfitting"
     )
 
     console.print(table)
@@ -587,52 +586,44 @@ def train_mlp():
     # ═══════════════════════════════════════════════════════════════════════
 
     console.print("")
-    console.print(Panel.fit(
-        "[bold green]🎉 Success! Your MLP Learned to Recognize Digits![/bold green]\n\n"
-
-        f"Test accuracy: [bold]{final_test_acc:.1f}%[/bold] (Gap: {overfitting_gap:.1f}%)\n\n"
-
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-        "[bold]💡 What YOU Just Accomplished:[/bold]\n"
-        "  ✓ Built multi-layer network with YOUR components\n"
-        "  ✓ Trained on TinyDigits (synthetic handwritten digits)\n"
-        "  ✓ Used YOUR DataLoader for efficient batching\n"
-        f"  ✓ Model generalizes well (gap: {overfitting_gap:.1f}%)\n"
-        "  ✓ Backprop through hidden layers works on image data!\n"
-        f"  ✓ Achieved {final_test_acc:.1f}% test accuracy!\n\n"
-
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-        "[bold]🎓 Why This Matters:[/bold]\n"
-        "  This proved backprop works on practical tasks, not just XOR!\n"
-        "  1986 paper by Rumelhart, Hinton & Williams launched\n"
-        "  modern deep learning revolution.\n\n"
-
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-        "[bold]📌 The Key Insight:[/bold]\n"
-        "  MLPs flatten images → lose spatial structure.\n"
-        "  Each pixel treated independently with no neighborhood info.\n"
-        "  \n"
-        "  [yellow]Limitation:[/yellow] 8×8 images work, but larger images?\n"
-        "  We need better architectures for spatial data...\n\n"
-
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-        "[bold]🚀 What's Next:[/bold]\n"
-        "[dim]Milestone 04 (CNN) will show how preserving spatial structure\n"
-        "dramatically improves performance on images![/dim]",
-
-        title="🌟 1986 MLP Breakthrough Complete",
-        border_style="green",
-        box=box.DOUBLE
-    ))
+    console.print(
+        Panel.fit(
+            "[bold green]🎉 Success! Your MLP Learned to Recognize Digits![/bold green]\n\n"
+            f"Test accuracy: [bold]{final_test_acc:.1f}%[/bold] (Gap: {overfitting_gap:.1f}%)\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "[bold]💡 What YOU Just Accomplished:[/bold]\n"
+            "  ✓ Built multi-layer network with YOUR components\n"
+            "  ✓ Trained on TinyDigits (synthetic handwritten digits)\n"
+            "  ✓ Used YOUR DataLoader for efficient batching\n"
+            f"  ✓ Model generalizes well (gap: {overfitting_gap:.1f}%)\n"
+            "  ✓ Backprop through hidden layers works on image data!\n"
+            f"  ✓ Achieved {final_test_acc:.1f}% test accuracy!\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "[bold]🎓 Why This Matters:[/bold]\n"
+            "  This proved backprop works on practical tasks, not just XOR!\n"
+            "  1986 paper by Rumelhart, Hinton & Williams launched\n"
+            "  modern deep learning revolution.\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "[bold]📌 The Key Insight:[/bold]\n"
+            "  MLPs flatten images → lose spatial structure.\n"
+            "  Each pixel treated independently with no neighborhood info.\n"
+            "  \n"
+            "  [yellow]Limitation:[/yellow] 8×8 images work, but larger images?\n"
+            "  We need better architectures for spatial data...\n\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            "[bold]🚀 What's Next:[/bold]\n"
+            "[dim]Milestone 04 (CNN) will show how preserving spatial structure\n"
+            "dramatically improves performance on images![/dim]",
+            title="🌟 1986 MLP Breakthrough Complete",
+            border_style="green",
+            box=box.DOUBLE,
+        )
+    )
 
     # Optional: Batch size experiment (skip in non-interactive mode)
     console.print("\n")
     try:
-        run_experiment = input("\n🔬 Run batch size experiment? (y/n): ").lower().strip() == 'y'
+        run_experiment = input("\n🔬 Run batch size experiment? (y/n): ").lower().strip() == "y"
         if run_experiment:
             compare_batch_sizes(train_images, train_labels, test_images, test_labels)
     except EOFError:

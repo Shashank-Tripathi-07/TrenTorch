@@ -9,19 +9,19 @@ import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Tuple, Optional
 
 
 @dataclass
 class ModuleMetadata:
     """Metadata extracted from module.yaml file."""
+
     title: str
     subtitle: str
     description: str
 
 
 # Required fields in module.yaml
-REQUIRED_METADATA_FIELDS = {'title', 'subtitle', 'description'}
+REQUIRED_METADATA_FIELDS = {"title", "subtitle", "description"}
 
 
 def _find_project_root() -> Path:
@@ -29,7 +29,7 @@ def _find_project_root() -> Path:
     # Start from this file's location and walk up
     current = Path(__file__).resolve().parent
     while current != current.parent:
-        if (current / 'pyproject.toml').exists() and (current / 'data' / 'src').exists():
+        if (current / "pyproject.toml").exists() and (current / "data" / "src").exists():
             return current
         current = current.parent
     # Fallback to cwd
@@ -37,7 +37,7 @@ def _find_project_root() -> Path:
 
 
 @lru_cache(maxsize=1)
-def _discover_modules() -> Dict[str, str]:
+def _discover_modules() -> dict[str, str]:
     """
     Auto-discover modules from src/ directory.
 
@@ -45,13 +45,13 @@ def _discover_modules() -> Dict[str, str]:
     Returns: {"01": "01_tensor", "02": "02_activations", ...}
     """
     project_root = _find_project_root()
-    src_dir = project_root / 'data' / 'src'
+    src_dir = project_root / "data" / "src"
 
     if not src_dir.exists():
         return {}
 
     mapping = {}
-    pattern = re.compile(r'^(\d{2})_(\w+)$')
+    pattern = re.compile(r"^(\d{2})_(\w+)$")
 
     for entry in sorted(src_dir.iterdir()):
         if entry.is_dir():
@@ -63,12 +63,12 @@ def _discover_modules() -> Dict[str, str]:
     return mapping
 
 
-def get_module_mapping() -> Dict[str, str]:
+def get_module_mapping() -> dict[str, str]:
     """Get the module number to folder name mapping (auto-discovered)."""
     return _discover_modules().copy()
 
 
-def get_module_name(module_input: str) -> Optional[str]:
+def get_module_name(module_input: str) -> str | None:
     """Get the folder name for a module number or return None if not found."""
     normalized = normalize_module_number(module_input)
     return _discover_modules().get(normalized)
@@ -85,7 +85,7 @@ def get_module_display_name(module_input: str) -> str:
     return "Unknown"
 
 
-def get_next_module(current_module: str) -> Optional[Tuple[str, str, str]]:
+def get_next_module(current_module: str) -> tuple[str, str, str] | None:
     """
     Get the next module after the current one.
 
@@ -136,7 +136,7 @@ def module_exists(module_input: str) -> bool:
     return get_module_name(module_input) is not None
 
 
-def _parse_yaml_file(content: str) -> Dict[str, str]:
+def _parse_yaml_file(content: str) -> dict[str, str]:
     """
     Parse simple YAML content (key: value format).
 
@@ -150,17 +150,17 @@ def _parse_yaml_file(content: str) -> Dict[str, str]:
         Dictionary of parsed key-value pairs
     """
     data = {}
-    for line in content.strip().split('\n'):
+    for line in content.strip().split("\n"):
         line = line.strip()
-        if not line or line.startswith('#'):
+        if not line or line.startswith("#"):
             continue
-        if ':' in line:
-            key, value = line.split(':', 1)
+        if ":" in line:
+            key, value = line.split(":", 1)
             data[key.strip()] = value.strip()
     return data
 
 
-def _validate_module_yaml(data: Dict[str, str], yaml_path: Path) -> Optional[str]:
+def _validate_module_yaml(data: dict[str, str], yaml_path: Path) -> str | None:
     """
     Validate module.yaml content has all required fields.
 
@@ -183,7 +183,7 @@ def _validate_module_yaml(data: Dict[str, str], yaml_path: Path) -> Optional[str
     return None
 
 
-def get_module_metadata(module_input: str) -> Optional[ModuleMetadata]:
+def get_module_metadata(module_input: str) -> ModuleMetadata | None:
     """
     Get metadata for a module from its module.yaml file.
 
@@ -198,13 +198,13 @@ def get_module_metadata(module_input: str) -> Optional[ModuleMetadata]:
         return None
 
     project_root = _find_project_root()
-    yaml_file = project_root / 'data' / 'src' / folder / 'module.yaml'
+    yaml_file = project_root / "data" / "src" / folder / "module.yaml"
 
     if not yaml_file.exists():
         return None
 
     try:
-        content = yaml_file.read_text(encoding='utf-8')
+        content = yaml_file.read_text(encoding="utf-8")
         data = _parse_yaml_file(content)
 
         # Validate
@@ -212,22 +212,20 @@ def get_module_metadata(module_input: str) -> Optional[ModuleMetadata]:
         if error:
             # Log warning but don't crash
             import sys
+
             print(f"Warning: {error}", file=sys.stderr)
             return None
 
-        return ModuleMetadata(
-            title=data['title'],
-            subtitle=data['subtitle'],
-            description=data['description']
-        )
+        return ModuleMetadata(title=data["title"], subtitle=data["subtitle"], description=data["description"])
     except Exception as e:
         import sys
+
         print(f"Warning: Failed to parse {yaml_file}: {e}", file=sys.stderr)
         return None
 
 
 @lru_cache(maxsize=1)
-def get_all_module_metadata() -> Dict[str, ModuleMetadata]:
+def get_all_module_metadata() -> dict[str, ModuleMetadata]:
     """
     Get metadata for all modules.
 

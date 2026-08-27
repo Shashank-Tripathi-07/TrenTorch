@@ -13,14 +13,12 @@ IMPORTANT: This command preserves student work during updates:
 
 from __future__ import annotations
 
-import subprocess
-import shutil
-import tempfile
 import json
-import os
-from pathlib import Path
+import shutil
+import subprocess
+import tempfile
 from argparse import ArgumentParser, Namespace
-from typing import Optional, Tuple, List
+from pathlib import Path
 
 from platforms.cli.commands.base import BaseCommand
 
@@ -37,12 +35,12 @@ class UpdateCommand(BaseCommand):
 
     # Directories/files to UPDATE (overwrite with new version)
     UPDATE_DIRS = [
-        "data/src",      # Module source notebooks
-        "tito",          # CLI tool
-        "tests",         # Test suites
-        "data/milestones", # Milestone scripts
-        "data/datasets", # Sample datasets
-        "bin",           # Entry point scripts
+        "data/src",  # Module source notebooks
+        "tito",  # CLI tool
+        "tests",  # Test suites
+        "data/milestones",  # Milestone scripts
+        "data/datasets",  # Sample datasets
+        "bin",  # Entry point scripts
     ]
     UPDATE_FILES = [
         "requirements.txt",
@@ -54,9 +52,9 @@ class UpdateCommand(BaseCommand):
     # Directories/files to PRESERVE (never overwrite)
     PRESERVE_DIRS = [
         "data/modules",  # Student work in progress
-        "data/solutions", # Maintainer/CI-only reference notebooks
-        ".venv",         # Virtual environment
-        "user_data",         # Progress tracking
+        "data/solutions",  # Maintainer/CI-only reference notebooks
+        ".venv",  # Virtual environment
+        "user_data",  # Progress tracking
     ]
     PRESERVE_FILES = [
         "progress.json",  # Legacy progress file
@@ -75,26 +73,19 @@ class UpdateCommand(BaseCommand):
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add update subcommands."""
-        parser.add_argument(
-            '--check',
-            action='store_true',
-            help='Only check for updates, do not install'
-        )
-        parser.add_argument(
-            '--yes', '-y',
-            action='store_true',
-            help='Skip confirmation prompt'
-        )
+        parser.add_argument("--check", action="store_true", help="Only check for updates, do not install")
+        parser.add_argument("--yes", "-y", action="store_true", help="Skip confirmation prompt")
 
     def _get_current_version(self) -> str:
         """Get current version from trentorch package."""
         try:
             from trentorch import __version__
+
             return __version__
         except ImportError:
             return "unknown"
 
-    def _get_latest_version(self) -> Tuple[Optional[str], Optional[str]]:
+    def _get_latest_version(self) -> tuple[str | None, str | None]:
         """
         Fetch the latest tinytorch-v* tag from GitHub API.
         Returns (version_string, tag_name) or (None, None) on error.
@@ -103,9 +94,11 @@ class UpdateCommand(BaseCommand):
         try:
             # Use curl for reliability (handles SSL better than urllib on macOS)
             result = subprocess.run(
-                ['curl', '-fsSL', '--max-time', '10', self.TAGS_API],
+                ["curl", "-fsSL", "--max-time", "10", self.TAGS_API],
                 capture_output=True,
-                text=True, encoding="utf-8", errors="replace"
+                text=True,
+                encoding="utf-8",
+                errors="replace",
             )
 
             if result.returncode != 0:
@@ -115,9 +108,9 @@ class UpdateCommand(BaseCommand):
 
             # Find latest tinytorch-v* tag
             for tag in tags:
-                tag_name = tag.get('name', '')
+                tag_name = tag.get("name", "")
                 if tag_name.startswith(self.TAG_PREFIX):
-                    version = tag_name[len(self.TAG_PREFIX):]
+                    version = tag_name[len(self.TAG_PREFIX) :]
                     return version, tag_name
 
             return None, None
@@ -131,10 +124,10 @@ class UpdateCommand(BaseCommand):
             self.console.print(f"[dim]Error checking updates: {e}[/dim]")
             return None, None
 
-    def _get_latest_version_urllib(self) -> Tuple[Optional[str], Optional[str]]:
+    def _get_latest_version_urllib(self) -> tuple[str | None, str | None]:
         """Fallback using urllib if curl is not available."""
-        import urllib.request
         import ssl
+        import urllib.request
 
         try:
             # Create unverified context for macOS compatibility
@@ -142,18 +135,15 @@ class UpdateCommand(BaseCommand):
             ctx.check_hostname = False
             ctx.verify_mode = ssl.CERT_NONE
 
-            req = urllib.request.Request(
-                self.TAGS_API,
-                headers={'User-Agent': 'TinyTorch-CLI'}
-            )
+            req = urllib.request.Request(self.TAGS_API, headers={"User-Agent": "TinyTorch-CLI"})
 
             with urllib.request.urlopen(req, timeout=10, context=ctx) as response:
-                tags = json.loads(response.read().decode('utf-8'))
+                tags = json.loads(response.read().decode("utf-8"))
 
             for tag in tags:
-                tag_name = tag.get('name', '')
+                tag_name = tag.get("name", "")
                 if tag_name.startswith(self.TAG_PREFIX):
-                    version = tag_name[len(self.TAG_PREFIX):]
+                    version = tag_name[len(self.TAG_PREFIX) :]
                     return version, tag_name
 
             return None, None
@@ -166,9 +156,10 @@ class UpdateCommand(BaseCommand):
         Returns: -1 if current < latest, 0 if equal, 1 if current > latest
         """
         try:
+
             def parse_version(v: str) -> tuple:
                 # Handle versions like "0.1.1" or "unknown"
-                parts = v.split('.')
+                parts = v.split(".")
                 return tuple(int(p) for p in parts if p.isdigit())
 
             current_parts = parse_version(current)
@@ -195,16 +186,21 @@ class UpdateCommand(BaseCommand):
             self.console.print("[dim]  Cloning repository...[/dim]")
             result = subprocess.run(
                 [
-                    'git', 'clone',
-                    '--depth', '1',
-                    '--filter=blob:none',
-                    '--sparse',
-                    '--branch', self.BRANCH,
+                    "git",
+                    "clone",
+                    "--depth",
+                    "1",
+                    "--filter=blob:none",
+                    "--sparse",
+                    "--branch",
+                    self.BRANCH,
                     self.REPO_URL,
-                    str(repo_dir)
+                    str(repo_dir),
                 ],
                 capture_output=True,
-                text=True, encoding="utf-8", errors="replace"
+                text=True,
+                encoding="utf-8",
+                errors="replace",
             )
 
             if result.returncode != 0:
@@ -214,10 +210,12 @@ class UpdateCommand(BaseCommand):
             # Set sparse checkout to only get tinytorch/
             self.console.print("[dim]  Fetching tinytorch files...[/dim]")
             result = subprocess.run(
-                ['git', 'sparse-checkout', 'set', self.SPARSE_PATH],
+                ["git", "sparse-checkout", "set", self.SPARSE_PATH],
                 capture_output=True,
-                text=True, encoding="utf-8", errors="replace",
-                cwd=repo_dir
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                cwd=repo_dir,
             )
 
             if result.returncode != 0:
@@ -374,21 +372,25 @@ class UpdateCommand(BaseCommand):
         if comparison >= 0:
             # Up to date or ahead
             self.console.print()
-            self.console.print(Panel(
-                f"[green]✅ You're on the latest version[/green]\n\n"
-                f"Version: [cyan]v{current_version}[/cyan]",
-                border_style="green"
-            ))
+            self.console.print(
+                Panel(
+                    f"[green]✅ You're on the latest version[/green]\n\n"
+                    f"Version: [cyan]v{current_version}[/cyan]",
+                    border_style="green",
+                )
+            )
             return 0
 
         # Update available
         self.console.print()
-        self.console.print(Panel(
-            f"[yellow]⬆️  Update available[/yellow]\n\n"
-            f"Current: [dim]v{current_version}[/dim]\n"
-            f"Latest:  [green]v{latest_version}[/green]",
-            border_style="yellow"
-        ))
+        self.console.print(
+            Panel(
+                f"[yellow]⬆️  Update available[/yellow]\n\n"
+                f"Current: [dim]v{current_version}[/dim]\n"
+                f"Latest:  [green]v{latest_version}[/green]",
+                border_style="yellow",
+            )
+        )
 
         # If check-only mode, show install command and exit
         if args.check:
@@ -400,17 +402,19 @@ class UpdateCommand(BaseCommand):
         # Confirm update (unless --yes)
         if not args.yes:
             self.console.print()
-            self.console.print(Panel(
-                "[bold]This will update TinyTorch while preserving your work.[/bold]\n\n"
-                "[green]Preserved:[/green] data/modules/, tinytorch/core/, progress\n"
-                "[yellow]Updated:[/yellow] src/, tests/, data/milestones/",
-                title="Warning",
-                border_style="yellow"
-            ))
+            self.console.print(
+                Panel(
+                    "[bold]This will update TinyTorch while preserving your work.[/bold]\n\n"
+                    "[green]Preserved:[/green] data/modules/, tinytorch/core/, progress\n"
+                    "[yellow]Updated:[/yellow] src/, tests/, data/milestones/",
+                    title="Warning",
+                    border_style="yellow",
+                )
+            )
             self.console.print()
             try:
                 response = input("Install update? [y/N] ").strip().lower()
-                if response not in ('y', 'yes'):
+                if response not in ("y", "yes"):
                     self.console.print("[dim]Update cancelled.[/dim]")
                     return 0
             except (EOFError, KeyboardInterrupt):
@@ -421,18 +425,22 @@ class UpdateCommand(BaseCommand):
         # Run update
         if self._run_update():
             self.console.print()
-            self.console.print(Panel(
-                f"[green]✅ TinyTorch updated successfully[/green]\n\n"
-                f"Now at version: [cyan]v{latest_version}[/cyan]\n\n"
-                f"[dim]Your work in data/modules/ was preserved.[/dim]",
-                border_style="green"
-            ))
+            self.console.print(
+                Panel(
+                    f"[green]✅ TinyTorch updated successfully[/green]\n\n"
+                    f"Now at version: [cyan]v{latest_version}[/cyan]\n\n"
+                    f"[dim]Your work in data/modules/ was preserved.[/dim]",
+                    border_style="green",
+                )
+            )
             return 0
         else:
             self.console.print()
-            self.console.print(Panel(
-                "[yellow]⚠️  Update completed with some warnings[/yellow]\n\n"
-                "[dim]Check the messages above for details.[/dim]",
-                border_style="yellow"
-            ))
+            self.console.print(
+                Panel(
+                    "[yellow]⚠️  Update completed with some warnings[/yellow]\n\n"
+                    "[dim]Check the messages above for details.[/dim]",
+                    border_style="yellow",
+                )
+            )
             return 1

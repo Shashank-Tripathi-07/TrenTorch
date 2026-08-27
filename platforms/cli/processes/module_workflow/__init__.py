@@ -2,4 +2,4 @@
 
 from .workflow import ModuleWorkflowCommand
 
-__all__ = ['ModuleWorkflowCommand']
+__all__ = ["ModuleWorkflowCommand"]

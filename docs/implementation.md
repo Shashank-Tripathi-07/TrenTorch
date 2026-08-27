@@ -49,8 +49,7 @@ Every cell that should become part of the installable package is tagged:
 
 ```python
 #| export
-class Tensor:
-    ...
+class Tensor: ...
 ```
 
 In `src/01_tensor/01_tensor.py`, each implementation gap is a stub-cell/solution-cell pair (representative, from the `__init__` region):
@@ -63,6 +62,7 @@ class Tensor:
         ### BEGIN SOLUTION
         raise NotImplementedError("TODO: implement Tensor.__init__")
         ### END SOLUTION
+
 
 # %% tags=["solution"]
 #| export

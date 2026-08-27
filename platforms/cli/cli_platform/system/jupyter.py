@@ -4,9 +4,11 @@ Jupyter command for TinyTorch CLI: starts Jupyter notebook server.
 
 import subprocess
 from argparse import ArgumentParser, Namespace
+
 from rich.panel import Panel
 
 from platforms.cli.commands.base import BaseCommand
+
 
 class JupyterCommand(BaseCommand):
     @property
@@ -25,8 +27,9 @@ class JupyterCommand(BaseCommand):
     def run(self, args: Namespace) -> int:
         console = self.console
 
-        console.print(Panel("📓 Jupyter Notebook Server",
-                           title="Interactive Development", border_style="bright_green"))
+        console.print(
+            Panel("📓 Jupyter Notebook Server", title="Interactive Development", border_style="bright_green")
+        )
 
         # Determine which Jupyter to start
         if args.lab:
@@ -45,8 +48,13 @@ class JupyterCommand(BaseCommand):
         except KeyboardInterrupt:
             console.print("\n🛑 Jupyter server stopped")
         except FileNotFoundError:
-            console.print(Panel("[red]❌ Jupyter not found. Install with: pip install jupyter[/red]",
-                              title="Error", border_style="red"))
+            console.print(
+                Panel(
+                    "[red]❌ Jupyter not found. Install with: pip install jupyter[/red]",
+                    title="Error",
+                    border_style="red",
+                )
+            )
             return 1
 
         return 0

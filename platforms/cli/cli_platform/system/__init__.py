@@ -2,4 +2,4 @@
 
 from .system import SystemCommand
 
-__all__ = ['SystemCommand']
+__all__ = ["SystemCommand"]

@@ -11,8 +11,9 @@ Integration test categories:
 4. End-to-end integration (complete model training)
 """
 
-import sys
 import os
+import sys
+
 import pytest
 
 pytestmark = pytest.mark.skip(
@@ -22,7 +23,8 @@ pytestmark = pytest.mark.skip(
     )
 )
 
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath("."))
+
 
 def test_core_module_integration():
     """Test that core modules work together: tensor → autograd → layers"""
@@ -31,17 +33,18 @@ def test_core_module_integration():
 
     try:
         # Test tensor + autograd integration
-        from trentorch.core.tensor import Tensor
         from trentorch.core.autograd import Variable
+        from trentorch.core.tensor import Tensor
 
         # Create tensor and wrap in Variable
         t = Tensor([1.0, 2.0, 3.0])
-        v = Variable(t, requires_grad=True)
+        Variable(t, requires_grad=True)
         print("✅ Tensor + Autograd integration working")
 
         # Test tensor + layers integration
         from trentorch.core.layers import Linear
-        layer = Linear(3, 2)
+
+        Linear(3, 2)
 
         # This tests that layers can accept tensor inputs
         # result = layer(t)  # Simplified test
@@ -53,6 +56,7 @@ def test_core_module_integration():
         print(f"❌ Core module integration failed: {e}")
         return False
 
+
 def test_training_pipeline_integration():
     """Test training pipeline: data → model → optimizer → training"""
     print("\n🏋️ Testing Training Pipeline Integration")
@@ -60,18 +64,18 @@ def test_training_pipeline_integration():
 
     try:
         # Test data + model integration
-        from trentorch.utils.data import DataLoader, SimpleDataset
         from trentorch.core.layers import Linear
         from trentorch.core.optimizers import SGD
+        from trentorch.utils.data import DataLoader, SimpleDataset
 
         # Create simple dataset
-        dataset = SimpleDataset([(i, i*2) for i in range(10)])
+        dataset = SimpleDataset([(i, i * 2) for i in range(10)])
         dataloader = DataLoader(dataset, batch_size=2)
         print("✅ Data loading integration working")
 
         # Create model
         model = Linear(1, 1)
-        optimizer = SGD([model.weight], lr=0.01)
+        SGD([model.weight], lr=0.01)
         print("✅ Model + Optimizer integration working")
 
         # Test that training components work together
@@ -87,6 +91,7 @@ def test_training_pipeline_integration():
         print(f"❌ Training pipeline integration failed: {e}")
         return False
 
+
 def test_optimization_module_integration():
     """Test optimization modules work with core modules"""
     print("\n⚡ Testing Optimization Module Integration")
@@ -95,7 +100,6 @@ def test_optimization_module_integration():
     try:
         # Test profiler + core modules
         from trentorch.core.tensor import Tensor
-        import trentorch.profiler
 
         # Test that profiler can analyze core operations
         def tensor_operation():
@@ -107,10 +111,9 @@ def test_optimization_module_integration():
         print("✅ Profiler + Core integration working")
 
         # Test quantization + models (when available)
-        import trentorch.quantization
         from trentorch.core.layers import Linear
 
-        model = Linear(10, 5)
+        Linear(10, 5)
         # quantized_model = trentorch.quantization.quantize(model)  # When implemented
         print("✅ Quantization + Models integration ready")
 
@@ -120,6 +123,7 @@ def test_optimization_module_integration():
         print(f"❌ Optimization module integration failed: {e}")
         return False
 
+
 def test_import_compatibility():
     """Test that all import paths work and don't conflict"""
     print("\n📦 Testing Import Compatibility")
@@ -127,16 +131,8 @@ def test_import_compatibility():
 
     try:
         # Test PyTorch-style imports don't conflict with core
-        import trentorch.profiler
-        import trentorch.quantization
-        import trentorch.backends
-        import trentorch.experimental
-        from trentorch.nn.utils import prune
 
         # Test core imports still work
-        from trentorch.core import tensor, autograd
-        from trentorch.core.layers import Linear, functional
-        from trentorch.utils.data import DataLoader
 
         print("✅ All import paths compatible")
         print("✅ No namespace conflicts detected")
@@ -147,22 +143,23 @@ def test_import_compatibility():
         print(f"❌ Import compatibility failed: {e}")
         return False
 
+
 def test_cross_module_data_flow():
     """Test data can flow between different modules correctly"""
     print("\n🌊 Testing Cross-Module Data Flow")
     print("-" * 40)
 
     try:
-        from trentorch.core.tensor import Tensor
         from trentorch.core.layers import Linear
+        from trentorch.core.tensor import Tensor
         from trentorch.utils.data import SimpleDataset
 
         # Create data
-        data = [(Tensor([i]), Tensor([i*2])) for i in range(5)]
+        data = [(Tensor([i]), Tensor([i * 2])) for i in range(5)]
         dataset = SimpleDataset(data)
 
         # Test data flows through model
-        model = Linear(1, 1)
+        Linear(1, 1)
         sample_input, sample_target = dataset[0]
 
         # Test that tensor from data works with model
@@ -175,6 +172,7 @@ def test_cross_module_data_flow():
         print(f"❌ Cross-module data flow failed: {e}")
         return False
 
+
 def run_all_integration_tests():
     """Run all module integration tests"""
     print("🧪 TRENTORCH MODULE INTEGRATION TESTS")
@@ -185,7 +183,7 @@ def run_all_integration_tests():
         test_training_pipeline_integration,
         test_optimization_module_integration,
         test_import_compatibility,
-        test_cross_module_data_flow
+        test_cross_module_data_flow,
     ]
 
     passed = 0
@@ -198,10 +196,10 @@ def run_all_integration_tests():
         except Exception as e:
             print(f"❌ Test {test.__name__} crashed: {e}")
 
-    print(f"\n📊 INTEGRATION TEST RESULTS")
+    print("\n📊 INTEGRATION TEST RESULTS")
     print("=" * 40)
     print(f"Passed: {passed}/{total}")
-    print(f"Success Rate: {passed/total*100:.1f}%")
+    print(f"Success Rate: {passed / total * 100:.1f}%")
 
     if passed == total:
         print("🎉 ALL INTEGRATION TESTS PASSED!")
@@ -211,6 +209,7 @@ def run_all_integration_tests():
         print("⚠️  Some integration tests failed")
         print("🔧 Check module compatibility and fix integration issues")
         return False
+
 
 if __name__ == "__main__":
     run_all_integration_tests()

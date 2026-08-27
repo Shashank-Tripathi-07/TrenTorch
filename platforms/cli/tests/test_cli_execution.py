@@ -7,10 +7,11 @@ This test suite ensures:
 3. Error messages are helpful when commands fail
 """
 
-import pytest
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add tren to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
@@ -29,10 +30,10 @@ class TestCommandExecution:
     def test_bare_tren_command(self):
         """Test bare 'tren' command shows welcome screen."""
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main'],
+            [sys.executable, "-m", "platforms.cli.main"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Should exit successfully
@@ -45,10 +46,10 @@ class TestCommandExecution:
     def test_tren_help(self):
         """Test 'tren -h' shows help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main', '-h'],
+            [sys.executable, "-m", "platforms.cli.main", "-h"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 0
@@ -59,53 +60,52 @@ class TestCommandExecution:
     def test_tren_version(self):
         """Test 'tren --version' shows version."""
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main', '--version'],
+            [sys.executable, "-m", "platforms.cli.main", "--version"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 0
         assert "Tren" in result.stdout or "CLI" in result.stdout
 
-    @pytest.mark.parametrize("command", [
-        'setup', 'system', 'module', 'dev', 'package',
-        'milestone', 'benchmark', 'olympics'
-    ])
+    @pytest.mark.parametrize(
+        "command", ["setup", "system", "module", "dev", "package", "milestone", "benchmark", "olympics"]
+    )
     def test_command_help_works(self, command):
         """Test that each command's help can be displayed."""
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main', command, '-h'],
+            [sys.executable, "-m", "platforms.cli.main", command, "-h"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Help should always succeed
         assert result.returncode == 0, (
-            f"Command '{command} -h' failed with exit code {result.returncode}\n"
-            f"stderr: {result.stderr}"
+            f"Command '{command} -h' failed with exit code {result.returncode}\nstderr: {result.stderr}"
         )
 
         # Should show usage
-        assert "usage:" in result.stdout.lower(), (
-            f"Command '{command} -h' didn't show usage"
-        )
+        assert "usage:" in result.stdout.lower(), f"Command '{command} -h' didn't show usage"
 
-    @pytest.mark.parametrize("command,subcommand", [
-        ('system', 'info'),
-        ('system', 'health'),
-        ('module', 'status'),
-        ('module', 'list'),
-        ('milestone', 'status'),
-    ])
+    @pytest.mark.parametrize(
+        "command,subcommand",
+        [
+            ("system", "info"),
+            ("system", "health"),
+            ("module", "status"),
+            ("module", "list"),
+            ("milestone", "status"),
+        ],
+    )
     def test_subcommand_help_works(self, command, subcommand):
         """Test that subcommands can show help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main', command, subcommand, '-h'],
+            [sys.executable, "-m", "platforms.cli.main", command, subcommand, "-h"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Subcommand help should work
@@ -126,36 +126,32 @@ class TestCommandGrouping:
     def test_student_facing_commands_discoverable(self):
         """Test that main student-facing commands are easily discoverable."""
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main'],
+            [sys.executable, "-m", "platforms.cli.main"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Key student commands should be visible
-        student_commands = ['setup', 'module', 'milestone']
+        student_commands = ["setup", "module", "milestone"]
 
         for cmd in student_commands:
-            assert cmd in result.stdout, (
-                f"Student command '{cmd}' not visible in welcome screen"
-            )
+            assert cmd in result.stdout, f"Student command '{cmd}' not visible in welcome screen"
 
     def test_developer_commands_documented(self):
         """Test that developer commands are documented in help."""
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main', '-h'],
+            [sys.executable, "-m", "platforms.cli.main", "-h"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Developer commands should be in help
-        dev_commands = ['dev', 'package']
+        dev_commands = ["dev", "package"]
 
         for cmd in dev_commands:
-            assert cmd in result.stdout, (
-                f"Developer command '{cmd}' not in help text"
-            )
+            assert cmd in result.stdout, f"Developer command '{cmd}' not in help text"
 
 
 class TestErrorMessages:
@@ -168,10 +164,10 @@ class TestErrorMessages:
     def test_invalid_command_shows_help(self):
         """Test that invalid commands show helpful error."""
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main', 'nonexistent'],
+            [sys.executable, "-m", "platforms.cli.main", "nonexistent"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Should fail
@@ -179,16 +175,16 @@ class TestErrorMessages:
 
         # Should mention the invalid command
         combined_output = result.stdout + result.stderr
-        assert 'nonexistent' in combined_output or 'invalid choice' in combined_output.lower()
+        assert "nonexistent" in combined_output or "invalid choice" in combined_output.lower()
 
     def test_missing_subcommand_shows_help(self):
         """Test that missing subcommands show help."""
         # Try module command without subcommand
         result = subprocess.run(
-            [sys.executable, '-m', 'platforms.cli.main', 'module'],
+            [sys.executable, "-m", "platforms.cli.main", "module"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Should show help or error
@@ -197,5 +193,5 @@ class TestErrorMessages:
         assert len(combined_output) > 0, "No output from command without subcommand"
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

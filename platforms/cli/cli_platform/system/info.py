@@ -2,13 +2,14 @@
 Info command for TinyTorch CLI: shows system and environment information.
 """
 
-from argparse import ArgumentParser, Namespace
 import json as json_module
-import sys
 import os
 import platform
 import shutil
+import sys
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
+
 from rich.panel import Panel
 from rich.table import Table
 
@@ -27,21 +28,23 @@ def _gather_system_info(venv_path: Path) -> dict:
 
     # Virtual Environment
     in_venv = (
-        os.environ.get('VIRTUAL_ENV') is not None or
-        (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
-        hasattr(sys, 'real_prefix')
+        os.environ.get("VIRTUAL_ENV") is not None
+        or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
+        or hasattr(sys, "real_prefix")
     )
 
     # TrenTorch Version
     try:
         import trentorch
-        tinytorch_version = getattr(trentorch, '__version__', 'unknown')
+
+        tinytorch_version = getattr(trentorch, "__version__", "unknown")
     except ImportError:
         tinytorch_version = "not installed"
 
     # NumPy Version
     try:
         import numpy
+
         numpy_version = numpy.__version__
     except ImportError:
         numpy_version = "not installed"
@@ -65,27 +68,25 @@ class InfoCommand(BaseCommand):
         return "Show system and environment information"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
-        parser.add_argument(
-            '--json',
-            action='store_true',
-            help='Output as JSON (for IDE integrations)'
-        )
+        parser.add_argument("--json", action="store_true", help="Output as JSON (for IDE integrations)")
 
     def run(self, args: Namespace) -> int:
         info = _gather_system_info(self.venv_path)
 
-        if getattr(args, 'json', False):
+        if getattr(args, "json", False):
             print(json_module.dumps(info))
             return 0
 
         console = self.console
 
         console.print()
-        console.print(Panel(
-            "💻 TinyTorch System & Environment Information",
-            title="System Info",
-            border_style="bright_cyan"
-        ))
+        console.print(
+            Panel(
+                "💻 TinyTorch System & Environment Information",
+                title="System Info",
+                border_style="bright_cyan",
+            )
+        )
         console.print()
 
         # System Information Table
@@ -106,7 +107,7 @@ class InfoCommand(BaseCommand):
 
         if venv_exists and in_venv:
             venv_status = "✅ OK"
-            venv_path_str = os.environ.get('VIRTUAL_ENV', str(self.venv_path))
+            venv_path_str = os.environ.get("VIRTUAL_ENV", str(self.venv_path))
         elif venv_exists:
             venv_status = "⚠️  Not Activated"
             venv_path_str = str(self.venv_path)
@@ -123,6 +124,7 @@ class InfoCommand(BaseCommand):
             info_table.add_row("TrenTorch Version", info["tinytorch_version"])
             try:
                 import trentorch
+
                 if trentorch.__file__:
                     info_table.add_row("  └─ Location", str(Path(trentorch.__file__).parent))
             except ImportError:
@@ -142,18 +144,23 @@ class InfoCommand(BaseCommand):
             free_gb = disk_usage.free / (1024**3)
             total_gb = disk_usage.total / (1024**3)
             used_percent = (disk_usage.used / disk_usage.total) * 100
-            info_table.add_row("Disk Space", f"{free_gb:.1f} GB free / {total_gb:.1f} GB total ({used_percent:.1f}% used)")
+            info_table.add_row(
+                "Disk Space", f"{free_gb:.1f} GB free / {total_gb:.1f} GB total ({used_percent:.1f}% used)"
+            )
         except Exception:
             info_table.add_row("Disk Space", "Unable to determine")
 
         # Memory
         try:
             import psutil
+
             mem = psutil.virtual_memory()
             free_gb = mem.available / (1024**3)
             total_gb = mem.total / (1024**3)
             used_percent = mem.percent
-            info_table.add_row("Memory", f"{free_gb:.1f} GB free / {total_gb:.1f} GB total ({used_percent:.1f}% used)")
+            info_table.add_row(
+                "Memory", f"{free_gb:.1f} GB free / {total_gb:.1f} GB total ({used_percent:.1f}% used)"
+            )
         except ImportError:
             info_table.add_row("Memory", "Install psutil for memory info")
         except Exception:
@@ -163,10 +170,12 @@ class InfoCommand(BaseCommand):
         console.print()
 
         # Helpful tips pointing to other commands
-        console.print(Panel(
-            "[dim]💡 For more information:[/dim]\n"
-            "• Run [cyan]tren system health[/cyan] for environment health check and validation",
-            border_style="blue"
-        ))
+        console.print(
+            Panel(
+                "[dim]💡 For more information:[/dim]\n"
+                "• Run [cyan]tren system health[/cyan] for environment health check and validation",
+                border_style="blue",
+            )
+        )
 
         return 0

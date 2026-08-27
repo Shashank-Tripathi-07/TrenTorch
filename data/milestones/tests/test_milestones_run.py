@@ -15,12 +15,11 @@ Usage:
     pytest tests/milestones/test_milestones_run.py -v -k "milestone_01"
 """
 
-import subprocess
-import sys
 import os
-import pytest
+import subprocess
 from pathlib import Path
 
+import pytest
 
 # Get the trentorch root directory
 TRENTORCH_ROOT = Path(__file__).parent.parent.parent.parent
@@ -43,8 +42,10 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
 
     cmd = [
         str(tren_script),
-        "milestone", "run", milestone_id,
-        "--skip-checks"  # Skip prerequisite checks since we're testing
+        "milestone",
+        "run",
+        milestone_id,
+        "--skip-checks",  # Skip prerequisite checks since we're testing
     ]
 
     if part is not None:
@@ -62,7 +63,7 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
         text=True,
         timeout=timeout,
         env=env,
-        input="n\nn\nn\n"  # Answer 'n' to any prompts
+        input="n\nn\nn\n",  # Answer 'n' to any prompts
     )
 
     return result.returncode, result.stdout, result.stderr
@@ -124,7 +125,8 @@ class TestMilestoneRuns:
         # Should achieve reasonable accuracy (>70%)
         # Look for accuracy numbers in the output
         import re
-        accuracy_matches = re.findall(r'(\d+(?:\.\d+)?)\s*%', stdout)
+
+        accuracy_matches = re.findall(r"(\d+(?:\.\d+)?)\s*%", stdout)
         if accuracy_matches:
             # Get the highest accuracy mentioned (likely final test accuracy)
             accuracies = [float(a) for a in accuracy_matches if float(a) <= 100]
@@ -144,7 +146,8 @@ class TestMilestoneRuns:
 
         # Should achieve good accuracy on reversal task (>90%)
         import re
-        accuracy_matches = re.findall(r'(\d+(?:\.\d+)?)\s*%', stdout)
+
+        accuracy_matches = re.findall(r"(\d+(?:\.\d+)?)\s*%", stdout)
         if accuracy_matches:
             accuracies = [float(a) for a in accuracy_matches if float(a) <= 100]
             if accuracies:
@@ -159,9 +162,9 @@ class TestMilestoneRuns:
         assert returncode == 0, f"Milestone 06 failed:\nstdout: {stdout}\nstderr: {stderr}"
 
         # Should mention optimization techniques
-        assert any(term in stdout.lower() for term in [
-            "quantiz", "compress", "cache", "kv", "speedup", "accelerat"
-        ])
+        assert any(
+            term in stdout.lower() for term in ["quantiz", "compress", "cache", "kv", "speedup", "accelerat"]
+        )
 
         # Should show compression ratio (4x for INT8)
         assert "4" in stdout and ("compress" in stdout.lower() or "×" in stdout or "x" in stdout.lower())

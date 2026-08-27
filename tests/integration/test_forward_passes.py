@@ -6,66 +6,84 @@ Tests that all architectures can do forward passes correctly.
 This validates the "plumbing" - data flows through without errors.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear
-from trentorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
-from trentorch.core.spatial import Conv2d
-from trentorch.core.transformers import TransformerBlock, LayerNorm
+from trentorch.core.activations import ReLU, Sigmoid, Softmax, Tanh
 from trentorch.core.embeddings import Embedding, PositionalEncoding
+from trentorch.core.layers import Linear
+from trentorch.core.spatial import Conv2d
+from trentorch.core.tensor import Tensor
+from trentorch.core.transformers import LayerNorm, TransformerBlock
+
 
 class Sequential:
     """Simple sequential container for testing."""
+
     def __init__(self, layers):
         self.layers = layers
+
     def __call__(self, x):
         for layer in self.layers:
             x = layer(x)
         return x
+
     def parameters(self):
         params = []
         for layer in self.layers:
-            if hasattr(layer, 'parameters'):
+            if hasattr(layer, "parameters"):
                 params.extend(layer.parameters())
         return params
 
+
 class F:
     """Functional interface for testing."""
+
     @staticmethod
     def relu(x):
         from trentorch.core.activations import ReLU
+
         return ReLU()(x)
+
     @staticmethod
     def sigmoid(x):
-        from trentorch.core.activations import Sigmoid
+
         return Sigmoid()(x)
+
     @staticmethod
     def tanh(x):
-        from trentorch.core.activations import Tanh
+
         return Tanh()(x)
+
     @staticmethod
     def softmax(x, dim=-1):
-        from trentorch.core.activations import Softmax
+
         return Softmax()(x)
+
     @staticmethod
     def max_pool2d(x, kernel_size):
         from trentorch.core.spatial import MaxPool2d
+
         return MaxPool2d(kernel_size)(x)
+
     @staticmethod
     def avg_pool2d(x, kernel_size):
         from trentorch.core.spatial import AvgPool2d
+
         return AvgPool2d(kernel_size)(x)
+
     @staticmethod
     def flatten(x, start_dim=1):
         import numpy as np
+
         shape = x.shape
         new_shape = shape[:start_dim] + (np.prod(shape[start_dim:]),)
         return x.reshape(*new_shape)
@@ -93,7 +111,7 @@ class ForwardPassTester:
     def summary(self):
         """Print test summary."""
         total = len(self.passed) + len(self.failed)
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"FORWARD PASS TESTS: {len(self.passed)}/{total} passed")
         if self.failed:
             print("\nFailed tests:")
@@ -215,6 +233,7 @@ def test_batchnorm_forward():
     # Skip if not implemented
     try:
         from trentorch.nn import BatchNorm1d
+
         layer = BatchNorm1d(128)
         x = Tensor(rng.standard_normal((32, 128)))
         y = layer(x)
@@ -226,13 +245,7 @@ def test_batchnorm_forward():
 # Test complex architectures
 def test_sequential_forward():
     """Test Sequential container."""
-    model = Sequential([
-        Linear(10, 20),
-        ReLU(),
-        Linear(20, 30),
-        ReLU(),
-        Linear(30, 5)
-    ])
+    model = Sequential([Linear(10, 20), ReLU(), Linear(20, 30), ReLU(), Linear(30, 5)])
     x = Tensor(rng.standard_normal((4, 10)))
     y = model(x)
     assert y.shape == (4, 5)
@@ -240,6 +253,7 @@ def test_sequential_forward():
 
 def test_mlp_forward():
     """Test Multi-Layer Perceptron."""
+
     class MLP:
         def __init__(self):
             self.fc1 = Linear(784, 256)
@@ -265,6 +279,7 @@ def test_cnn_forward():
     real MNIST batch. The naive Conv2d loop implementation made the
     original (16, 1, 28, 28) size take ~17s here alone.
     """
+
     class CNN:
         def __init__(self):
             self.conv1 = Conv2d(1, 32, 3)
@@ -289,6 +304,7 @@ def test_cnn_forward():
 
 def test_transformer_forward():
     """Test Transformer architecture."""
+
     class SimpleTransformer:
         def __init__(self):
             self.embed = Embedding(1000, 128)  # vocab_size=1000, embed_dim=128
@@ -324,6 +340,7 @@ def test_residual_block_forward():
     residual block's convs are channels-to-channels) made the original
     64-channel size take ~16s here alone.
     """
+
     class ResidualBlock:
         def __init__(self, channels):
             self.conv1 = Conv2d(channels, channels, 3, padding=1)
@@ -344,10 +361,10 @@ def test_residual_block_forward():
 
 def run_all_forward_tests():
     """Run comprehensive forward pass tests."""
-    print("="*60)
+    print("=" * 60)
     print("FORWARD PASS TEST SUITE")
     print("Testing data flow through all layer types")
-    print("="*60)
+    print("=" * 60)
 
     tester = ForwardPassTester()
 

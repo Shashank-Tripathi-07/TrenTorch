@@ -35,5 +35,6 @@ def _get_version() -> str:
         pass
     return "0.0.0-dev"
 
+
 __version__ = _get_version()
 __author__ = "TinyTorch Team"

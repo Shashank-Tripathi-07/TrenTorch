@@ -6,14 +6,16 @@ This test verifies that MatmulBackward correctly handles batched 3D+ tensors
 using np.matmul and np.swapaxes instead of np.dot and .T
 """
 
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
 
 import numpy as np
+
 rng = np.random.default_rng(7)
-from trentorch.core.tensor import Tensor
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
 
 # Enable autograd
 enable_autograd()
@@ -114,9 +116,9 @@ def test_attention_output_matmul():
 
 def run_all_tests():
     """Run all batched matmul backward tests."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("BATCHED MATMUL BACKWARD TEST SUITE")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     tests = [
         test_batched_3d_matmul_backward,
@@ -134,14 +136,15 @@ def run_all_tests():
         except Exception as e:
             print(f"❌ {test_func.__name__} FAILED: {e}")
             import traceback
+
             traceback.print_exc()
             failed += 1
 
-    print("="*70)
+    print("=" * 70)
     print(f"RESULTS: {passed} passed, {failed} failed")
     if failed == 0:
         print("✅ All batched matmul backward tests passed!")
-    print("="*70)
+    print("=" * 70)
 
     return failed == 0
 

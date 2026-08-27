@@ -5,8 +5,9 @@ Tests cross-module interfaces and compatibility between individual Layers and De
 Focuses on integration, not re-testing individual module functionality.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 from test_utils import setup_integration_test
 
@@ -14,9 +15,9 @@ from test_utils import setup_integration_test
 setup_integration_test()
 
 # Import ONLY from TrenTorch package
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear, Sequential
 from trentorch.core.activations import ReLU, Sigmoid, Tanh
+from trentorch.core.layers import Linear, Sequential
+from trentorch.core.tensor import Tensor
 
 
 class TestLayersDenseNetworkInterface:
@@ -66,11 +67,7 @@ class TestLayersDenseNetworkInterface:
         preprocessor = Linear(5, 8)
 
         # Create network that processes preprocessor output
-        network = Sequential([
-            Linear(8, 12),
-            ReLU(),
-            Linear(12, 4)
-        ])
+        network = Sequential([Linear(8, 12), ReLU(), Linear(12, 4)])
 
         # Test pipeline: input → layer → network
         x = Tensor(rng.standard_normal((3, 5)))
@@ -110,19 +107,15 @@ class TestLayerNetworkDataFlow:
     def test_shape_preservation_across_layer_network_boundary(self):
         """Test shape preservation when crossing layer-network boundaries."""
         shape_configs = [
-            (1, 4, 8, 2),    # Single sample
-            (5, 6, 10, 3),   # Small batch
+            (1, 4, 8, 2),  # Single sample
+            (5, 6, 10, 3),  # Small batch
             (10, 8, 16, 4),  # Larger batch
         ]
 
         for batch_size, input_size, hidden_size, output_size in shape_configs:
             # Create layer and network
             layer = Linear(input_size, hidden_size)
-            network = Sequential([
-                Linear(hidden_size, hidden_size),
-            ReLU(),
-                Linear(hidden_size, output_size)
-            ])
+            network = Sequential([Linear(hidden_size, hidden_size), ReLU(), Linear(hidden_size, output_size)])
 
             # Test data flow
             x = Tensor(rng.standard_normal((batch_size, input_size)))
@@ -130,8 +123,12 @@ class TestLayerNetworkDataFlow:
             network_out = network(layer_out)
 
             # Verify shape flow
-            assert layer_out.shape == (batch_size, hidden_size), f"Layer should output correct shape for config {shape_configs}"
-            assert network_out.shape == (batch_size, output_size), f"Network should output correct shape for config {shape_configs}"
+            assert layer_out.shape == (batch_size, hidden_size), (
+                f"Layer should output correct shape for config {shape_configs}"
+            )
+            assert network_out.shape == (batch_size, output_size), (
+                f"Network should output correct shape for config {shape_configs}"
+            )
 
     def test_dtype_normalization_across_layer_network_boundary(self):
         """Test that TrenTorch normalizes all data to float32 consistently."""
@@ -167,11 +164,13 @@ class TestLayerNetworkDataFlow:
 
         # Should fail gracefully with dimension mismatch
         try:
-            result = mismatched_network(layer_output)  # Expects (1, 8)
+            mismatched_network(layer_output)  # Expects (1, 8)
             assert False, "Should have failed with dimension mismatch"
         except (ValueError, AssertionError, TypeError) as e:
             # Expected behavior
-            assert isinstance(e, (ValueError, AssertionError, TypeError)), "Should fail gracefully with dimension mismatch"
+            assert isinstance(e, (ValueError, AssertionError, TypeError)), (
+                "Should fail gracefully with dimension mismatch"
+            )
 
 
 class TestLayerNetworkSystemIntegration:
@@ -183,11 +182,7 @@ class TestLayerNetworkSystemIntegration:
         preprocessor = Linear(8, 12)
 
         # Stage 2: Feature extraction network
-        feature_extractor = Sequential([
-            Linear(12, 16),
-            ReLU(),
-            Linear(16, 10)
-        ])
+        feature_extractor = Sequential([Linear(12, 16), ReLU(), Linear(16, 10)])
 
         # Stage 3: Classification layer
         classifier = Linear(10, 3)
@@ -213,11 +208,13 @@ class TestLayerNetworkSystemIntegration:
         branch3 = Linear(6, 4)
 
         # Fusion network
-        fusion_network = Sequential([
-            Linear(12, 8),  # 4+4+4=12 from parallel branches
-            ReLU(),
-            Linear(8, 2)
-        ])
+        fusion_network = Sequential(
+            [
+                Linear(12, 8),  # 4+4+4=12 from parallel branches
+                ReLU(),
+                Linear(8, 2),
+            ]
+        )
 
         # Test parallel processing
         x = Tensor(rng.standard_normal((2, 6)))
@@ -286,7 +283,7 @@ class TestLayerNetworkInterfaceStandards:
             Linear(4, 6),
             Sequential([Linear(4, 6)]),
             Sequential([Linear(4, 8), ReLU(), Linear(8, 6)]),
-            Sequential([Linear(4, 8), ReLU(), Linear(8, 6)])
+            Sequential([Linear(4, 8), ReLU(), Linear(8, 6)]),
         ]
 
         x = Tensor(rng.standard_normal((1, 4)))
@@ -317,9 +314,9 @@ class TestLayerNetworkInterfaceStandards:
             results.append(result)
 
             # Verify consistent interface properties
-            assert hasattr(result, 'shape'), f"{type(component).__name__} result should have shape"
-            assert hasattr(result, 'data'), f"{type(component).__name__} result should have data"
-            assert hasattr(result, 'dtype'), f"{type(component).__name__} result should have dtype"
+            assert hasattr(result, "shape"), f"{type(component).__name__} result should have shape"
+            assert hasattr(result, "data"), f"{type(component).__name__} result should have data"
+            assert hasattr(result, "dtype"), f"{type(component).__name__} result should have dtype"
 
         # All should produce same output shape
         expected_shape = (2, 5)

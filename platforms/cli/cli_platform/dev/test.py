@@ -12,20 +12,16 @@ Simple, explicit test types:
 Think like PyTorch: explicit, predictable, one way to do things.
 """
 
+import json
 import os
 import subprocess
 import sys
 import time
-import json
 from argparse import ArgumentParser, Namespace
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass, field
 
 from rich.panel import Panel
-from rich.table import Table
-from rich.console import Console
-from rich import box
 
 from platforms.cli.commands.base import BaseCommand
 
@@ -33,6 +29,7 @@ from platforms.cli.commands.base import BaseCommand
 @dataclass
 class TestResult:
     """Result of a test phase."""
+
     name: str
     passed: bool
     duration: float = 0.0
@@ -54,75 +51,42 @@ class DevTestCommand(BaseCommand):
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add test command arguments."""
         # Test type flags (can combine multiple)
-        parser.add_argument(
-            "--unit", "-u",
-            action="store_true",
-            help="Run unit tests (module-level)"
-        )
-        parser.add_argument(
-            "--integration", "-i",
-            action="store_true",
-            help="Run integration tests"
-        )
-        parser.add_argument(
-            "--e2e", "-e",
-            action="store_true",
-            help="Run end-to-end tests"
-        )
-        parser.add_argument(
-            "--cli",
-            action="store_true",
-            help="Run CLI tests"
-        )
-        parser.add_argument(
-            "--all", "-a",
-            action="store_true",
-            help="Run all test types"
-        )
+        parser.add_argument("--unit", "-u", action="store_true", help="Run unit tests (module-level)")
+        parser.add_argument("--integration", "-i", action="store_true", help="Run integration tests")
+        parser.add_argument("--e2e", "-e", action="store_true", help="Run end-to-end tests")
+        parser.add_argument("--cli", action="store_true", help="Run CLI tests")
+        parser.add_argument("--all", "-a", action="store_true", help="Run all test types")
         parser.add_argument(
             "--user-journey",
             action="store_true",
             dest="user_journey",
-            help="Full user journey validation (runs every milestone, then verifies tren system reset)"
+            help="Full user journey validation (runs every milestone, then verifies tren system reset)",
         )
         parser.add_argument(
             "--release",
             action="store_true",
             dest="user_journey",
-            help="Alias for --user-journey; full destructive release validation"
+            help="Alias for --user-journey; full destructive release validation",
         )
         parser.add_argument(
             "--milestone",
             action="store_true",
-            help="Run milestone tests (validates milestone scripts execute)"
+            help="Run milestone tests (validates milestone scripts execute)",
         )
         parser.add_argument(
             "--inline",
             action="store_true",
-            help="Run inline tests from src/ (progressive: test + export each module)"
+            help="Run inline tests from src/ (progressive: test + export each module)",
         )
 
         # Options
         parser.add_argument(
-            "--module", "-m",
-            type=str,
-            metavar="N",
-            help="Test specific module (e.g., -m 06)"
+            "--module", "-m", type=str, metavar="N", help="Test specific module (e.g., -m 06)"
         )
+        parser.add_argument("--verbose", "-v", action="store_true", help="Show detailed output")
+        parser.add_argument("--ci", action="store_true", help="CI mode: JSON output, strict exit codes")
         parser.add_argument(
-            "--verbose", "-v",
-            action="store_true",
-            help="Show detailed output"
-        )
-        parser.add_argument(
-            "--ci",
-            action="store_true",
-            help="CI mode: JSON output, strict exit codes"
-        )
-        parser.add_argument(
-            "--no-build",
-            action="store_true",
-            help="Skip package build (assumes already exported)"
+            "--no-build", action="store_true", help="Skip package build (assumes already exported)"
         )
         parser.add_argument(
             "--parallel",
@@ -134,7 +98,7 @@ class DevTestCommand(BaseCommand):
                 "surfaced an order-dependent failure under integration that didn't "
                 "occur serially. CLI (-43%% wall time) and E2E (-29%%) measured "
                 "clean with identical pass/fail results as serial."
-            )
+            ),
         )
 
     def run(self, args: Namespace) -> int:
@@ -145,8 +109,25 @@ class DevTestCommand(BaseCommand):
 
         # Determine what tests to run
         run_inline = args.inline or args.all
-        run_user_journey = getattr(args, 'user_journey', False)
-        run_unit = args.unit or args.all or (not any([args.unit, args.integration, args.e2e, args.cli, args.all, run_user_journey, args.milestone, args.inline]))
+        run_user_journey = getattr(args, "user_journey", False)
+        run_unit = (
+            args.unit
+            or args.all
+            or (
+                not any(
+                    [
+                        args.unit,
+                        args.integration,
+                        args.e2e,
+                        args.cli,
+                        args.all,
+                        run_user_journey,
+                        args.milestone,
+                        args.inline,
+                    ]
+                )
+            )
+        )
         run_integration = args.integration or args.all
         run_e2e = args.e2e or args.all
         run_cli = args.cli or args.all
@@ -174,27 +155,29 @@ class DevTestCommand(BaseCommand):
             console.print()
             test_desc = ", ".join(test_types) if test_types else "unit"
             module_desc = f" (module {args.module})" if args.module else ""
-            console.print(Panel(
-                f"[bold cyan]🧪 Running: {test_desc}{module_desc}[/bold cyan]\n\n"
-                f"[bold]Test Types:[/bold]\n"
-                f"  [bold]--inline[/bold]           Inline tests from src/ (progressive)\n"
-                f"  [bold]--unit[/bold] (-u)        Pytest unit tests\n"
-                f"  [bold]--integration[/bold] (-i) Cross-module integration tests\n"
-                f"  [bold]--e2e[/bold] (-e)         End-to-end user journey tests\n"
-                f"  [bold]--cli[/bold]              CLI command tests\n"
-                f"  [bold]--milestone[/bold]        Milestone script tests\n"
-                f"  [bold]--all[/bold] (-a)         All of the above\n"
-                f"  [bold]--user-journey[/bold]     Full user journey (all milestones, then verifies reset)\n\n"
-                f"[bold]Options:[/bold]\n"
-                f"  [bold]-m N[/bold]               Test specific module\n"
-                f"  [bold]--no-build[/bold]         Skip export (assume already built)\n"
-                f"  [bold]--ci[/bold]               JSON output for automation",
-                title="🔥 TinyTorch Developer Tests",
-                border_style="cyan"
-            ))
+            console.print(
+                Panel(
+                    f"[bold cyan]🧪 Running: {test_desc}{module_desc}[/bold cyan]\n\n"
+                    f"[bold]Test Types:[/bold]\n"
+                    f"  [bold]--inline[/bold]           Inline tests from src/ (progressive)\n"
+                    f"  [bold]--unit[/bold] (-u)        Pytest unit tests\n"
+                    f"  [bold]--integration[/bold] (-i) Cross-module integration tests\n"
+                    f"  [bold]--e2e[/bold] (-e)         End-to-end user journey tests\n"
+                    f"  [bold]--cli[/bold]              CLI command tests\n"
+                    f"  [bold]--milestone[/bold]        Milestone script tests\n"
+                    f"  [bold]--all[/bold] (-a)         All of the above\n"
+                    f"  [bold]--user-journey[/bold]     Full user journey (all milestones, then verifies reset)\n\n"
+                    f"[bold]Options:[/bold]\n"
+                    f"  [bold]-m N[/bold]               Test specific module\n"
+                    f"  [bold]--no-build[/bold]         Skip export (assume already built)\n"
+                    f"  [bold]--ci[/bold]               JSON output for automation",
+                    title="🔥 TinyTorch Developer Tests",
+                    border_style="cyan",
+                )
+            )
             console.print()
 
-        results: List[TestResult] = []
+        results: list[TestResult] = []
 
         # =====================================================================
         # Step 1: Build Package (unless --no-build, release, or inline mode)
@@ -332,12 +315,15 @@ class DevTestCommand(BaseCommand):
         """
         try:
             result = subprocess.run(
-                [sys.executable, "-c",
-                 "import sys; sys.path.insert(0, 'data'); "
-                 "from trentorch import Tensor; assert Tensor is not None"],
+                [
+                    sys.executable,
+                    "-c",
+                    "import sys; sys.path.insert(0, 'data'); "
+                    "from trentorch import Tensor; assert Tensor is not None",
+                ],
                 cwd=project_root,
                 capture_output=True,
-                timeout=10
+                timeout=10,
             )
             return result.returncode == 0
         except Exception:
@@ -356,10 +342,10 @@ class DevTestCommand(BaseCommand):
         start = time.time()
 
         if ci_mode:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print("  BUILD PACKAGE")
             print("  Command: tito dev export --all")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
 
         try:
             # Use 'dev export --all' to build the package from src/
@@ -376,13 +362,13 @@ class DevTestCommand(BaseCommand):
                     text=True,
                     encoding="utf-8",
                     errors="replace",
-                    bufsize=1
+                    bufsize=1,
                 )
 
                 for line in process.stdout:
                     line = line.rstrip()
                     # Show key progress lines
-                    if any(x in line for x in ['Converting', 'Exported', '✅', '❌', 'Module']):
+                    if any(x in line for x in ["Converting", "Exported", "✅", "❌", "Module"]):
                         print(f"  {line}")
 
                 process.wait(timeout=600)
@@ -396,77 +382,75 @@ class DevTestCommand(BaseCommand):
                     text=True,
                     encoding="utf-8",
                     errors="replace",
-                    timeout=600  # 10 minutes for full build
+                    timeout=600,  # 10 minutes for full build
                 )
                 returncode = result.returncode
-                stderr = result.stderr if hasattr(result, 'stderr') else ""
+                stderr = result.stderr if hasattr(result, "stderr") else ""
 
             if ci_mode:
-                print(f"{'='*60}")
+                print(f"{'=' * 60}")
                 if returncode == 0:
                     print("  RESULT: BUILD SUCCESS")
                 else:
                     print("  RESULT: BUILD FAILED")
-                print(f"{'='*60}\n")
+                print(f"{'=' * 60}\n")
 
             if returncode == 0:
-                return TestResult(
-                    name="Build package",
-                    passed=True,
-                    duration=time.time() - start
-                )
+                return TestResult(name="Build package", passed=True, duration=time.time() - start)
             else:
                 return TestResult(
                     name="Build package",
                     passed=False,
                     duration=time.time() - start,
-                    message=stderr[:200] if stderr else "Build failed"
+                    message=stderr[:200] if stderr else "Build failed",
                 )
         except subprocess.TimeoutExpired:
             return TestResult(
                 name="Build package",
                 passed=False,
                 duration=time.time() - start,
-                message="Timed out after 10 minutes"
+                message="Timed out after 10 minutes",
             )
         except Exception as e:
             return TestResult(
-                name="Build package",
-                passed=False,
-                duration=time.time() - start,
-                message=str(e)[:100]
+                name="Build package", passed=False, duration=time.time() - start, message=str(e)[:100]
             )
 
-    def _run_pytest(self, project_root: Path, test_path: str, name: str,
-                    verbose: bool, timeout: int = 300, extra_args: List[str] = None,
-                    ci_mode: bool = False) -> TestResult:
+    def _run_pytest(
+        self,
+        project_root: Path,
+        test_path: str,
+        name: str,
+        verbose: bool,
+        timeout: int = 300,
+        extra_args: list[str] = None,
+        ci_mode: bool = False,
+    ) -> TestResult:
         """Run pytest on a path and return result."""
-        import re
         import os
+        import re
+
         start = time.time()
         full_path = project_root / test_path
 
         if not full_path.exists():
-            return TestResult(
-                name=name,
-                passed=True,
-                duration=0,
-                message="No tests found"
-            )
+            return TestResult(name=name, passed=True, duration=0, message="No tests found")
 
         # Set up environment with project root in PYTHONPATH
         # This allows tests to import from tinytorch.core.*
         env = os.environ.copy()
-        pythonpath = env.get('PYTHONPATH', '')
+        pythonpath = env.get("PYTHONPATH", "")
         if pythonpath:
-            env['PYTHONPATH'] = f"{project_root}{os.pathsep}{pythonpath}"
+            env["PYTHONPATH"] = f"{project_root}{os.pathsep}{pythonpath}"
         else:
-            env['PYTHONPATH'] = str(project_root)
+            env["PYTHONPATH"] = str(project_root)
 
         try:
             # In CI mode, use verbose output for better visibility
             cmd = [
-                sys.executable, "-m", "pytest",
+                sys.executable,
+                "-m",
+                "pytest",
                 str(full_path),
                 "-v",  # Always verbose in CI for visibility
                 "--tb=short",
@@ -477,10 +461,10 @@ class DevTestCommand(BaseCommand):
 
             if ci_mode:
                 # Print header for CI visibility
-                print(f"\n{'='*60}")
+                print(f"\n{'=' * 60}")
                 print(f"  {name.upper()}")
                 print(f"  Path: {test_path}")
-                print(f"{'='*60}")
+                print(f"{'=' * 60}")
 
                 # Stream output in CI mode
                 process = subprocess.Popen(
@@ -492,7 +476,7 @@ class DevTestCommand(BaseCommand):
                     text=True,
                     encoding="utf-8",
                     errors="replace",
-                    bufsize=1
+                    bufsize=1,
                 )
 
                 output_lines = []
@@ -506,41 +490,47 @@ class DevTestCommand(BaseCommand):
                     output_lines.append(line)
 
                     # Print test results as they happen
-                    if '::' in line and (' PASSED' in line or ' FAILED' in line or ' ERROR' in line or ' SKIPPED' in line):
+                    if "::" in line and (
+                        " PASSED" in line or " FAILED" in line or " ERROR" in line or " SKIPPED" in line
+                    ):
                         # Extract test name and status
-                        if ' PASSED' in line:
+                        if " PASSED" in line:
                             passed_count += 1
-                            status = '✓'
-                        elif ' FAILED' in line:
+                            status = "✓"
+                        elif " FAILED" in line:
                             failed_count += 1
-                            status = '✗'
-                        elif ' ERROR' in line:
+                            status = "✗"
+                        elif " ERROR" in line:
                             failed_count += 1
-                            status = '!'
+                            status = "!"
                         else:
-                            status = '-'
+                            status = "-"
                         # Extract just the test name
-                        test_name = line.split('::')[-1].split()[0] if '::' in line else line
+                        test_name = line.split("::")[-1].split()[0] if "::" in line else line
                         print(f"  {status} {test_name}")
                         test_count += 1
-                    elif line.startswith('ERROR '):
+                    elif line.startswith("ERROR "):
                         # Collection errors (no :: in the line)
                         error_count += 1
                         print(f"  ERROR {line[6:]}")
-                    elif line.startswith('FAILED'):
+                    elif line.startswith("FAILED"):
                         print(f"  {line}")
-                    elif 'ImportError' in line or 'ModuleNotFoundError' in line or 'No module named' in line:
+                    elif "ImportError" in line or "ModuleNotFoundError" in line or "No module named" in line:
                         # Show import errors for debugging
                         print(f"  >>> {line}")
-                    elif line.startswith('E ') or line.startswith('    '):
+                    elif line.startswith("E ") or line.startswith("    "):
                         # Show traceback lines (E prefix or indented)
-                        if 'import' in line.lower() or 'module' in line.lower() or 'not found' in line.lower():
+                        if (
+                            "import" in line.lower()
+                            or "module" in line.lower()
+                            or "not found" in line.lower()
+                        ):
                             print(f"  >>> {line}")
 
                 process.wait(timeout=timeout)
 
                 # Print summary
-                print(f"{'='*60}")
+                print(f"{'=' * 60}")
                 if process.returncode == 0:
                     print(f"  RESULT: {passed_count} tests PASSED")
                 else:
@@ -551,7 +541,7 @@ class DevTestCommand(BaseCommand):
                         parts.append(f"{failed_count} failed")
                     parts.append(f"{passed_count} passed")
                     print(f"  RESULT: {', '.join(parts)}")
-                print(f"{'='*60}\n")
+                print(f"{'=' * 60}\n")
 
                 if process.returncode == 0:
                     return TestResult(
@@ -559,7 +549,7 @@ class DevTestCommand(BaseCommand):
                         passed=True,
                         duration=time.time() - start,
                         test_count=test_count,
-                        message=f"{passed_count} passed"
+                        message=f"{passed_count} passed",
                     )
                 else:
                     # Include errors in the failure message
@@ -569,7 +559,7 @@ class DevTestCommand(BaseCommand):
                         passed=False,
                         duration=time.time() - start,
                         test_count=test_count,
-                        message=f"{total_failures} failed/errors, {passed_count} passed"
+                        message=f"{total_failures} failed/errors, {passed_count} passed",
                     )
             else:
                 # Non-CI mode: capture output
@@ -581,16 +571,16 @@ class DevTestCommand(BaseCommand):
                     text=True,
                     encoding="utf-8",
                     errors="replace",
-                    timeout=timeout
+                    timeout=timeout,
                 )
 
                 # Count tests from output
                 test_count = 0
                 summary = ""
-                for line in result.stdout.split('\n'):
-                    if 'passed' in line:
+                for line in result.stdout.split("\n"):
+                    if "passed" in line:
                         summary = line.strip()
-                        match = re.search(r'(\d+) passed', line)
+                        match = re.search(r"(\d+) passed", line)
                         if match:
                             test_count = int(match.group(1))
                         break
@@ -601,37 +591,33 @@ class DevTestCommand(BaseCommand):
                         passed=True,
                         duration=time.time() - start,
                         test_count=test_count,
-                        message=summary
+                        message=summary,
                     )
                 else:
                     # Extract failure info
-                    for line in result.stdout.split('\n'):
-                        if 'failed' in line.lower() or 'error' in line.lower():
+                    for line in result.stdout.split("\n"):
+                        if "failed" in line.lower() or "error" in line.lower():
                             summary = line.strip()[:80]
                             break
                     return TestResult(
                         name=name,
                         passed=False,
                         duration=time.time() - start,
-                        message=summary or "Tests failed"
+                        message=summary or "Tests failed",
                     )
         except subprocess.TimeoutExpired:
             return TestResult(
                 name=name,
                 passed=False,
                 duration=time.time() - start,
-                message=f"Timed out after {timeout//60} minutes"
+                message=f"Timed out after {timeout // 60} minutes",
             )
         except Exception as e:
-            return TestResult(
-                name=name,
-                passed=False,
-                duration=time.time() - start,
-                message=str(e)[:100]
-            )
+            return TestResult(name=name, passed=False, duration=time.time() - start, message=str(e)[:100])
 
-    def _run_inline_tests(self, project_root: Path, module: Optional[str],
-                          verbose: bool, ci_mode: bool) -> TestResult:
+    def _run_inline_tests(
+        self, project_root: Path, module: str | None, verbose: bool, ci_mode: bool
+    ) -> TestResult:
         """Run inline tests from src/ files progressively.
 
         This simulates the student journey:
@@ -649,9 +635,11 @@ class DevTestCommand(BaseCommand):
         after via the full local test suite.
         """
         import io
+
         from rich.console import Console as RichConsole
-        from platforms.cli.core.modules import get_module_mapping
+
         from platforms.cli.cli_platform.dev.export import DevExportCommand
+        from platforms.cli.core.modules import get_module_mapping
         from platforms.cli.processes.module_workflow import ModuleWorkflowCommand
 
         start = time.time()
@@ -666,12 +654,13 @@ class DevTestCommand(BaseCommand):
                     name=f"Inline tests (module {module_num})",
                     passed=False,
                     duration=0,
-                    message=f"Module {module_num} not found"
+                    message=f"Module {module_num} not found",
                 )
             # Test up to and including the specified module
             target_int = int(module_num)
-            module_nums = [m for m in sorted(module_mapping.keys(), key=lambda x: int(x))
-                          if int(m) <= target_int]
+            module_nums = [
+                m for m in sorted(module_mapping.keys(), key=lambda x: int(x)) if int(m) <= target_int
+            ]
         else:
             module_nums = sorted(module_mapping.keys(), key=lambda x: int(x))
 
@@ -680,9 +669,9 @@ class DevTestCommand(BaseCommand):
 
         # Print header for CI visibility
         if ci_mode:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"  INLINE TESTS: Testing {len(module_nums)} modules progressively")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
 
         # dev export and module complete both print verbose Rich panels
         # unconditionally. The subprocess version relied on
@@ -709,7 +698,11 @@ class DevTestCommand(BaseCommand):
 
                 # Always show module progress (important for CI visibility)
                 if ci_mode:
-                    print(f"  [{passed_modules + 1}/{len(module_nums)}] Module {module_num}: {module_name}...", end=" ", flush=True)
+                    print(
+                        f"  [{passed_modules + 1}/{len(module_nums)}] Module {module_num}: {module_name}...",
+                        end=" ",
+                        flush=True,
+                    )
                 else:
                     console.print(f"  [dim]Module {module_num} ({module_name})...[/dim]")
 
@@ -726,15 +719,17 @@ class DevTestCommand(BaseCommand):
                         print(f"✗ EXPORT ERROR: {str(e)[:200]}")
                     break
                 if ci_mode and os.environ.get("TREN_PROFILE") == "1":
-                    print(f"\n      [TREN_PROFILE] {module_num} export in-process: {time.time() - _profile_export_start:.2f}s")
+                    print(
+                        f"\n      [TREN_PROFILE] {module_num} export in-process: {time.time() - _profile_export_start:.2f}s"
+                    )
                 if export_rc != 0:
                     failed_module = f"{module_num}:export"
                     if ci_mode:
                         print("✗ EXPORT FAILED")
                         buf = quiet_buffer.getvalue()
                         if buf:
-                            print(f"      Output (last 500 chars):")
-                            for line in buf[-500:].split('\n')[-10:]:
+                            print("      Output (last 500 chars):")
+                            for line in buf[-500:].split("\n")[-10:]:
                                 if line.strip():
                                     print(f"        {line}")
                     break
@@ -757,26 +752,28 @@ class DevTestCommand(BaseCommand):
                     break
 
                 if ci_mode and _profile_on:
-                    print(f"      [TREN_PROFILE] {module_num} complete in-process: {time.time() - _profile_complete_start:.2f}s")
+                    print(
+                        f"      [TREN_PROFILE] {module_num} complete in-process: {time.time() - _profile_complete_start:.2f}s"
+                    )
 
                 if rc == 0:
                     passed_modules += 1
                     if ci_mode:
                         print("✓ PASSED")
                     else:
-                        console.print(f"    [green]✓[/green] Passed")
+                        console.print("    [green]✓[/green] Passed")
                 else:
                     failed_module = f"{module_num}:{module_name}"
                     if ci_mode:
                         print("✗ FAILED")
                         buf = quiet_buffer.getvalue()
                         if buf:
-                            print(f"      Error output:")
-                            for line in buf.split('\n')[-15:]:
+                            print("      Error output:")
+                            for line in buf.split("\n")[-15:]:
                                 if line.strip():
                                     print(f"        {line}")
                     else:
-                        console.print(f"    [red]✗[/red] Failed")
+                        console.print("    [red]✗[/red] Failed")
                     break
         finally:
             if prev_verify is None:
@@ -786,12 +783,12 @@ class DevTestCommand(BaseCommand):
 
         # Print summary for CI
         if ci_mode:
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             if failed_module:
                 print(f"  RESULT: FAILED at {failed_module}")
             else:
                 print(f"  RESULT: ALL {passed_modules} MODULES PASSED")
-            print(f"{'='*60}\n")
+            print(f"{'=' * 60}\n")
 
         duration = time.time() - start
 
@@ -801,7 +798,7 @@ class DevTestCommand(BaseCommand):
                 passed=False,
                 duration=duration,
                 test_count=passed_modules,
-                message=f"Failed at {failed_module}"
+                message=f"Failed at {failed_module}",
             )
         else:
             return TestResult(
@@ -809,10 +806,12 @@ class DevTestCommand(BaseCommand):
                 passed=True,
                 duration=duration,
                 test_count=passed_modules,
-                message=f"{passed_modules}/{len(module_nums)} modules passed"
+                message=f"{passed_modules}/{len(module_nums)} modules passed",
             )
 
-    def _run_unit_tests(self, project_root: Path, module: Optional[str], verbose: bool, ci_mode: bool = False) -> TestResult:
+    def _run_unit_tests(
+        self, project_root: Path, module: str | None, verbose: bool, ci_mode: bool = False
+    ) -> TestResult:
         """Run unit tests.
 
         Per-module unit tests live at data/src/<NN_name>/tests/, moved
@@ -833,7 +832,7 @@ class DevTestCommand(BaseCommand):
                     name=f"Unit tests (module {module_num})",
                     passed=True,
                     duration=0,
-                    message="No tests found for this module"
+                    message="No tests found for this module",
                 )
             test_path = str(test_dirs[0].relative_to(project_root))
             name = f"Unit tests (module {module_num})"
@@ -842,12 +841,12 @@ class DevTestCommand(BaseCommand):
             name = "Unit tests"
 
         return self._run_pytest(
-            project_root, test_path, name, verbose,
-            extra_args=["-m", "not slow"],
-            ci_mode=ci_mode
+            project_root, test_path, name, verbose, extra_args=["-m", "not slow"], ci_mode=ci_mode
         )
 
-    def _run_cli_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False, parallel: bool = False) -> TestResult:
+    def _run_cli_tests(
+        self, project_root: Path, verbose: bool, ci_mode: bool = False, parallel: bool = False
+    ) -> TestResult:
         """Run CLI tests.
 
         Moved to platforms/cli/tests/ in the vertical-slice restructuring
@@ -856,7 +855,15 @@ class DevTestCommand(BaseCommand):
         actually running the CLI suite until fixed.
         """
         extra_args = ["-n", "auto"] if parallel else None
-        return self._run_pytest(project_root, "platforms/cli/tests", "CLI tests", verbose, timeout=120, extra_args=extra_args, ci_mode=ci_mode)
+        return self._run_pytest(
+            project_root,
+            "platforms/cli/tests",
+            "CLI tests",
+            verbose,
+            timeout=120,
+            extra_args=extra_args,
+            ci_mode=ci_mode,
+        )
 
     def _run_integration_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:
         """Run integration tests.
@@ -868,16 +875,25 @@ class DevTestCommand(BaseCommand):
         Needs the flaky tests fixed and reproducibility confirmed before
         this is safe to parallelize.
         """
-        return self._run_pytest(project_root, "tests/integration", "Integration tests", verbose, ci_mode=ci_mode)
+        return self._run_pytest(
+            project_root, "tests/integration", "Integration tests", verbose, ci_mode=ci_mode
+        )
 
-    def _run_e2e_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False, parallel: bool = False) -> TestResult:
+    def _run_e2e_tests(
+        self, project_root: Path, verbose: bool, ci_mode: bool = False, parallel: bool = False
+    ) -> TestResult:
         """Run E2E tests."""
         extra_args = ["-m", "quick"]
         if parallel:
             extra_args += ["-n", "auto"]
         return self._run_pytest(
-            project_root, "tests/e2e", "E2E tests", verbose,
-            timeout=600, extra_args=extra_args, ci_mode=ci_mode
+            project_root,
+            "tests/e2e",
+            "E2E tests",
+            verbose,
+            timeout=600,
+            extra_args=extra_args,
+            ci_mode=ci_mode,
         )
 
     def _run_milestone_tests(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:
@@ -890,8 +906,13 @@ class DevTestCommand(BaseCommand):
         (from tests/milestones/).
         """
         return self._run_pytest(
-            project_root, "data/milestones/tests", "Milestone tests", verbose,
-            timeout=900, extra_args=["-m", "slow or not slow"], ci_mode=ci_mode  # 15 min, run all including slow tests
+            project_root,
+            "data/milestones/tests",
+            "Milestone tests",
+            verbose,
+            timeout=900,
+            extra_args=["-m", "slow or not slow"],
+            ci_mode=ci_mode,  # 15 min, run all including slow tests
         )
 
     def _run_user_journey(self, project_root: Path, args: Namespace) -> TestResult:
@@ -933,9 +954,9 @@ class DevTestCommand(BaseCommand):
         # Step 1: Run every milestone against the already-built package
         # =====================================================================
         if ci_mode:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"  USER JOURNEY: {len(MILESTONE_SCRIPTS)} milestones against the built package")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
         else:
             console.print("  [dim]Running all milestones against the built package...[/dim]")
 
@@ -947,18 +968,24 @@ class DevTestCommand(BaseCommand):
 
             try:
                 result = subprocess.run(
-                    [sys.executable, str(project_root / "bin" / "tren"),
-                     "milestone", "run", milestone_id, "--skip-checks"],
+                    [
+                        sys.executable,
+                        str(project_root / "bin" / "tren"),
+                        "milestone",
+                        "run",
+                        milestone_id,
+                        "--skip-checks",
+                    ],
                     capture_output=True,
                     text=True,
                     encoding="utf-8",
                     errors="replace",
                     cwd=project_root,
-                    timeout=900  # 15 min: CNN Revolution (milestone 04) alone
-                                 # genuinely takes ~7.5 min end to end on a
-                                 # typical CI runner, real training work, not
-                                 # a hang. 300s was too tight and failed every
-                                 # run regardless of correctness.
+                    timeout=900,  # 15 min: CNN Revolution (milestone 04) alone
+                    # genuinely takes ~7.5 min end to end on a
+                    # typical CI runner, real training work, not
+                    # a hang. 300s was too tight and failed every
+                    # run regardless of correctness.
                 )
                 milestone_duration = time.time() - milestone_start
                 if result.returncode == 0:
@@ -969,7 +996,7 @@ class DevTestCommand(BaseCommand):
                     failed_milestones.append(milestone_id)
                     if ci_mode:
                         print(f"✗ FAILED ({milestone_duration:.1f}s)")
-                        for line in result.stdout.split('\n')[-8:]:
+                        for line in result.stdout.split("\n")[-8:]:
                             if line.strip():
                                 print(f"      {line}")
             except subprocess.TimeoutExpired:
@@ -985,9 +1012,9 @@ class DevTestCommand(BaseCommand):
         # Step 2: Verify the real reset command actually works
         # =====================================================================
         if ci_mode:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print("  USER JOURNEY: Verify tren system reset")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
         else:
             console.print("  [dim]Verifying tren system reset...[/dim]")
 
@@ -995,14 +1022,13 @@ class DevTestCommand(BaseCommand):
         reset_detail = ""
         try:
             reset_result = subprocess.run(
-                [sys.executable, str(project_root / "bin" / "tren"),
-                 "system", "reset", "--force", "--ci"],
+                [sys.executable, str(project_root / "bin" / "tren"), "system", "reset", "--force", "--ci"],
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
                 cwd=project_root,
-                timeout=120
+                timeout=120,
             )
 
             modules_dir = project_root / "data" / "modules"
@@ -1030,7 +1056,9 @@ class DevTestCommand(BaseCommand):
                 else:
                     print("  ✗ Reset verification FAILED")
                     print(f"      exit code: {reset_result.returncode}")
-                    print(f"      modules cleared: {modules_cleared}, core cleared: {core_cleared}, progress cleared: {progress_cleared}")
+                    print(
+                        f"      modules cleared: {modules_cleared}, core cleared: {core_cleared}, progress cleared: {progress_cleared}"
+                    )
                     reset_detail = (
                         f"exit={reset_result.returncode} modules={modules_cleared} "
                         f"core={core_cleared} progress={progress_cleared}"
@@ -1051,16 +1079,16 @@ class DevTestCommand(BaseCommand):
         all_passed = len(failed_milestones) == 0 and reset_ok
 
         if ci_mode:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             if all_passed:
                 print(f"  RESULT: ALL PASSED ({passed_milestones} milestones, reset verified)")
             else:
-                print(f"  RESULT: FAILED")
+                print("  RESULT: FAILED")
                 if failed_milestones:
                     print(f"    Failed milestones: {', '.join(failed_milestones)}")
                 if not reset_ok:
                     print(f"    Reset verification failed: {reset_detail}")
-            print(f"{'='*60}\n")
+            print(f"{'=' * 60}\n")
 
         if all_passed:
             return TestResult(
@@ -1068,7 +1096,7 @@ class DevTestCommand(BaseCommand):
                 passed=True,
                 duration=total_time,
                 test_count=passed_milestones,
-                message=f"{passed_milestones} milestones, reset verified"
+                message=f"{passed_milestones} milestones, reset verified",
             )
         else:
             failures = []
@@ -1077,13 +1105,10 @@ class DevTestCommand(BaseCommand):
             if not reset_ok:
                 failures.append(f"reset verification failed: {reset_detail}")
             return TestResult(
-                name="User journey",
-                passed=False,
-                duration=total_time,
-                message="; ".join(failures)[:100]
+                name="User journey", passed=False, duration=total_time, message="; ".join(failures)[:100]
             )
 
-    def _finish(self, results: List[TestResult], start_time: float, args: Namespace) -> int:
+    def _finish(self, results: list[TestResult], start_time: float, args: Namespace) -> int:
         """Show final summary and return exit code."""
         console = self.console
         total_time = time.time() - start_time
@@ -1107,30 +1132,34 @@ class DevTestCommand(BaseCommand):
                         "passed": r.passed,
                         "duration": round(r.duration, 2),
                         "test_count": r.test_count,
-                        "message": r.message
+                        "message": r.message,
                     }
                     for r in results
-                ]
+                ],
             }
             print(json.dumps(output, indent=2))
         else:
             # Rich summary
             if all_passed:
                 test_info = f"{total_tests} tests" if total_tests else f"{passed} phases"
-                console.print(Panel(
-                    f"[bold green]✅ ALL TESTS PASSED[/bold green]\n\n"
-                    f"[green]{test_info}[/green] completed in [dim]{total_time:.1f}s[/dim]",
-                    title="🎉 Success",
-                    border_style="green"
-                ))
+                console.print(
+                    Panel(
+                        f"[bold green]✅ ALL TESTS PASSED[/bold green]\n\n"
+                        f"[green]{test_info}[/green] completed in [dim]{total_time:.1f}s[/dim]",
+                        title="🎉 Success",
+                        border_style="green",
+                    )
+                )
             else:
                 failed_names = [r.name for r in results if not r.passed]
-                console.print(Panel(
-                    f"[bold red]❌ TESTS FAILED[/bold red]\n\n"
-                    f"[green]{passed}[/green] passed  [red]{failed}[/red] failed  [dim]{total_time:.1f}s[/dim]\n\n"
-                    f"Failed: {', '.join(failed_names)}",
-                    title="⚠️ Test Failures",
-                    border_style="red"
-                ))
+                console.print(
+                    Panel(
+                        f"[bold red]❌ TESTS FAILED[/bold red]\n\n"
+                        f"[green]{passed}[/green] passed  [red]{failed}[/red] failed  [dim]{total_time:.1f}s[/dim]\n\n"
+                        f"Failed: {', '.join(failed_names)}",
+                        title="⚠️ Test Failures",
+                        border_style="red",
+                    )
+                )
 
         return 0 if all_passed else 1

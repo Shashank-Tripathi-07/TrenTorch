@@ -5,21 +5,19 @@ Run baseline and capstone benchmarks, with automatic submission prompts.
 """
 
 import json
-import time
 import platform
+import time
 from argparse import ArgumentParser, Namespace
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any
 
 from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.prompt import Confirm
 from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
-from rich.prompt import Prompt, Confirm
-from rich.console import Console
 
 from platforms.cli.commands.base import BaseCommand
-from platforms.cli.core.exceptions import TinyTorchCLIError
 
 
 class BenchmarkCommand(BaseCommand):
@@ -36,37 +34,29 @@ class BenchmarkCommand(BaseCommand):
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add benchmark subcommands."""
         subparsers = parser.add_subparsers(
-            dest='benchmark_command',
-            help='Benchmark operations',
-            metavar='COMMAND'
+            dest="benchmark_command", help="Benchmark operations", metavar="COMMAND"
         )
 
         # Baseline benchmark
         baseline_parser = subparsers.add_parser(
-            'baseline',
-            help='Run baseline benchmark (quick setup validation)'
+            "baseline", help="Run baseline benchmark (quick setup validation)"
         )
         baseline_parser.add_argument(
-            '--skip-submit',
-            action='store_true',
-            help='Skip submission prompt after benchmark'
+            "--skip-submit", action="store_true", help="Skip submission prompt after benchmark"
         )
 
         # Capstone benchmark
         capstone_parser = subparsers.add_parser(
-            'capstone',
-            help='Run capstone benchmark (full Module 20 performance evaluation)'
+            "capstone", help="Run capstone benchmark (full Module 20 performance evaluation)"
         )
         capstone_parser.add_argument(
-            '--track',
-            choices=['speed', 'compression', 'accuracy', 'efficiency', 'all'],
-            default='all',
-            help='Which track to benchmark (default: all)'
+            "--track",
+            choices=["speed", "compression", "accuracy", "efficiency", "all"],
+            default="all",
+            help="Which track to benchmark (default: all)",
         )
         capstone_parser.add_argument(
-            '--skip-submit',
-            action='store_true',
-            help='Skip submission prompt after benchmark'
+            "--skip-submit", action="store_true", help="Skip submission prompt after benchmark"
         )
 
     def run(self, args: Namespace) -> int:
@@ -75,15 +65,15 @@ class BenchmarkCommand(BaseCommand):
             self.console.print("[yellow]Please specify a benchmark command: baseline or capstone[/yellow]")
             return 1
 
-        if args.benchmark_command == 'baseline':
+        if args.benchmark_command == "baseline":
             return self._run_baseline(args)
-        elif args.benchmark_command == 'capstone':
+        elif args.benchmark_command == "capstone":
             return self._run_capstone(args)
         else:
             self.console.print(f"[red]Unknown benchmark command: {args.benchmark_command}[/red]")
             return 1
 
-    def _get_reference_times(self) -> Dict[str, float]:
+    def _get_reference_times(self) -> dict[str, float]:
         """
         Get reference times for normalization (SPEC-style).
 
@@ -95,29 +85,29 @@ class BenchmarkCommand(BaseCommand):
             Dict with reference times in milliseconds for each benchmark
         """
         return {
-            "tensor_ops": 0.8,      # Reference: 0.8ms for tensor operations
-            "matmul": 2.5,          # Reference: 2.5ms for matrix multiply
-            "forward_pass": 6.7,    # Reference: 6.7ms for forward pass
-            "total": 10.0           # Reference: 10.0ms total
+            "tensor_ops": 0.8,  # Reference: 0.8ms for tensor operations
+            "matmul": 2.5,  # Reference: 2.5ms for matrix multiply
+            "forward_pass": 6.7,  # Reference: 6.7ms for forward pass
+            "total": 10.0,  # Reference: 10.0ms total
         }
 
     def _run_baseline(self, args: Namespace) -> int:
         """Run baseline benchmark - lightweight setup validation."""
         console = self.console
 
-        console.print(Panel(
-            "[bold cyan]🎯 Baseline Benchmark[/bold cyan]\n\n"
-            "Running lightweight benchmarks to validate your setup...\n"
-            "[dim]Results are normalized to a reference system for fair comparison.[/dim]",
-            title="Baseline Benchmark",
-            border_style="cyan"
-        ))
+        console.print(
+            Panel(
+                "[bold cyan]🎯 Baseline Benchmark[/bold cyan]\n\n"
+                "Running lightweight benchmarks to validate your setup...\n"
+                "[dim]Results are normalized to a reference system for fair comparison.[/dim]",
+                title="Baseline Benchmark",
+                border_style="cyan",
+            )
+        )
 
         # Run baseline benchmarks
         with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
             task = progress.add_task("Running baseline benchmarks...", total=None)
 
@@ -157,7 +147,7 @@ class BenchmarkCommand(BaseCommand):
             "tensor_ops_ms": tensor_time,
             "matmul_ms": matmul_time,
             "forward_pass_ms": forward_time,
-            "total_ms": total_time
+            "total_ms": total_time,
         }
 
         normalized_metrics = {
@@ -165,7 +155,7 @@ class BenchmarkCommand(BaseCommand):
             "matmul_normalized": matmul_normalized,
             "forward_pass_normalized": forward_normalized,
             "total_normalized": total_normalized,
-            "score": score
+            "score": score,
         }
 
         # Display results
@@ -175,43 +165,18 @@ class BenchmarkCommand(BaseCommand):
         results_table.add_column("Normalized", justify="right", style="yellow")
         results_table.add_column("Status", justify="center")
 
-        results_table.add_row(
-            "Tensor Operations",
-            f"{tensor_time:.2f} ms",
-            f"{tensor_normalized:.2f}x",
-            "✅"
-        )
-        results_table.add_row(
-            "Matrix Multiply",
-            f"{matmul_time:.2f} ms",
-            f"{matmul_normalized:.2f}x",
-            "✅"
-        )
-        results_table.add_row(
-            "Forward Pass",
-            f"{forward_time:.2f} ms",
-            f"{forward_normalized:.2f}x",
-            "✅"
-        )
+        results_table.add_row("Tensor Operations", f"{tensor_time:.2f} ms", f"{tensor_normalized:.2f}x", "✅")
+        results_table.add_row("Matrix Multiply", f"{matmul_time:.2f} ms", f"{matmul_normalized:.2f}x", "✅")
+        results_table.add_row("Forward Pass", f"{forward_time:.2f} ms", f"{forward_normalized:.2f}x", "✅")
         results_table.add_row("", "", "", "")
-        results_table.add_row(
-            "[bold]Total[/bold]",
-            f"{total_time:.2f} ms",
-            f"{total_normalized:.2f}x",
-            "✅"
-        )
-        results_table.add_row(
-            "[bold]Score[/bold]",
-            "",
-            f"[bold]{score}/100[/bold]",
-            "🎯"
-        )
+        results_table.add_row("[bold]Total[/bold]", f"{total_time:.2f} ms", f"{total_normalized:.2f}x", "✅")
+        results_table.add_row("[bold]Score[/bold]", "", f"[bold]{score}/100[/bold]", "🎯")
 
         console.print("\n")
         console.print(results_table)
 
         # Show normalization info
-        console.print(f"\n[dim]📊 Normalization: Results normalized to reference system[/dim]")
+        console.print("\n[dim]📊 Normalization: Results normalized to reference system[/dim]")
         console.print(f"[dim]   Reference: {reference['total']:.1f}ms total time[/dim]")
         console.print(f"[dim]   Your system: {total_time:.2f}ms ({total_normalized:.2f}x vs reference)[/dim]")
 
@@ -222,14 +187,11 @@ class BenchmarkCommand(BaseCommand):
             "system_info": self._get_system_info(),
             "reference_system": {
                 "description": "Mid-range laptop (Intel i5-8th gen, 16GB RAM)",
-                "times_ms": reference
+                "times_ms": reference,
             },
             "raw_metrics": raw_metrics,
             "normalized_metrics": normalized_metrics,
-            "metrics": {
-                **raw_metrics,
-                **normalized_metrics
-            }
+            "metrics": {**raw_metrics, **normalized_metrics},
         }
 
         # Save results
@@ -238,20 +200,22 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"baseline_{timestamp_str}.json"
 
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(results, f, indent=2)
 
         console.print(f"\n[green]✅ Results saved to: {results_file}[/green]")
 
         # Success message
-        console.print(Panel(
-            f"[bold green]🎉 Baseline Benchmark Complete![/bold green]\n\n"
-            f"📊 Your Score: [bold]{score}/100[/bold]\n"
-            f"✅ Setup verified and working!\n\n"
-            f"💡 Run [cyan]tito benchmark capstone[/cyan] after Module 20 for full benchmarks",
-            title="Success",
-            border_style="green"
-        ))
+        console.print(
+            Panel(
+                f"[bold green]🎉 Baseline Benchmark Complete![/bold green]\n\n"
+                f"📊 Your Score: [bold]{score}/100[/bold]\n"
+                f"✅ Setup verified and working!\n\n"
+                f"💡 Run [cyan]tito benchmark capstone[/cyan] after Module 20 for full benchmarks",
+                title="Success",
+                border_style="green",
+            )
+        )
 
         # Prompt for submission
         if not args.skip_submit:
@@ -263,24 +227,28 @@ class BenchmarkCommand(BaseCommand):
         """Run capstone benchmark - full Module 20 performance evaluation."""
         console = self.console
 
-        console.print(Panel(
-            "[bold cyan]🏆 Capstone Benchmark[/bold cyan]\n\n"
-            "Running full benchmark suite from Module 20...",
-            title="Capstone Benchmark",
-            border_style="cyan"
-        ))
+        console.print(
+            Panel(
+                "[bold cyan]🏆 Capstone Benchmark[/bold cyan]\n\n"
+                "Running full benchmark suite from Module 20...",
+                title="Capstone Benchmark",
+                border_style="cyan",
+            )
+        )
 
         # Check if Module 20 is available
         try:
-            from trentorch.perf.benchmarking import Benchmark
+            from trentorch.perf.benchmarking import Benchmark  # noqa: F401 -- import-success check
         except ImportError:
-            console.print(Panel(
-                "[red]❌ Module 19 (Benchmarking) not available[/red]\n\n"
-                "Please complete Module 19 first:\n"
-                "  [cyan]tito module complete 19[/cyan]",
-                title="Error",
-                border_style="red"
-            ))
+            console.print(
+                Panel(
+                    "[red]❌ Module 19 (Benchmarking) not available[/red]\n\n"
+                    "Please complete Module 19 first:\n"
+                    "  [cyan]tito module complete 19[/cyan]",
+                    title="Error",
+                    border_style="red",
+                )
+            )
             return 1
 
         # Check if Module 20 competition code is available. `tito module
@@ -290,16 +258,18 @@ class BenchmarkCommand(BaseCommand):
         # so this check previously always failed and reported "Module 20 not
         # complete" even for students who genuinely finished it.
         try:
-            from trentorch.olympics import generate_submission
+            from trentorch.olympics import generate_submission  # noqa: F401 -- import-success check
         except ImportError:
-            console.print(Panel(
-                "[yellow]⚠️  Module 20 (Capstone) not complete[/yellow]\n\n"
-                "Running simplified capstone benchmarks...\n"
-                "For full benchmarks, complete Module 20 first:\n"
-                "  [cyan]tito module complete 20[/cyan]",
-                title="Warning",
-                border_style="yellow"
-            ))
+            console.print(
+                Panel(
+                    "[yellow]⚠️  Module 20 (Capstone) not complete[/yellow]\n\n"
+                    "Running simplified capstone benchmarks...\n"
+                    "For full benchmarks, complete Module 20 first:\n"
+                    "  [cyan]tito module complete 20[/cyan]",
+                    title="Warning",
+                    border_style="yellow",
+                )
+            )
             # Fall back to simplified benchmarks
             return self._run_simplified_capstone(args)
 
@@ -315,27 +285,12 @@ class BenchmarkCommand(BaseCommand):
             "system_info": self._get_system_info(),
             "track": args.track,
             "metrics": {
-                "speed": {
-                    "latency_ms": 45.2,
-                    "throughput_ops_per_sec": 22.1,
-                    "score": 92
-                },
-                "compression": {
-                    "model_size_mb": 12.4,
-                    "compression_ratio": 4.2,
-                    "score": 88
-                },
-                "accuracy": {
-                    "accuracy_percent": 87.5,
-                    "score": 95
-                },
-                "efficiency": {
-                    "memory_mb": 8.3,
-                    "energy_score": 85,
-                    "score": 85
-                }
+                "speed": {"latency_ms": 45.2, "throughput_ops_per_sec": 22.1, "score": 92},
+                "compression": {"model_size_mb": 12.4, "compression_ratio": 4.2, "score": 88},
+                "accuracy": {"accuracy_percent": 87.5, "score": 95},
+                "efficiency": {"memory_mb": 8.3, "energy_score": 85, "score": 85},
             },
-            "overall_score": 90
+            "overall_score": 90,
         }
 
         # Save results
@@ -344,7 +299,7 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_{timestamp_str}.json"
 
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(results, f, indent=2)
 
         # Display results
@@ -366,9 +321,7 @@ class BenchmarkCommand(BaseCommand):
 
         # Run basic benchmarks
         with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
             task = progress.add_task("Running benchmarks...", total=None)
 
@@ -380,9 +333,7 @@ class BenchmarkCommand(BaseCommand):
             "timestamp": datetime.now().isoformat(),
             "system_info": self._get_system_info(),
             "note": "Simplified benchmarks - complete Module 20 for full suite",
-            "metrics": {
-                "basic_score": 75
-            }
+            "metrics": {"basic_score": 75},
         }
 
         # Save results
@@ -391,7 +342,7 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_simplified_{timestamp_str}.json"
 
-        with open(results_file, 'w') as f:
+        with open(results_file, "w") as f:
             json.dump(results, f, indent=2)
 
         console.print(f"\n[green]✅ Results saved to: {results_file}[/green]")
@@ -402,7 +353,9 @@ class BenchmarkCommand(BaseCommand):
     def _benchmark_tensor_ops(self) -> float:
         """Benchmark basic tensor operations."""
         import time
+
         import numpy as np
+
         rng = np.random.default_rng(7)
 
         # Create tensors
@@ -427,7 +380,9 @@ class BenchmarkCommand(BaseCommand):
     def _benchmark_matmul(self) -> float:
         """Benchmark matrix multiplication."""
         import time
+
         import numpy as np
+
         rng = np.random.default_rng(7)
 
         a = rng.standard_normal((100, 100)).astype(np.float32)
@@ -448,7 +403,9 @@ class BenchmarkCommand(BaseCommand):
     def _benchmark_forward_pass(self) -> float:
         """Benchmark simple forward pass simulation."""
         import time
+
         import numpy as np
+
         rng = np.random.default_rng(7)
 
         # Simulate a simple forward pass
@@ -470,16 +427,16 @@ class BenchmarkCommand(BaseCommand):
 
         return (end - start) * 1000 / 20  # milliseconds per forward pass
 
-    def _get_system_info(self) -> Dict[str, str]:
+    def _get_system_info(self) -> dict[str, str]:
         """Get system information."""
         return {
             "platform": platform.platform(),
             "processor": platform.processor(),
             "python_version": platform.python_version(),
-            "cpu_count": str(platform.processor() or "unknown")
+            "cpu_count": str(platform.processor() or "unknown"),
         }
 
-    def _display_capstone_results(self, results: Dict[str, Any]) -> None:
+    def _display_capstone_results(self, results: dict[str, Any]) -> None:
         """Display capstone benchmark results."""
         console = self.console
 
@@ -493,36 +450,46 @@ class BenchmarkCommand(BaseCommand):
 
         if "speed" in metrics:
             speed = metrics["speed"]
-            results_table.add_row("Speed", "Latency", f"{speed['latency_ms']:.2f} ms", f"{speed['score']}/100")
+            results_table.add_row(
+                "Speed", "Latency", f"{speed['latency_ms']:.2f} ms", f"{speed['score']}/100"
+            )
             results_table.add_row("", "Throughput", f"{speed['throughput_ops_per_sec']:.2f} ops/s", "")
 
         if "compression" in metrics:
             comp = metrics["compression"]
-            results_table.add_row("Compression", "Model Size", f"{comp['model_size_mb']:.2f} MB", f"{comp['score']}/100")
+            results_table.add_row(
+                "Compression", "Model Size", f"{comp['model_size_mb']:.2f} MB", f"{comp['score']}/100"
+            )
             results_table.add_row("", "Compression Ratio", f"{comp['compression_ratio']:.1f}x", "")
 
         if "accuracy" in metrics:
             acc = metrics["accuracy"]
-            results_table.add_row("Accuracy", "Accuracy", f"{acc['accuracy_percent']:.1f}%", f"{acc['score']}/100")
+            results_table.add_row(
+                "Accuracy", "Accuracy", f"{acc['accuracy_percent']:.1f}%", f"{acc['score']}/100"
+            )
 
         if "efficiency" in metrics:
             eff = metrics["efficiency"]
             results_table.add_row("Efficiency", "Memory", f"{eff['memory_mb']:.2f} MB", f"{eff['score']}/100")
 
         results_table.add_row("", "", "", "")
-        results_table.add_row("[bold]Overall[/bold]", "", "", f"[bold]{results.get('overall_score', 0)}/100[/bold]")
+        results_table.add_row(
+            "[bold]Overall[/bold]", "", "", f"[bold]{results.get('overall_score', 0)}/100[/bold]"
+        )
 
         console.print("\n")
         console.print(results_table)
 
-        console.print(Panel(
-            f"[bold green]🏆 Capstone Benchmark Complete![/bold green]\n\n"
-            f"📊 Overall Score: [bold]{results.get('overall_score', 0)}/100[/bold]",
-            title="Success",
-            border_style="green"
-        ))
+        console.print(
+            Panel(
+                f"[bold green]🏆 Capstone Benchmark Complete![/bold green]\n\n"
+                f"📊 Overall Score: [bold]{results.get('overall_score', 0)}/100[/bold]",
+                title="Success",
+                border_style="green",
+            )
+        )
 
-    def _prompt_submission(self, results: Dict[str, Any], benchmark_type: str) -> None:
+    def _prompt_submission(self, results: dict[str, Any], benchmark_type: str) -> None:
         """Prompt user to submit benchmark results."""
         console = self.console
 
@@ -530,7 +497,7 @@ class BenchmarkCommand(BaseCommand):
             console.print("\n")
             submit = Confirm.ask(
                 f"[cyan]Would you like to submit your {benchmark_type} benchmark results to the community?[/cyan]",
-                default=True
+                default=True,
             )
 
             if submit:
@@ -547,15 +514,9 @@ class BenchmarkCommand(BaseCommand):
                         return
 
                 # Additional submission options
-                include_system_info = Confirm.ask(
-                    "Include system information in submission?",
-                    default=True
-                )
+                include_system_info = Confirm.ask("Include system information in submission?", default=True)
 
-                anonymous = Confirm.ask(
-                    "Submit anonymously?",
-                    default=False
-                )
+                anonymous = Confirm.ask("Submit anonymously?", default=False)
 
                 # Create submission data
                 submission = {
@@ -563,7 +524,7 @@ class BenchmarkCommand(BaseCommand):
                     "timestamp": results["timestamp"],
                     "metrics": results["metrics"],
                     "include_system_info": include_system_info,
-                    "anonymous": anonymous
+                    "anonymous": anonymous,
                 }
 
                 if include_system_info:
@@ -575,7 +536,7 @@ class BenchmarkCommand(BaseCommand):
                 timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
                 submission_file = submission_dir / f"{benchmark_type}_submission_{timestamp_str}.json"
 
-                with open(submission_file, 'w') as f:
+                with open(submission_file, "w") as f:
                     json.dump(submission, f, indent=2)
 
                 console.print(f"\n[green]✅ Submission prepared: {submission_file}[/green]")
@@ -585,25 +546,28 @@ class BenchmarkCommand(BaseCommand):
 
                 config = self._get_config()
                 if not config.get("website", {}).get("enabled", False):
-                    console.print("[cyan]💡 Submission saved locally. Community leaderboard coming soon![/cyan]")
+                    console.print(
+                        "[cyan]💡 Submission saved locally. Community leaderboard coming soon![/cyan]"
+                    )
         except EOFError:
             console.print("\n[dim]Skipping submission (no interactive input available).[/dim]")
         except KeyboardInterrupt:
             console.print("\n[dim]Submission cancelled.[/dim]")
 
-    def _get_community_data(self) -> Optional[Dict[str, Any]]:
+    def _get_community_data(self) -> dict[str, Any] | None:
         """Get user's community profile from ~/.tinytorch (flat structure)."""
         from pathlib import Path
+
         profile_file = Path.home() / ".tinytorch" / "profile.json"
         if profile_file.exists():
             try:
-                with open(profile_file, 'r') as f:
+                with open(profile_file) as f:
                     return json.load(f)
             except Exception:
                 return None
         return None
 
-    def _get_config(self) -> Dict[str, Any]:
+    def _get_config(self) -> dict[str, Any]:
         """Get community configuration."""
         config_file = self.config.project_root / ".tinytorch" / "config.json"
         default_config = {
@@ -611,17 +575,17 @@ class BenchmarkCommand(BaseCommand):
                 "base_url": "https://tinytorch.ai",
                 "community_map_url": "https://tinytorch.ai/map",
                 "api_url": None,  # Set when API is available
-                "enabled": False  # Set to True when website integration is ready
+                "enabled": False,  # Set to True when website integration is ready
             },
             "local": {
                 "enabled": True,  # Always use local storage
-                "auto_sync": False  # Auto-sync to website when enabled
-            }
+                "auto_sync": False,  # Auto-sync to website when enabled
+            },
         }
 
         if config_file.exists():
             try:
-                with open(config_file, 'r') as f:
+                with open(config_file) as f:
                     user_config = json.load(f)
                     # Merge with defaults
                     default_config.update(user_config)
@@ -631,12 +595,12 @@ class BenchmarkCommand(BaseCommand):
 
         # Create default config if it doesn't exist
         config_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(config_file, 'w') as f:
+        with open(config_file, "w") as f:
             json.dump(default_config, f, indent=2)
 
         return default_config
 
-    def _submit_to_website(self, submission: Dict[str, Any]) -> None:
+    def _submit_to_website(self, submission: dict[str, Any]) -> None:
         """Stub: Submit benchmark results to website (local for now, website integration later)."""
         config = self._get_config()
 

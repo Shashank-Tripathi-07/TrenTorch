@@ -24,7 +24,6 @@ import sys
 import tempfile
 import traceback
 from pathlib import Path
-from typing import Dict, Optional
 
 #: Set by the maintainer curriculum-verification loop (`tren dev test
 #: --inline`, via `tren/platforms/cli_platform/dev/test.py`) so that `tren module
@@ -50,16 +49,13 @@ def _extract_notebook_source(notebook_path: Path) -> str:
         source = cell.get("source", "")
         if isinstance(source, list):
             source = "".join(source)
-        code = "\n".join(
-            ln for ln in source.splitlines()
-            if not ln.lstrip().startswith(("%", "!"))
-        )
+        code = "\n".join(ln for ln in source.splitlines() if not ln.lstrip().startswith(("%", "!")))
         if code.strip():
             blocks.append(code)
     return "\n\n".join(blocks)
 
 
-def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> Dict[str, int]:
+def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> dict[str, int]:
     """Run inline unit tests and parse output for detailed display.
 
     By default (the real student flow), this runs the student's own
@@ -89,20 +85,20 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> D
     project_root = Path.cwd()
     verify_solution = os.environ.get(VERIFY_SOLUTION_ENV) == "1"
 
-    tmp_source: Optional[Path] = None
+    tmp_source: Path | None = None
     if verify_solution:
         run_target = project_root / "data" / "src" / module_name / f"{module_name}.py"
         if not run_target.exists():
             if verbose:
                 console.print(f"   [dim yellow]No source file found: {run_target}[/dim yellow]")
-            return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
+            return {"passed": 0, "failed": 0, "tests": [], "returncode": 0}
     else:
         short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
         notebook_path = project_root / "data" / "modules" / module_name / f"{short_name}.ipynb"
         if not notebook_path.exists():
             if verbose:
                 console.print(f"   [dim yellow]No notebook found: {notebook_path}[/dim yellow]")
-            return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
+            return {"passed": 0, "failed": 0, "tests": [], "returncode": 0}
         source = _extract_notebook_source(notebook_path)
         tmp = tempfile.NamedTemporaryFile(
             mode="w", suffix=f"_{module_name}.py", delete=False, encoding="utf-8", dir=str(project_root)
@@ -150,27 +146,23 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> D
 
     if verbose:
         for test in tests_run:
-            icon = "✅" if test['passed'] else "❌"
-            color = "green" if test['passed'] else "red"
+            icon = "✅" if test["passed"] else "❌"
+            color = "green" if test["passed"] else "red"
             console.print(f"   [{color}]{icon} {test['name']}[/{color}]")
-            if not test['passed'] and test.get('error'):
+            if not test["passed"] and test.get("error"):
                 # Show error on next line with indentation
-                error_lines = test['error'].split('\n')
+                error_lines = test["error"].split("\n")
                 for error_line in error_lines[:3]:  # Show first 3 lines of error
                     if error_line.strip():
                         console.print(f"      [dim red]{error_line.strip()}[/dim red]")
 
-    passed = sum(1 for t in tests_run if t['passed'])
-    failed = sum(1 for t in tests_run if not t['passed'])
+    passed = sum(1 for t in tests_run if t["passed"])
+    failed = sum(1 for t in tests_run if not t["passed"])
 
-    return {
-        'passed': passed,
-        'failed': failed,
-        'tests': tests_run,
-        'returncode': returncode
-    }
+    return {"passed": passed, "failed": failed, "tests": tests_run, "returncode": returncode}
 
-def run_integration_tests(config, console, module_name: str, verbose: bool) -> Dict[str, int]:
+
+def run_integration_tests(config, console, module_name: str, verbose: bool) -> dict[str, int]:
     """Run progressive integration tests using pytest."""
     project_root = Path.cwd()
 
@@ -200,7 +192,7 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> D
         # No integration tests for this module yet
         if verbose:
             console.print(f"   [dim yellow]No integration tests found: {primary_test_file}[/dim yellow]")
-        return {'passed': 0, 'failed': 0, 'tests': [], 'returncode': 0}
+        return {"passed": 0, "failed": 0, "tests": [], "returncode": 0}
 
     # Run pytest with verbose output
     result = subprocess.run(
@@ -218,7 +210,7 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> D
         text=True,
         encoding="utf-8",
         errors="replace",
-        cwd=project_root
+        cwd=project_root,
     )
 
     # Parse pytest output
@@ -239,39 +231,36 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> D
         #     trips for early modules during a progressive build.
         error_msg = (result.stderr or result.stdout).strip()
         is_no_tests_collected = result.returncode == 5
-        is_progressive_export_gate = (
-            result.returncode == 4
-            and "TINYTORCH PACKAGE NOT EXPORTED" in error_msg
-        )
+        is_progressive_export_gate = result.returncode == 4 and "TINYTORCH PACKAGE NOT EXPORTED" in error_msg
         if not is_no_tests_collected and not is_progressive_export_gate:
-            concise_error = '\n'.join(error_msg.split('\n')[:5]) if error_msg else "pytest exited with an error"
-            tests_run = [{
-                'name': 'pytest_collection',
-                'passed': False,
-                'error': concise_error,
-            }]
+            concise_error = (
+                "\n".join(error_msg.split("\n")[:5]) if error_msg else "pytest exited with an error"
+            )
+            tests_run = [
+                {
+                    "name": "pytest_collection",
+                    "passed": False,
+                    "error": concise_error,
+                }
+            ]
 
     if verbose:
         for test in tests_run:
-            icon = "✅" if test['passed'] else "❌"
-            color = "green" if test['passed'] else "red"
+            icon = "✅" if test["passed"] else "❌"
+            color = "green" if test["passed"] else "red"
             console.print(f"   [{color}]{icon} {test['name']}[/{color}]")
-            if not test['passed'] and test.get('error'):
+            if not test["passed"] and test.get("error"):
                 # Show error on next line with indentation
-                error_lines = test['error'].split('\n')
+                error_lines = test["error"].split("\n")
                 for error_line in error_lines[:3]:  # Show first 3 lines of error
                     if error_line.strip():
                         console.print(f"      [dim red]{error_line.strip()}[/dim red]")
 
-    passed = sum(1 for t in tests_run if t['passed'])
-    failed = sum(1 for t in tests_run if not t['passed'])
+    passed = sum(1 for t in tests_run if t["passed"])
+    failed = sum(1 for t in tests_run if not t["passed"])
 
-    return {
-        'passed': passed,
-        'failed': failed,
-        'tests': tests_run,
-        'returncode': result.returncode
-    }
+    return {"passed": passed, "failed": failed, "tests": tests_run, "returncode": result.returncode}
+
 
 def _parse_test_output(stdout: str, stderr: str, returncode: int) -> list:
     """
@@ -281,53 +270,42 @@ def _parse_test_output(stdout: str, stderr: str, returncode: int) -> list:
     - ❌ test_function_name: AssertionError
     """
     tests = []
-    lines = stdout.split('\n')
+    lines = stdout.split("\n")
 
     for line in lines:
         line_stripped = line.strip()
         # Look for test result markers
-        if line_stripped.startswith('✅') or line_stripped.startswith('❌'):
-            passed = line_stripped.startswith('✅')
+        if line_stripped.startswith("✅") or line_stripped.startswith("❌"):
+            passed = line_stripped.startswith("✅")
             # Extract test name and error
-            if ':' in line_stripped:
-                parts = line_stripped.split(':', 1)
+            if ":" in line_stripped:
+                parts = line_stripped.split(":", 1)
                 name = parts[0][2:].strip()  # Remove emoji
                 error = parts[1].strip() if len(parts) > 1 else None
             else:
                 name = line_stripped[2:].strip()  # Remove emoji
                 error = None
 
-            tests.append({
-                'name': name,
-                'passed': passed,
-                'error': error
-            })
+            tests.append({"name": name, "passed": passed, "error": error})
 
     # If no explicit test markers found, infer from return code
     if not tests:
         if returncode == 0:
             # Tests passed (or no tests)
             if stdout.strip() or stderr.strip():
-                tests.append({
-                    'name': 'module_execution',
-                    'passed': True,
-                    'error': None
-                })
+                tests.append({"name": "module_execution", "passed": True, "error": None})
         else:
             # Tests failed
             # Try to extract error from stderr or stdout
             error_msg = stderr.strip() if stderr.strip() else stdout.strip()
             # Get just the first few lines of error
-            error_lines = error_msg.split('\n')
-            concise_error = '\n'.join(error_lines[:5]) if error_lines else "Test execution failed"
+            error_lines = error_msg.split("\n")
+            concise_error = "\n".join(error_lines[:5]) if error_lines else "Test execution failed"
 
-            tests.append({
-                'name': 'module_execution',
-                'passed': False,
-                'error': concise_error
-            })
+            tests.append({"name": "module_execution", "passed": False, "error": concise_error})
 
     return tests
+
 
 def _parse_pytest_output(stdout: str, stderr: str) -> list:
     """
@@ -336,12 +314,12 @@ def _parse_pytest_output(stdout: str, stderr: str) -> list:
     - tests/02_activations/test_progressive_integration.py::TestClass::test_method PASSED
     """
     tests = []
-    lines = stdout.split('\n')
+    lines = stdout.split("\n")
     seen_tests = set()  # Avoid duplicates
 
     for line in lines:
-        if '::' in line and ('PASSED' in line or 'FAILED' in line):
-            passed = 'PASSED' in line
+        if "::" in line and ("PASSED" in line or "FAILED" in line):
+            passed = "PASSED" in line
 
             # Extract test path and status
             parts = line.split()
@@ -354,44 +332,48 @@ def _parse_pytest_output(stdout: str, stderr: str) -> list:
                 seen_tests.add(test_path)
 
                 # Format: file.py::Class::method -> "Class: method"
-                path_parts = test_path.split('::')
+                path_parts = test_path.split("::")
                 if len(path_parts) >= 3:
-                    class_name = path_parts[1].replace('Test', '').replace('Module', 'Module ')
-                    method_name = path_parts[2].replace('test_', '').replace('_', ' ').title()
+                    class_name = path_parts[1].replace("Test", "").replace("Module", "Module ")
+                    method_name = path_parts[2].replace("test_", "").replace("_", " ").title()
                     display_name = f"{class_name}: {method_name}"
                 elif len(path_parts) >= 2:
-                    method_name = path_parts[1].replace('test_', '').replace('_', ' ').title()
+                    method_name = path_parts[1].replace("test_", "").replace("_", " ").title()
                     display_name = method_name
                 else:
                     display_name = test_path
 
-                tests.append({
-                    'name': display_name,
-                    'passed': passed,
-                    'error': None if passed else _extract_pytest_error(stdout, stderr, test_path)
-                })
+                tests.append(
+                    {
+                        "name": display_name,
+                        "passed": passed,
+                        "error": None if passed else _extract_pytest_error(stdout, stderr, test_path),
+                    }
+                )
 
     return tests
 
-def _extract_pytest_error(stdout: str, stderr: str, test_path: str) -> Optional[str]:
+
+def _extract_pytest_error(stdout: str, stderr: str, test_path: str) -> str | None:
     """Extract error message for a specific failed test from pytest output."""
-    lines = stdout.split('\n')
+    lines = stdout.split("\n")
     for i, line in enumerate(lines):
-        if test_path in line and 'FAILED' in line:
+        if test_path in line and "FAILED" in line:
             # Look ahead for error details (typically in next 5-10 lines)
-            for j in range(i+1, min(i+15, len(lines))):
+            for j in range(i + 1, min(i + 15, len(lines))):
                 error_line = lines[j].strip()
-                if 'AssertionError' in error_line or 'Error:' in error_line or 'assert' in error_line:
+                if "AssertionError" in error_line or "Error:" in error_line or "assert" in error_line:
                     return error_line
 
     # Fallback: check stderr
     if stderr:
-        stderr_lines = stderr.split('\n')
+        stderr_lines = stderr.split("\n")
         for line in stderr_lines:
-            if 'Error' in line or 'assert' in line:
+            if "Error" in line or "assert" in line:
                 return line.strip()
 
     return "Test failed (see output for details)"
+
 
 def check_notebook_syntax(config, module_name: str) -> dict:
     """Compile each code cell of the student notebook to catch syntax errors
@@ -408,11 +390,11 @@ def check_notebook_syntax(config, module_name: str) -> dict:
     target_root = "solutions" if os.environ.get(VERIFY_SOLUTION_ENV) == "1" else "modules"
     notebook_path = config.project_root / "data" / target_root / module_name / f"{short_name}.ipynb"
     if not notebook_path.exists():
-        return {'ok': True, 'error': None}
+        return {"ok": True, "error": None}
     try:
         nb = json.loads(notebook_path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as e:
-        return {'ok': False, 'error': f"Could not read {notebook_path.name}: {e}"}
+        return {"ok": False, "error": f"Could not read {notebook_path.name}: {e}"}
 
     for idx, cell in enumerate(nb.get("cells", [])):
         if cell.get("cell_type") != "code":
@@ -422,21 +404,14 @@ def check_notebook_syntax(config, module_name: str) -> dict:
             source = "".join(source)
         # Drop IPython magics and shell escapes, which are not valid Python
         # and would otherwise raise a spurious SyntaxError.
-        code = "\n".join(
-            ln for ln in source.splitlines()
-            if not ln.lstrip().startswith(("%", "!"))
-        )
+        code = "\n".join(ln for ln in source.splitlines() if not ln.lstrip().startswith(("%", "!")))
         if not code.strip():
             continue
         try:
             compile(code, f"{notebook_path.name}[cell {idx}]", "exec")
         except SyntaxError as e:
             return {
-                'ok': False,
-                'error': (
-                    f"SyntaxError in {notebook_path.name} cell {idx}"
-                    f" (line {e.lineno}): {e.msg}"
-                ),
+                "ok": False,
+                "error": (f"SyntaxError in {notebook_path.name} cell {idx} (line {e.lineno}): {e.msg}"),
             }
-    return {'ok': True, 'error': None}
-
+    return {"ok": True, "error": None}

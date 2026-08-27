@@ -27,11 +27,7 @@ class DevCleanCommand(BaseCommand):
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument(
-            'target',
-            nargs='?',
-            default='all',
-            choices=['all'],
-            help='What to clean: all (default)'
+            "target", nargs="?", default="all", choices=["all"], help="What to clean: all (default)"
         )
 
     def run(self, args: Namespace) -> int:
@@ -46,7 +42,7 @@ class DevCleanCommand(BaseCommand):
         # indication of *why*, rather than something recognizable as
         # "install this tool".
         try:
-            result = subprocess.run(['make', 'clean'], cwd=str(cwd))
+            result = subprocess.run(["make", "clean"], cwd=str(cwd))
         except FileNotFoundError:
             console.print("[red]❌ 'make' is not installed or not on your PATH[/red]")
             console.print("  This command needs GNU Make to run its clean targets.")

@@ -4,6 +4,7 @@ Tests that complete training loops work with all system components
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -18,10 +19,10 @@ class TestTrainingLoopIntegration:
     def test_basic_training_loop(self):
         """Test basic training loop components work together."""
         try:
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU, Sigmoid
-            from trentorch.core.tensor import Tensor
+            from trentorch.core.layers import Linear
             from trentorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
 
             # Build simple network
             layer1 = Linear(2, 4)
@@ -75,7 +76,7 @@ class TestTrainingLoopIntegration:
             old_params = [p.data.copy() for p in params]
 
             # Optimizer step (if implemented)
-            if hasattr(optimizer, 'step'):
+            if hasattr(optimizer, "step"):
                 optimizer.step()
 
                 # Parameters should change
@@ -88,7 +89,7 @@ class TestTrainingLoopIntegration:
     def test_loss_computation(self):
         """Test loss functions work with network outputs."""
         try:
-            from trentorch.core.losses import MSELoss, CrossEntropyLoss
+            from trentorch.core.losses import CrossEntropyLoss, MSELoss
             from trentorch.core.tensor import Tensor
 
             mse = MSELoss()
@@ -113,9 +114,9 @@ class TestDataLoaderIntegration:
     def test_batch_processing(self):
         """Test training handles batches correctly."""
         try:
+            from trentorch.core.dataloader import DataLoader
             from trentorch.core.layers import Linear
             from trentorch.core.tensor import Tensor
-            from trentorch.core.dataloader import DataLoader
 
             # Create simple dataset
             X = rng.standard_normal((100, 10))
@@ -136,7 +137,7 @@ class TestDataLoaderIntegration:
                 output = model(batch_X)
 
                 assert output.shape[0] <= 16  # Batch size
-                assert output.shape[1] == 1   # Output dimension
+                assert output.shape[1] == 1  # Output dimension
                 break  # Just test one batch
 
         except ImportError:
@@ -146,8 +147,8 @@ class TestDataLoaderIntegration:
         """Test training for multiple epochs."""
         try:
             from trentorch.core.layers import Linear
-            from trentorch.core.tensor import Tensor
             from trentorch.core.losses import MSELoss
+            from trentorch.core.tensor import Tensor
 
             model = Linear(5, 1)
             loss_fn = MSELoss()
@@ -165,7 +166,7 @@ class TestDataLoaderIntegration:
                 losses.append(loss.data)
 
                 # Simple parameter update (manual SGD)
-                if hasattr(model, 'weight'):
+                if hasattr(model, "weight"):
                     # Compute simple gradient
                     error = predictions.data - y.data
                     grad = (X.data.T @ error) / X.shape[0]
@@ -216,12 +217,12 @@ class TestModelEvaluation:
             model = Linear(10, 5)
 
             # Check if model has train/eval methods
-            if hasattr(model, 'train') and hasattr(model, 'eval'):
+            if hasattr(model, "train") and hasattr(model, "eval"):
                 model.train()
-                assert model.training == True
+                assert model.training
 
                 model.eval()
-                assert model.training == False
+                assert not model.training
             else:
                 # If not implemented, that's okay
                 assert True, "Train/eval mode not implemented"
@@ -236,8 +237,8 @@ class TestCompleteMLPipeline:
     def test_xor_training_pipeline(self):
         """Test complete XOR training pipeline."""
         try:
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.layers import Linear
             from trentorch.core.losses import MSELoss
             from trentorch.core.tensor import Tensor
 

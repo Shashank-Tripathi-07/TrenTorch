@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import pytest
 
@@ -53,9 +54,7 @@ class TestTransformerBlock:
         output = block(x)
 
         assert output.shape == x.shape, (
-            f"TransformerBlock should preserve shape.\n"
-            f"  Input: {x.shape}\n"
-            f"  Output: {output.shape}"
+            f"TransformerBlock should preserve shape.\n  Input: {x.shape}\n  Output: {output.shape}"
         )
 
     def test_transformer_stack(self):
@@ -75,9 +74,7 @@ class TestTransformerBlock:
         for block in blocks:
             x = block(x)
 
-        assert x.shape == (2, 10, 128), (
-            "Shape should be preserved through all blocks"
-        )
+        assert x.shape == (2, 10, 128), "Shape should be preserved through all blocks"
 
 
 class TestTransformerGradients:

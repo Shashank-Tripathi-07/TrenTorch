@@ -72,22 +72,24 @@ Part 2 (02_xor_solved.py) shows how hidden layers solve this!
 The secret? Multi-layer networks can learn NON-LINEAR decision boundaries.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
 from rich import box
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 # Add project root to path
 sys.path.insert(0, os.getcwd())
-sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
+sys.path.insert(0, os.path.join(os.getcwd(), "data"))  # trentorch/ lives at data/trentorch/
 
 # Import TrenTorch components YOU BUILT!
 # Only needs Modules 01-03 (no training required)
-from trentorch import Tensor, Linear, Sigmoid
+from trentorch import Linear, Sigmoid, Tensor
 
 console = Console()
 
@@ -120,24 +122,22 @@ console = Console()
 # XOR DATA
 # ============================================================================
 
-XOR_INPUTS = np.array([
-    [0.0, 0.0],
-    [0.0, 1.0],
-    [1.0, 0.0],
-    [1.0, 1.0]
-])
+XOR_INPUTS = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
 
-XOR_TARGETS = np.array([
-    [0.0],  # 0 XOR 0 = 0
-    [1.0],  # 0 XOR 1 = 1
-    [1.0],  # 1 XOR 0 = 1
-    [0.0],  # 1 XOR 1 = 0
-])
+XOR_TARGETS = np.array(
+    [
+        [0.0],  # 0 XOR 0 = 0
+        [1.0],  # 0 XOR 1 = 1
+        [1.0],  # 1 XOR 0 = 1
+        [0.0],  # 1 XOR 1 = 0
+    ]
+)
 
 
 # ============================================================================
 # SINGLE-LAYER PERCEPTRON
 # ============================================================================
+
 
 class SingleLayerPerceptron:
     """
@@ -165,7 +165,11 @@ class SingleLayerPerceptron:
         """Return current weights."""
         # Weight shape is (2, 1), flatten to get [w1, w2]
         w = self.linear.weight.data.flatten()
-        b = float(self.linear.bias.data.item() if hasattr(self.linear.bias.data, 'item') else self.linear.bias.data[0])
+        b = float(
+            self.linear.bias.data.item()
+            if hasattr(self.linear.bias.data, "item")
+            else self.linear.bias.data[0]
+        )
         return w[0], w[1], b
 
 
@@ -183,33 +187,38 @@ def describe_decision_boundary(w1, w2, b):
     if abs(w2) < 0.001:
         if abs(w1) < 0.001:
             return "Horizontal line (degenerate)"
-        return f"Vertical line at x1 = {-b/w1:.2f}"
+        return f"Vertical line at x1 = {-b / w1:.2f}"
 
-    slope = -w1/w2
-    intercept = -b/w2
+    slope = -w1 / w2
+    intercept = -b / w2
     return f"Line: x2 = {slope:.2f}*x1 + {intercept:.2f}"
 
-def press_enter_to_continue() :
-    if sys.stdin.isatty() and sys.stdout.isatty() :
-        try :
+
+def press_enter_to_continue():
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        try:
             console.input("\n[yellow]Press Enter to continue...[/yellow] ")
-        except EOFError :
+        except EOFError:
             pass
         console.print()
+
 
 # ============================================================================
 # DEMONSTRATION
 # ============================================================================
 
+
 def demonstrate_crisis():
     """Show that NO weight configuration can solve XOR."""
 
-    console.print(Panel.fit(
-        "[bold red]The XOR Crisis (1969)[/bold red]\n\n"
-        "[dim]Minsky & Papert proved single-layer perceptrons cannot solve XOR.[/dim]\n"
-        "[dim]Let's verify this by trying MANY different weight configurations.[/dim]",
-        border_style="red"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold red]The XOR Crisis (1969)[/bold red]\n\n"
+            "[dim]Minsky & Papert proved single-layer perceptrons cannot solve XOR.[/dim]\n"
+            "[dim]Let's verify this by trying MANY different weight configurations.[/dim]",
+            border_style="red",
+        )
+    )
     press_enter_to_continue()
 
     # Show the XOR problem
@@ -261,7 +270,6 @@ def demonstrate_crisis():
     results_table.add_column("Predictions", style="dim")
 
     best_accuracy = 0
-    best_config = None
 
     for i, (w1, w2, b, description) in enumerate(configurations):
         model.set_weights(w1, w2, b)
@@ -276,20 +284,19 @@ def demonstrate_crisis():
         elif accuracy >= 0.75:
             acc_style = "[yellow]75%[/yellow]"
         else:
-            acc_style = "[red]{:.0%}[/red]".format(accuracy)
+            acc_style = f"[red]{accuracy:.0%}[/red]"
 
         results_table.add_row(
-            f"#{i+1}",
+            f"#{i + 1}",
             f"{w1:.1f}",
             f"{w2:.1f}",
             f"{b:.1f}",
             acc_style.format(accuracy) if "{" in acc_style else acc_style,
-            pred_str
+            pred_str,
         )
 
         if accuracy > best_accuracy:
             best_accuracy = accuracy
-            best_config = (w1, w2, b, description)
 
     console.print(results_table)
     press_enter_to_continue()
@@ -308,30 +315,33 @@ def demonstrate_crisis():
             random_best = accuracy
             if accuracy > best_accuracy:
                 best_accuracy = accuracy
-                best_config = (w1, w2, b, "Random")
+                (w1, w2, b, "Random")
 
     console.print(f"  Best from random search: [yellow]{random_best:.0%}[/yellow]")
     press_enter_to_continue()
 
     # Show the conclusion
     if best_accuracy < 1.0:
-        console.print(Panel(
-            f"[bold red]CONFIRMED: XOR is UNSOLVABLE![/bold red]\n\n"
-            f"Best accuracy achieved: [yellow]{best_accuracy:.0%}[/yellow] (need 100%)\n"
-            f"We tried {len(configurations) + 100} different configurations.\n\n"
-            "[bold]Why does this happen?[/bold]\n"
-            "A single-layer perceptron can only draw ONE straight line.\n"
-            "XOR requires separating diagonal corners - impossible with one line!\n\n"
-            "[dim]This mathematical impossibility ended neural network research for 17 years.[/dim]",
-            title="The 1969 AI Winter Begins",
-            border_style="red"
-        ))
+        console.print(
+            Panel(
+                f"[bold red]CONFIRMED: XOR is UNSOLVABLE![/bold red]\n\n"
+                f"Best accuracy achieved: [yellow]{best_accuracy:.0%}[/yellow] (need 100%)\n"
+                f"We tried {len(configurations) + 100} different configurations.\n\n"
+                "[bold]Why does this happen?[/bold]\n"
+                "A single-layer perceptron can only draw ONE straight line.\n"
+                "XOR requires separating diagonal corners - impossible with one line!\n\n"
+                "[dim]This mathematical impossibility ended neural network research for 17 years.[/dim]",
+                title="The 1969 AI Winter Begins",
+                border_style="red",
+            )
+        )
     else:
-        console.print(Panel(
-            "[yellow]Unexpected: Found a solution![/yellow]\n"
-            "This shouldn't happen with standard XOR.",
-            border_style="yellow"
-        ))
+        console.print(
+            Panel(
+                "[yellow]Unexpected: Found a solution![/yellow]\nThis shouldn't happen with standard XOR.",
+                border_style="yellow",
+            )
+        )
     press_enter_to_continue()
 
     # Visual explanation
@@ -355,19 +365,21 @@ def demonstrate_crisis():
     press_enter_to_continue()
 
     # Historical context
-    console.print(Panel(
-        "[bold]Historical Significance[/bold]\n\n"
-        "[bold cyan]1969:[/bold cyan] Minsky & Papert publish 'Perceptrons'\n"
-        "       Mathematically prove XOR is unsolvable\n\n"
-        "[bold red]1970s:[/bold red] AI Winter begins\n"
-        "       Neural network research funding disappears\n\n"
-        "[bold yellow]1986:[/bold yellow] Rumelhart, Hinton & Williams\n"
-        "       Multi-layer networks + backprop SOLVE XOR!\n\n"
-        "[dim]Run Part 2 to see how hidden layers break through this barrier![/dim]",
-        title="The Path Forward",
-        border_style="blue"
-    ))
-    console.print()    
+    console.print(
+        Panel(
+            "[bold]Historical Significance[/bold]\n\n"
+            "[bold cyan]1969:[/bold cyan] Minsky & Papert publish 'Perceptrons'\n"
+            "       Mathematically prove XOR is unsolvable\n\n"
+            "[bold red]1970s:[/bold red] AI Winter begins\n"
+            "       Neural network research funding disappears\n\n"
+            "[bold yellow]1986:[/bold yellow] Rumelhart, Hinton & Williams\n"
+            "       Multi-layer networks + backprop SOLVE XOR!\n\n"
+            "[dim]Run Part 2 to see how hidden layers break through this barrier![/dim]",
+            title="The Path Forward",
+            border_style="blue",
+        )
+    )
+    console.print()
 
     return 0
 

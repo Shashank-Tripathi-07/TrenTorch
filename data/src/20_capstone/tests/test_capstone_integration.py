@@ -6,7 +6,9 @@ Tests end-to-end ML system integration
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
+
 
 def test_capstone_integration():
     """Test capstone project integration."""
@@ -17,6 +19,7 @@ def test_capstone_integration():
     # - Test system performance
     # - Test real-world applications
     pass
+
 
 if __name__ == "__main__":
     test_capstone_integration()

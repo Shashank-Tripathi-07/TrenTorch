@@ -4,21 +4,24 @@ Tests integration with transformer components and generation
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear
 from trentorch.core.attention import MultiHeadAttention
+from trentorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
 
 # Optional import - KV cache may not be implemented yet
 try:
     from trentorch.perf.memoization import KVCache, enable_kv_cache
+
     HAS_KV_CACHE = True
 except ImportError:
     pytest.skip(
@@ -67,18 +70,14 @@ class TestKVCacheIntegration:
 
         # Create cache
         cache = KVCache(
-            batch_size=batch_size,
-            max_seq_len=10,
-            num_layers=1,
-            num_heads=num_heads,
-            head_dim=head_dim
+            batch_size=batch_size, max_seq_len=10, num_layers=1, num_heads=num_heads, head_dim=head_dim
         )
 
         # Simulate autoregressive generation: process tokens one by one
         for pos in range(seq_len):
             # Get K, V for current position
-            k_current = Tensor(K_heads.data[:, :, pos:pos+1, :])  # (batch, heads, 1, head_dim)
-            v_current = Tensor(V_heads.data[:, :, pos:pos+1, :])
+            k_current = Tensor(K_heads.data[:, :, pos : pos + 1, :])  # (batch, heads, 1, head_dim)
+            v_current = Tensor(V_heads.data[:, :, pos : pos + 1, :])
 
             # Update cache
             cache.update(layer_idx=0, key=k_current, value=v_current)
@@ -88,10 +87,12 @@ class TestKVCacheIntegration:
         cached_K, cached_V = cache.get(layer_idx=0)
 
         # Verify shapes
-        assert cached_K.shape == (batch_size, num_heads, seq_len, head_dim), \
+        assert cached_K.shape == (batch_size, num_heads, seq_len, head_dim), (
             f"Expected shape {(batch_size, num_heads, seq_len, head_dim)}, got {cached_K.shape}"
-        assert cached_V.shape == (batch_size, num_heads, seq_len, head_dim), \
+        )
+        assert cached_V.shape == (batch_size, num_heads, seq_len, head_dim), (
             f"Expected shape {(batch_size, num_heads, seq_len, head_dim)}, got {cached_V.shape}"
+        )
 
         # Verify cached values match original projections
         # Note: Small numerical differences okay due to reshape operations
@@ -121,7 +122,7 @@ class TestKVCacheIntegration:
             max_seq_len=10,
             num_layers=num_layers,
             num_heads=num_heads,
-            head_dim=head_dim
+            head_dim=head_dim,
         )
 
         # Simulate processing through 3 layers
@@ -139,8 +140,9 @@ class TestKVCacheIntegration:
         # Verify each layer has correct cache size
         for layer_idx in range(num_layers):
             cached_k, cached_v = cache.get(layer_idx=layer_idx)
-            assert cached_k.shape == (batch_size, num_heads, seq_len, head_dim), \
+            assert cached_k.shape == (batch_size, num_heads, seq_len, head_dim), (
                 f"Layer {layer_idx} has wrong cache shape"
+            )
 
         print(f"✅ Successfully cached {num_layers} layers × {seq_len} tokens")
         print(f"   Total cache memory: {cache.get_memory_usage()['total_mb']:.3f} MB")
@@ -206,9 +208,9 @@ class TestKVCacheIntegration:
             # (batch, max_seq, layers, heads, head_dim, expected_mb_range)
             # Memory = 2 * batch * layers * heads * max_seq * head_dim * 4 bytes (float32)
             # Config 1: 2 * 1 * 2 * 4 * 64 * 16 * 4 = 65,536 bytes = 0.0625 MB
-            (1, 64, 2, 4, 16, (0.05, 0.1)),      # Tiny
+            (1, 64, 2, 4, 16, (0.05, 0.1)),  # Tiny
             # Config 2: 2 * 1 * 4 * 8 * 128 * 32 * 4 = 1,048,576 bytes = 1.0 MB
-            (1, 128, 4, 8, 32, (0.8, 1.5)),     # Small
+            (1, 128, 4, 8, 32, (0.8, 1.5)),  # Small
             # Config 3: 2 * 2 * 6 * 12 * 256 * 64 * 4 = 18,874,368 bytes = 18.0 MB
             (2, 256, 6, 12, 64, (15.0, 25.0)),  # Medium
         ]
@@ -217,9 +219,10 @@ class TestKVCacheIntegration:
             cache = KVCache(batch, max_seq, layers, heads, head_dim)
             mem_info = cache.get_memory_usage()
 
-            total_mb = mem_info['total_mb']
-            assert min_mb <= total_mb <= max_mb, \
+            total_mb = mem_info["total_mb"]
+            assert min_mb <= total_mb <= max_mb, (
                 f"Memory {total_mb:.2f} MB outside expected range [{min_mb}, {max_mb}]"
+            )
 
             print(f"✅ Config (B={batch}, S={max_seq}, L={layers}, H={heads}, D={head_dim})")
             print(f"   Memory: {total_mb:.3f} MB")
@@ -248,8 +251,9 @@ class TestKVCacheIntegration:
 
         # Verify all sequences cached
         cached_k, cached_v = cache.get(0)
-        assert cached_k.shape == (batch_size, num_heads, seq_len, head_dim), \
+        assert cached_k.shape == (batch_size, num_heads, seq_len, head_dim), (
             "Batch dimension should be preserved"
+        )
 
         # Verify sequences are different (not broadcast)
         seq0 = cached_k.data[0, 0, 0, :]
@@ -311,9 +315,9 @@ def test_kv_cache_integration_with_attention():
     if not HAS_KV_CACHE:
         assert True, "KV Cache module not implemented yet"
         return
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🧪 Integration Test: KV Cache with MultiHeadAttention")
-    print("="*70)
+    print("=" * 70)
 
     batch_size, seq_len, embed_dim = 1, 4, 64
     num_heads = 4
@@ -330,17 +334,16 @@ def test_kv_cache_integration_with_attention():
     print(f"✅ Standard attention output shape: {output_standard.shape}")
     print(f"   Expected: ({batch_size}, {seq_len}, {embed_dim})")
 
-    assert output_standard.shape == (batch_size, seq_len, embed_dim), \
-        "Attention output shape mismatch"
+    assert output_standard.shape == (batch_size, seq_len, embed_dim), "Attention output shape mismatch"
 
     print("\n✅ KV Cache integrates correctly with attention mechanism!")
     print("   (Full cached generation would require model-level integration)")
 
 
 if __name__ == "__main__":
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🔬 Module 18: KV Caching Integration Tests")
-    print("="*70)
+    print("=" * 70)
 
     # Run all tests
     test_suite = TestKVCacheIntegration()
@@ -354,9 +357,9 @@ if __name__ == "__main__":
 
     test_kv_cache_integration_with_attention()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🎉 All Integration Tests Passed!")
-    print("="*70)
+    print("=" * 70)
     print("\n📊 Test Coverage:")
     print("  ✓ Linear projection integration")
     print("  ✓ Multi-layer transformer caching")

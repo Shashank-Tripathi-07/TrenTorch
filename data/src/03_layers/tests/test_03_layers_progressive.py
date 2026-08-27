@@ -19,6 +19,7 @@ This is where we create reusable building blocks for neural networks.
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -49,20 +50,21 @@ class TestPriorModulesStillWork:
         """
         try:
             # Environment checks
-            assert sys.version_info >= (3, 8), \
-                "❌ Python 3.10+ required. Current: Python {}.{}".format(
-                    sys.version_info.major, sys.version_info.minor)
+            assert sys.version_info >= (3, 8), (
+                f"❌ Python 3.10+ required. Current: Python {sys.version_info.major}.{sys.version_info.minor}"
+            )
 
             # NumPy functionality
             import numpy as np
+
             test_array = np.array([1, 2, 3])
-            assert test_array.shape == (3,), \
-                "❌ NumPy broken. Cannot create basic arrays."
+            assert test_array.shape == (3,), "❌ NumPy broken. Cannot create basic arrays."
 
             # Project structure
             project_root = Path(__file__).parent.parent.parent.parent.parent
-            assert (project_root / "data" / "modules").exists(), \
+            assert (project_root / "data" / "modules").exists(), (
                 "❌ Project structure broken. Missing 'modules' directory."
+            )
 
         except Exception as e:
             assert False, f"""
@@ -94,13 +96,11 @@ class TestPriorModulesStillWork:
 
             # Basic tensor creation
             t = Tensor([1, 2, 3])
-            assert t.shape == (3,), \
-                f"❌ Tensor shape broken. Expected (3,), got {t.shape}"
+            assert t.shape == (3,), f"❌ Tensor shape broken. Expected (3,), got {t.shape}"
 
             # Multi-dimensional tensors
             t2 = Tensor(rng.standard_normal((4, 5)))
-            assert t2.shape == (4, 5), \
-                f"❌ Multi-dim tensor broken. Expected (4, 5), got {t2.shape}"
+            assert t2.shape == (4, 5), f"❌ Multi-dim tensor broken. Expected (4, 5), got {t2.shape}"
 
         except ImportError as e:
             assert False, f"""
@@ -155,16 +155,18 @@ class TestPriorModulesStillWork:
             output = relu(x)
 
             expected = np.array([0, 0, 1])
-            assert np.array_equal(output.data, expected), \
+            assert np.array_equal(output.data, expected), (
                 f"❌ ReLU broken. Expected {expected}, got {output.data}"
+            )
 
             # Sigmoid functionality
             sigmoid = Sigmoid()
             x = Tensor(np.array([0]))
             output = sigmoid(x)
 
-            assert np.isclose(output.data[0], 0.5, atol=1e-6), \
+            assert np.isclose(output.data[0], 0.5, atol=1e-6), (
                 f"❌ Sigmoid broken. Expected ~0.5, got {output.data[0]}"
+            )
 
         except ImportError as e:
             assert False, f"""
@@ -222,16 +224,17 @@ class TestModule03LayersCore:
             from trentorch.core.layers import Layer
 
             # Layer class should exist
-            assert hasattr(Layer, 'forward'), \
+            assert hasattr(Layer, "forward"), (
                 "❌ Layer missing forward() method. All layers need forward(x) -> output"
+            )
 
-            assert hasattr(Layer, '__call__'), \
+            assert hasattr(Layer, "__call__"), (
                 "❌ Layer missing __call__() method. Layers should be callable: layer(x)"
+            )
 
             # Test instantiation
             layer = Layer()
-            assert layer is not None, \
-                "❌ Cannot create Layer instance"
+            assert layer is not None, "❌ Cannot create Layer instance"
 
         except ImportError as e:
             assert False, f"""
@@ -299,8 +302,7 @@ class TestModule03LayersCore:
                 pass  # This is expected
 
             # Test that __call__ delegates to forward
-            assert callable(layer), \
-                "❌ Layer should be callable. Add __call__ method."
+            assert callable(layer), "❌ Layer should be callable. Add __call__ method."
 
             # Test __call__ behavior
             try:
@@ -369,12 +371,12 @@ class TestModule03LayersCore:
             output = test_layer(x)  # Should call __call__ -> forward()
 
             expected = np.array([3, 6, 9])
-            assert np.array_equal(output.data, expected), \
+            assert np.array_equal(output.data, expected), (
                 f"❌ Custom layer broken. Expected {expected}, got {output.data}"
+            )
 
             # Test that it's using the Layer interface
-            assert isinstance(test_layer, Layer), \
-                "❌ Custom layer should inherit from Layer"
+            assert isinstance(test_layer, Layer), "❌ Custom layer should inherit from Layer"
 
         except ImportError:
             assert False, """
@@ -436,21 +438,20 @@ class TestProgressiveStackIntegration:
             test_cases = [
                 ([1, 2, 3], (3,)),
                 ([[1, 2], [3, 4]], (2, 2)),
-                (rng.standard_normal((5, 10)), (5, 10))
+                (rng.standard_normal((5, 10)), (5, 10)),
             ]
 
             for input_data, expected_shape in test_cases:
                 x = Tensor(input_data)
                 output = layer(x)
 
-                assert isinstance(output, Tensor), \
-                    f"❌ Layer should return Tensor, got {type(output)}"
+                assert isinstance(output, Tensor), f"❌ Layer should return Tensor, got {type(output)}"
 
-                assert output.shape == expected_shape, \
+                assert output.shape == expected_shape, (
                     f"❌ Wrong output shape. Expected {expected_shape}, got {output.shape}"
+                )
 
-                assert np.array_equal(output.data, x.data), \
-                    "❌ Identity layer should preserve data"
+                assert np.array_equal(output.data, x.data), "❌ Identity layer should preserve data"
 
         except Exception as e:
             assert False, f"""
@@ -490,9 +491,9 @@ class TestProgressiveStackIntegration:
         💡 This is the foundation for neural networks: layer -> activation -> layer
         """
         try:
+            from trentorch.core.activations import ReLU
             from trentorch.core.layers import Layer
             from trentorch.core.tensor import Tensor
-            from trentorch.core.activations import ReLU
 
             # Simple layer for testing
             class ScaleLayer(Layer):
@@ -515,11 +516,13 @@ class TestProgressiveStackIntegration:
             expected_after_layer = np.array([-1, 0, 1])
             expected_after_relu = np.array([0, 0, 1])
 
-            assert np.array_equal(layer_output.data, expected_after_layer), \
+            assert np.array_equal(layer_output.data, expected_after_layer), (
                 f"❌ Layer output wrong. Expected {expected_after_layer}, got {layer_output.data}"
+            )
 
-            assert np.array_equal(final_output.data, expected_after_relu), \
+            assert np.array_equal(final_output.data, expected_after_relu), (
                 f"❌ ReLU after layer wrong. Expected {expected_after_relu}, got {final_output.data}"
+            )
 
         except Exception as e:
             assert False, f"""
@@ -558,9 +561,9 @@ class TestProgressiveStackIntegration:
         """
         try:
             # Import all components
-            from trentorch.core.tensor import Tensor
             from trentorch.core.activations import ReLU, Sigmoid
             from trentorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
 
             # Create complete neural network building blocks
             class LinearLayer(Layer):
@@ -572,10 +575,10 @@ class TestProgressiveStackIntegration:
             x = Tensor([-2, -1, 0, 1, 2])
 
             # Build mini neural network: input -> layer -> relu -> layer -> sigmoid
-            layer1 = LinearLayer()   # x + 1: [-1, 0, 1, 2, 3]
-            relu = ReLU()           # max(0, x): [0, 0, 1, 2, 3]
-            layer2 = LinearLayer()   # x + 1: [1, 1, 2, 3, 4]
-            sigmoid = Sigmoid()      # 1/(1+exp(-x)): ~[0.73, 0.73, 0.88, 0.95, 0.98]
+            layer1 = LinearLayer()  # x + 1: [-1, 0, 1, 2, 3]
+            relu = ReLU()  # max(0, x): [0, 0, 1, 2, 3]
+            layer2 = LinearLayer()  # x + 1: [1, 1, 2, 3, 4]
+            sigmoid = Sigmoid()  # 1/(1+exp(-x)): ~[0.73, 0.73, 0.88, 0.95, 0.98]
 
             # Forward pass through complete stack
             h1 = layer1(x)
@@ -590,8 +593,9 @@ class TestProgressiveStackIntegration:
             assert output.shape == x.shape, "❌ Sigmoid output shape wrong"
 
             # Verify sigmoid output range
-            assert np.all(output.data >= 0) and np.all(output.data <= 1), \
+            assert np.all(output.data >= 0) and np.all(output.data <= 1), (
                 "❌ Sigmoid output not in range [0,1]"
+            )
 
             # Verify the complete computation chain worked
             assert len(output.data) == 5, "❌ Complete stack pipeline broken"
@@ -640,8 +644,8 @@ class TestNeuralNetworkReadiness:
         💡 This prepares for Dense layer implementation
         """
         try:
-            from trentorch.core.tensor import Tensor
             from trentorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
 
             # Test parameter storage and manipulation
             class ParameterizedLayer(Layer):
@@ -660,19 +664,18 @@ class TestNeuralNetworkReadiness:
             layer = ParameterizedLayer(3, 2)  # 3 inputs -> 2 outputs
 
             # Check parameters exist and have correct shapes
-            assert hasattr(layer, 'weight'), "❌ Layer missing weights parameter"
-            assert hasattr(layer, 'bias'), "❌ Layer missing bias parameter"
-            assert layer.weight.shape == (3, 2), \
+            assert hasattr(layer, "weight"), "❌ Layer missing weights parameter"
+            assert hasattr(layer, "bias"), "❌ Layer missing bias parameter"
+            assert layer.weight.shape == (3, 2), (
                 f"❌ Wrong weight shape. Expected (3, 2), got {layer.weight.shape}"
-            assert layer.bias.shape == (2,), \
-                f"❌ Wrong bias shape. Expected (2,), got {layer.bias.shape}"
+            )
+            assert layer.bias.shape == (2,), f"❌ Wrong bias shape. Expected (2,), got {layer.bias.shape}"
 
             # Test forward pass
             x = Tensor([[1, 2, 3], [4, 5, 6]])  # 2 samples, 3 features each
             output = layer(x)
 
-            assert output.shape == (2, 2), \
-                f"❌ Wrong output shape. Expected (2, 2), got {output.shape}"
+            assert output.shape == (2, 2), f"❌ Wrong output shape. Expected (2, 2), got {output.shape}"
 
         except Exception as e:
             assert False, f"""
@@ -710,8 +713,8 @@ class TestNeuralNetworkReadiness:
         💡 Essential for real neural network training
         """
         try:
-            from trentorch.core.tensor import Tensor
             from trentorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
 
             # Test batch processing
             batch_size = 32
@@ -725,19 +728,20 @@ class TestNeuralNetworkReadiness:
             batch_output = relu(batch_data)
 
             # Verify batch dimensions preserved
-            assert batch_output.shape == (batch_size, feature_dim), \
+            assert batch_output.shape == (batch_size, feature_dim), (
                 f"❌ Batch processing broken. Expected {(batch_size, feature_dim)}, got {batch_output.shape}"
+            )
 
             # Verify ReLU applied element-wise to entire batch
-            assert np.all(batch_output.data >= 0), \
-                "❌ ReLU not applied correctly to batch"
+            assert np.all(batch_output.data >= 0), "❌ ReLU not applied correctly to batch"
 
             # Test that we can process different batch sizes
             for test_batch_size in [1, 16, 64]:
                 test_batch = Tensor(rng.standard_normal((test_batch_size, feature_dim)))
                 test_output = relu(test_batch)
-                assert test_output.shape == (test_batch_size, feature_dim), \
+                assert test_output.shape == (test_batch_size, feature_dim), (
                     f"❌ Batch size {test_batch_size} processing broken"
+                )
 
         except Exception as e:
             assert False, f"""
@@ -777,9 +781,9 @@ class TestNeuralNetworkReadiness:
         🎯 MILESTONE: Ready for Module 04 (Losses)!
         """
         try:
-            from trentorch.core.tensor import Tensor
-            from trentorch.core.layers import Layer
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.layers import Layer
+            from trentorch.core.tensor import Tensor
 
             # Simulate complete neural network workflow
             class MockDenseLayer(Layer):
@@ -804,24 +808,24 @@ class TestNeuralNetworkReadiness:
             x = Tensor(rng.standard_normal((batch_size, 784)))  # Flattened 28x28 images
 
             # Forward pass through network
-            h1 = relu(layer1(x))      # 32 x 128
-            h2 = relu(layer2(h1))     # 32 x 64
-            logits = layer3(h2)       # 32 x 10
+            h1 = relu(layer1(x))  # 32 x 128
+            h2 = relu(layer2(h1))  # 32 x 64
+            logits = layer3(h2)  # 32 x 10
             output = sigmoid(logits)  # 32 x 10
 
             # Verify complete workflow
-            assert output.shape == (32, 10), \
+            assert output.shape == (32, 10), (
                 f"❌ Neural network output shape wrong. Expected (32, 10), got {output.shape}"
+            )
 
             # Verify output is valid probabilities (after sigmoid)
-            assert np.all(output.data >= 0) and np.all(output.data <= 1), \
+            assert np.all(output.data >= 0) and np.all(output.data <= 1), (
                 "❌ Neural network output not in valid range [0, 1]"
+            )
 
             # Verify no NaN or infinity values
-            assert not np.any(np.isnan(output.data)), \
-                "❌ Neural network produced NaN values"
-            assert not np.any(np.isinf(output.data)), \
-                "❌ Neural network produced infinity values"
+            assert not np.any(np.isnan(output.data)), "❌ Neural network produced NaN values"
+            assert not np.any(np.isinf(output.data)), "❌ Neural network produced infinity values"
 
         except Exception as e:
             assert False, f"""
@@ -882,17 +886,18 @@ class TestModuleCompletionReadiness:
             "Layer chains with activations": False,
             "Foundation supports parameters": False,
             "Foundation supports batches": False,
-            "Ready for neural networks": False
+            "Ready for neural networks": False,
         }
 
         try:
             # Check 1: Layer base class
             from trentorch.core.layers import Layer
+
             completion_checklist["Layer base class exists"] = True
 
             # Check 2: forward method
             layer = Layer()
-            assert hasattr(layer, 'forward')
+            assert hasattr(layer, "forward")
             completion_checklist["Layer has forward() method"] = True
 
             # Check 3: callable
@@ -914,6 +919,7 @@ class TestModuleCompletionReadiness:
 
             # Check 5: chains with activations
             from trentorch.core.activations import ReLU
+
             relu = ReLU()
             chained_output = relu(output)
             assert isinstance(chained_output, Tensor)
@@ -928,7 +934,7 @@ class TestModuleCompletionReadiness:
                     return Tensor(x.data * self.weight.data)
 
             param_layer = ParameterLayer()
-            param_output = param_layer(x)
+            param_layer(x)
             completion_checklist["Foundation supports parameters"] = True
 
             # Check 7: supports batches

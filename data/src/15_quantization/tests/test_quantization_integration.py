@@ -6,7 +6,9 @@ Tests INT8 quantization, dequantization, and quantized operations
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
+
 
 def test_quantization_integration():
     """Test quantization system integration."""
@@ -17,6 +19,7 @@ def test_quantization_integration():
     # - Test memory savings
     # - Test accuracy preservation
     pass
+
 
 if __name__ == "__main__":
     test_quantization_integration()

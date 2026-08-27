@@ -186,69 +186,85 @@ Professional benchmarking quantifies and minimizes these uncertainties.
 # %%
 #| export
 import numpy as np
+
 rng = np.random.default_rng(7)
-import time
-import statistics
+import json
 import os
+import platform
+import statistics
+import time
 import tracemalloc
-from typing import Dict, List, Tuple, Any, Optional, Callable, Union
+import warnings
+from collections.abc import Callable
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-import json
-import platform
-from contextlib import contextmanager
-import warnings
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
 
 # Optional dependency for visualization only
 try:
     import matplotlib.pyplot as plt
+
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
+
     # Create minimal fallback for when matplotlib is not available
     class plt:
         @staticmethod
         def subplots(*args, **kwargs):
             return None, None
+
         @staticmethod
         def figure(*args, **kwargs):
             return None
+
         @staticmethod
         def scatter(*args, **kwargs):
             pass
+
         @staticmethod
         def annotate(*args, **kwargs):
             pass
+
         @staticmethod
         def xlabel(*args, **kwargs):
             pass
+
         @staticmethod
         def ylabel(*args, **kwargs):
             pass
+
         @staticmethod
         def title(*args, **kwargs):
             pass
+
         @staticmethod
         def grid(*args, **kwargs):
             pass
+
         @staticmethod
         def tight_layout(*args, **kwargs):
             pass
+
         @staticmethod
         def savefig(*args, **kwargs):
             pass
+
         @staticmethod
         def show(*args, **kwargs):
             pass
 
-# Import Profiler from Module 14 for measurement reuse
-from trentorch.perf.profiling import Profiler
 
+# Import Profiler from Module 14 for measurement reuse
 # %%
 from enum import Enum
+
+from trentorch.perf.profiling import Profiler
+
 
 #| export
 class OlympicEvent(Enum):
@@ -258,11 +274,13 @@ class OlympicEvent(Enum):
     Each event optimizes for different objectives with specific constraints,
     enabling structured comparison of optimization strategies.
     """
-    LATENCY_SPRINT = "latency_sprint"      # Minimize latency (accuracy >= 85%)
-    MEMORY_CHALLENGE = "memory_challenge"   # Minimize memory (accuracy >= 85%)
-    ACCURACY_CONTEST = "accuracy_contest"   # Maximize accuracy (latency < 100ms, memory < 10MB)
-    ALL_AROUND = "all_around"               # Best balanced score across all metrics
-    EXTREME_PUSH = "extreme_push"           # Most aggressive optimization (accuracy >= 80%)
+
+    LATENCY_SPRINT = "latency_sprint"  # Minimize latency (accuracy >= 85%)
+    MEMORY_CHALLENGE = "memory_challenge"  # Minimize memory (accuracy >= 85%)
+    ACCURACY_CONTEST = "accuracy_contest"  # Maximize accuracy (latency < 100ms, memory < 10MB)
+    ALL_AROUND = "all_around"  # Best balanced score across all metrics
+    EXTREME_PUSH = "extreme_push"  # Most aggressive optimization (accuracy >= 80%)
+
 
 # %% [markdown]
 """
@@ -330,86 +348,11 @@ CV: 17% (coefficient of variation - relative noise)
 The confidence interval tells us: "We're 95% confident the true mean latency is between 1.21ms and 1.71ms." This guides optimization decisions with statistical backing.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "benchmark-dataclass", "solution": true}
-
-@dataclass
-class BenchmarkResult:
-    """
-    Container for benchmark measurements with statistical analysis.
-
-    TODO: Implement a robust result container that stores measurements and metadata
-
-    APPROACH:
-    1. Store raw measurements and computed statistics
-    2. Include metadata about test conditions
-    3. Provide methods for statistical analysis
-    4. Support serialization for result persistence
-
-    EXAMPLE:
-    >>> result = BenchmarkResult("model_accuracy", [0.95, 0.94, 0.96])
-    >>> print(f"Mean: {result.mean:.3f} ± {result.std:.3f}")
-    Mean: 0.950 ± 0.010
-
-    HINTS:
-    - Use statistics module for robust mean/std calculations
-    - Store both raw data and summary statistics
-    - Include confidence intervals for professional reporting
-    """
-    ### BEGIN SOLUTION
-    metric_name: str
-    values: List[float]
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def __post_init__(self):
-        """Compute statistics after initialization."""
-        if not self.values:
-            raise ValueError(
-                f"Empty values list for BenchmarkResult\n"
-                f"  ❌ Cannot compute statistics: values=[] (0 measurements)\n"
-                f"  💡 BenchmarkResult needs data to compute mean, std, percentiles\n"
-                f"  🔧 Add measurements: BenchmarkResult('{self.metric_name}', [1.2, 1.3, 1.1])"
-            )
-
-        self.mean = statistics.mean(self.values)
-        self.std = statistics.stdev(self.values) if len(self.values) > 1 else 0.0
-        self.median = statistics.median(self.values)
-        self.min_val = min(self.values)
-        self.max_val = max(self.values)
-        self.count = len(self.values)
-
-        # 95% confidence interval for the mean
-        if len(self.values) > 1:
-            t_score = 1.96  # Approximate for large samples
-            margin_error = t_score * (self.std / np.sqrt(self.count))
-            self.ci_lower = self.mean - margin_error
-            self.ci_upper = self.mean + margin_error
-        else:
-            self.ci_lower = self.ci_upper = self.mean
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization."""
-        return {
-            'metric_name': self.metric_name,
-            'values': self.values,
-            'mean': self.mean,
-            'std': self.std,
-            'median': self.median,
-            'min': self.min_val,
-            'max': self.max_val,
-            'count': self.count,
-            'ci_lower': self.ci_lower,
-            'ci_upper': self.ci_upper,
-            'metadata': self.metadata
-        }
-
-    def __str__(self) -> str:
-        return f"{self.metric_name}: {self.mean:.4f} ± {self.std:.4f} (n={self.count})"
-    ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
 
+
 @dataclass
 class BenchmarkResult:
     """
@@ -433,10 +376,11 @@ class BenchmarkResult:
     - Store both raw data and summary statistics
     - Include confidence intervals for professional reporting
     """
+
     ### BEGIN SOLUTION
     metric_name: str
-    values: List[float]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    values: list[float]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Compute statistics after initialization."""
@@ -464,25 +408,27 @@ class BenchmarkResult:
         else:
             self.ci_lower = self.ci_upper = self.mean
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
-            'metric_name': self.metric_name,
-            'values': self.values,
-            'mean': self.mean,
-            'std': self.std,
-            'median': self.median,
-            'min': self.min_val,
-            'max': self.max_val,
-            'count': self.count,
-            'ci_lower': self.ci_lower,
-            'ci_upper': self.ci_upper,
-            'metadata': self.metadata
+            "metric_name": self.metric_name,
+            "values": self.values,
+            "mean": self.mean,
+            "std": self.std,
+            "median": self.median,
+            "min": self.min_val,
+            "max": self.max_val,
+            "count": self.count,
+            "ci_lower": self.ci_lower,
+            "ci_upper": self.ci_upper,
+            "metadata": self.metadata,
         }
 
     def __str__(self) -> str:
         return f"{self.metric_name}: {self.mean:.4f} ± {self.std:.4f} (n={self.count})"
+
     ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -494,6 +440,7 @@ This test validates our BenchmarkResult class correctly computes statistical pro
 **Why it matters**: Reliable statistics are the foundation of fair benchmarking
 **Expected**: Correct statistics and proper handling of edge cases
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-benchmark-result", "locked": true, "points": 10}
 def test_unit_benchmark_result():
@@ -516,10 +463,11 @@ def test_unit_benchmark_result():
 
     # Test serialization
     result_dict = result.to_dict()
-    assert result_dict['metric_name'] == "test_metric"
-    assert result_dict['mean'] == 3.0
+    assert result_dict["metric_name"] == "test_metric"
+    assert result_dict["mean"] == 3.0
 
     print("✅ BenchmarkResult works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchmark_result()
@@ -570,43 +518,11 @@ elapsed = timer.elapsed
 This pattern ensures timing starts/stops correctly even if exceptions occur.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "timer-context", "solution": true}
-
-@contextmanager
-def precise_timer():
-    """
-    High-precision timing context manager for benchmarking.
-
-    TODO: Implement a context manager that provides accurate timing measurements
-
-    APPROACH:
-    1. Use time.perf_counter() for high precision
-    2. Handle potential interruptions and system noise
-    3. Return elapsed time when context exits
-    4. Provide warmup capability for JIT compilation
-
-    Yields:
-        Timer object with .elapsed attribute (set after context exits)
-
-    EXAMPLE:
-    >>> with precise_timer() as timer:
-    ...     time.sleep(0.1)  # Some operation
-    >>> print(f"Elapsed: {timer.elapsed:.4f}s")
-    Elapsed: 0.1001s
-
-    HINTS:
-    - perf_counter() is monotonic and high-resolution
-    - Store start time in __enter__, compute elapsed in __exit__
-    - Handle any exceptions gracefully
-    """
-    ### BEGIN SOLUTION
-    raise NotImplementedError("TODO: implement precise_timer")
-    ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
 
+
 @contextmanager
 def precise_timer():
     """
@@ -634,6 +550,7 @@ def precise_timer():
     - Store start time in __enter__, compute elapsed in __exit__
     - Handle any exceptions gracefully
     """
+
     ### BEGIN SOLUTION
     class Timer:
         def __init__(self):
@@ -649,6 +566,7 @@ def precise_timer():
         timer.elapsed = time.perf_counter() - timer.start_time
     ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: Precise Timer
@@ -659,6 +577,7 @@ This test validates our timing context manager provides accurate measurements.
 **Why it matters**: Accurate timing is essential for reliable benchmarks
 **Expected**: Measurements close to actual sleep durations
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-precise-timer", "locked": true, "points": 5}
 def test_unit_precise_timer():
@@ -683,6 +602,7 @@ def test_unit_precise_timer():
     assert all(0.0005 < t < 0.01 for t in times)
 
     print("✅ precise_timer works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_precise_timer()
@@ -772,46 +692,11 @@ Benchmark Setup:
 ```
 """
 
-# %% nbgrader={"grade": false, "grade_id": "benchmark-init", "solution": true}
-
-class Benchmark:
-    """
-    Professional benchmarking system for ML models and operations.
-
-    Provides latency, accuracy, and memory benchmarking with statistical
-    rigor. Reuses Profiler from Module 14 for individual measurements
-    and adds multi-model comparison with confidence intervals.
-
-    EXAMPLE:
-    >>> benchmark = Benchmark(models=[model1, model2], datasets=[test_data])
-    >>> results = benchmark.run_accuracy_benchmark()
-    """
-
-    def __init__(self, models: List[Any], datasets: List[Any],
-                 warmup_runs: int = DEFAULT_WARMUP_RUNS, measurement_runs: int = DEFAULT_MEASUREMENT_RUNS):
-        """
-        Initialize benchmark with models and datasets.
-
-        TODO: Set up the benchmark runner with models, datasets, and system metadata
-
-        APPROACH:
-        1. Store models and datasets for benchmarking
-        2. Configure warmup and measurement run counts
-        3. Initialize Profiler from Module 14 for measurements
-        4. Capture system information for reproducibility
-
-        HINTS:
-        - Use platform module for system info
-        - os.cpu_count() can return None, use fallback
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Benchmark.__init__")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
 
+
 class Benchmark:
     """
     Professional benchmarking system for ML models and operations.
@@ -825,8 +710,13 @@ class Benchmark:
     >>> results = benchmark.run_accuracy_benchmark()
     """
 
-    def __init__(self, models: List[Any], datasets: List[Any],
-                 warmup_runs: int = DEFAULT_WARMUP_RUNS, measurement_runs: int = DEFAULT_MEASUREMENT_RUNS):
+    def __init__(
+        self,
+        models: list[Any],
+        datasets: list[Any],
+        warmup_runs: int = DEFAULT_WARMUP_RUNS,
+        measurement_runs: int = DEFAULT_MEASUREMENT_RUNS,
+    ):
         """
         Initialize benchmark with models and datasets.
 
@@ -854,14 +744,15 @@ class Benchmark:
 
         # System information for metadata (using Python standard library)
         self.system_info = {
-            'platform': platform.platform(),
-            'processor': platform.processor(),
-            'python_version': platform.python_version(),
-            'cpu_count': os.cpu_count() or 1,  # os.cpu_count() can return None
+            "platform": platform.platform(),
+            "processor": platform.processor(),
+            "python_version": platform.python_version(),
+            "cpu_count": os.cpu_count() or 1,  # os.cpu_count() can return None
         }
         # Note: System total memory not available via standard library
         # Process memory measurement uses tracemalloc (via Profiler)
         ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -872,6 +763,7 @@ class Benchmark:
 **Expected**: All attributes initialized, system info captured
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchmark-init", "locked": true, "points": 5}
 def test_unit_benchmark_init():
     """🧪 Test Benchmark initialization."""
@@ -880,6 +772,7 @@ def test_unit_benchmark_init():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             return x
 
@@ -893,13 +786,14 @@ def test_unit_benchmark_init():
     assert benchmark.warmup_runs == 3
     assert benchmark.measurement_runs == 5
     assert isinstance(benchmark.results, dict)
-    assert 'platform' in benchmark.system_info
-    assert 'processor' in benchmark.system_info
-    assert 'python_version' in benchmark.system_info
-    assert 'cpu_count' in benchmark.system_info
+    assert "platform" in benchmark.system_info
+    assert "processor" in benchmark.system_info
+    assert "python_version" in benchmark.system_info
+    assert "cpu_count" in benchmark.system_info
     assert benchmark.profiler is not None
 
     print("✅ Benchmark.__init__ works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchmark_init()
@@ -921,8 +815,11 @@ Input Tensor ──> Warmup Runs (discard) ──> Measurement Runs ──> Benc
 
 # %% nbgrader={"grade": false, "grade_id": "benchmark-latency", "solution": true}
 
-    # --- Benchmark.run_latency_benchmark ---
-def benchmark_run_latency_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 28)) -> Dict[str, BenchmarkResult]:
+
+# --- Benchmark.run_latency_benchmark ---
+def benchmark_run_latency_benchmark(
+    self, input_shape: tuple[int, ...] = (1, 28, 28)
+) -> dict[str, BenchmarkResult]:
     """
     Benchmark model inference latency using Profiler.
 
@@ -943,14 +840,18 @@ def benchmark_run_latency_benchmark(self, input_shape: Tuple[int, ...] = (1, 28,
     raise NotImplementedError("TODO: implement benchmark_run_latency_benchmark")
     ### END SOLUTION
 
+
 Benchmark.run_latency_benchmark = benchmark_run_latency_benchmark
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-    # --- Benchmark.run_latency_benchmark ---
-def benchmark_run_latency_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 28)) -> Dict[str, BenchmarkResult]:
+
+# --- Benchmark.run_latency_benchmark ---
+def benchmark_run_latency_benchmark(
+    self, input_shape: tuple[int, ...] = (1, 28, 28)
+) -> dict[str, BenchmarkResult]:
     """
     Benchmark model inference latency using Profiler.
 
@@ -971,18 +872,16 @@ def benchmark_run_latency_benchmark(self, input_shape: Tuple[int, ...] = (1, 28,
     results = {}
 
     for i, model in enumerate(self.models):
-        model_name = getattr(model, 'name', f'model_{i}')
+        model_name = getattr(model, "name", f"model_{i}")
 
         # Create input tensor for profiling
         from trentorch.core.tensor import Tensor
+
         input_tensor = Tensor(rng.standard_normal(input_shape).astype(np.float32))
 
         # Use Profiler to measure latency with proper warmup and iterations
-        latency_ms = self.profiler.measure_latency(
-            model,
-            input_tensor,
-            warmup=self.warmup_runs,
-            iterations=self.measurement_runs
+        self.profiler.measure_latency(
+            model, input_tensor, warmup=self.warmup_runs, iterations=self.measurement_runs
         )
 
         # Profiler returns single median value
@@ -990,19 +889,16 @@ def benchmark_run_latency_benchmark(self, input_shape: Tuple[int, ...] = (1, 28,
         # Run additional measurements for statistical analysis
         latencies = []
         for _ in range(self.measurement_runs):
-            single_latency = self.profiler.measure_latency(
-                model, input_tensor, warmup=0, iterations=1
-            )
+            single_latency = self.profiler.measure_latency(model, input_tensor, warmup=0, iterations=1)
             latencies.append(single_latency)
 
         results[model_name] = BenchmarkResult(
-            f"{model_name}_latency_ms",
-            latencies,
-            metadata={'input_shape': input_shape, **self.system_info}
+            f"{model_name}_latency_ms", latencies, metadata={"input_shape": input_shape, **self.system_info}
         )
 
     return results
     ### END SOLUTION
+
 
 Benchmark.run_latency_benchmark = benchmark_run_latency_benchmark
 
@@ -1015,6 +911,7 @@ Benchmark.run_latency_benchmark = benchmark_run_latency_benchmark
 **Expected**: BenchmarkResult for each model with positive latency values
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchmark-latency", "locked": true, "points": 10}
 def test_unit_benchmark_latency():
     """🧪 Test Benchmark latency measurement."""
@@ -1023,6 +920,7 @@ def test_unit_benchmark_latency():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             time.sleep(0.001)
             return x
@@ -1038,6 +936,7 @@ def test_unit_benchmark_latency():
     assert all(r.mean > 0 for r in results.values())
 
     print("✅ Benchmark.run_latency_benchmark works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchmark_latency()
@@ -1060,8 +959,9 @@ Model ──> Dataset 1 ──> accuracy_1 ──┐
 
 # %% nbgrader={"grade": false, "grade_id": "benchmark-accuracy", "solution": true}
 
-    # --- Benchmark.run_accuracy_benchmark ---
-def benchmark_run_accuracy_benchmark(self) -> Dict[str, BenchmarkResult]:
+
+# --- Benchmark.run_accuracy_benchmark ---
+def benchmark_run_accuracy_benchmark(self) -> dict[str, BenchmarkResult]:
     """
     Benchmark model accuracy across datasets.
 
@@ -1081,14 +981,16 @@ def benchmark_run_accuracy_benchmark(self) -> Dict[str, BenchmarkResult]:
     raise NotImplementedError("TODO: implement benchmark_run_accuracy_benchmark")
     ### END SOLUTION
 
+
 Benchmark.run_accuracy_benchmark = benchmark_run_accuracy_benchmark
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-    # --- Benchmark.run_accuracy_benchmark ---
-def benchmark_run_accuracy_benchmark(self) -> Dict[str, BenchmarkResult]:
+
+# --- Benchmark.run_accuracy_benchmark ---
+def benchmark_run_accuracy_benchmark(self) -> dict[str, BenchmarkResult]:
     """
     Benchmark model accuracy across datasets.
 
@@ -1108,14 +1010,14 @@ def benchmark_run_accuracy_benchmark(self) -> Dict[str, BenchmarkResult]:
     results = {}
 
     for i, model in enumerate(self.models):
-        model_name = getattr(model, 'name', f'model_{i}')
+        model_name = getattr(model, "name", f"model_{i}")
         accuracies = []
 
         for dataset in self.datasets:
             # Simulate accuracy measurement
             # In practice, this would evaluate the model on the dataset
             try:
-                if hasattr(model, 'evaluate'):
+                if hasattr(model, "evaluate"):
                     accuracy = model.evaluate(dataset)
                 else:
                     # Simulate accuracy for demonstration
@@ -1132,11 +1034,12 @@ def benchmark_run_accuracy_benchmark(self) -> Dict[str, BenchmarkResult]:
         results[model_name] = BenchmarkResult(
             f"{model_name}_accuracy",
             accuracies,
-            metadata={'num_datasets': len(self.datasets), **self.system_info}
+            metadata={"num_datasets": len(self.datasets), **self.system_info},
         )
 
     return results
     ### END SOLUTION
+
 
 Benchmark.run_accuracy_benchmark = benchmark_run_accuracy_benchmark
 
@@ -1149,6 +1052,7 @@ Benchmark.run_accuracy_benchmark = benchmark_run_accuracy_benchmark
 **Expected**: Accuracy values in [0, 1] range for each model
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchmark-accuracy", "locked": true, "points": 10}
 def test_unit_benchmark_accuracy():
     """🧪 Test Benchmark accuracy measurement."""
@@ -1157,6 +1061,7 @@ def test_unit_benchmark_accuracy():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             return x
 
@@ -1170,6 +1075,7 @@ def test_unit_benchmark_accuracy():
     assert all(0 <= r.mean <= 1 for r in results.values())
 
     print("✅ Benchmark.run_accuracy_benchmark works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchmark_accuracy()
@@ -1195,8 +1101,11 @@ Model ──> Profiler.measure_memory() ──> peak_memory_mb
 
 # %% nbgrader={"grade": false, "grade_id": "benchmark-memory", "solution": true}
 
-    # --- Benchmark.run_memory_benchmark ---
-def benchmark_run_memory_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 28)) -> Dict[str, BenchmarkResult]:
+
+# --- Benchmark.run_memory_benchmark ---
+def benchmark_run_memory_benchmark(
+    self, input_shape: tuple[int, ...] = (1, 28, 28)
+) -> dict[str, BenchmarkResult]:
     """
     Benchmark model memory usage using Profiler.
 
@@ -1216,14 +1125,18 @@ def benchmark_run_memory_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 
     raise NotImplementedError("TODO: implement benchmark_run_memory_benchmark")
     ### END SOLUTION
 
+
 Benchmark.run_memory_benchmark = benchmark_run_memory_benchmark
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-    # --- Benchmark.run_memory_benchmark ---
-def benchmark_run_memory_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 28)) -> Dict[str, BenchmarkResult]:
+
+# --- Benchmark.run_memory_benchmark ---
+def benchmark_run_memory_benchmark(
+    self, input_shape: tuple[int, ...] = (1, 28, 28)
+) -> dict[str, BenchmarkResult]:
     """
     Benchmark model memory usage using Profiler.
 
@@ -1243,14 +1156,14 @@ def benchmark_run_memory_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 
     results = {}
 
     for i, model in enumerate(self.models):
-        model_name = getattr(model, 'name', f'model_{i}')
+        model_name = getattr(model, "name", f"model_{i}")
         memory_usages = []
 
         for run in range(self.measurement_runs):
             # Use Profiler to measure memory
             memory_stats = self.profiler.measure_memory(model, input_shape)
             # Use peak_memory_mb as the primary metric
-            memory_used = memory_stats['peak_memory_mb']
+            memory_used = memory_stats["peak_memory_mb"]
 
             # If no significant memory change detected, estimate from parameters
             if memory_used < 1.0:
@@ -1262,11 +1175,12 @@ def benchmark_run_memory_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 
         results[model_name] = BenchmarkResult(
             f"{model_name}_memory_mb",
             memory_usages,
-            metadata={'input_shape': input_shape, **self.system_info}
+            metadata={"input_shape": input_shape, **self.system_info},
         )
 
     return results
     ### END SOLUTION
+
 
 Benchmark.run_memory_benchmark = benchmark_run_memory_benchmark
 
@@ -1279,6 +1193,7 @@ Benchmark.run_memory_benchmark = benchmark_run_memory_benchmark
 **Expected**: Non-negative memory values for each model
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchmark-memory", "locked": true, "points": 10}
 def test_unit_benchmark_memory():
     """🧪 Test Benchmark memory measurement."""
@@ -1287,6 +1202,7 @@ def test_unit_benchmark_memory():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             return x
 
@@ -1299,6 +1215,7 @@ def test_unit_benchmark_memory():
     assert all(r.mean >= 0 for r in results.values())
 
     print("✅ Benchmark.run_memory_benchmark works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchmark_memory()
@@ -1314,7 +1231,8 @@ This is the primary interface for multi-model evaluation.
 
 # %% nbgrader={"grade": false, "grade_id": "benchmark-compare", "solution": true}
 
-    # --- Benchmark.compare_models ---
+
+# --- Benchmark.compare_models ---
 def benchmark_compare_models(self, metric: str = "latency"):
     """
     Compare models across a specific metric.
@@ -1334,13 +1252,15 @@ def benchmark_compare_models(self, metric: str = "latency"):
     raise NotImplementedError("TODO: implement benchmark_compare_models")
     ### END SOLUTION
 
+
 Benchmark.compare_models = benchmark_compare_models
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-    # --- Benchmark.compare_models ---
+
+# --- Benchmark.compare_models ---
 def benchmark_compare_models(self, metric: str = "latency"):
     """
     Compare models across a specific metric.
@@ -1375,18 +1295,21 @@ def benchmark_compare_models(self, metric: str = "latency"):
     # (No pandas dependency - students can convert to DataFrame if needed)
     comparison_data = []
     for model_name, result in results.items():
-        comparison_data.append({
-            'model': model_name.replace(f'_{metric}', '').replace('_ms', '').replace('_mb', ''),
-            'metric': metric,
-            'mean': result.mean,
-            'std': result.std,
-            'ci_lower': result.ci_lower,
-            'ci_upper': result.ci_upper,
-            'count': result.count
-        })
+        comparison_data.append(
+            {
+                "model": model_name.replace(f"_{metric}", "").replace("_ms", "").replace("_mb", ""),
+                "metric": metric,
+                "mean": result.mean,
+                "std": result.std,
+                "ci_lower": result.ci_lower,
+                "ci_upper": result.ci_upper,
+                "count": result.count,
+            }
+        )
 
     return comparison_data
     ### END SOLUTION
+
 
 Benchmark.compare_models = benchmark_compare_models
 
@@ -1401,6 +1324,7 @@ and that compare_models dispatches properly.
 **Why it matters**: Reliable comparisons guide optimization decisions
 **Expected**: Consistent results across multiple benchmark types
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-benchmark", "locked": true, "points": 15}
 def test_unit_benchmark():
@@ -1446,6 +1370,7 @@ def test_unit_benchmark():
     assert "mean" in comparison_data[0]
 
     print("✅ Benchmark works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchmark()
@@ -1515,46 +1440,11 @@ The BenchmarkSuite constructor creates the evaluation infrastructure, including
 a Benchmark instance for measurements and an output directory for reports and plots.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "benchsuite-init", "solution": true}
-
-class BenchmarkSuite:
-    """
-    Comprehensive benchmark suite for ML systems evaluation.
-
-    Orchestrates multiple benchmark types (latency, accuracy, memory, energy)
-    and generates reports with visualizations and recommendations.
-
-    EXAMPLE:
-    >>> suite = BenchmarkSuite(models, datasets)
-    >>> report = suite.run_full_benchmark()
-    >>> suite.generate_report(report)
-    """
-
-    def __init__(self, models: List[Any], datasets: List[Any],
-                 output_dir: str = "benchmark_results"):
-        """
-        Initialize comprehensive benchmark suite.
-
-        TODO: Set up the suite with models, datasets, output directory, and a Benchmark instance
-
-        APPROACH:
-        1. Store models and datasets
-        2. Create output directory (use Path, mkdir with exist_ok)
-        3. Create Benchmark instance for measurements
-        4. Initialize empty results dict
-
-        HINTS:
-        - Use Path(output_dir) for cross-platform paths
-        - The Benchmark instance handles individual model measurements
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement BenchmarkSuite.__init__")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
 
+
 class BenchmarkSuite:
     """
     Comprehensive benchmark suite for ML systems evaluation.
@@ -1568,8 +1458,7 @@ class BenchmarkSuite:
     >>> suite.generate_report(report)
     """
 
-    def __init__(self, models: List[Any], datasets: List[Any],
-                 output_dir: str = "benchmark_results"):
+    def __init__(self, models: list[Any], datasets: list[Any], output_dir: str = "benchmark_results"):
         """
         Initialize comprehensive benchmark suite.
 
@@ -1595,6 +1484,7 @@ class BenchmarkSuite:
         self.results = {}
         ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: BenchmarkSuite.__init__
@@ -1604,6 +1494,7 @@ class BenchmarkSuite:
 **Expected**: All attributes initialized, output directory created
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchsuite-init", "locked": true, "points": 5}
 def test_unit_benchsuite_init():
     """🧪 Test BenchmarkSuite initialization."""
@@ -1612,10 +1503,12 @@ def test_unit_benchsuite_init():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             return x
 
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         models = [MockModel("m1")]
         datasets = [{"d": "1"}]
@@ -1628,6 +1521,7 @@ def test_unit_benchsuite_init():
         assert isinstance(suite.results, dict)
 
     print("✅ BenchmarkSuite.__init__ works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchsuite_init()
@@ -1650,8 +1544,9 @@ Models ──> Latency Benchmark ──┐
 
 # %% nbgrader={"grade": false, "grade_id": "benchsuite-run", "solution": true}
 
-    # --- BenchmarkSuite.run_full_benchmark ---
-def benchsuite_run_full_benchmark(self) -> Dict[str, Dict[str, BenchmarkResult]]:
+
+# --- BenchmarkSuite.run_full_benchmark ---
+def benchsuite_run_full_benchmark(self) -> dict[str, dict[str, BenchmarkResult]]:
     """
     Run all benchmark categories.
 
@@ -1672,14 +1567,16 @@ def benchsuite_run_full_benchmark(self) -> Dict[str, Dict[str, BenchmarkResult]]
     raise NotImplementedError("TODO: implement benchsuite_run_full_benchmark")
     ### END SOLUTION
 
+
 BenchmarkSuite.run_full_benchmark = benchsuite_run_full_benchmark
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-    # --- BenchmarkSuite.run_full_benchmark ---
-def benchsuite_run_full_benchmark(self) -> Dict[str, Dict[str, BenchmarkResult]]:
+
+# --- BenchmarkSuite.run_full_benchmark ---
+def benchsuite_run_full_benchmark(self) -> dict[str, dict[str, BenchmarkResult]]:
     """
     Run all benchmark categories.
 
@@ -1701,20 +1598,21 @@ def benchsuite_run_full_benchmark(self) -> Dict[str, Dict[str, BenchmarkResult]]
 
     # Run all benchmark types
     print("  📊 Measuring latency...")
-    self.results['latency'] = self.benchmark.run_latency_benchmark()
+    self.results["latency"] = self.benchmark.run_latency_benchmark()
 
     print("  🎯 Measuring accuracy...")
-    self.results['accuracy'] = self.benchmark.run_accuracy_benchmark()
+    self.results["accuracy"] = self.benchmark.run_accuracy_benchmark()
 
     print("  💾 Measuring memory usage...")
-    self.results['memory'] = self.benchmark.run_memory_benchmark()
+    self.results["memory"] = self.benchmark.run_memory_benchmark()
 
     # Simulate energy benchmark (would require specialized hardware)
     print("  ⚡ Estimating energy efficiency...")
-    self.results['energy'] = self._estimate_energy_efficiency()
+    self.results["energy"] = self._estimate_energy_efficiency()
 
     return self.results
     ### END SOLUTION
+
 
 BenchmarkSuite.run_full_benchmark = benchsuite_run_full_benchmark
 
@@ -1727,6 +1625,7 @@ BenchmarkSuite.run_full_benchmark = benchsuite_run_full_benchmark
 **Expected**: Results dict with keys for latency, accuracy, memory, energy
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchsuite-run", "locked": true, "points": 15}
 def test_unit_benchsuite_run():
     """🧪 Test BenchmarkSuite.run_full_benchmark."""
@@ -1735,26 +1634,29 @@ def test_unit_benchsuite_run():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             time.sleep(0.001)
             return x
 
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         models = [MockModel("m1"), MockModel("m2")]
         suite = BenchmarkSuite(models, [{"d": "1"}], output_dir=tmp_dir)
 
         results = suite.run_full_benchmark()
 
-        assert 'latency' in results
-        assert 'accuracy' in results
-        assert 'memory' in results
-        assert 'energy' in results
+        assert "latency" in results
+        assert "accuracy" in results
+        assert "memory" in results
+        assert "energy" in results
         for metric_results in results.values():
             assert len(metric_results) == 2
             assert all(isinstance(r, BenchmarkResult) for r in metric_results.values())
 
     print("✅ BenchmarkSuite.run_full_benchmark works correctly!")
+
 
 # Note: test_unit_benchsuite_run() is called at the bottom of the module
 # after all BenchmarkSuite methods (including _estimate_energy_efficiency) are patched.
@@ -1778,8 +1680,9 @@ energy = base_cost + (latency/1000) * 2.0 + memory * 0.01   (Joules)
 
 # %% nbgrader={"grade": false, "grade_id": "benchsuite-energy", "solution": true}
 
-    # --- BenchmarkSuite._estimate_energy_efficiency ---
-def _benchsuite_estimate_energy_efficiency(self) -> Dict[str, BenchmarkResult]:
+
+# --- BenchmarkSuite._estimate_energy_efficiency ---
+def _benchsuite_estimate_energy_efficiency(self) -> dict[str, BenchmarkResult]:
     """
     Estimate energy efficiency (simplified simulation).
 
@@ -1799,14 +1702,16 @@ def _benchsuite_estimate_energy_efficiency(self) -> Dict[str, BenchmarkResult]:
     raise NotImplementedError("TODO: implement _benchsuite_estimate_energy_efficiency")
     ### END SOLUTION
 
+
 BenchmarkSuite._estimate_energy_efficiency = _benchsuite_estimate_energy_efficiency
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-    # --- BenchmarkSuite._estimate_energy_efficiency ---
-def _benchsuite_estimate_energy_efficiency(self) -> Dict[str, BenchmarkResult]:
+
+# --- BenchmarkSuite._estimate_energy_efficiency ---
+def _benchsuite_estimate_energy_efficiency(self) -> dict[str, BenchmarkResult]:
     """
     Estimate energy efficiency (simplified simulation).
 
@@ -1826,12 +1731,12 @@ def _benchsuite_estimate_energy_efficiency(self) -> Dict[str, BenchmarkResult]:
     energy_results = {}
 
     for i, model in enumerate(self.models):
-        model_name = getattr(model, 'name', f'model_{i}')
+        model_name = getattr(model, "name", f"model_{i}")
 
         # Energy roughly correlates with latency * memory usage
-        if 'latency' in self.results and 'memory' in self.results:
-            latency_result = self.results['latency'].get(model_name)
-            memory_result = self.results['memory'].get(model_name)
+        if "latency" in self.results and "memory" in self.results:
+            latency_result = self.results["latency"].get(model_name)
+            memory_result = self.results["memory"].get(model_name)
 
             if latency_result and memory_result:
                 # Energy ∝ power × time, power ∝ memory usage
@@ -1844,23 +1749,24 @@ def _benchsuite_estimate_energy_efficiency(self) -> Dict[str, BenchmarkResult]:
                 energy_results[model_name] = BenchmarkResult(
                     f"{model_name}_energy_joules",
                     energy_values,
-                    metadata={'estimated': True, **self.benchmark.system_info}
+                    metadata={"estimated": True, **self.benchmark.system_info},
                 )
 
     # Fallback if no latency/memory results
     if not energy_results:
         for i, model in enumerate(self.models):
-            model_name = getattr(model, 'name', f'model_{i}')
+            model_name = getattr(model, "name", f"model_{i}")
             # Simulate energy measurements
             energy_values = [0.5 + rng.normal(0, 0.1) for _ in range(5)]
             energy_results[model_name] = BenchmarkResult(
                 f"{model_name}_energy_joules",
                 energy_values,
-                metadata={'estimated': True, **self.benchmark.system_info}
+                metadata={"estimated": True, **self.benchmark.system_info},
             )
 
     return energy_results
     ### END SOLUTION
+
 
 BenchmarkSuite._estimate_energy_efficiency = _benchsuite_estimate_energy_efficiency
 
@@ -1873,6 +1779,7 @@ BenchmarkSuite._estimate_energy_efficiency = _benchsuite_estimate_energy_efficie
 **Expected**: Positive energy values for each model
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchsuite-energy", "locked": true, "points": 5}
 def test_unit_benchsuite_energy():
     """🧪 Test BenchmarkSuite energy estimation."""
@@ -1881,18 +1788,20 @@ def test_unit_benchsuite_energy():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             time.sleep(0.001)
             return x
 
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         models = [MockModel("m1")]
         suite = BenchmarkSuite(models, [{"d": "1"}], output_dir=tmp_dir)
 
         # Populate latency and memory first
-        suite.results['latency'] = suite.benchmark.run_latency_benchmark()
-        suite.results['memory'] = suite.benchmark.run_memory_benchmark()
+        suite.results["latency"] = suite.benchmark.run_latency_benchmark()
+        suite.results["memory"] = suite.benchmark.run_memory_benchmark()
 
         energy = suite._estimate_energy_efficiency()
         assert len(energy) >= 1
@@ -1900,6 +1809,7 @@ def test_unit_benchsuite_energy():
         assert all(r.mean > 0 for r in energy.values())
 
     print("✅ BenchmarkSuite._estimate_energy_efficiency works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchsuite_energy()
@@ -1914,7 +1824,8 @@ across all four metrics. The best performer in each category is highlighted gree
 
 # %% nbgrader={"grade": false, "grade_id": "benchsuite-plot", "solution": true}
 
-    # --- BenchmarkSuite.plot_results and plot_pareto_frontier ---
+
+# --- BenchmarkSuite.plot_results and plot_pareto_frontier ---
 def benchsuite_plot_results(self, save_plots: bool = True):
     """
     Generate visualization plots for benchmark results.
@@ -1937,9 +1848,11 @@ def benchsuite_plot_results(self, save_plots: bool = True):
     raise NotImplementedError("TODO: implement benchsuite_plot_results")
     ### END SOLUTION
 
+
 BenchmarkSuite.plot_results = benchsuite_plot_results
 
-def benchsuite_plot_pareto_frontier(self, x_metric: str = 'latency', y_metric: str = 'accuracy'):
+
+def benchsuite_plot_pareto_frontier(self, x_metric: str = "latency", y_metric: str = "accuracy"):
     """Plot Pareto frontier for two competing objectives."""
     if not MATPLOTLIB_AVAILABLE:
         print("⚠️ matplotlib not available - skipping plots. Install with: pip install matplotlib")
@@ -1956,8 +1869,13 @@ def benchsuite_plot_pareto_frontier(self, x_metric: str = 'latency', y_metric: s
     model_names = []
 
     for model_name in self.results[x_metric].keys():
-        clean_name = model_name.replace(f'_{x_metric}', '').replace('_ms', '').replace('_mb', '').replace('_joules', '')
-        if clean_name in [mn.replace(f'_{y_metric}', '') for mn in self.results[y_metric].keys()]:
+        clean_name = (
+            model_name.replace(f"_{x_metric}", "")
+            .replace("_ms", "")
+            .replace("_mb", "")
+            .replace("_joules", "")
+        )
+        if clean_name in [mn.replace(f"_{y_metric}", "") for mn in self.results[y_metric].keys()]:
             x_val = self.results[x_metric][model_name].mean
 
             # Find corresponding y value
@@ -1978,23 +1896,23 @@ def benchsuite_plot_pareto_frontier(self, x_metric: str = 'latency', y_metric: s
 
     # Label points
     for i, name in enumerate(model_names):
-        plt.annotate(name, (x_values[i], y_values[i]),
-                    xytext=(5, 5), textcoords='offset points')
+        plt.annotate(name, (x_values[i], y_values[i]), xytext=(5, 5), textcoords="offset points")
 
     # Determine if lower or higher is better for each metric
-    x_lower_better = x_metric in ['latency', 'memory', 'energy']
-    y_lower_better = y_metric in ['latency', 'memory', 'energy']
+    x_lower_better = x_metric in ["latency", "memory", "energy"]
+    y_lower_better = y_metric in ["latency", "memory", "energy"]
 
-    plt.xlabel(f'{x_metric.capitalize()} ({"lower" if x_lower_better else "higher"} is better)')
-    plt.ylabel(f'{y_metric.capitalize()} ({"lower" if y_lower_better else "higher"} is better)')
-    plt.title(f'Pareto Frontier: {x_metric.capitalize()} vs {y_metric.capitalize()}')
+    plt.xlabel(f"{x_metric.capitalize()} ({'lower' if x_lower_better else 'higher'} is better)")
+    plt.ylabel(f"{y_metric.capitalize()} ({'lower' if y_lower_better else 'higher'} is better)")
+    plt.title(f"Pareto Frontier: {x_metric.capitalize()} vs {y_metric.capitalize()}")
     plt.grid(True, alpha=0.3)
 
     # Save plot
-    plot_path = self.output_dir / f'pareto_{x_metric}_vs_{y_metric}.png'
-    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plot_path = self.output_dir / f"pareto_{x_metric}_vs_{y_metric}.png"
+    plt.savefig(plot_path, dpi=300, bbox_inches="tight")
     print(f"📊 Pareto plot saved to {plot_path}")
     plt.show()
+
 
 BenchmarkSuite.plot_pareto_frontier = benchsuite_plot_pareto_frontier
 
@@ -2002,7 +1920,8 @@ BenchmarkSuite.plot_pareto_frontier = benchsuite_plot_pareto_frontier
 #| export
 # Solution
 
-    # --- BenchmarkSuite.plot_results and plot_pareto_frontier ---
+
+# --- BenchmarkSuite.plot_results and plot_pareto_frontier ---
 def benchsuite_plot_results(self, save_plots: bool = True):
     """
     Generate visualization plots for benchmark results.
@@ -2031,11 +1950,11 @@ def benchsuite_plot_results(self, save_plots: bool = True):
         return
 
     fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-    fig.suptitle('ML Model Benchmark Results', fontsize=16, fontweight='bold')
+    fig.suptitle("ML Model Benchmark Results", fontsize=16, fontweight="bold")
 
     # Plot each metric type
-    metrics = ['latency', 'accuracy', 'memory', 'energy']
-    units = ['ms', 'accuracy', 'MB', 'J']
+    metrics = ["latency", "accuracy", "memory", "energy"]
+    units = ["ms", "accuracy", "MB", "J"]
 
     for idx, (metric, unit) in enumerate(zip(metrics, units)):
         ax = axes[idx // 2, idx % 2]
@@ -2046,43 +1965,50 @@ def benchsuite_plot_results(self, save_plots: bool = True):
             stds = []
 
             for model_name, result in self.results[metric].items():
-                clean_name = model_name.replace(f'_{metric}', '').replace('_ms', '').replace('_mb', '').replace('_joules', '')
+                clean_name = (
+                    model_name.replace(f"_{metric}", "")
+                    .replace("_ms", "")
+                    .replace("_mb", "")
+                    .replace("_joules", "")
+                )
                 model_names.append(clean_name)
                 means.append(result.mean)
                 stds.append(result.std)
 
             bars = ax.bar(model_names, means, yerr=stds, capsize=5, alpha=0.7)
-            ax.set_title(f'{metric.capitalize()} Comparison')
-            ax.set_ylabel(f'{metric.capitalize()} ({unit})')
-            ax.tick_params(axis='x', rotation=45)
+            ax.set_title(f"{metric.capitalize()} Comparison")
+            ax.set_ylabel(f"{metric.capitalize()} ({unit})")
+            ax.tick_params(axis="x", rotation=45)
 
             # Color bars by performance (green = better)
-            if metric in ['latency', 'memory', 'energy']:  # Lower is better
+            if metric in ["latency", "memory", "energy"]:  # Lower is better
                 best_idx = means.index(min(means))
             else:  # Higher is better (accuracy)
                 best_idx = means.index(max(means))
 
             for i, bar in enumerate(bars):
                 if i == best_idx:
-                    bar.set_color('green')
+                    bar.set_color("green")
                     bar.set_alpha(0.8)
         else:
-            ax.text(0.5, 0.5, f'No {metric} data', ha='center', va='center', transform=ax.transAxes)
-            ax.set_title(f'{metric.capitalize()} Comparison')
+            ax.text(0.5, 0.5, f"No {metric} data", ha="center", va="center", transform=ax.transAxes)
+            ax.set_title(f"{metric.capitalize()} Comparison")
 
     plt.tight_layout()
 
     if save_plots:
-        plot_path = self.output_dir / 'benchmark_comparison.png'
-        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+        plot_path = self.output_dir / "benchmark_comparison.png"
+        plt.savefig(plot_path, dpi=300, bbox_inches="tight")
         print(f"📊 Plots saved to {plot_path}")
 
     plt.show()
     ### END SOLUTION
 
+
 BenchmarkSuite.plot_results = benchsuite_plot_results
 
-def benchsuite_plot_pareto_frontier(self, x_metric: str = 'latency', y_metric: str = 'accuracy'):
+
+def benchsuite_plot_pareto_frontier(self, x_metric: str = "latency", y_metric: str = "accuracy"):
     """Plot Pareto frontier for two competing objectives."""
     if not MATPLOTLIB_AVAILABLE:
         print("⚠️ matplotlib not available - skipping plots. Install with: pip install matplotlib")
@@ -2099,8 +2025,13 @@ def benchsuite_plot_pareto_frontier(self, x_metric: str = 'latency', y_metric: s
     model_names = []
 
     for model_name in self.results[x_metric].keys():
-        clean_name = model_name.replace(f'_{x_metric}', '').replace('_ms', '').replace('_mb', '').replace('_joules', '')
-        if clean_name in [mn.replace(f'_{y_metric}', '') for mn in self.results[y_metric].keys()]:
+        clean_name = (
+            model_name.replace(f"_{x_metric}", "")
+            .replace("_ms", "")
+            .replace("_mb", "")
+            .replace("_joules", "")
+        )
+        if clean_name in [mn.replace(f"_{y_metric}", "") for mn in self.results[y_metric].keys()]:
             x_val = self.results[x_metric][model_name].mean
 
             # Find corresponding y value
@@ -2121,23 +2052,23 @@ def benchsuite_plot_pareto_frontier(self, x_metric: str = 'latency', y_metric: s
 
     # Label points
     for i, name in enumerate(model_names):
-        plt.annotate(name, (x_values[i], y_values[i]),
-                    xytext=(5, 5), textcoords='offset points')
+        plt.annotate(name, (x_values[i], y_values[i]), xytext=(5, 5), textcoords="offset points")
 
     # Determine if lower or higher is better for each metric
-    x_lower_better = x_metric in ['latency', 'memory', 'energy']
-    y_lower_better = y_metric in ['latency', 'memory', 'energy']
+    x_lower_better = x_metric in ["latency", "memory", "energy"]
+    y_lower_better = y_metric in ["latency", "memory", "energy"]
 
-    plt.xlabel(f'{x_metric.capitalize()} ({"lower" if x_lower_better else "higher"} is better)')
-    plt.ylabel(f'{y_metric.capitalize()} ({"lower" if y_lower_better else "higher"} is better)')
-    plt.title(f'Pareto Frontier: {x_metric.capitalize()} vs {y_metric.capitalize()}')
+    plt.xlabel(f"{x_metric.capitalize()} ({'lower' if x_lower_better else 'higher'} is better)")
+    plt.ylabel(f"{y_metric.capitalize()} ({'lower' if y_lower_better else 'higher'} is better)")
+    plt.title(f"Pareto Frontier: {x_metric.capitalize()} vs {y_metric.capitalize()}")
     plt.grid(True, alpha=0.3)
 
     # Save plot
-    plot_path = self.output_dir / f'pareto_{x_metric}_vs_{y_metric}.png'
-    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plot_path = self.output_dir / f"pareto_{x_metric}_vs_{y_metric}.png"
+    plt.savefig(plot_path, dpi=300, bbox_inches="tight")
     print(f"📊 Pareto plot saved to {plot_path}")
     plt.show()
+
 
 BenchmarkSuite.plot_pareto_frontier = benchsuite_plot_pareto_frontier
 
@@ -2150,6 +2081,7 @@ BenchmarkSuite.plot_pareto_frontier = benchsuite_plot_pareto_frontier
 **Expected**: No errors when plotting (or graceful fallback message)
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchsuite-plot", "locked": true, "points": 10}
 def test_unit_benchsuite_plot():
     """🧪 Test BenchmarkSuite plotting."""
@@ -2158,11 +2090,13 @@ def test_unit_benchsuite_plot():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             time.sleep(0.001)
             return x
 
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         models = [MockModel("m1"), MockModel("m2")]
         suite = BenchmarkSuite(models, [{"d": "1"}], output_dir=tmp_dir)
@@ -2171,18 +2105,21 @@ def test_unit_benchsuite_plot():
         # Should not raise even without matplotlib display
         try:
             import matplotlib
-            matplotlib.use('Agg')  # Non-interactive backend
+
+            matplotlib.use("Agg")  # Non-interactive backend
             suite.plot_results(save_plots=True)
         except Exception:
             pass  # Plotting is optional
 
     # Test with no results
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         suite2 = BenchmarkSuite([MockModel("m1")], [{"d": "1"}], output_dir=tmp_dir)
         suite2.plot_results()  # Should print "No results" without error
 
     print("✅ BenchmarkSuite.plot_results works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchsuite_plot()
@@ -2217,7 +2154,8 @@ For each metric type, identify the best performer and list all model scores.
 
 # %% nbgrader={"grade": false, "grade_id": "benchsuite-format-results", "solution": true}
 
-def _benchsuite_format_results_summary(self) -> List[str]:
+
+def _benchsuite_format_results_summary(self) -> list[str]:
     """
     Format per-metric results into report lines.
 
@@ -2236,13 +2174,15 @@ def _benchsuite_format_results_summary(self) -> List[str]:
     raise NotImplementedError("TODO: implement _benchsuite_format_results_summary")
     ### END SOLUTION
 
+
 BenchmarkSuite._format_results_summary = _benchsuite_format_results_summary
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _benchsuite_format_results_summary(self) -> List[str]:
+
+def _benchsuite_format_results_summary(self) -> list[str]:
     """
     Format per-metric results into report lines.
 
@@ -2267,9 +2207,9 @@ def _benchsuite_format_results_summary(self) -> List[str]:
         lines.append("")
 
         # Find best performer
-        if metric_type in ['latency', 'memory', 'energy']:
+        if metric_type in ["latency", "memory", "energy"]:
             best_model = min(results.items(), key=lambda x: x[1].mean)
-            comparison_text = "fastest" if metric_type == 'latency' else "most efficient"
+            comparison_text = "fastest" if metric_type == "latency" else "most efficient"
         else:
             best_model = max(results.items(), key=lambda x: x[1].mean)
             comparison_text = "most accurate"
@@ -2278,12 +2218,18 @@ def _benchsuite_format_results_summary(self) -> List[str]:
         lines.append("")
 
         for model_name, result in results.items():
-            clean_name = model_name.replace(f'_{metric_type}', '').replace('_ms', '').replace('_mb', '').replace('_joules', '')
+            clean_name = (
+                model_name.replace(f"_{metric_type}", "")
+                .replace("_ms", "")
+                .replace("_mb", "")
+                .replace("_joules", "")
+            )
             lines.append(f"- **{clean_name}**: {result.mean:.4f} ± {result.std:.4f}")
         lines.append("")
 
     return lines
     ### END SOLUTION
+
 
 BenchmarkSuite._format_results_summary = _benchsuite_format_results_summary
 
@@ -2296,7 +2242,8 @@ Analyze accuracy vs speed trade-offs and generate use-case recommendations.
 
 # %% nbgrader={"grade": false, "grade_id": "benchsuite-format-recs", "solution": true}
 
-def _benchsuite_format_recommendations(self) -> List[str]:
+
+def _benchsuite_format_recommendations(self) -> list[str]:
     """
     Generate recommendation lines from benchmark results.
 
@@ -2318,13 +2265,15 @@ def _benchsuite_format_recommendations(self) -> List[str]:
     raise NotImplementedError("TODO: implement _benchsuite_format_recommendations")
     ### END SOLUTION
 
+
 BenchmarkSuite._format_recommendations = _benchsuite_format_recommendations
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _benchsuite_format_recommendations(self) -> List[str]:
+
+def _benchsuite_format_recommendations(self) -> list[str]:
     """
     Generate recommendation lines from benchmark results.
 
@@ -2348,15 +2297,15 @@ def _benchsuite_format_recommendations(self) -> List[str]:
     lines.append("")
 
     if len(self.results) >= 2:
-        if 'latency' in self.results and 'accuracy' in self.results:
+        if "latency" in self.results and "accuracy" in self.results:
             lines.append("### Accuracy vs Speed Trade-off")
 
-            latency_results = self.results['latency']
-            accuracy_results = self.results['accuracy']
+            latency_results = self.results["latency"]
+            accuracy_results = self.results["accuracy"]
 
             scores = {}
             for model_name in latency_results.keys():
-                clean_name = model_name.replace('_latency', '').replace('_ms', '')
+                clean_name = model_name.replace("_latency", "").replace("_ms", "")
 
                 acc_key = None
                 for key in accuracy_results.keys():
@@ -2368,20 +2317,26 @@ def _benchsuite_format_recommendations(self) -> List[str]:
                     lat_vals = [r.mean for r in latency_results.values()]
                     acc_vals = [r.mean for r in accuracy_results.values()]
 
-                    norm_latency = 1 - (latency_results[model_name].mean - min(lat_vals)) / (max(lat_vals) - min(lat_vals) + 1e-8)
-                    norm_accuracy = (accuracy_results[acc_key].mean - min(acc_vals)) / (max(acc_vals) - min(acc_vals) + 1e-8)
+                    norm_latency = 1 - (latency_results[model_name].mean - min(lat_vals)) / (
+                        max(lat_vals) - min(lat_vals) + 1e-8
+                    )
+                    norm_accuracy = (accuracy_results[acc_key].mean - min(acc_vals)) / (
+                        max(acc_vals) - min(acc_vals) + 1e-8
+                    )
 
                     scores[clean_name] = (norm_latency + norm_accuracy) / 2
 
             if scores:
                 best_overall = max(scores.items(), key=lambda x: x[1])
-                lines.append(f"- **Best overall trade-off**: {best_overall[0]} (score: {best_overall[1]:.3f})")
+                lines.append(
+                    f"- **Best overall trade-off**: {best_overall[0]} (score: {best_overall[1]:.3f})"
+                )
                 lines.append("")
 
     lines.append("### Usage Recommendations")
-    if 'accuracy' in self.results and 'latency' in self.results:
-        acc_results = self.results['accuracy']
-        lat_results = self.results['latency']
+    if "accuracy" in self.results and "latency" in self.results:
+        acc_results = self.results["accuracy"]
+        lat_results = self.results["latency"]
 
         best_acc_model = max(acc_results.items(), key=lambda x: x[1].mean)
         best_lat_model = min(lat_results.items(), key=lambda x: x[1].mean)
@@ -2392,6 +2347,7 @@ def _benchsuite_format_recommendations(self) -> List[str]:
 
     return lines
     ### END SOLUTION
+
 
 BenchmarkSuite._format_recommendations = _benchsuite_format_recommendations
 
@@ -2404,6 +2360,7 @@ markdown report and save it to disk.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "benchsuite-report", "solution": true}
+
 
 def benchsuite_generate_report(self) -> str:
     """
@@ -2421,11 +2378,13 @@ def benchsuite_generate_report(self) -> str:
     raise NotImplementedError("TODO: implement benchsuite_generate_report")
     ### END SOLUTION
 
+
 BenchmarkSuite.generate_report = benchsuite_generate_report
 
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 def benchsuite_generate_report(self) -> str:
     """
@@ -2467,13 +2426,14 @@ def benchsuite_generate_report(self) -> str:
 
     # Save report
     report_text = "\n".join(report_lines)
-    report_path = self.output_dir / 'benchmark_report.md'
-    with open(report_path, 'w') as f:
+    report_path = self.output_dir / "benchmark_report.md"
+    with open(report_path, "w") as f:
         f.write(report_text)
 
     print(f"📄 Report saved to {report_path}")
     return report_text
     ### END SOLUTION
+
 
 BenchmarkSuite.generate_report = benchsuite_generate_report
 
@@ -2486,6 +2446,7 @@ BenchmarkSuite.generate_report = benchsuite_generate_report
 **Expected**: Markdown lines with metric headers, best performers, and model scores
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchsuite-format-results", "locked": true, "points": 3}
 def test_unit_benchsuite_format_results():
     """🧪 Test BenchmarkSuite._format_results_summary implementation."""
@@ -2494,10 +2455,12 @@ def test_unit_benchsuite_format_results():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             return x * 0.5
 
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         models = [MockModel("fast_model"), MockModel("accurate_model")]
         suite = BenchmarkSuite(models, [{"data": "test"}], output_dir=tmp_dir)
@@ -2516,6 +2479,7 @@ def test_unit_benchsuite_format_results():
 
     print("✅ BenchmarkSuite._format_results_summary works correctly!")
 
+
 if __name__ == "__main__":
     test_unit_benchsuite_format_results()
 
@@ -2528,6 +2492,7 @@ if __name__ == "__main__":
 **Expected**: Markdown lines with trade-off scores and use-case guidance
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-benchsuite-format-recs", "locked": true, "points": 3}
 def test_unit_benchsuite_format_recs():
     """🧪 Test BenchmarkSuite._format_recommendations implementation."""
@@ -2536,10 +2501,12 @@ def test_unit_benchsuite_format_recs():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             return x * 0.5
 
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         models = [MockModel("fast_model"), MockModel("accurate_model")]
         suite = BenchmarkSuite(models, [{"data": "test"}], output_dir=tmp_dir)
@@ -2552,6 +2519,7 @@ def test_unit_benchsuite_format_recs():
         assert "Recommendations" in text, "Should contain 'Recommendations'"
 
     print("✅ BenchmarkSuite._format_recommendations works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchsuite_format_recs()
@@ -2567,6 +2535,7 @@ and generates valid reports with recommendations.
 **Why it matters**: Comprehensive evaluation enables informed optimization decisions
 **Expected**: Complete results across all metrics with valid reports
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-benchmark-suite", "locked": true, "points": 15}
 def test_unit_benchmark_suite():
@@ -2587,6 +2556,7 @@ def test_unit_benchmark_suite():
 
     # Create temporary directory for test output
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         suite = BenchmarkSuite(models, datasets, output_dir=tmp_dir)
 
@@ -2594,10 +2564,10 @@ def test_unit_benchmark_suite():
         results = suite.run_full_benchmark()
 
         # Verify all benchmark types completed
-        assert 'latency' in results
-        assert 'accuracy' in results
-        assert 'memory' in results
-        assert 'energy' in results
+        assert "latency" in results
+        assert "accuracy" in results
+        assert "memory" in results
+        assert "energy" in results
 
         # Verify results structure
         for metric_results in results.values():
@@ -2612,9 +2582,10 @@ def test_unit_benchmark_suite():
 
         # Verify files are created
         output_path = Path(tmp_dir)
-        assert (output_path / 'benchmark_report.md').exists()
+        assert (output_path / "benchmark_report.md").exists()
 
     print("✅ BenchmarkSuite works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_benchmark_suite()
@@ -2718,46 +2689,10 @@ Standard MLPerf Benchmarks:
 ```
 """
 
-# %% nbgrader={"grade": false, "grade_id": "tinymlperf-init", "solution": true}
-
-class MLPerf:
-    """
-    MLPerf-style standardized benchmarking for edge ML systems.
-
-    MLPerf® is a trademark of MLCommons. Used here purely for educational purposes.
-    This module teaches the principles of MLPerf-style benchmarking through a
-    simplified suite inspired by MLPerf Tiny.
-
-    Provides fixed benchmark configurations with target thresholds,
-    standardized measurement protocols, and compliance reporting.
-
-    EXAMPLE:
-    >>> perf = MLPerf()
-    >>> results = perf.run_standard_benchmark(model, 'keyword_spotting')
-    >>> perf.generate_compliance_report(results)
-    """
-
-    def __init__(self, random_seed: int = 42):
-        """
-        Initialize MLPerf benchmark suite.
-
-        TODO: Set up standard benchmark configurations with fixed seeds
-
-        APPROACH:
-        1. Store random seed and initialize numpy RNG
-        2. Define benchmark configs with input_shape, target_accuracy, max_latency_ms
-
-        HINTS:
-        - Each benchmark is a dict with 'input_shape', 'target_accuracy', 'max_latency_ms', 'description'
-        - keyword_spotting uses (1, 16000) for 1 second of 16kHz audio
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement MLPerf.__init__")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class MLPerf:
     """
@@ -2792,36 +2727,36 @@ class MLPerf:
         """
         ### BEGIN SOLUTION
         self.random_seed = random_seed
-        rng = np.random.default_rng(7)
 
         # Standard MLPerf benchmark configurations
         self.benchmarks = {
-            'keyword_spotting': {
-                'input_shape': (1, 16000),  # 1 second of 16kHz audio
-                'target_accuracy': 0.90,
-                'max_latency_ms': 100,
-                'description': 'Wake word detection'
+            "keyword_spotting": {
+                "input_shape": (1, 16000),  # 1 second of 16kHz audio
+                "target_accuracy": 0.90,
+                "max_latency_ms": 100,
+                "description": "Wake word detection",
             },
-            'visual_wake_words': {
-                'input_shape': (1, 96, 96, 3),  # 96x96 RGB image
-                'target_accuracy': 0.80,
-                'max_latency_ms': 200,
-                'description': 'Person detection in images'
+            "visual_wake_words": {
+                "input_shape": (1, 96, 96, 3),  # 96x96 RGB image
+                "target_accuracy": 0.80,
+                "max_latency_ms": 200,
+                "description": "Person detection in images",
             },
-            'anomaly_detection': {
-                'input_shape': (1, 640),  # Machine sensor data
-                'target_accuracy': 0.85,
-                'max_latency_ms': 50,
-                'description': 'Industrial anomaly detection'
+            "anomaly_detection": {
+                "input_shape": (1, 640),  # Machine sensor data
+                "target_accuracy": 0.85,
+                "max_latency_ms": 50,
+                "description": "Industrial anomaly detection",
             },
-            'image_classification': {
-                'input_shape': (1, 32, 32, 3),  # CIFAR-10 style
-                'target_accuracy': 0.75,
-                'max_latency_ms': 150,
-                'description': 'Tiny image classification'
-            }
+            "image_classification": {
+                "input_shape": (1, 32, 32, 3),  # CIFAR-10 style
+                "target_accuracy": 0.75,
+                "max_latency_ms": 150,
+                "description": "Tiny image classification",
+            },
         }
         ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -2832,6 +2767,7 @@ class MLPerf:
 **Expected**: Four benchmarks with proper input shapes and thresholds
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-tinymlperf-init", "locked": true, "points": 5}
 def test_unit_mlperf_init():
     """🧪 Test MLPerf initialization."""
@@ -2841,21 +2777,22 @@ def test_unit_mlperf_init():
 
     assert perf.random_seed == 42
     assert len(perf.benchmarks) == 4
-    assert 'keyword_spotting' in perf.benchmarks
-    assert 'visual_wake_words' in perf.benchmarks
-    assert 'anomaly_detection' in perf.benchmarks
-    assert 'image_classification' in perf.benchmarks
+    assert "keyword_spotting" in perf.benchmarks
+    assert "visual_wake_words" in perf.benchmarks
+    assert "anomaly_detection" in perf.benchmarks
+    assert "image_classification" in perf.benchmarks
 
     # Verify config structure
     for name, config in perf.benchmarks.items():
-        assert 'input_shape' in config
-        assert 'target_accuracy' in config
-        assert 'max_latency_ms' in config
-        assert 'description' in config
-        assert 0 < config['target_accuracy'] <= 1.0
-        assert config['max_latency_ms'] > 0
+        assert "input_shape" in config
+        assert "target_accuracy" in config
+        assert "max_latency_ms" in config
+        assert "description" in config
+        assert 0 < config["target_accuracy"] <= 1.0
+        assert config["max_latency_ms"] > 0
 
     print("✅ MLPerf.__init__ works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_mlperf_init()
@@ -2874,40 +2811,15 @@ Test Inputs ──> Warmup Phase (10%) ──> Measurement Phase (100%) ──> 
 ```
 """
 
-# %% nbgrader={"grade": false, "grade_id": "tinymlperf-latency", "solution": true}
-
-    # --- MLPerf._run_latency_test ---
-def _mlperf_run_latency_test(self, model: Any, test_inputs: List[Any],
-                                  benchmark_name: str, num_runs: int) -> Tuple[List[float], List[Any]]:
-    """
-    Run latency measurement phase with warmup.
-
-    TODO: Implement warmup and measurement phases for latency testing
-
-    APPROACH:
-    1. Warmup phase: run 10% of inputs without timing
-    2. Measurement phase: time each inference with precise_timer
-    3. Use duck-typing (forward/predict/callable) for model invocation
-    4. Return latencies in ms and predictions list
-
-    HINTS:
-    - warmup_runs = max(1, num_runs // 10)
-    - Use precise_timer() context manager
-    - Convert elapsed seconds to ms: timer.elapsed * 1000
-    """
-    ### BEGIN SOLUTION
-    raise NotImplementedError("TODO: implement _mlperf_run_latency_test")
-    ### END SOLUTION
-
-MLPerf._run_latency_test = _mlperf_run_latency_test
-
 # %% tags=["solution"]
 #| export
 # Solution
 
-    # --- MLPerf._run_latency_test ---
-def _mlperf_run_latency_test(self, model: Any, test_inputs: List[Any],
-                                  benchmark_name: str, num_runs: int) -> Tuple[List[float], List[Any]]:
+
+# --- MLPerf._run_latency_test ---
+def _mlperf_run_latency_test(
+    self, model: Any, test_inputs: list[Any], benchmark_name: str, num_runs: int
+) -> tuple[list[float], list[Any]]:
     """
     Run latency measurement phase with warmup.
 
@@ -2929,9 +2841,9 @@ def _mlperf_run_latency_test(self, model: Any, test_inputs: List[Any],
     warmup_runs = max(1, num_runs // 10)
     print(f"   Warming up ({warmup_runs} runs)...")
     for i in range(warmup_runs):
-        if hasattr(model, 'forward'):
+        if hasattr(model, "forward"):
             model.forward(test_inputs[i])
-        elif hasattr(model, 'predict'):
+        elif hasattr(model, "predict"):
             model.predict(test_inputs[i])
         elif callable(model):
             model(test_inputs[i])
@@ -2944,15 +2856,19 @@ def _mlperf_run_latency_test(self, model: Any, test_inputs: List[Any],
     for i, test_input in enumerate(test_inputs):
         with precise_timer() as timer:
             try:
-                if hasattr(model, 'forward'):
+                if hasattr(model, "forward"):
                     output = model.forward(test_input)
-                elif hasattr(model, 'predict'):
+                elif hasattr(model, "predict"):
                     output = model.predict(test_input)
                 elif callable(model):
                     output = model(test_input)
                 else:
                     # Simulate prediction
-                    output = rng.random(2) if benchmark_name in ['keyword_spotting', 'visual_wake_words', 'anomaly_detection'] else rng.random(10)
+                    output = (
+                        rng.random(2)
+                        if benchmark_name in ["keyword_spotting", "visual_wake_words", "anomaly_detection"]
+                        else rng.random(10)
+                    )
 
                 predictions.append(output)
             except Exception:
@@ -2963,6 +2879,7 @@ def _mlperf_run_latency_test(self, model: Any, test_inputs: List[Any],
 
     return latencies, predictions
     ### END SOLUTION
+
 
 MLPerf._run_latency_test = _mlperf_run_latency_test
 
@@ -2975,6 +2892,7 @@ MLPerf._run_latency_test = _mlperf_run_latency_test
 **Expected**: Positive latency values and predictions for each input
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-tinymlperf-latency", "locked": true, "points": 10}
 def test_unit_mlperf_latency():
     """🧪 Test MLPerf latency measurement phase."""
@@ -2983,6 +2901,7 @@ def test_unit_mlperf_latency():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             time.sleep(0.001)
             return rng.random(2)
@@ -2991,13 +2910,14 @@ def test_unit_mlperf_latency():
     model = MockModel("test")
 
     test_inputs = [rng.standard_normal((1, 16000)).astype(np.float32) for _ in range(5)]
-    latencies, predictions = perf._run_latency_test(model, test_inputs, 'keyword_spotting', 5)
+    latencies, predictions = perf._run_latency_test(model, test_inputs, "keyword_spotting", 5)
 
     assert len(latencies) == 5
     assert len(predictions) == 5
     assert all(lat > 0 for lat in latencies)
 
     print("✅ MLPerf._run_latency_test works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_mlperf_latency()
@@ -3025,6 +2945,7 @@ This helper normalizes them into a flat numpy array for label extraction.
 
 # %% nbgrader={"grade": false, "grade_id": "tinymlperf-extract-pred", "solution": true}
 
+
 def _extract_pred_array(pred) -> np.ndarray:
     """
     Extract a flat numpy array from a model prediction.
@@ -3046,9 +2967,11 @@ def _extract_pred_array(pred) -> np.ndarray:
     raise NotImplementedError("TODO: implement _extract_pred_array")
     ### END SOLUTION
 
+
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 def _extract_pred_array(pred) -> np.ndarray:
     """
@@ -3068,7 +2991,7 @@ def _extract_pred_array(pred) -> np.ndarray:
     3. Flatten if multi-dimensional
     """
     ### BEGIN SOLUTION
-    if hasattr(pred, 'data'):
+    if hasattr(pred, "data"):
         pred_array = pred.data
     else:
         pred_array = np.array(pred)
@@ -3083,6 +3006,7 @@ def _extract_pred_array(pred) -> np.ndarray:
     return pred_array
     ### END SOLUTION
 
+
 # %% [markdown]
 """
 #### Step 2: Calculate Accuracy
@@ -3093,8 +3017,10 @@ synthetic ground truth for binary and multi-class tasks.
 
 # %% nbgrader={"grade": false, "grade_id": "tinymlperf-memory", "solution": true}
 
-def _mlperf_run_accuracy_test(self, model: Any, predictions: List[Any],
-                                    benchmark_name: str, num_runs: int) -> float:
+
+def _mlperf_run_accuracy_test(
+    self, model: Any, predictions: list[Any], benchmark_name: str, num_runs: int
+) -> float:
     """
     Calculate accuracy from predictions against synthetic ground truth.
 
@@ -3114,14 +3040,17 @@ def _mlperf_run_accuracy_test(self, model: Any, predictions: List[Any],
     raise NotImplementedError("TODO: implement _mlperf_run_accuracy_test")
     ### END SOLUTION
 
+
 MLPerf._run_accuracy_test = _mlperf_run_accuracy_test
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _mlperf_run_accuracy_test(self, model: Any, predictions: List[Any],
-                                    benchmark_name: str, num_runs: int) -> float:
+
+def _mlperf_run_accuracy_test(
+    self, model: Any, predictions: list[Any], benchmark_name: str, num_runs: int
+) -> float:
     """
     Calculate accuracy from predictions against synthetic ground truth.
 
@@ -3139,7 +3068,7 @@ def _mlperf_run_accuracy_test(self, model: Any, predictions: List[Any],
     """
     ### BEGIN SOLUTION
     rng = np.random.default_rng(7)
-    if benchmark_name in ['keyword_spotting', 'visual_wake_words', 'anomaly_detection']:
+    if benchmark_name in ["keyword_spotting", "visual_wake_words", "anomaly_detection"]:
         # Binary classification
         true_labels = rng.integers(0, 2, num_runs)
         predicted_labels = []
@@ -3163,14 +3092,15 @@ def _mlperf_run_accuracy_test(self, model: Any, predictions: List[Any],
     accuracy = correct_predictions / num_runs
 
     # Add realistic noise based on model complexity
-    model_name = getattr(model, 'name', 'unknown_model')
-    if 'efficient' in model_name.lower():
+    model_name = getattr(model, "name", "unknown_model")
+    if "efficient" in model_name.lower():
         accuracy = min(0.95, accuracy + 0.1)
-    elif 'accurate' in model_name.lower():
+    elif "accurate" in model_name.lower():
         accuracy = min(0.98, accuracy + 0.2)
 
     return accuracy
     ### END SOLUTION
+
 
 MLPerf._run_accuracy_test = _mlperf_run_accuracy_test
 
@@ -3182,6 +3112,7 @@ MLPerf._run_accuracy_test = _mlperf_run_accuracy_test
 **Why it matters**: Models return Tensors, numpy arrays, or lists — we need to handle all
 **Expected**: Always returns a flat numpy array regardless of input format
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-extract-pred", "locked": true, "points": 3}
 def test_unit_extract_pred_array():
@@ -3203,6 +3134,7 @@ def test_unit_extract_pred_array():
 
     print("✅ _extract_pred_array works correctly!")
 
+
 if __name__ == "__main__":
     test_unit_extract_pred_array()
 
@@ -3214,6 +3146,7 @@ if __name__ == "__main__":
 **Why it matters**: Accuracy determines whether a model meets compliance thresholds
 **Expected**: Accuracy value between 0 and 1
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-tinymlperf-accuracy", "locked": true, "points": 10}
 def test_unit_mlperf_accuracy():
@@ -3229,15 +3162,16 @@ def test_unit_mlperf_accuracy():
 
     # Binary classification predictions
     predictions = [rng.random(2) for _ in range(10)]
-    accuracy = perf._run_accuracy_test(model, predictions, 'keyword_spotting', 10)
+    accuracy = perf._run_accuracy_test(model, predictions, "keyword_spotting", 10)
     assert 0 <= accuracy <= 1
 
     # Multi-class predictions
     predictions_mc = [rng.random(10) for _ in range(10)]
-    accuracy_mc = perf._run_accuracy_test(model, predictions_mc, 'image_classification', 10)
+    accuracy_mc = perf._run_accuracy_test(model, predictions_mc, "image_classification", 10)
     assert 0 <= accuracy_mc <= 1
 
     print("✅ MLPerf._run_accuracy_test works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_mlperf_accuracy()
@@ -3262,9 +3196,11 @@ Config Lookup ──> Generate Inputs ──> _run_latency_test() ──> _run_a
 
 # %% nbgrader={"grade": false, "grade_id": "tinymlperf-run", "solution": true}
 
-    # --- MLPerf.run_standard_benchmark ---
-def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
-                              num_runs: int = 100) -> Dict[str, Any]:
+
+# --- MLPerf.run_standard_benchmark ---
+def mlperf_run_standard_benchmark(
+    self, model: Any, benchmark_name: str, num_runs: int = 100
+) -> dict[str, Any]:
     """
     Run a standardized MLPerf benchmark.
 
@@ -3286,9 +3222,11 @@ def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
     raise NotImplementedError("TODO: implement mlperf_run_standard_benchmark")
     ### END SOLUTION
 
+
 MLPerf.run_standard_benchmark = mlperf_run_standard_benchmark
 
-def mlperf_run_all_benchmarks(self, model: Any) -> Dict[str, Dict[str, Any]]:
+
+def mlperf_run_all_benchmarks(self, model: Any) -> dict[str, dict[str, Any]]:
     """Run all MLPerf benchmarks on a model."""
     all_results = {}
 
@@ -3302,9 +3240,10 @@ def mlperf_run_all_benchmarks(self, model: Any) -> Dict[str, Dict[str, Any]]:
             print()
         except Exception as e:
             print(f"   ❌ Failed to run {benchmark_name}: {e}")
-            all_results[benchmark_name] = {'error': str(e)}
+            all_results[benchmark_name] = {"error": str(e)}
 
     return all_results
+
 
 MLPerf.run_all_benchmarks = mlperf_run_all_benchmarks
 
@@ -3312,9 +3251,11 @@ MLPerf.run_all_benchmarks = mlperf_run_all_benchmarks
 #| export
 # Solution
 
-    # --- MLPerf.run_standard_benchmark ---
-def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
-                              num_runs: int = 100) -> Dict[str, Any]:
+
+# --- MLPerf.run_standard_benchmark ---
+def mlperf_run_standard_benchmark(
+    self, model: Any, benchmark_name: str, num_runs: int = 100
+) -> dict[str, Any]:
     """
     Run a standardized MLPerf benchmark.
 
@@ -3344,11 +3285,10 @@ def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
 
     config = self.benchmarks[benchmark_name]
     print(f"🧪 Running MLPerf {benchmark_name} benchmark...")
-    print(f"   Target: {config['target_accuracy']:.1%} accuracy, "
-          f"<{config['max_latency_ms']}ms latency")
+    print(f"   Target: {config['target_accuracy']:.1%} accuracy, <{config['max_latency_ms']}ms latency")
 
     # Generate standardized test inputs (as Tensors for TrenTorch model compatibility)
-    input_shape = config['input_shape']
+    input_shape = config["input_shape"]
     test_inputs = []
     for i in range(num_runs):
         # Use deterministic random generation for reproducibility
@@ -3367,27 +3307,27 @@ def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
 
     # Compile results
     mean_latency = float(np.mean(latencies))
-    accuracy_met = bool(accuracy >= config['target_accuracy'])
-    latency_met = bool(mean_latency <= config['max_latency_ms'])
+    accuracy_met = bool(accuracy >= config["target_accuracy"])
+    latency_met = bool(mean_latency <= config["max_latency_ms"])
 
     results = {
-        'benchmark_name': benchmark_name,
-        'model_name': getattr(model, 'name', 'unknown_model'),
-        'accuracy': float(accuracy),
-        'mean_latency_ms': mean_latency,
-        'std_latency_ms': float(np.std(latencies)),
-        'p50_latency_ms': float(np.percentile(latencies, 50)),
-        'p90_latency_ms': float(np.percentile(latencies, 90)),
-        'p99_latency_ms': float(np.percentile(latencies, 99)),
-        'max_latency_ms': float(np.max(latencies)),
-        'throughput_fps': float(1000 / mean_latency),
-        'target_accuracy': float(config['target_accuracy']),
-        'target_latency_ms': float(config['max_latency_ms']),
-        'accuracy_met': accuracy_met,
-        'latency_met': latency_met,
-        'compliant': accuracy_met and latency_met,
-        'num_runs': int(num_runs),
-        'random_seed': int(self.random_seed)
+        "benchmark_name": benchmark_name,
+        "model_name": getattr(model, "name", "unknown_model"),
+        "accuracy": float(accuracy),
+        "mean_latency_ms": mean_latency,
+        "std_latency_ms": float(np.std(latencies)),
+        "p50_latency_ms": float(np.percentile(latencies, 50)),
+        "p90_latency_ms": float(np.percentile(latencies, 90)),
+        "p99_latency_ms": float(np.percentile(latencies, 99)),
+        "max_latency_ms": float(np.max(latencies)),
+        "throughput_fps": float(1000 / mean_latency),
+        "target_accuracy": float(config["target_accuracy"]),
+        "target_latency_ms": float(config["max_latency_ms"]),
+        "accuracy_met": accuracy_met,
+        "latency_met": latency_met,
+        "compliant": accuracy_met and latency_met,
+        "num_runs": int(num_runs),
+        "random_seed": int(self.random_seed),
     }
 
     print(f"   Results: {accuracy:.1%} accuracy, {np.mean(latencies):.1f}ms latency")
@@ -3396,9 +3336,11 @@ def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
     return results
     ### END SOLUTION
 
+
 MLPerf.run_standard_benchmark = mlperf_run_standard_benchmark
 
-def mlperf_run_all_benchmarks(self, model: Any) -> Dict[str, Dict[str, Any]]:
+
+def mlperf_run_all_benchmarks(self, model: Any) -> dict[str, dict[str, Any]]:
     """Run all MLPerf benchmarks on a model."""
     all_results = {}
 
@@ -3412,9 +3354,10 @@ def mlperf_run_all_benchmarks(self, model: Any) -> Dict[str, Dict[str, Any]]:
             print()
         except Exception as e:
             print(f"   ❌ Failed to run {benchmark_name}: {e}")
-            all_results[benchmark_name] = {'error': str(e)}
+            all_results[benchmark_name] = {"error": str(e)}
 
     return all_results
+
 
 MLPerf.run_all_benchmarks = mlperf_run_all_benchmarks
 
@@ -3427,6 +3370,7 @@ MLPerf.run_all_benchmarks = mlperf_run_all_benchmarks
 **Expected**: Results dict with all required metrics and compliance flags
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-tinymlperf-run", "locked": true, "points": 15}
 def test_unit_mlperf_run():
     """🧪 Test MLPerf standard benchmark execution."""
@@ -3435,33 +3379,43 @@ def test_unit_mlperf_run():
     class MockModel:
         def __init__(self, name):
             self.name = name
+
         def forward(self, x):
             time.sleep(0.001)
-            if hasattr(x, 'shape') and len(x.shape) == 2:
+            if hasattr(x, "shape") and len(x.shape) == 2:
                 return rng.random(2)
             return rng.random(10)
 
     perf = MLPerf(random_seed=42)
     model = MockModel("test_model")
 
-    result = perf.run_standard_benchmark(model, 'keyword_spotting', num_runs=5)
+    result = perf.run_standard_benchmark(model, "keyword_spotting", num_runs=5)
 
-    required_keys = ['accuracy', 'mean_latency_ms', 'throughput_fps', 'compliant',
-                     'accuracy_met', 'latency_met', 'p50_latency_ms', 'p99_latency_ms']
+    required_keys = [
+        "accuracy",
+        "mean_latency_ms",
+        "throughput_fps",
+        "compliant",
+        "accuracy_met",
+        "latency_met",
+        "p50_latency_ms",
+        "p99_latency_ms",
+    ]
     assert all(key in result for key in required_keys)
-    assert 0 <= result['accuracy'] <= 1
-    assert result['mean_latency_ms'] > 0
-    assert result['throughput_fps'] > 0
-    assert isinstance(result['compliant'], bool)
+    assert 0 <= result["accuracy"] <= 1
+    assert result["mean_latency_ms"] > 0
+    assert result["throughput_fps"] > 0
+    assert isinstance(result["compliant"], bool)
 
     # Test invalid benchmark name
     try:
-        perf.run_standard_benchmark(model, 'nonexistent')
+        perf.run_standard_benchmark(model, "nonexistent")
         assert False, "Should have raised ValueError"
     except ValueError:
         pass
 
     print("✅ MLPerf.run_standard_benchmark works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_mlperf_run()
@@ -3495,7 +3449,8 @@ statistics, ready for JSON serialization.
 
 # %% nbgrader={"grade": false, "grade_id": "tinymlperf-compile-data", "solution": true}
 
-def _mlperf_compile_report_data(self, results: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+
+def _mlperf_compile_report_data(self, results: dict[str, dict[str, Any]]) -> dict[str, Any]:
     """
     Compile benchmark results into structured report data.
 
@@ -3521,13 +3476,15 @@ def _mlperf_compile_report_data(self, results: Dict[str, Dict[str, Any]]) -> Dic
     raise NotImplementedError("TODO: implement _mlperf_compile_report_data")
     ### END SOLUTION
 
+
 MLPerf._compile_report_data = _mlperf_compile_report_data
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _mlperf_compile_report_data(self, results: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+
+def _mlperf_compile_report_data(self, results: dict[str, dict[str, Any]]) -> dict[str, Any]:
     """
     Compile benchmark results into structured report data.
 
@@ -3554,47 +3511,48 @@ def _mlperf_compile_report_data(self, results: Dict[str, Dict[str, Any]]) -> Dic
     total_benchmarks = 0
 
     report_data = {
-        'mlperf_version': '1.0',
-        'random_seed': self.random_seed,
-        'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
-        'model_name': 'unknown',
-        'benchmarks': {},
-        'summary': {}
+        "mlperf_version": "1.0",
+        "random_seed": self.random_seed,
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "model_name": "unknown",
+        "benchmarks": {},
+        "summary": {},
     }
 
     for benchmark_name, result in results.items():
-        if 'error' not in result:
+        if "error" not in result:
             total_benchmarks += 1
-            if result.get('compliant', False):
+            if result.get("compliant", False):
                 compliant_benchmarks.append(benchmark_name)
 
-            if report_data['model_name'] == 'unknown':
-                report_data['model_name'] = result.get('model_name', 'unknown')
+            if report_data["model_name"] == "unknown":
+                report_data["model_name"] = result.get("model_name", "unknown")
 
-            report_data['benchmarks'][benchmark_name] = {
-                'accuracy': result['accuracy'],
-                'mean_latency_ms': result['mean_latency_ms'],
-                'p99_latency_ms': result['p99_latency_ms'],
-                'throughput_fps': result['throughput_fps'],
-                'target_accuracy': result['target_accuracy'],
-                'target_latency_ms': result['target_latency_ms'],
-                'accuracy_met': result['accuracy_met'],
-                'latency_met': result['latency_met'],
-                'compliant': result['compliant']
+            report_data["benchmarks"][benchmark_name] = {
+                "accuracy": result["accuracy"],
+                "mean_latency_ms": result["mean_latency_ms"],
+                "p99_latency_ms": result["p99_latency_ms"],
+                "throughput_fps": result["throughput_fps"],
+                "target_accuracy": result["target_accuracy"],
+                "target_latency_ms": result["target_latency_ms"],
+                "accuracy_met": result["accuracy_met"],
+                "latency_met": result["latency_met"],
+                "compliant": result["compliant"],
             }
 
     if total_benchmarks > 0:
         compliance_rate = len(compliant_benchmarks) / total_benchmarks
-        report_data['summary'] = {
-            'total_benchmarks': total_benchmarks,
-            'compliant_benchmarks': len(compliant_benchmarks),
-            'compliance_rate': compliance_rate,
-            'overall_compliant': compliance_rate == 1.0,
-            'compliant_benchmark_names': compliant_benchmarks
+        report_data["summary"] = {
+            "total_benchmarks": total_benchmarks,
+            "compliant_benchmarks": len(compliant_benchmarks),
+            "compliance_rate": compliance_rate,
+            "overall_compliant": compliance_rate == 1.0,
+            "compliant_benchmark_names": compliant_benchmarks,
         }
 
     return report_data
     ### END SOLUTION
+
 
 MLPerf._compile_report_data = _mlperf_compile_report_data
 
@@ -3607,7 +3565,8 @@ Convert structured report data into a markdown compliance summary.
 
 # %% nbgrader={"grade": false, "grade_id": "tinymlperf-format-summary", "solution": true}
 
-def _mlperf_format_compliance_summary(self, report_data: Dict[str, Any]) -> str:
+
+def _mlperf_format_compliance_summary(self, report_data: dict[str, Any]) -> str:
     """
     Format report data into a human-readable markdown summary.
 
@@ -3628,13 +3587,15 @@ def _mlperf_format_compliance_summary(self, report_data: Dict[str, Any]) -> str:
     raise NotImplementedError("TODO: implement _mlperf_format_compliance_summary")
     ### END SOLUTION
 
+
 MLPerf._format_compliance_summary = _mlperf_format_compliance_summary
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _mlperf_format_compliance_summary(self, report_data: Dict[str, Any]) -> str:
+
+def _mlperf_format_compliance_summary(self, report_data: dict[str, Any]) -> str:
     """
     Format report data into a human-readable markdown summary.
 
@@ -3659,28 +3620,33 @@ def _mlperf_format_compliance_summary(self, report_data: Dict[str, Any]) -> str:
     summary_lines.append(f"Date: {report_data['timestamp']}")
     summary_lines.append("")
 
-    if report_data['summary']:
-        overall = report_data['summary']['overall_compliant']
-        rate = report_data['summary']['compliance_rate']
-        compliant_count = report_data['summary']['compliant_benchmarks']
-        total = report_data['summary']['total_benchmarks']
+    if report_data["summary"]:
+        overall = report_data["summary"]["overall_compliant"]
+        rate = report_data["summary"]["compliance_rate"]
+        compliant_count = report_data["summary"]["compliant_benchmarks"]
+        total = report_data["summary"]["total_benchmarks"]
 
         summary_lines.append(f"## Overall Result: {'✅ COMPLIANT' if overall else '❌ NON-COMPLIANT'}")
         summary_lines.append(f"Compliance Rate: {rate:.1%} ({compliant_count}/{total})")
         summary_lines.append("")
 
         summary_lines.append("## Benchmark Details:")
-        for benchmark_name, result in report_data['benchmarks'].items():
-            status = "✅ PASS" if result['compliant'] else "❌ FAIL"
+        for benchmark_name, result in report_data["benchmarks"].items():
+            status = "✅ PASS" if result["compliant"] else "❌ FAIL"
             summary_lines.append(f"- **{benchmark_name}**: {status}")
-            summary_lines.append(f"  - Accuracy: {result['accuracy']:.1%} (target: {result['target_accuracy']:.1%})")
-            summary_lines.append(f"  - Latency: {result['mean_latency_ms']:.1f}ms (target: <{result['target_latency_ms']}ms)")
+            summary_lines.append(
+                f"  - Accuracy: {result['accuracy']:.1%} (target: {result['target_accuracy']:.1%})"
+            )
+            summary_lines.append(
+                f"  - Latency: {result['mean_latency_ms']:.1f}ms (target: <{result['target_latency_ms']}ms)"
+            )
             summary_lines.append("")
     else:
         summary_lines.append("No successful benchmark runs.")
 
     return "\n".join(summary_lines)
     ### END SOLUTION
+
 
 MLPerf._format_compliance_summary = _mlperf_format_compliance_summary
 
@@ -3693,8 +3659,10 @@ Combine data compilation, JSON serialization, and summary formatting.
 
 # %% nbgrader={"grade": false, "grade_id": "tinymlperf-scorecard", "solution": true}
 
-def mlperf_generate_compliance_report(self, results: Dict[str, Dict[str, Any]],
-                                           output_path: str = "mlperf_report.json") -> str:
+
+def mlperf_generate_compliance_report(
+    self, results: dict[str, dict[str, Any]], output_path: str = "mlperf_report.json"
+) -> str:
     """
     Generate MLPerf compliance report.
 
@@ -3710,14 +3678,17 @@ def mlperf_generate_compliance_report(self, results: Dict[str, Dict[str, Any]],
     raise NotImplementedError("TODO: implement mlperf_generate_compliance_report")
     ### END SOLUTION
 
+
 MLPerf.generate_compliance_report = mlperf_generate_compliance_report
 
 # %% tags=["solution"]
 #| export
 # Solution
 
-def mlperf_generate_compliance_report(self, results: Dict[str, Dict[str, Any]],
-                                           output_path: str = "mlperf_report.json") -> str:
+
+def mlperf_generate_compliance_report(
+    self, results: dict[str, dict[str, Any]], output_path: str = "mlperf_report.json"
+) -> str:
     """
     Generate MLPerf compliance report.
 
@@ -3734,14 +3705,14 @@ def mlperf_generate_compliance_report(self, results: Dict[str, Dict[str, Any]],
     report_data = self._compile_report_data(results)
 
     # Save JSON report
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(report_data, f, indent=2)
 
     # Generate and save human-readable summary
     summary_text = self._format_compliance_summary(report_data)
 
-    summary_path = output_path.replace('.json', '_summary.md')
-    with open(summary_path, 'w') as f:
+    summary_path = output_path.replace(".json", "_summary.md")
+    with open(summary_path, "w") as f:
         f.write(summary_text)
 
     print(f"📄 MLPerf report saved to {output_path}")
@@ -3749,6 +3720,7 @@ def mlperf_generate_compliance_report(self, results: Dict[str, Dict[str, Any]],
 
     return summary_text
     ### END SOLUTION
+
 
 MLPerf.generate_compliance_report = mlperf_generate_compliance_report
 
@@ -3761,6 +3733,7 @@ MLPerf.generate_compliance_report = mlperf_generate_compliance_report
 **Expected**: Dict with benchmarks, summary, compliance stats
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-tinymlperf-compile", "locked": true, "points": 3}
 def test_unit_mlperf_compile_data():
     """🧪 Test MLPerf._compile_report_data implementation."""
@@ -3770,23 +3743,30 @@ def test_unit_mlperf_compile_data():
 
     # Simulate results from run_standard_benchmark
     mock_results = {
-        'keyword_spotting': {
-            'accuracy': 0.92, 'mean_latency_ms': 50.0, 'p99_latency_ms': 80.0,
-            'throughput_fps': 20.0, 'target_accuracy': 0.90, 'target_latency_ms': 100,
-            'accuracy_met': True, 'latency_met': True, 'compliant': True,
-            'model_name': 'test_model'
+        "keyword_spotting": {
+            "accuracy": 0.92,
+            "mean_latency_ms": 50.0,
+            "p99_latency_ms": 80.0,
+            "throughput_fps": 20.0,
+            "target_accuracy": 0.90,
+            "target_latency_ms": 100,
+            "accuracy_met": True,
+            "latency_met": True,
+            "compliant": True,
+            "model_name": "test_model",
         }
     }
 
     report_data = perf._compile_report_data(mock_results)
 
-    assert 'benchmarks' in report_data, "Should have 'benchmarks' key"
-    assert 'summary' in report_data, "Should have 'summary' key"
-    assert report_data['summary']['total_benchmarks'] == 1
-    assert report_data['summary']['overall_compliant'] == True
-    assert report_data['model_name'] == 'test_model'
+    assert "benchmarks" in report_data, "Should have 'benchmarks' key"
+    assert "summary" in report_data, "Should have 'summary' key"
+    assert report_data["summary"]["total_benchmarks"] == 1
+    assert report_data["summary"]["overall_compliant"]
+    assert report_data["model_name"] == "test_model"
 
     print("✅ MLPerf._compile_report_data works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_mlperf_compile_data()
@@ -3800,6 +3780,7 @@ if __name__ == "__main__":
 **Expected**: Markdown string with COMPLIANT/NON-COMPLIANT status and benchmark details
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-tinymlperf-format", "locked": true, "points": 3}
 def test_unit_mlperf_format_summary():
     """🧪 Test MLPerf._format_compliance_summary implementation."""
@@ -3808,20 +3789,24 @@ def test_unit_mlperf_format_summary():
     perf = MLPerf(random_seed=42)
 
     report_data = {
-        'model_name': 'test_model',
-        'timestamp': '2025-01-01 00:00:00',
-        'summary': {
-            'total_benchmarks': 1, 'compliant_benchmarks': 1,
-            'compliance_rate': 1.0, 'overall_compliant': True,
-            'compliant_benchmark_names': ['keyword_spotting']
+        "model_name": "test_model",
+        "timestamp": "2025-01-01 00:00:00",
+        "summary": {
+            "total_benchmarks": 1,
+            "compliant_benchmarks": 1,
+            "compliance_rate": 1.0,
+            "overall_compliant": True,
+            "compliant_benchmark_names": ["keyword_spotting"],
         },
-        'benchmarks': {
-            'keyword_spotting': {
-                'accuracy': 0.92, 'mean_latency_ms': 50.0,
-                'target_accuracy': 0.90, 'target_latency_ms': 100,
-                'compliant': True
+        "benchmarks": {
+            "keyword_spotting": {
+                "accuracy": 0.92,
+                "mean_latency_ms": 50.0,
+                "target_accuracy": 0.90,
+                "target_latency_ms": 100,
+                "compliant": True,
             }
-        }
+        },
     }
 
     summary = perf._format_compliance_summary(report_data)
@@ -3832,6 +3817,7 @@ def test_unit_mlperf_format_summary():
     assert "PASS" in summary, "Compliant benchmark should show PASS"
 
     print("✅ MLPerf._format_compliance_summary works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_mlperf_format_summary()
@@ -3848,6 +3834,7 @@ with proper compliance reporting.
 **Expected**: Proper metrics, compliance checking, and report generation
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-tinymlperf", "locked": true, "points": 10}
 def test_unit_mlperf():
     """🧪 Test MLPerf standardized benchmarking."""
@@ -3861,7 +3848,7 @@ def test_unit_mlperf():
         def forward(self, x):
             time.sleep(0.001)  # Simulate computation
             # Return appropriate output shape for different benchmarks
-            if hasattr(x, 'shape'):
+            if hasattr(x, "shape"):
                 if len(x.shape) == 2:  # Audio/sequence
                     return rng.random(2)  # Binary classification
                 else:  # Image
@@ -3872,21 +3859,22 @@ def test_unit_mlperf():
     perf = MLPerf(random_seed=42)
 
     # Test individual benchmark
-    result = perf.run_standard_benchmark(model, 'keyword_spotting', num_runs=5)
+    result = perf.run_standard_benchmark(model, "keyword_spotting", num_runs=5)
 
     # Verify result structure
-    required_keys = ['accuracy', 'mean_latency_ms', 'throughput_fps', 'compliant']
+    required_keys = ["accuracy", "mean_latency_ms", "throughput_fps", "compliant"]
     assert all(key in result for key in required_keys)
-    assert 0 <= result['accuracy'] <= 1
-    assert result['mean_latency_ms'] > 0
-    assert result['throughput_fps'] > 0
+    assert 0 <= result["accuracy"] <= 1
+    assert result["mean_latency_ms"] > 0
+    assert result["throughput_fps"] > 0
 
     # Test full benchmark suite (with fewer runs for speed)
     import tempfile
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         # Run subset of benchmarks for testing
         subset_results = {}
-        for benchmark in ['keyword_spotting', 'image_classification']:
+        for benchmark in ["keyword_spotting", "image_classification"]:
             subset_results[benchmark] = perf.run_standard_benchmark(model, benchmark, num_runs=3)
 
         # Test compliance report generation
@@ -3899,6 +3887,7 @@ def test_unit_mlperf():
         assert "Compliance Rate" in summary
 
     print("✅ MLPerf works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_mlperf()
@@ -3986,7 +3975,8 @@ the benchmark results. It establishes the reference point for improvement calcul
 
 # %% nbgrader={"grade": false, "grade_id": "benchmark-collect-base", "solution": true}
 
-def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, float]:
+
+def _collect_base_metrics(base_name: str, benchmark_results: dict) -> dict[str, float]:
     """
     Extract base model metrics from benchmark results.
 
@@ -4004,11 +3994,13 @@ def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, 
     raise NotImplementedError("TODO: implement _collect_base_metrics")
     ### END SOLUTION
 
+
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, float]:
+
+def _collect_base_metrics(base_name: str, benchmark_results: dict) -> dict[str, float]:
     """
     Extract base model metrics from benchmark results.
 
@@ -4032,6 +4024,7 @@ def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, 
     return base_metrics
     ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: _collect_base_metrics
@@ -4041,6 +4034,7 @@ def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, 
 **Expected**: Dict with metric types as keys and mean values as floats
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-collect-base", "locked": true, "points": 5}
 def test_unit_collect_base_metrics():
     """🧪 Test _collect_base_metrics helper."""
@@ -4048,17 +4042,18 @@ def test_unit_collect_base_metrics():
 
     # Simulate benchmark results
     mock_results = {
-        'latency': {'base_latency_ms': BenchmarkResult('base_latency_ms', [10.0, 11.0, 12.0])},
-        'accuracy': {'base_accuracy': BenchmarkResult('base_accuracy', [0.9, 0.91, 0.89])},
+        "latency": {"base_latency_ms": BenchmarkResult("base_latency_ms", [10.0, 11.0, 12.0])},
+        "accuracy": {"base_accuracy": BenchmarkResult("base_accuracy", [0.9, 0.91, 0.89])},
     }
 
-    metrics = _collect_base_metrics('base', mock_results)
-    assert 'latency' in metrics
-    assert 'accuracy' in metrics
-    assert abs(metrics['latency'] - 11.0) < 0.01
-    assert abs(metrics['accuracy'] - 0.9) < 0.01
+    metrics = _collect_base_metrics("base", mock_results)
+    assert "latency" in metrics
+    assert "accuracy" in metrics
+    assert abs(metrics["latency"] - 11.0) < 0.01
+    assert abs(metrics["accuracy"] - 0.9) < 0.01
 
     print("✅ _collect_base_metrics works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_collect_base_metrics()
@@ -4082,7 +4077,10 @@ Accuracy: retention = opt_accuracy / base_accuracy (closer to 1 is better)
 
 # %% nbgrader={"grade": false, "grade_id": "benchmark-calc-improvements", "solution": true}
 
-def _calculate_improvements(base_metrics: Dict[str, float], opt_metrics: Dict[str, float]) -> Dict[str, float]:
+
+def _calculate_improvements(
+    base_metrics: dict[str, float], opt_metrics: dict[str, float]
+) -> dict[str, float]:
     """
     Calculate improvement ratios for an optimized model vs baseline.
 
@@ -4101,11 +4099,15 @@ def _calculate_improvements(base_metrics: Dict[str, float], opt_metrics: Dict[st
     raise NotImplementedError("TODO: implement _calculate_improvements")
     ### END SOLUTION
 
+
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _calculate_improvements(base_metrics: Dict[str, float], opt_metrics: Dict[str, float]) -> Dict[str, float]:
+
+def _calculate_improvements(
+    base_metrics: dict[str, float], opt_metrics: dict[str, float]
+) -> dict[str, float]:
     """
     Calculate improvement ratios for an optimized model vs baseline.
 
@@ -4122,23 +4124,24 @@ def _calculate_improvements(base_metrics: Dict[str, float], opt_metrics: Dict[st
     """
     ### BEGIN SOLUTION
     improvements = {}
-    for metric_type in ['latency', 'memory', 'energy']:
+    for metric_type in ["latency", "memory", "energy"]:
         if metric_type in base_metrics and metric_type in opt_metrics:
             # For these metrics, lower is better, so improvement = base/optimized
             if opt_metrics[metric_type] > 0:
-                improvements[f'{metric_type}_speedup'] = base_metrics[metric_type] / opt_metrics[metric_type]
+                improvements[f"{metric_type}_speedup"] = base_metrics[metric_type] / opt_metrics[metric_type]
             else:
-                improvements[f'{metric_type}_speedup'] = 1.0
+                improvements[f"{metric_type}_speedup"] = 1.0
 
-    if 'accuracy' in base_metrics and 'accuracy' in opt_metrics:
+    if "accuracy" in base_metrics and "accuracy" in opt_metrics:
         # Accuracy retention (higher is better)
-        if base_metrics['accuracy'] > 0:
-            improvements['accuracy_retention'] = opt_metrics['accuracy'] / base_metrics['accuracy']
+        if base_metrics["accuracy"] > 0:
+            improvements["accuracy_retention"] = opt_metrics["accuracy"] / base_metrics["accuracy"]
         else:
-            improvements['accuracy_retention'] = 1.0
+            improvements["accuracy_retention"] = 1.0
 
     return improvements
     ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -4149,26 +4152,28 @@ def _calculate_improvements(base_metrics: Dict[str, float], opt_metrics: Dict[st
 **Expected**: Speedup > 1 when optimized is better, retention near 1.0
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-calc-improvements", "locked": true, "points": 5}
 def test_unit_calculate_improvements():
     """🧪 Test _calculate_improvements helper."""
     print("🧪 Unit Test: _calculate_improvements...")
 
-    base = {'latency': 10.0, 'memory': 100.0, 'accuracy': 0.90}
-    opt = {'latency': 5.0, 'memory': 50.0, 'accuracy': 0.85}
+    base = {"latency": 10.0, "memory": 100.0, "accuracy": 0.90}
+    opt = {"latency": 5.0, "memory": 50.0, "accuracy": 0.85}
 
     improvements = _calculate_improvements(base, opt)
 
-    assert abs(improvements['latency_speedup'] - 2.0) < 0.01  # 10/5 = 2x
-    assert abs(improvements['memory_speedup'] - 2.0) < 0.01   # 100/50 = 2x
-    assert abs(improvements['accuracy_retention'] - 0.9444) < 0.01  # 0.85/0.90
+    assert abs(improvements["latency_speedup"] - 2.0) < 0.01  # 10/5 = 2x
+    assert abs(improvements["memory_speedup"] - 2.0) < 0.01  # 100/50 = 2x
+    assert abs(improvements["accuracy_retention"] - 0.9444) < 0.01  # 0.85/0.90
 
     # Test with zero (edge case)
-    opt_zero = {'latency': 0.0, 'memory': 50.0, 'accuracy': 0.85}
+    opt_zero = {"latency": 0.0, "memory": 50.0, "accuracy": 0.85}
     imp_zero = _calculate_improvements(base, opt_zero)
-    assert imp_zero['latency_speedup'] == 1.0  # Fallback
+    assert imp_zero["latency_speedup"] == 1.0  # Fallback
 
     print("✅ _calculate_improvements works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_calculate_improvements()
@@ -4184,7 +4189,8 @@ accuracy-preservation, and balanced deployment.
 
 # %% nbgrader={"grade": false, "grade_id": "benchmark-gen-recs", "solution": true}
 
-def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> Dict[str, Dict]:
+
+def _generate_recommendations(all_improvements: dict[str, dict[str, float]]) -> dict[str, dict]:
     """
     Generate deployment recommendations from improvement data.
 
@@ -4204,11 +4210,13 @@ def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> 
     raise NotImplementedError("TODO: implement _generate_recommendations")
     ### END SOLUTION
 
+
 # %% tags=["solution"]
 #| export
 # Solution
 
-def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> Dict[str, Dict]:
+
+def _generate_recommendations(all_improvements: dict[str, dict[str, float]]) -> dict[str, dict]:
     """
     Generate deployment recommendations from improvement data.
 
@@ -4237,28 +4245,28 @@ def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> 
 
     for opt_name, improvements in all_improvements.items():
         # Latency recommendation
-        if 'latency_speedup' in improvements and improvements['latency_speedup'] > best_latency_score:
-            best_latency_score = improvements['latency_speedup']
+        if "latency_speedup" in improvements and improvements["latency_speedup"] > best_latency_score:
+            best_latency_score = improvements["latency_speedup"]
             best_latency = opt_name
 
         # Memory recommendation
-        if 'memory_speedup' in improvements and improvements['memory_speedup'] > best_memory_score:
-            best_memory_score = improvements['memory_speedup']
+        if "memory_speedup" in improvements and improvements["memory_speedup"] > best_memory_score:
+            best_memory_score = improvements["memory_speedup"]
             best_memory = opt_name
 
         # Accuracy recommendation
-        if 'accuracy_retention' in improvements and improvements['accuracy_retention'] > best_accuracy_score:
-            best_accuracy_score = improvements['accuracy_retention']
+        if "accuracy_retention" in improvements and improvements["accuracy_retention"] > best_accuracy_score:
+            best_accuracy_score = improvements["accuracy_retention"]
             best_accuracy = opt_name
 
         # Overall balance (considering all factors)
         overall_score = 0
         count = 0
         for key, value in improvements.items():
-            if 'speedup' in key:
+            if "speedup" in key:
                 overall_score += min(value, 5.0)  # Cap speedup at 5x to avoid outliers
                 count += 1
-            elif 'retention' in key:
+            elif "retention" in key:
                 overall_score += value * 5  # Weight accuracy retention heavily
                 count += 1
 
@@ -4269,28 +4277,29 @@ def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> 
                 best_overall = opt_name
 
     return {
-        'for_latency_critical': {
-            'model': best_latency,
-            'reason': f"Best latency improvement: {best_latency_score:.2f}x faster",
-            'use_case': "Real-time applications, edge devices with strict timing requirements"
+        "for_latency_critical": {
+            "model": best_latency,
+            "reason": f"Best latency improvement: {best_latency_score:.2f}x faster",
+            "use_case": "Real-time applications, edge devices with strict timing requirements",
         },
-        'for_memory_constrained': {
-            'model': best_memory,
-            'reason': f"Best memory reduction: {best_memory_score:.2f}x smaller",
-            'use_case': "Mobile devices, IoT sensors, embedded systems"
+        "for_memory_constrained": {
+            "model": best_memory,
+            "reason": f"Best memory reduction: {best_memory_score:.2f}x smaller",
+            "use_case": "Mobile devices, IoT sensors, embedded systems",
         },
-        'for_accuracy_preservation': {
-            'model': best_accuracy,
-            'reason': f"Best accuracy retention: {best_accuracy_score:.1%} of original",
-            'use_case': "Applications where quality cannot be compromised"
+        "for_accuracy_preservation": {
+            "model": best_accuracy,
+            "reason": f"Best accuracy retention: {best_accuracy_score:.1%} of original",
+            "use_case": "Applications where quality cannot be compromised",
         },
-        'for_balanced_deployment': {
-            'model': best_overall,
-            'reason': f"Best overall trade-off (score: {best_overall_score:.2f})",
-            'use_case': "General production deployment with multiple constraints"
-        }
+        "for_balanced_deployment": {
+            "model": best_overall,
+            "reason": f"Best overall trade-off (score: {best_overall_score:.2f})",
+            "use_case": "General production deployment with multiple constraints",
+        },
     }
     ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -4301,31 +4310,33 @@ def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> 
 **Expected**: Four recommendation categories with appropriate model selections
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-gen-recs", "locked": true, "points": 5}
 def test_unit_generate_recommendations():
     """🧪 Test _generate_recommendations helper."""
     print("🧪 Unit Test: _generate_recommendations...")
 
     improvements = {
-        'quantized': {'latency_speedup': 2.0, 'memory_speedup': 3.0, 'accuracy_retention': 0.95},
-        'pruned': {'latency_speedup': 1.5, 'memory_speedup': 4.0, 'accuracy_retention': 0.98},
+        "quantized": {"latency_speedup": 2.0, "memory_speedup": 3.0, "accuracy_retention": 0.95},
+        "pruned": {"latency_speedup": 1.5, "memory_speedup": 4.0, "accuracy_retention": 0.98},
     }
 
     recs = _generate_recommendations(improvements)
 
-    assert 'for_latency_critical' in recs
-    assert 'for_memory_constrained' in recs
-    assert 'for_accuracy_preservation' in recs
-    assert 'for_balanced_deployment' in recs
+    assert "for_latency_critical" in recs
+    assert "for_memory_constrained" in recs
+    assert "for_accuracy_preservation" in recs
+    assert "for_balanced_deployment" in recs
 
     # Quantized has best latency speedup (2.0 > 1.5)
-    assert recs['for_latency_critical']['model'] == 'quantized'
+    assert recs["for_latency_critical"]["model"] == "quantized"
     # Pruned has best memory speedup (4.0 > 3.0)
-    assert recs['for_memory_constrained']['model'] == 'pruned'
+    assert recs["for_memory_constrained"]["model"] == "pruned"
     # Pruned has best accuracy retention (0.98 > 0.95)
-    assert recs['for_accuracy_preservation']['model'] == 'pruned'
+    assert recs["for_accuracy_preservation"]["model"] == "pruned"
 
     print("✅ _generate_recommendations works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_generate_recommendations()
@@ -4352,44 +4363,14 @@ analyze_optimization_techniques Pipeline:
 ```
 """
 
-# %% nbgrader={"grade": false, "grade_id": "benchmark-comparison", "solution": true}
-
-def analyze_optimization_techniques(base_model: Any, optimized_models: List[Any],
-                                  datasets: List[Any]) -> Dict[str, Any]:
-    """
-    Compare base model against various optimization techniques.
-
-    TODO: Compose helpers to run benchmarks, calculate improvements, generate recommendations
-
-    APPROACH:
-    1. Run BenchmarkSuite on [base_model] + optimized_models
-    2. Use _collect_base_metrics() for baseline
-    3. Use _calculate_improvements() for each optimized model
-    4. Use _generate_recommendations() for deployment guidance
-    5. Print summary and return results
-
-    Args:
-        base_model: Baseline model (unoptimized)
-        optimized_models: List of models with different optimizations applied
-        datasets: List of datasets for evaluation
-
-    Returns:
-        Dictionary with 'base_metrics', 'optimized_results', 'improvements', 'recommendations'
-
-    EXAMPLE:
-    >>> results = analyze_optimization_techniques(base_model, [quant, pruned], datasets)
-    >>> print(results['recommendations'])
-    """
-    ### BEGIN SOLUTION
-    raise NotImplementedError("TODO: implement analyze_optimization_techniques")
-    ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
 
-def analyze_optimization_techniques(base_model: Any, optimized_models: List[Any],
-                                  datasets: List[Any]) -> Dict[str, Any]:
+
+def analyze_optimization_techniques(
+    base_model: Any, optimized_models: list[Any], datasets: list[Any]
+) -> dict[str, Any]:
     """
     Compare base model against various optimization techniques.
 
@@ -4422,21 +4403,23 @@ def analyze_optimization_techniques(base_model: Any, optimized_models: List[Any]
     benchmark_results = suite.run_full_benchmark()
 
     # Extract base model performance using helper
-    base_name = getattr(base_model, 'name', 'model_0')
+    base_name = getattr(base_model, "name", "model_0")
     base_metrics = _collect_base_metrics(base_name, benchmark_results)
 
     # Initialize comparison results
     comparison_results = {
-        'base_model': base_name,
-        'base_metrics': base_metrics,
-        'optimized_results': {},
-        'improvements': {},
-        'efficiency_metrics': {},
-        'recommendations': {}
+        "base_model": base_name,
+        "base_metrics": base_metrics,
+        "optimized_results": {},
+        "improvements": {},
+        "efficiency_metrics": {},
+        "recommendations": {},
     }
 
     for opt_model in optimized_models:
-        opt_name = getattr(opt_model, 'name', f'optimized_model_{len(comparison_results["optimized_results"])}')
+        opt_name = getattr(
+            opt_model, "name", f"optimized_model_{len(comparison_results['optimized_results'])}"
+        )
 
         # Find results for this optimized model
         opt_metrics = {}
@@ -4446,45 +4429,46 @@ def analyze_optimization_techniques(base_model: Any, optimized_models: List[Any]
                     opt_metrics[metric_type] = result.mean
                     break
 
-        comparison_results['optimized_results'][opt_name] = opt_metrics
+        comparison_results["optimized_results"][opt_name] = opt_metrics
 
         # Calculate improvements using helper
         improvements = _calculate_improvements(base_metrics, opt_metrics)
-        comparison_results['improvements'][opt_name] = improvements
+        comparison_results["improvements"][opt_name] = improvements
 
         # Calculate efficiency metrics
         efficiency = {}
-        if 'accuracy' in opt_metrics:
-            if 'memory' in opt_metrics and opt_metrics['memory'] > 0:
-                efficiency['accuracy_per_mb'] = opt_metrics['accuracy'] / opt_metrics['memory']
-            if 'latency' in opt_metrics and opt_metrics['latency'] > 0:
-                efficiency['accuracy_per_ms'] = opt_metrics['accuracy'] / opt_metrics['latency']
+        if "accuracy" in opt_metrics:
+            if "memory" in opt_metrics and opt_metrics["memory"] > 0:
+                efficiency["accuracy_per_mb"] = opt_metrics["accuracy"] / opt_metrics["memory"]
+            if "latency" in opt_metrics and opt_metrics["latency"] > 0:
+                efficiency["accuracy_per_ms"] = opt_metrics["accuracy"] / opt_metrics["latency"]
 
-        comparison_results['efficiency_metrics'][opt_name] = efficiency
+        comparison_results["efficiency_metrics"][opt_name] = efficiency
 
     # Generate recommendations using helper
-    recommendations = _generate_recommendations(comparison_results['improvements'])
-    comparison_results['recommendations'] = recommendations
+    recommendations = _generate_recommendations(comparison_results["improvements"])
+    comparison_results["recommendations"] = recommendations
 
     # Print summary
     print("\n📊 Optimization Comparison Results:")
     print("=" * 50)
 
-    for opt_name, improvements in comparison_results['improvements'].items():
+    for opt_name, improvements in comparison_results["improvements"].items():
         print(f"\n{opt_name}:")
         for metric, value in improvements.items():
-            if 'speedup' in metric:
+            if "speedup" in metric:
                 print(f"  {metric}: {value:.2f}x improvement")
-            elif 'retention' in metric:
+            elif "retention" in metric:
                 print(f"  {metric}: {value:.1%}")
 
     print("\n🎯 Recommendations:")
     for use_case, rec in recommendations.items():
-        if rec['model']:
+        if rec["model"]:
             print(f"  {use_case}: {rec['model']} - {rec['reason']}")
 
     return comparison_results
     ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -4497,6 +4481,7 @@ useful recommendations from benchmark data.
 **Why it matters**: Guides engineers to choose the right optimization for their use case
 **Expected**: Valid comparisons and actionable recommendations
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-optimization-comparison", "locked": true, "points": 10}
 def test_unit_optimization_comparison():
@@ -4517,7 +4502,9 @@ def test_unit_optimization_comparison():
 
     # Base model and optimized variants
     base_model = MockModel("base_model", latency_factor=1.0, accuracy_factor=1.0, memory_factor=1.0)
-    quantized_model = MockModel("quantized_model", latency_factor=0.7, accuracy_factor=0.95, memory_factor=0.5)
+    quantized_model = MockModel(
+        "quantized_model", latency_factor=0.7, accuracy_factor=0.95, memory_factor=0.5
+    )
     pruned_model = MockModel("pruned_model", latency_factor=0.8, accuracy_factor=0.98, memory_factor=0.3)
 
     datasets = [{"test": "data"}]
@@ -4526,22 +4513,23 @@ def test_unit_optimization_comparison():
     results = analyze_optimization_techniques(base_model, [quantized_model, pruned_model], datasets)
 
     # Verify results structure
-    assert 'base_model' in results
-    assert 'optimized_results' in results
-    assert 'improvements' in results
-    assert 'recommendations' in results
+    assert "base_model" in results
+    assert "optimized_results" in results
+    assert "improvements" in results
+    assert "recommendations" in results
 
     # Verify improvements were calculated
-    assert len(results['improvements']) == 2  # Two optimized models
+    assert len(results["improvements"]) == 2  # Two optimized models
 
     # Verify recommendations were generated
-    recommendations = results['recommendations']
-    assert 'for_latency_critical' in recommendations
-    assert 'for_memory_constrained' in recommendations
-    assert 'for_accuracy_preservation' in recommendations
-    assert 'for_balanced_deployment' in recommendations
+    recommendations = results["recommendations"]
+    assert "for_latency_critical" in recommendations
+    assert "for_memory_constrained" in recommendations
+    assert "for_accuracy_preservation" in recommendations
+    assert "for_balanced_deployment" in recommendations
 
     print("✅ analyze_optimization_techniques works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_optimization_comparison()
@@ -4552,6 +4540,7 @@ if __name__ == "__main__":
 
 Let's understand the key systems concept of measurement variance and optimization trade-offs.
 """
+
 
 # %%
 def analyze_benchmark_variance():
@@ -4588,12 +4577,14 @@ def analyze_benchmark_variance():
     print("   • 20-50 samples typically sufficient for <10% error")
     print("   • Statistical rigor requires measuring variance, not just mean")
 
+
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
     # correctness check, and some of these (e.g. BPE scaling, large-N
     # benchmarks) take multiple minutes of real computation. Run this
     # file directly (not through CI) to see the full analysis.
     analyze_benchmark_variance()
+
 
 # %%
 def analyze_optimization_tradeoffs():
@@ -4603,10 +4594,10 @@ def analyze_optimization_tradeoffs():
 
     # Simulated optimization results
     optimizations = {
-        'Baseline': {'accuracy': 0.89, 'latency_ms': 45, 'memory_mb': 12, 'energy_j': 2.0},
-        'Quantization (INT8)': {'accuracy': 0.88, 'latency_ms': 30, 'memory_mb': 3, 'energy_j': 1.3},
-        'Pruning (70%)': {'accuracy': 0.87, 'latency_ms': 35, 'memory_mb': 4, 'energy_j': 1.5},
-        'Both (INT8 + 70%)': {'accuracy': 0.85, 'latency_ms': 22, 'memory_mb': 1, 'energy_j': 0.9},
+        "Baseline": {"accuracy": 0.89, "latency_ms": 45, "memory_mb": 12, "energy_j": 2.0},
+        "Quantization (INT8)": {"accuracy": 0.88, "latency_ms": 30, "memory_mb": 3, "energy_j": 1.3},
+        "Pruning (70%)": {"accuracy": 0.87, "latency_ms": 35, "memory_mb": 4, "energy_j": 1.5},
+        "Both (INT8 + 70%)": {"accuracy": 0.85, "latency_ms": 22, "memory_mb": 1, "energy_j": 0.9},
     }
 
     # Calculate efficiency metrics
@@ -4614,12 +4605,12 @@ def analyze_optimization_tradeoffs():
     print(f"{'Technique':<25} {'Acc/MB':<12} {'Acc/ms':<12} {'Acc/J':<12}")
     print("-" * 60)
 
-    baseline = optimizations['Baseline']
+    optimizations["Baseline"]
 
     for name, metrics in optimizations.items():
-        acc_per_mb = metrics['accuracy'] / metrics['memory_mb']
-        acc_per_ms = metrics['accuracy'] / metrics['latency_ms']
-        acc_per_j = metrics['accuracy'] / metrics['energy_j']
+        acc_per_mb = metrics["accuracy"] / metrics["memory_mb"]
+        acc_per_ms = metrics["accuracy"] / metrics["latency_ms"]
+        acc_per_j = metrics["accuracy"] / metrics["energy_j"]
 
         print(f"{name:<25} {acc_per_mb:<12.3f} {acc_per_ms:<12.4f} {acc_per_j:<12.3f}")
 
@@ -4633,6 +4624,7 @@ def analyze_optimization_tradeoffs():
     print("   • Combined optimizations compound benefits and risks")
     print("   • Choose based on deployment constraints (memory vs speed vs accuracy)")
     print("   • Pareto frontier reveals non-dominated solutions")
+
 
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -4696,6 +4688,7 @@ Final validation that our complete benchmarking system works correctly and integ
 This comprehensive test validates the entire benchmarking ecosystem and ensures it's ready for production use in the final capstone project.
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-module", "locked": true, "points": 10}
 def test_module():
     """🧪 Module Test: Complete Integration
@@ -4753,15 +4746,15 @@ def test_module():
 
         def forward(self, x):
             # Simulate different model behaviors
-            base_time = self.characteristics.get('base_latency', 0.001)
-            variance = self.characteristics.get('variance', 0.0001)
-            memory_factor = self.characteristics.get('memory_factor', 1.0)
+            base_time = self.characteristics.get("base_latency", 0.001)
+            variance = self.characteristics.get("variance", 0.0001)
+            memory_factor = self.characteristics.get("memory_factor", 1.0)
 
             # Simulate realistic computation
             time.sleep(max(0, base_time + rng.normal(0, variance)))
 
             # Simulate memory usage
-            if hasattr(x, 'shape'):
+            if hasattr(x, "shape"):
                 temp_size = int(np.prod(x.shape) * memory_factor)
                 temp_data = rng.standard_normal(temp_size)
                 _ = np.sum(temp_data)  # Use the data
@@ -4770,35 +4763,30 @@ def test_module():
 
         def evaluate(self, dataset):
             # Simulate evaluation
-            base_acc = self.characteristics.get('base_accuracy', 0.85)
+            base_acc = self.characteristics.get("base_accuracy", 0.85)
             return base_acc + rng.normal(0, 0.02)
 
         def parameters(self):
             # Simulate parameter count - return Tensor objects for compatibility
             from trentorch.core.tensor import Tensor
-            param_count = self.characteristics.get('param_count', 1000000)
+
+            param_count = self.characteristics.get("param_count", 1000000)
             return [Tensor(rng.standard_normal(param_count))]
 
     # Create test model suite
     models = [
-        RealisticModel("efficient_model", {
-            'base_latency': 0.001,
-            'base_accuracy': 0.82,
-            'memory_factor': 0.5,
-            'param_count': 500000
-        }),
-        RealisticModel("accurate_model", {
-            'base_latency': 0.003,
-            'base_accuracy': 0.95,
-            'memory_factor': 2.0,
-            'param_count': 2000000
-        }),
-        RealisticModel("balanced_model", {
-            'base_latency': 0.002,
-            'base_accuracy': 0.88,
-            'memory_factor': 1.0,
-            'param_count': 1000000
-        })
+        RealisticModel(
+            "efficient_model",
+            {"base_latency": 0.001, "base_accuracy": 0.82, "memory_factor": 0.5, "param_count": 500000},
+        ),
+        RealisticModel(
+            "accurate_model",
+            {"base_latency": 0.003, "base_accuracy": 0.95, "memory_factor": 2.0, "param_count": 2000000},
+        ),
+        RealisticModel(
+            "balanced_model",
+            {"base_latency": 0.002, "base_accuracy": 0.88, "memory_factor": 1.0, "param_count": 1000000},
+        ),
     ]
 
     datasets = [{"test_data": f"dataset_{i}"} for i in range(3)]
@@ -4808,10 +4796,10 @@ def test_module():
     suite = BenchmarkSuite(models, datasets)
     results = suite.run_full_benchmark()
 
-    assert 'latency' in results
-    assert 'accuracy' in results
-    assert 'memory' in results
-    assert 'energy' in results
+    assert "latency" in results
+    assert "accuracy" in results
+    assert "memory" in results
+    assert "energy" in results
 
     # Verify all models were tested
     for result_type in results.values():
@@ -4836,30 +4824,28 @@ def test_module():
     # Test 4: MLPerf compliance
     print("  Testing MLPerf compliance...")
     perf = MLPerf(random_seed=42)
-    perf_results = perf.run_standard_benchmark(models[0], 'keyword_spotting', num_runs=5)
+    perf_results = perf.run_standard_benchmark(models[0], "keyword_spotting", num_runs=5)
 
-    required_keys = ['accuracy', 'mean_latency_ms', 'compliant', 'target_accuracy']
+    required_keys = ["accuracy", "mean_latency_ms", "compliant", "target_accuracy"]
     assert all(key in perf_results for key in required_keys)
-    assert 0 <= perf_results['accuracy'] <= 1
-    assert perf_results['mean_latency_ms'] > 0
+    assert 0 <= perf_results["accuracy"] <= 1
+    assert perf_results["mean_latency_ms"] > 0
 
     # Test 5: Optimization comparison
     print("  Testing optimization comparison...")
-    comparison_results = analyze_optimization_techniques(
-        models[0], models[1:], datasets[:1]
-    )
+    comparison_results = analyze_optimization_techniques(models[0], models[1:], datasets[:1])
 
-    assert 'base_model' in comparison_results
-    assert 'improvements' in comparison_results
-    assert 'recommendations' in comparison_results
-    assert len(comparison_results['improvements']) == 2
+    assert "base_model" in comparison_results
+    assert "improvements" in comparison_results
+    assert "recommendations" in comparison_results
+    assert len(comparison_results["improvements"]) == 2
 
     # Test 6: Cross-platform compatibility
     print("  Testing cross-platform compatibility...")
     system_info = {
-        'platform': platform.platform(),
-        'processor': platform.processor(),
-        'python_version': platform.python_version()
+        "platform": platform.platform(),
+        "processor": platform.processor(),
+        "python_version": platform.python_version(),
     }
 
     # Verify system information is captured
@@ -4871,6 +4857,7 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 19")
+
 
 # %% [markdown]
 """
@@ -4931,6 +4918,7 @@ iterations eliminate cold-start effects, multiple runs give confidence intervals
 This is how production ML teams make decisions: measure, compare, improve, repeat.
 """
 
+
 # %%
 def demo_benchmarking():
     """🎯 See professional benchmarking in action."""
@@ -4942,25 +4930,21 @@ def demo_benchmarking():
     x = Tensor(rng.standard_normal((32, 512)))
 
     # Benchmark with proper methodology
-    benchmark = Benchmark(
-        models=[layer],
-        datasets=[(x, None)],
-        warmup_runs=3,
-        measurement_runs=10
-    )
+    benchmark = Benchmark(models=[layer], datasets=[(x, None)], warmup_runs=3, measurement_runs=10)
 
     results = benchmark.run_latency_benchmark(input_shape=(32, 512))
     result = list(results.values())[0]
 
-    print(f"Model: Linear(512 → 256)")
-    print(f"Batch: 32 samples")
-    print(f"\nBenchmark Results (10 iterations):")
+    print("Model: Linear(512 → 256)")
+    print("Batch: 32 samples")
+    print("\nBenchmark Results (10 iterations):")
     print(f"  Mean latency: {result.mean:.2f} ms")
     print(f"  Std dev:      {result.std:.2f} ms")
     print(f"  Min:          {result.min_val:.2f} ms")
     print(f"  Max:          {result.max_val:.2f} ms")
 
     print("\n✨ Reliable measurements guide optimization decisions!")
+
 
 # %%
 if __name__ == "__main__":

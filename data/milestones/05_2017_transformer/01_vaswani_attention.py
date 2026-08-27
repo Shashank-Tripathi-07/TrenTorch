@@ -100,31 +100,31 @@ by passing THREE increasingly difficult challenges.
   • YOUR architecture can dynamically route information based on context
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
-import time
-from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, os.getcwd())
-sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
+sys.path.insert(0, os.path.join(os.getcwd(), "data"))  # trentorch/ lives at data/trentorch/
 
 # Import TrenTorch components YOU BUILT!
-from trentorch import Tensor, Linear, ReLU, CrossEntropyLoss
-from trentorch.core.optimizers import Adam
-from trentorch.core.dataloader import Dataset, DataLoader  # Module 05: YOUR DataLoader!
-from trentorch.core.embeddings import Embedding, PositionalEncoding
-from trentorch.core.attention import MultiHeadAttention
-from trentorch.core.transformers import LayerNorm
+from rich import box
 
 # Rich for beautiful output
 from rich.console import Console
 from rich.panel import Panel
+from rich.progress import BarColumn, Progress, SpinnerColumn, TimeElapsedColumn
 from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn, BarColumn
-from rich import box
+from trentorch import CrossEntropyLoss, Linear, ReLU, Tensor
+from trentorch.core.attention import MultiHeadAttention
+from trentorch.core.dataloader import DataLoader, Dataset  # Module 05: YOUR DataLoader!
+from trentorch.core.embeddings import Embedding, PositionalEncoding
+from trentorch.core.optimizers import Adam
+from trentorch.core.transformers import LayerNorm
 
 console = Console()
 
@@ -259,31 +259,32 @@ class AttentionTransformer:
 # Token mappings
 PADDING = 0
 REVERSE_TOKEN = 27  # [R] prefix
-COPY_TOKEN = 28     # [C] prefix
+COPY_TOKEN = 28  # [C] prefix
 
 
 # =============================================================================
 # 📦 SEQUENCE DATASET - Using YOUR DataLoader from Module 05
 # =============================================================================
 
+
 class SequenceDataset(Dataset):
     """
     Dataset for sequence-to-sequence tasks using YOUR Dataset interface.
-    
+
     This shows how YOUR DataLoader handles sequence data for transformers,
     enabling efficient batched training with shuffling.
     """
-    
+
     def __init__(self, data):
         """
         Args:
             data: List of (input_seq, target_seq) tuples
         """
         self.data = data
-    
+
     def __len__(self):
         return len(self.data)
-    
+
     def __getitem__(self, idx):
         input_seq, target_seq = self.data[idx]
         return Tensor(input_seq), Tensor(target_seq)
@@ -296,21 +297,21 @@ def tokens_to_letters(tokens, skip_special=True):
         if t == 0:
             if skip_special:
                 continue
-            result.append('_')
+            result.append("_")
         elif t == REVERSE_TOKEN:
-            result.append('[R]')
+            result.append("[R]")
         elif t == COPY_TOKEN:
-            result.append('[C]')
+            result.append("[C]")
         elif 1 <= t <= 26:
-            result.append(chr(ord('A') + t - 1))
+            result.append(chr(ord("A") + t - 1))
         else:
-            result.append('?')
-    return ''.join(result)
+            result.append("?")
+    return "".join(result)
 
 
 def letters_to_tokens(s):
     """Convert letters to token indices."""
-    return [ord(c) - ord('A') + 1 for c in s.upper() if c.isalpha()]
+    return [ord(c) - ord("A") + 1 for c in s.upper() if c.isalpha()]
 
 
 def generate_reversal_data(num_samples, seq_len=6):
@@ -383,13 +384,15 @@ def train_epoch(model, dataloader, optimizer, loss_fn):
 
     return total_loss / total_samples, (correct_sequences / total_samples) * 100
 
-def press_enter_to_continue() :
-    if sys.stdin.isatty() and sys.stdout.isatty() :
-        try :
+
+def press_enter_to_continue():
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        try:
             console.input("\n[yellow]Press Enter to continue...[/yellow] ")
-        except EOFError :
+        except EOFError:
             pass
         console.print()
+
 
 def evaluate(model, dataset):
     """Evaluate model on dataset."""
@@ -410,9 +413,9 @@ def evaluate(model, dataset):
 
 def run_challenge(name, model, train_data, test_data, optimizer, loss_fn, epochs, target_acc, batch_size=16):
     """Run a single challenge using YOUR DataLoader."""
-    console.print(f"[bold cyan]{'='*60}[/bold cyan]")
+    console.print(f"[bold cyan]{'=' * 60}[/bold cyan]")
     console.print(f"[bold]{name}[/bold]")
-    console.print(f"[bold cyan]{'='*60}[/bold cyan]\n")
+    console.print(f"[bold cyan]{'=' * 60}[/bold cyan]\n")
 
     # Show examples
     console.print("[dim]Examples:[/dim]")
@@ -423,7 +426,9 @@ def run_challenge(name, model, train_data, test_data, optimizer, loss_fn, epochs
     # Create DataLoader for training (YOUR Module 05!)
     train_dataset = SequenceDataset(train_data)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    console.print(f"[dim]DataLoader: {len(train_dataset)} samples, batch_size={batch_size}, {len(train_loader)} batches[/dim]\n")
+    console.print(
+        f"[dim]DataLoader: {len(train_dataset)} samples, batch_size={batch_size}, {len(train_loader)} batches[/dim]\n"
+    )
 
     # Training
     with Progress(
@@ -432,9 +437,9 @@ def run_challenge(name, model, train_data, test_data, optimizer, loss_fn, epochs
         BarColumn(),
         "[progress.percentage]{task.percentage:>3.0f}%",
         TimeElapsedColumn(),
-        console=console
+        console=console,
     ) as progress:
-        task = progress.add_task(f"[cyan]Training...", total=epochs)
+        task = progress.add_task("[cyan]Training...", total=epochs)
 
         best_acc = 0
         for epoch in range(epochs):
@@ -446,7 +451,7 @@ def run_challenge(name, model, train_data, test_data, optimizer, loss_fn, epochs
 
             if (epoch + 1) % 10 == 0:
                 console.print(
-                    f"  Epoch {epoch+1:3d}: Loss={train_loss:.4f}, "
+                    f"  Epoch {epoch + 1:3d}: Loss={train_loss:.4f}, "
                     f"Train={train_acc:.1f}%, Test={test_acc:.1f}%"
                 )
 
@@ -487,12 +492,12 @@ def run_challenge(name, model, train_data, test_data, optimizer, loss_fn, epochs
 
 # Model hyperparameters (shared across all challenges)
 CONFIG = {
-    'vocab_size': 29,      # 0=pad, 1-26=A-Z, 27=[R], 28=[C]
-    'seq_len': 6,          # Sequence length for tasks
-    'embed_dim': 64,       # Embedding dimensions
-    'num_heads': 4,        # Attention heads
-    'num_layers': 2,       # Transformer blocks
-    'lr': 0.001,           # Learning rate
+    "vocab_size": 29,  # 0=pad, 1-26=A-Z, 27=[R], 28=[C]
+    "seq_len": 6,  # Sequence length for tasks
+    "embed_dim": 64,  # Embedding dimensions
+    "num_heads": 4,  # Attention heads
+    "num_layers": 2,  # Transformer blocks
+    "lr": 0.001,  # Learning rate
 }
 
 
@@ -506,17 +511,17 @@ def build_model(config=CONFIG):
         loss_fn: CrossEntropyLoss
     """
     model = AttentionTransformer(
-        vocab_size=config['vocab_size'],
-        embed_dim=config['embed_dim'],
-        num_heads=config['num_heads'],
-        seq_len=config['seq_len'] + 1,  # +1 for task prefix in challenge 3
-        num_layers=config['num_layers']
+        vocab_size=config["vocab_size"],
+        embed_dim=config["embed_dim"],
+        num_heads=config["num_heads"],
+        seq_len=config["seq_len"] + 1,  # +1 for task prefix in challenge 3
+        num_layers=config["num_layers"],
     )
 
     for param in model.parameters():
         param.requires_grad = True
 
-    optimizer = Adam(model.parameters(), lr=config['lr'])
+    optimizer = Adam(model.parameters(), lr=config["lr"])
     loss_fn = CrossEntropyLoss()
 
     return model, optimizer, loss_fn
@@ -525,6 +530,7 @@ def build_model(config=CONFIG):
 # =============================================================================
 # CHALLENGE 1: SEQUENCE REVERSAL
 # =============================================================================
+
 
 def challenge_1_reversal(model, optimizer, loss_fn, config=CONFIG):
     """
@@ -556,21 +562,27 @@ def challenge_1_reversal(model, optimizer, loss_fn, config=CONFIG):
         passed: bool - whether target accuracy was achieved
         accuracy: float - final test accuracy
     """
-    seq_len = config['seq_len']
+    seq_len = config["seq_len"]
 
     train_data = generate_reversal_data(600, seq_len)
     test_data = generate_reversal_data(200, seq_len)
 
     return run_challenge(
         "CHALLENGE 1: SEQUENCE REVERSAL",
-        model, train_data, test_data, optimizer, loss_fn,
-        epochs=50, target_acc=95
+        model,
+        train_data,
+        test_data,
+        optimizer,
+        loss_fn,
+        epochs=50,
+        target_acc=95,
     )
 
 
 # =============================================================================
 # CHALLENGE 2: SEQUENCE COPYING
 # =============================================================================
+
 
 def challenge_2_copying(model, optimizer, loss_fn, config=CONFIG):
     """
@@ -608,21 +620,27 @@ def challenge_2_copying(model, optimizer, loss_fn, config=CONFIG):
         passed: bool - whether target accuracy was achieved
         accuracy: float - final test accuracy
     """
-    seq_len = config['seq_len']
+    seq_len = config["seq_len"]
 
     train_data = generate_copy_data(600, seq_len)
     test_data = generate_copy_data(200, seq_len)
 
     return run_challenge(
         "CHALLENGE 2: SEQUENCE COPYING",
-        model, train_data, test_data, optimizer, loss_fn,
-        epochs=50, target_acc=95
+        model,
+        train_data,
+        test_data,
+        optimizer,
+        loss_fn,
+        epochs=50,
+        target_acc=95,
     )
 
 
 # =============================================================================
 # CHALLENGE 3: MIXED TASK INFERENCE
 # =============================================================================
+
 
 def challenge_3_mixed(config=CONFIG):
     """
@@ -670,7 +688,7 @@ def challenge_3_mixed(config=CONFIG):
         passed: bool - whether target accuracy was achieved
         accuracy: float - final test accuracy
     """
-    seq_len = config['seq_len']
+    seq_len = config["seq_len"]
 
     console.print("[dim]Building fresh model for mixed task learning...[/dim]")
     model, optimizer, loss_fn = build_model(config)
@@ -681,14 +699,20 @@ def challenge_3_mixed(config=CONFIG):
 
     return run_challenge(
         "CHALLENGE 3: MIXED TASK INFERENCE",
-        model, train_data, test_data, optimizer, loss_fn,
-        epochs=60, target_acc=90
+        model,
+        train_data,
+        test_data,
+        optimizer,
+        loss_fn,
+        epochs=60,
+        target_acc=90,
     )
 
 
 # =============================================================================
 # RESULTS DISPLAY
 # =============================================================================
+
 
 def print_final_results(results):
     """
@@ -701,9 +725,9 @@ def print_final_results(results):
     Returns:
         0 if all passed, 1 otherwise
     """
-    passed1, acc1 = results['reversal']
-    passed2, acc2 = results['copying']
-    passed3, acc3 = results['mixed']
+    passed1, acc1 = results["reversal"]
+    passed2, acc2 = results["copying"]
+    passed3, acc3 = results["mixed"]
 
     console.print("=" * 60)
     console.print(Panel.fit("[bold]FINAL RESULTS[/bold]", border_style="cyan"))
@@ -715,22 +739,13 @@ def print_final_results(results):
     table.add_column("Status", justify="center")
 
     table.add_row(
-        "1. Reversal",
-        f"{acc1:.1f}%",
-        "95%",
-        "[green]PASSED[/green]" if passed1 else "[red]FAILED[/red]"
+        "1. Reversal", f"{acc1:.1f}%", "95%", "[green]PASSED[/green]" if passed1 else "[red]FAILED[/red]"
     )
     table.add_row(
-        "2. Copying",
-        f"{acc2:.1f}%",
-        "95%",
-        "[green]PASSED[/green]" if passed2 else "[red]FAILED[/red]"
+        "2. Copying", f"{acc2:.1f}%", "95%", "[green]PASSED[/green]" if passed2 else "[red]FAILED[/red]"
     )
     table.add_row(
-        "3. Mixed Tasks",
-        f"{acc3:.1f}%",
-        "90%",
-        "[green]PASSED[/green]" if passed3 else "[red]FAILED[/red]"
+        "3. Mixed Tasks", f"{acc3:.1f}%", "90%", "[green]PASSED[/green]" if passed3 else "[red]FAILED[/red]"
     )
 
     console.print(table)
@@ -739,17 +754,19 @@ def print_final_results(results):
     all_passed = passed1 and passed2 and passed3
 
     if all_passed:
-        console.print(Panel.fit(
-            "[bold green]MILESTONE 05 COMPLETE![/bold green]\n\n"
-            "Your attention mechanism has proven it can:\n"
-            "  Query-Key-Value computation works\n"
-            "  Learn different attention patterns (diagonal vs anti-diagonal)\n"
-            "  Dynamically route information based on context\n"
-            "  Handle multiple tasks with a single model\n\n"
-            "[bold]This is the foundation of GPT, BERT, and all modern LLMs![/bold]",
-            border_style="green",
-            title="ATTENTION IS ALL YOU NEED"
-        ))
+        console.print(
+            Panel.fit(
+                "[bold green]MILESTONE 05 COMPLETE![/bold green]\n\n"
+                "Your attention mechanism has proven it can:\n"
+                "  Query-Key-Value computation works\n"
+                "  Learn different attention patterns (diagonal vs anti-diagonal)\n"
+                "  Dynamically route information based on context\n"
+                "  Handle multiple tasks with a single model\n\n"
+                "[bold]This is the foundation of GPT, BERT, and all modern LLMs![/bold]",
+                border_style="green",
+                title="ATTENTION IS ALL YOU NEED",
+            )
+        )
         press_enter_to_continue()
         return 0
     else:
@@ -761,16 +778,18 @@ def print_final_results(results):
         if not passed3:
             failed.append("Mixed Tasks")
 
-        console.print(Panel.fit(
-            f"[bold yellow]CHALLENGES FAILED: {', '.join(failed)}[/bold yellow]\n\n"
-            "Check your implementation:\n"
-            "  MultiHeadAttention: Q, K, V projections\n"
-            "  Positional encoding is being added\n"
-            "  Attention scores use softmax correctly\n"
-            "  Gradients flow through all layers",
-            border_style="yellow",
-            title="Keep Working"
-        ))
+        console.print(
+            Panel.fit(
+                f"[bold yellow]CHALLENGES FAILED: {', '.join(failed)}[/bold yellow]\n\n"
+                "Check your implementation:\n"
+                "  MultiHeadAttention: Q, K, V projections\n"
+                "  Positional encoding is being added\n"
+                "  Attention scores use softmax correctly\n"
+                "  Gradients flow through all layers",
+                border_style="yellow",
+                title="Keep Working",
+            )
+        )
         press_enter_to_continue()
         return 1
 
@@ -778,6 +797,7 @@ def print_final_results(results):
 # =============================================================================
 # MAIN ENTRY POINT
 # =============================================================================
+
 
 def main():
     """
@@ -797,31 +817,35 @@ def main():
     # BANNER
     # ─────────────────────────────────────────────────────────────────────────
     console.print()
-    console.print(Panel.fit(
-        "[bold cyan]MILESTONE 05: ATTENTION IS ALL YOU NEED[/bold cyan]\n\n"
-        "[yellow]Prove your attention mechanism works by passing THREE challenges.[/yellow]\n\n"
-        "Challenge 1: Sequence Reversal (PYTHON -> NOHTYP)\n"
-        "Challenge 2: Sequence Copying  (TENSOR -> TENSOR)\n"
-        "Challenge 3: Mixed Tasks       ([R]ABC -> CBA, [C]ABC -> ABC)",
-        border_style="cyan",
-        title="The Transformer Challenge"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]MILESTONE 05: ATTENTION IS ALL YOU NEED[/bold cyan]\n\n"
+            "[yellow]Prove your attention mechanism works by passing THREE challenges.[/yellow]\n\n"
+            "Challenge 1: Sequence Reversal (PYTHON -> NOHTYP)\n"
+            "Challenge 2: Sequence Copying  (TENSOR -> TENSOR)\n"
+            "Challenge 3: Mixed Tasks       ([R]ABC -> CBA, [C]ABC -> ABC)",
+            border_style="cyan",
+            title="The Transformer Challenge",
+        )
+    )
     press_enter_to_continue()
 
     # ─────────────────────────────────────────────────────────────────────────
     # CONFIGURATION
     # ─────────────────────────────────────────────────────────────────────────
-    console.print(Panel(
-        f"[bold]Model Configuration[/bold]\n"
-        f"  Vocabulary:  {CONFIG['vocab_size']} tokens (A-Z + special)\n"
-        f"  Sequence:    {CONFIG['seq_len']} letters\n"
-        f"  Embedding:   {CONFIG['embed_dim']} dimensions\n"
-        f"  Attention:   {CONFIG['num_heads']} heads\n"
-        f"  Layers:      {CONFIG['num_layers']} transformer blocks\n"
-        f"  Learning:    {CONFIG['lr']}",
-        title="Configuration",
-        border_style="blue"
-    ))
+    console.print(
+        Panel(
+            f"[bold]Model Configuration[/bold]\n"
+            f"  Vocabulary:  {CONFIG['vocab_size']} tokens (A-Z + special)\n"
+            f"  Sequence:    {CONFIG['seq_len']} letters\n"
+            f"  Embedding:   {CONFIG['embed_dim']} dimensions\n"
+            f"  Attention:   {CONFIG['num_heads']} heads\n"
+            f"  Layers:      {CONFIG['num_layers']} transformer blocks\n"
+            f"  Learning:    {CONFIG['lr']}",
+            title="Configuration",
+            border_style="blue",
+        )
+    )
     press_enter_to_continue()
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -838,13 +862,13 @@ def main():
     results = {}
 
     # Challenge 1: Sequence Reversal
-    results['reversal'] = challenge_1_reversal(model, optimizer, loss_fn)
+    results["reversal"] = challenge_1_reversal(model, optimizer, loss_fn)
 
     # Challenge 2: Sequence Copying (same model, different task)
-    results['copying'] = challenge_2_copying(model, optimizer, loss_fn)
+    results["copying"] = challenge_2_copying(model, optimizer, loss_fn)
 
     # Challenge 3: Mixed Tasks (fresh model - see docstring for why)
-    results['mixed'] = challenge_3_mixed()
+    results["mixed"] = challenge_3_mixed()
 
     # ─────────────────────────────────────────────────────────────────────────
     # FINAL RESULTS

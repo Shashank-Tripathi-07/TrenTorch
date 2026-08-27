@@ -7,6 +7,7 @@ This is where text processing begins for NLP pipelines.
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -25,14 +26,14 @@ class TestPriorStackStillWorking:
 
         # Complete pipeline should work
         try:
-            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import DataLoader, Dataset
             from trentorch.core.layers import Linear
-            from trentorch.core.dataloader import Dataset, DataLoader
             from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
 
             # All components should be available
             layer = Linear(5, 2)
-            optimizer = SGD(layer.parameters(), lr=0.01)
+            SGD(layer.parameters(), lr=0.01)
 
             # Basic functionality should work
             x = Tensor(rng.standard_normal((3, 5)))
@@ -45,16 +46,16 @@ class TestPriorStackStillWorking:
     def test_optimization_stable(self):
         """Verify Module 07 (Optimizers) still works."""
         try:
-            from trentorch.core.optimizers import SGD, Adam
             from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD, Adam
 
             # Optimizers should work
             layer = Linear(3, 1)
             sgd = SGD(layer.parameters(), lr=0.01)
             adam = Adam(layer.parameters(), lr=0.001)
 
-            assert hasattr(sgd, 'step'), "Optimizers broken: SGD step"
-            assert hasattr(adam, 'step'), "Optimizers broken: Adam step"
+            assert hasattr(sgd, "step"), "Optimizers broken: SGD step"
+            assert hasattr(adam, "step"), "Optimizers broken: Adam step"
 
         except ImportError:
             assert True, "Optimizers not implemented yet"
@@ -66,10 +67,10 @@ class TestModule08TrainingCore:
     def test_training_loop_creation(self):
         """Test basic training loop functionality."""
         try:
-            from trentorch.core.training import Trainer
+            from trentorch.core.dataloader import DataLoader, Dataset
             from trentorch.core.layers import Linear
             from trentorch.core.optimizers import SGD
-            from trentorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.training import Trainer
 
             # Create model and optimizer
             model = Linear(10, 3)
@@ -88,7 +89,7 @@ class TestModule08TrainingCore:
                     return self.data[idx], self.targets[idx]
 
             dataset = SimpleDataset()
-            dataloader = DataLoader(dataset, batch_size=4)
+            DataLoader(dataset, batch_size=4)
 
             # Create dummy loss function
             def dummy_loss(pred, target):
@@ -98,7 +99,9 @@ class TestModule08TrainingCore:
             trainer = Trainer(model, optimizer, dummy_loss)
 
             # Should have training methods (TrenTorch uses train_epoch/evaluate)
-            assert hasattr(trainer, 'train') or hasattr(trainer, 'fit') or hasattr(trainer, 'train_epoch'), "Trainer broken: No train method"
+            assert hasattr(trainer, "train") or hasattr(trainer, "fit") or hasattr(trainer, "train_epoch"), (
+                "Trainer broken: No train method"
+            )
 
         except ImportError:
             assert True, "Training loop not implemented yet"
@@ -106,8 +109,8 @@ class TestModule08TrainingCore:
     def test_loss_function_support(self):
         """Test loss function integration."""
         try:
-            from trentorch.core.training import CrossEntropyLoss, MSELoss
             from trentorch.core.tensor import Tensor
+            from trentorch.core.training import CrossEntropyLoss, MSELoss
 
             # Test MSE loss
             mse = MSELoss()
@@ -115,17 +118,19 @@ class TestModule08TrainingCore:
             target = Tensor(np.array([1.5, 2.5, 2.5]))
 
             loss = mse(pred, target)
-            assert hasattr(loss, 'data') or isinstance(loss, (float, np.ndarray)), "MSE loss broken"
+            assert hasattr(loss, "data") or isinstance(loss, (float, np.ndarray)), "MSE loss broken"
 
             # Test CrossEntropy loss (if implemented)
-            if 'CrossEntropyLoss' in locals():
+            if "CrossEntropyLoss" in locals():
                 ce = CrossEntropyLoss()
                 logits = Tensor(rng.standard_normal((4, 3)))  # 4 samples, 3 classes
                 targets = Tensor(np.array([0, 1, 2, 1]))  # Class indices as Tensor
 
                 try:
                     ce_loss = ce(logits, targets)
-                    assert hasattr(ce_loss, 'data') or isinstance(ce_loss, (float, np.ndarray)), "CrossEntropy loss broken"
+                    assert hasattr(ce_loss, "data") or isinstance(ce_loss, (float, np.ndarray)), (
+                        "CrossEntropy loss broken"
+                    )
                 except (AttributeError, TypeError):
                     # CrossEntropyLoss may have implementation quirks
                     pass
@@ -136,8 +141,8 @@ class TestModule08TrainingCore:
     def test_metrics_computation(self):
         """Test training metrics computation."""
         try:
-            from trentorch.core.training import accuracy, compute_metrics
             from trentorch.core.tensor import Tensor
+            from trentorch.core.training import accuracy, compute_metrics
 
             # Test accuracy computation
             predictions = Tensor(np.array([[0.1, 0.9], [0.8, 0.2], [0.3, 0.7]]))
@@ -148,10 +153,10 @@ class TestModule08TrainingCore:
             assert 0.0 <= acc <= 1.0, "Accuracy not in valid range"
 
             # Test comprehensive metrics
-            if 'compute_metrics' in locals():
+            if "compute_metrics" in locals():
                 metrics = compute_metrics(predictions, targets)
                 assert isinstance(metrics, dict), "Metrics should return dict"
-                assert 'accuracy' in metrics, "Metrics missing accuracy"
+                assert "accuracy" in metrics, "Metrics missing accuracy"
 
         except ImportError:
             assert True, "Metrics computation not implemented yet"
@@ -163,12 +168,12 @@ class TestProgressiveStackIntegration:
     def test_end_to_end_training(self):
         """Test complete end-to-end training process."""
         try:
-            from trentorch.core.tensor import Tensor
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU, Softmax
+            from trentorch.core.dataloader import DataLoader, Dataset
+            from trentorch.core.layers import Linear
             from trentorch.core.optimizers import SGD
-            from trentorch.core.training import Trainer, CrossEntropyLoss
-            from trentorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.tensor import Tensor
+            from trentorch.core.training import CrossEntropyLoss, Trainer
 
             # Create complete model
             class SimpleModel:
@@ -185,9 +190,9 @@ class TestProgressiveStackIntegration:
 
                 def parameters(self):
                     params = []
-                    if hasattr(self.layer1, 'parameters'):
+                    if hasattr(self.layer1, "parameters"):
                         params.extend(self.layer1.parameters())
-                    if hasattr(self.layer2, 'parameters'):
+                    if hasattr(self.layer2, "parameters"):
                         params.extend(self.layer2.parameters())
                     return params
 
@@ -219,13 +224,13 @@ class TestProgressiveStackIntegration:
                     loss = loss_fn(predictions, batch_y)
 
                     # Backward pass (if available)
-                    if hasattr(loss, 'backward'):
+                    if hasattr(loss, "backward"):
                         optimizer.zero_grad()
                         loss.backward()
                         optimizer.step()
 
                     # Verify shapes - batch_y may be Tensor or array
-                    batch_size = batch_y.shape[0] if hasattr(batch_y, 'shape') else len(batch_y)
+                    batch_size = batch_y.shape[0] if hasattr(batch_y, "shape") else len(batch_y)
                     assert predictions.shape[0] == batch_size, "Training batch size mismatch"
                     break  # Test one batch per epoch
 
@@ -237,11 +242,12 @@ class TestProgressiveStackIntegration:
     def test_cnn_training_pipeline(self):
         """Test CNN training with spatial operations."""
         try:
-            from trentorch.core.spatial import Conv2d as Conv2D, MaxPool2d
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU
+            from trentorch.core.dataloader import DataLoader, Dataset
+            from trentorch.core.layers import Linear
             from trentorch.core.optimizers import Adam
-            from trentorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.spatial import Conv2d as Conv2D
+            from trentorch.core.spatial import MaxPool2d
             from trentorch.core.tensor import Tensor
 
             # CNN model
@@ -262,7 +268,7 @@ class TestProgressiveStackIntegration:
                 def parameters(self):
                     params = []
                     for module in [self.conv1, self.fc]:
-                        if hasattr(module, 'parameters'):
+                        if hasattr(module, "parameters"):
                             params.extend(module.parameters())
                     return params
 
@@ -280,7 +286,7 @@ class TestProgressiveStackIntegration:
 
             # Setup CNN training
             cnn_model = SimpleCNN()
-            optimizer = Adam(cnn_model.parameters(), lr=0.001)
+            Adam(cnn_model.parameters(), lr=0.001)
 
             dataset = ImageDataset()
             dataloader = DataLoader(dataset, batch_size=4)
@@ -290,7 +296,7 @@ class TestProgressiveStackIntegration:
                 assert batch_x.shape == (4, 3, 32, 32), "CNN input shape broken"
 
                 # Forward pass
-                if hasattr(cnn_model.conv1, '__call__'):
+                if hasattr(cnn_model.conv1, "__call__"):
                     predictions = cnn_model(batch_x)
                     assert len(predictions.shape) == 2, "CNN output shape broken"
 
@@ -306,10 +312,10 @@ class TestAdvancedTrainingFeatures:
     def test_validation_loop(self):
         """Test validation during training."""
         try:
-            from trentorch.core.training import Trainer
+            from trentorch.core.dataloader import DataLoader, Dataset
             from trentorch.core.layers import Linear
             from trentorch.core.optimizers import SGD
-            from trentorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.training import Trainer
 
             # Model and optimizer
             model = Linear(5, 2)
@@ -330,8 +336,8 @@ class TestAdvancedTrainingFeatures:
             train_dataset = Dataset(30)
             val_dataset = Dataset(10)
 
-            train_loader = DataLoader(train_dataset, batch_size=5)
-            val_loader = DataLoader(val_dataset, batch_size=5)
+            DataLoader(train_dataset, batch_size=5)
+            DataLoader(val_dataset, batch_size=5)
 
             # Dummy loss function
             def dummy_loss(pred, target):
@@ -340,7 +346,7 @@ class TestAdvancedTrainingFeatures:
             # Trainer with validation
             trainer = Trainer(model, optimizer, dummy_loss)
 
-            if hasattr(trainer, 'validate') or hasattr(trainer, 'evaluate'):
+            if hasattr(trainer, "validate") or hasattr(trainer, "evaluate"):
                 # Should be able to run validation
                 assert True, "Validation capability available"
 
@@ -350,22 +356,22 @@ class TestAdvancedTrainingFeatures:
     def test_checkpointing_and_early_stopping(self):
         """Test model checkpointing and early stopping."""
         try:
-            from trentorch.core.training import Trainer, ModelCheckpoint, EarlyStopping
             from trentorch.core.layers import Linear
             from trentorch.core.optimizers import SGD
+            from trentorch.core.training import EarlyStopping, ModelCheckpoint, Trainer
 
             model = Linear(5, 1)
             optimizer = SGD(model.parameters(), lr=0.01)
 
             # Checkpointing
-            if 'ModelCheckpoint' in locals():
-                checkpoint = ModelCheckpoint(filepath='model.pth', save_best=True)
-                assert hasattr(checkpoint, 'save'), "Checkpointing broken"
+            if "ModelCheckpoint" in locals():
+                checkpoint = ModelCheckpoint(filepath="model.pth", save_best=True)
+                assert hasattr(checkpoint, "save"), "Checkpointing broken"
 
             # Early stopping
-            if 'EarlyStopping' in locals():
+            if "EarlyStopping" in locals():
                 early_stop = EarlyStopping(patience=5, min_delta=0.001)
-                assert hasattr(early_stop, 'check'), "Early stopping broken"
+                assert hasattr(early_stop, "check"), "Early stopping broken"
 
             # Dummy loss function
             def dummy_loss(pred, target):
@@ -373,7 +379,7 @@ class TestAdvancedTrainingFeatures:
 
             # Training with callbacks
             trainer = Trainer(model, optimizer, dummy_loss)
-            if hasattr(trainer, 'callbacks'):
+            if hasattr(trainer, "callbacks"):
                 trainer.callbacks = [checkpoint, early_stop]
 
         except ImportError:
@@ -382,26 +388,26 @@ class TestAdvancedTrainingFeatures:
     def test_learning_rate_scheduling(self):
         """Test learning rate scheduling during training."""
         try:
-            from trentorch.core.training import LRScheduler, StepLR
-            from trentorch.core.optimizers import SGD
             from trentorch.core.layers import Linear
+            from trentorch.core.optimizers import SGD
+            from trentorch.core.training import LRScheduler, StepLR
 
             model = Linear(5, 1)
             optimizer = SGD(model.parameters(), lr=0.1)
 
             # Learning rate scheduler
-            if 'StepLR' in locals():
+            if "StepLR" in locals():
                 scheduler = StepLR(optimizer, step_size=10, gamma=0.5)
 
                 initial_lr = optimizer.lr
 
                 # Step the scheduler
                 for _ in range(15):
-                    if hasattr(scheduler, 'step'):
+                    if hasattr(scheduler, "step"):
                         scheduler.step()
 
                 # Learning rate should have decreased
-                if hasattr(optimizer, 'lr'):
+                if hasattr(optimizer, "lr"):
                     final_lr = optimizer.lr
                     assert final_lr < initial_lr, "Learning rate scheduling not working"
 
@@ -415,17 +421,17 @@ class TestProductionTrainingFeatures:
     def test_distributed_training_support(self):
         """Test distributed training capabilities."""
         try:
-            from trentorch.core.training import DistributedTrainer
             from trentorch.core.layers import Linear
             from trentorch.core.optimizers import SGD
+            from trentorch.core.training import DistributedTrainer
 
             model = Linear(10, 3)
             optimizer = SGD(model.parameters(), lr=0.01)
 
             # Distributed trainer (if available)
-            if 'DistributedTrainer' in locals():
+            if "DistributedTrainer" in locals():
                 dist_trainer = DistributedTrainer(model, optimizer, world_size=1, rank=0)
-                assert hasattr(dist_trainer, 'train'), "Distributed training broken"
+                assert hasattr(dist_trainer, "train"), "Distributed training broken"
 
         except ImportError:
             assert True, "Distributed training not ready yet"
@@ -433,9 +439,9 @@ class TestProductionTrainingFeatures:
     def test_mixed_precision_training(self):
         """Test mixed precision training support."""
         try:
-            from trentorch.core.training import Trainer
             from trentorch.core.layers import Linear
             from trentorch.core.optimizers import Adam
+            from trentorch.core.training import Trainer
 
             model = Linear(20, 10)
             optimizer = Adam(model.parameters(), lr=0.001)
@@ -448,7 +454,7 @@ class TestProductionTrainingFeatures:
             try:
                 trainer = Trainer(model, optimizer, dummy_loss)
                 # Mixed precision is optional feature
-                if hasattr(trainer, 'mixed_precision'):
+                if hasattr(trainer, "mixed_precision"):
                     assert True, "Mixed precision capability available"
             except TypeError:
                 pass  # Signature doesn't support mixed_precision
@@ -459,9 +465,9 @@ class TestProductionTrainingFeatures:
     def test_gradient_accumulation(self):
         """Test gradient accumulation for large effective batch sizes."""
         try:
-            from trentorch.core.training import Trainer
             from trentorch.core.layers import Linear
             from trentorch.core.optimizers import SGD
+            from trentorch.core.training import Trainer
 
             model = Linear(10, 3)
             optimizer = SGD(model.parameters(), lr=0.01)
@@ -474,7 +480,7 @@ class TestProductionTrainingFeatures:
             try:
                 trainer = Trainer(model, optimizer, dummy_loss)
                 # Gradient accumulation is optional feature
-                if hasattr(trainer, 'accumulate_grad_batches'):
+                if hasattr(trainer, "accumulate_grad_batches"):
                     assert True, "Gradient accumulation capability available"
             except TypeError:
                 pass  # Signature doesn't support accumulate_grad_batches
@@ -495,14 +501,14 @@ class TestRegressionPrevention:
 
         # Complete pipeline should still work
         try:
-            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import Dataset
             from trentorch.core.layers import Linear
             from trentorch.core.optimizers import SGD
-            from trentorch.core.dataloader import Dataset
+            from trentorch.core.tensor import Tensor
 
             # All pipeline components should work
             layer = Linear(3, 2)
-            optimizer = SGD(layer.parameters(), lr=0.01)
+            SGD(layer.parameters(), lr=0.01)
 
             x = Tensor(rng.standard_normal((1, 3)))
             output = layer(x)
@@ -516,9 +522,9 @@ class TestRegressionPrevention:
         import numpy as np  # Import at function scope for proper scoping
 
         try:
-            from trentorch.core.tensor import Tensor
+            from trentorch.core.dataloader import DataLoader, Dataset
             from trentorch.core.optimizers import SGD, Adam
-            from trentorch.core.dataloader import Dataset, DataLoader
+            from trentorch.core.tensor import Tensor
 
             # Optimizers should still work - use Tensor with requires_grad
             class DummyModule:
@@ -532,18 +538,19 @@ class TestRegressionPrevention:
             sgd = SGD(module.parameters(), lr=0.01)
             adam = Adam(module.parameters(), lr=0.001)
 
-            assert hasattr(sgd, 'step'), "Optimization regression: SGD broken"
-            assert hasattr(adam, 'step'), "Optimization regression: Adam broken"
+            assert hasattr(sgd, "step"), "Optimization regression: SGD broken"
+            assert hasattr(adam, "step"), "Optimization regression: Adam broken"
 
             # Data loading should still work
             class TestDataset(Dataset):
                 def __len__(self):
                     return 5
+
                 def __getitem__(self, idx):
                     return idx, idx * 2
 
             dataset = TestDataset()
-            dataloader = DataLoader(dataset, batch_size=2)
+            DataLoader(dataset, batch_size=2)
             assert len(dataset) == 5, "Data regression: Dataset broken"
 
         except ImportError:
@@ -556,13 +563,14 @@ class TestRegressionPrevention:
 
         # Setup level
         import numpy as np
+
         assert np is not None, "Setup level broken"
 
         # Complete ML pipeline level (if available)
         try:
-            from trentorch.core.tensor import Tensor
             from trentorch.core.layers import Linear
             from trentorch.core.optimizers import SGD
+            from trentorch.core.tensor import Tensor
 
             # Complete training components should work together
             model = Linear(5, 2)
@@ -577,8 +585,8 @@ class TestRegressionPrevention:
 
         # Training level (if available)
         try:
-            from trentorch.core.training import Trainer
             from trentorch.core.tensor import Tensor as _Tensor
+            from trentorch.core.training import Trainer
 
             class DummyModel:
                 def __init__(self):
@@ -590,19 +598,23 @@ class TestRegressionPrevention:
             class DummyOptimizer:
                 def __init__(self, params, lr):
                     self.lr = lr
+
                 def step(self):
                     pass
+
                 def zero_grad(self):
                     pass
 
             def dummy_loss(pred, target):
-                return pred.sum() if hasattr(pred, 'sum') else 0
+                return pred.sum() if hasattr(pred, "sum") else 0
 
             model = DummyModel()
             optimizer = DummyOptimizer(model.parameters(), 0.01)
             trainer = Trainer(model, optimizer, dummy_loss)
 
-            assert hasattr(trainer, 'train') or hasattr(trainer, 'fit') or hasattr(trainer, 'train_epoch'), "Training level broken"
+            assert hasattr(trainer, "train") or hasattr(trainer, "fit") or hasattr(trainer, "train_epoch"), (
+                "Training level broken"
+            )
 
         except ImportError:
             pass  # Not implemented yet

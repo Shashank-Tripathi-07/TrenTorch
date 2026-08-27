@@ -4,17 +4,18 @@ Comprehensive test for loss function gradients.
 Tests which losses have proper autograd integration and work for training.
 """
 
-import numpy as np
-import sys
 import os
+import sys
+
+import numpy as np
 
 # Add project root to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from trentorch import Tensor, Linear, MSELoss, BinaryCrossEntropyLoss, CrossEntropyLoss, SGD
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
+from trentorch import SGD, BinaryCrossEntropyLoss, CrossEntropyLoss, Linear, MSELoss, Tensor
 
 console = Console()
 
@@ -71,8 +72,9 @@ def test_bce_loss_gradients():
     # Import Sigmoid
     try:
         from trentorch import Sigmoid
+
         activation = Sigmoid()
-    except:
+    except Exception:
         console.print("  [yellow]⚠️  Sigmoid not available, skipping BCE test[/yellow]")
         return None
 
@@ -134,7 +136,7 @@ def test_crossentropy_loss_gradients():
     console.print(f"  Initial loss: {initial_loss.data:.4f}")
 
     # Check if gradients exist
-    has_grad_fn = hasattr(initial_loss, '_grad_fn') and initial_loss._grad_fn is not None
+    has_grad_fn = hasattr(initial_loss, "_grad_fn") and initial_loss._grad_fn is not None
     console.print(f"  Has gradient function: {has_grad_fn}")
 
     # Try to train for 10 steps
@@ -170,18 +172,20 @@ def test_crossentropy_loss_gradients():
 
 def main():
     """Run all loss gradient tests."""
-    console.print(Panel.fit(
-        "[bold]TrenTorch Loss Function Gradient Tests[/bold]\n\n"
-        "Testing which losses have proper autograd integration\n"
-        "and can be used for training neural networks.",
-        title="🧪 Loss Gradient Tests",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]TrenTorch Loss Function Gradient Tests[/bold]\n\n"
+            "Testing which losses have proper autograd integration\n"
+            "and can be used for training neural networks.",
+            title="🧪 Loss Gradient Tests",
+            border_style="cyan",
+        )
+    )
 
     results = {}
-    results['MSELoss'] = test_mse_loss_gradients()
-    results['BinaryCrossEntropyLoss'] = test_bce_loss_gradients()
-    results['CrossEntropyLoss'] = test_crossentropy_loss_gradients()
+    results["MSELoss"] = test_mse_loss_gradients()
+    results["BinaryCrossEntropyLoss"] = test_bce_loss_gradients()
+    results["CrossEntropyLoss"] = test_crossentropy_loss_gradients()
 
     # Summary table
     console.print("\n")
@@ -203,23 +207,25 @@ def main():
 
     # Recommendations
     console.print("\n")
-    console.print(Panel.fit(
-        "[bold]💡 Recommendations:[/bold]\n\n"
-        "[green]✅ Use MSELoss for:[/green]\n"
-        "  • Regression tasks\n"
-        "  • Simple multi-class with one-hot encoding\n\n"
-        "[green]✅ Use BinaryCrossEntropyLoss for:[/green]\n"
-        "  • Binary classification (2 classes)\n"
-        "  • Requires Sigmoid activation output\n\n"
-        "[green]✅ Use CrossEntropyLoss for:[/green]\n"
-        "  • Multi-class classification (preferred!)\n"
-        "  • Works with raw class labels (no one-hot needed)\n"
-        "  • Numerically stable via log-softmax\n\n"
-        "[bold]For Milestone 03 (MLP on digits):[/bold]\n"
-        "Use CrossEntropyLoss with raw labels (0-9).",
-        title="🎯 Usage Guide",
-        border_style="yellow"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]💡 Recommendations:[/bold]\n\n"
+            "[green]✅ Use MSELoss for:[/green]\n"
+            "  • Regression tasks\n"
+            "  • Simple multi-class with one-hot encoding\n\n"
+            "[green]✅ Use BinaryCrossEntropyLoss for:[/green]\n"
+            "  • Binary classification (2 classes)\n"
+            "  • Requires Sigmoid activation output\n\n"
+            "[green]✅ Use CrossEntropyLoss for:[/green]\n"
+            "  • Multi-class classification (preferred!)\n"
+            "  • Works with raw class labels (no one-hot needed)\n"
+            "  • Numerically stable via log-softmax\n\n"
+            "[bold]For Milestone 03 (MLP on digits):[/bold]\n"
+            "Use CrossEntropyLoss with raw labels (0-9).",
+            title="🎯 Usage Guide",
+            border_style="yellow",
+        )
+    )
 
 
 if __name__ == "__main__":

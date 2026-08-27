@@ -13,19 +13,20 @@ If compression is broken:
 - Sparsity calculations are wrong (can't measure compression)
 """
 
-import pytest
-import numpy as np
 import sys
 from pathlib import Path
 
+import numpy as np
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.layers import Linear, Sequential
+from trentorch.core.tensor import Tensor
 from trentorch.perf.compression import (
     Compressor,
-    measure_sparsity,
     magnitude_prune,
+    measure_sparsity,
     structured_prune,
 )
 
@@ -44,17 +45,15 @@ class TestCompressionBasics:
         WHY: Sparsity = fraction of zeros. This is how we measure compression.
         50% sparsity means half the weights are zero.
         """
+
         # Create a simple model with known sparsity
         class SimpleModel:
             def __init__(self):
                 # Half zeros, half ones = 50% sparsity
                 self.layer = Linear(4, 4, bias=False)
-                self.layer.weight.data = np.array([
-                    [0, 0, 1, 1],
-                    [0, 0, 1, 1],
-                    [0, 0, 1, 1],
-                    [0, 0, 1, 1]
-                ], dtype=np.float32)
+                self.layer.weight.data = np.array(
+                    [[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]], dtype=np.float32
+                )
 
             def parameters(self):
                 return self.layer.parameters()
@@ -64,9 +63,7 @@ class TestCompressionBasics:
 
         # Should be ~50%
         assert 0.4 < sparsity < 0.6, (
-            f"Sparsity measurement wrong!\n"
-            f"  Expected: ~0.5 (50% zeros)\n"
-            f"  Got: {sparsity}"
+            f"Sparsity measurement wrong!\n  Expected: ~0.5 (50% zeros)\n  Got: {sparsity}"
         )
 
     def test_magnitude_prune_increases_sparsity(self):
@@ -76,6 +73,7 @@ class TestCompressionBasics:
         WHY: Pruning should set small weights to zero.
         After pruning, sparsity should increase.
         """
+
         # Create model with random weights (low sparsity)
         class SimpleModel:
             def __init__(self):
@@ -93,9 +91,7 @@ class TestCompressionBasics:
         final_sparsity = Compressor.measure_sparsity(model)
 
         assert final_sparsity > initial_sparsity, (
-            f"Pruning didn't increase sparsity!\n"
-            f"  Before: {initial_sparsity}\n"
-            f"  After: {final_sparsity}"
+            f"Pruning didn't increase sparsity!\n  Before: {initial_sparsity}\n  After: {final_sparsity}"
         )
 
 
@@ -109,6 +105,7 @@ class TestCompressionAdvanced:
         WHY: If we request 80% sparsity, we should get close to 80% zeros.
         Large deviations indicate the pruning algorithm is broken.
         """
+
         # Create model
         class SimpleModel:
             def __init__(self):
@@ -139,17 +136,21 @@ class TestCompressionAdvanced:
         WHY: Magnitude pruning should keep the largest weights. If large
         weights are removed, model accuracy would collapse.
         """
+
         # Create model with one very large weight
         class SimpleModel:
             def __init__(self):
                 self.layer = Linear(4, 4, bias=False)
                 # Set one weight to be much larger than others
-                self.layer.weight.data = np.array([
-                    [0.01, 0.02, 0.01, 0.02],
-                    [0.01, 100.0, 0.01, 0.02],  # 100.0 is the largest
-                    [0.01, 0.02, 0.01, 0.02],
-                    [0.01, 0.02, 0.01, 0.02]
-                ], dtype=np.float32)
+                self.layer.weight.data = np.array(
+                    [
+                        [0.01, 0.02, 0.01, 0.02],
+                        [0.01, 100.0, 0.01, 0.02],  # 100.0 is the largest
+                        [0.01, 0.02, 0.01, 0.02],
+                        [0.01, 0.02, 0.01, 0.02],
+                    ],
+                    dtype=np.float32,
+                )
 
             def parameters(self):
                 return self.layer.parameters()
@@ -161,9 +162,7 @@ class TestCompressionAdvanced:
 
         # The largest weight should still be there
         assert model.layer.weight.data[1, 1] == 100.0, (
-            "Large weight was incorrectly pruned!\n"
-            f"  Expected: 100.0\n"
-            f"  Got: {model.layer.weight.data[1, 1]}"
+            f"Large weight was incorrectly pruned!\n  Expected: 100.0\n  Got: {model.layer.weight.data[1, 1]}"
         )
 
     def test_zero_sparsity_no_change(self):
@@ -173,6 +172,7 @@ class TestCompressionAdvanced:
         WHY: This is an edge case - requesting no pruning should leave
         all weights unchanged.
         """
+
         class SimpleModel:
             def __init__(self):
                 self.layer = Linear(4, 4, bias=False)

@@ -15,18 +15,18 @@ def collapse_blank_lines(content):
     Preserves content inside code blocks (```...```) to avoid interfering
     with language-specific formatters.
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     result = []
     in_code_block = False
     blank_count = 0
 
     for line in lines:
         # Detect code block boundaries
-        if line.strip().startswith('```'):
+        if line.strip().startswith("```"):
             in_code_block = not in_code_block
             # Flush accumulated blank lines before code block
             if blank_count > 0:
-                result.append('')  # Add single blank line
+                result.append("")  # Add single blank line
                 blank_count = 0
             result.append(line)
             continue
@@ -37,20 +37,20 @@ def collapse_blank_lines(content):
             continue
 
         # Outside code blocks, collapse excessive blank lines
-        if line.strip() == '':
+        if line.strip() == "":
             blank_count += 1
         else:
             # Add at most one blank line
             if blank_count > 0:
-                result.append('')
+                result.append("")
                 blank_count = 0
             result.append(line)
 
     # Handle trailing blank lines
     if blank_count > 0:
-        result.append('')
+        result.append("")
 
-    return '\n'.join(result)
+    return "\n".join(result)
 
 
 def main():
@@ -63,13 +63,13 @@ def main():
 
     for filename in sys.argv[1:]:
         try:
-            with open(filename, 'r', encoding='utf-8') as f:
+            with open(filename, encoding="utf-8") as f:
                 content = f.read()
 
             new_content = collapse_blank_lines(content)
 
             if new_content != content:
-                with open(filename, 'w', encoding='utf-8') as f:
+                with open(filename, "w", encoding="utf-8") as f:
                     f.write(new_content)
                 modified_files.append(filename)
                 print(f"Collapsed blank lines: {filename}")

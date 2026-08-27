@@ -17,15 +17,16 @@ Regression Issues Tested:
 8. Module 13: LayerNorm using Tensor operations
 """
 
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+import sys
 
-import pytest
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
+
 import numpy as np
+
 rng = np.random.default_rng(7)
-from trentorch.core.tensor import Tensor
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
 
 # Enable autograd once for all tests
 enable_autograd()
@@ -92,7 +93,7 @@ def test_regression_subtraction_has_backward():
 
     # Bug: c._grad_fn would be None
     # Fix: c._grad_fn is SubBackward instance
-    assert hasattr(c, '_grad_fn'), "Subtraction should have _grad_fn"
+    assert hasattr(c, "_grad_fn"), "Subtraction should have _grad_fn"
     assert c._grad_fn is not None, "Subtraction _grad_fn should not be None"
 
     # Verify backward pass
@@ -119,7 +120,7 @@ def test_regression_division_has_backward():
 
     # Bug: c._grad_fn would be None
     # Fix: c._grad_fn is DivBackward instance
-    assert hasattr(c, '_grad_fn'), "Division should have _grad_fn"
+    assert hasattr(c, "_grad_fn"), "Division should have _grad_fn"
     assert c._grad_fn is not None, "Division _grad_fn should not be None"
 
     # Verify backward pass
@@ -151,7 +152,7 @@ def test_regression_layernorm_gradient_flow():
     # Bug: output.requires_grad would be False or _grad_fn None
     # Fix: output has requires_grad=True and _grad_fn set
     assert output.requires_grad, "LayerNorm output should require gradients"
-    assert hasattr(output, '_grad_fn'), "LayerNorm output should have _grad_fn"
+    assert hasattr(output, "_grad_fn"), "LayerNorm output should have _grad_fn"
 
     # Verify backward
     output.backward(np.ones_like(output.data))
@@ -201,7 +202,6 @@ def test_regression_dropout_uses_tensor_ops():
     x = Tensor([[1.0, 2.0, 3.0, 4.0]], requires_grad=True)
 
     # Set seed for reproducibility
-    rng = np.random.default_rng(7)
     output = dropout.forward(x, training=True)
 
     # Bug: output wouldn't have _grad_fn
@@ -226,7 +226,7 @@ def test_regression_transpose_has_backward():
 
     # Bug: K_T._grad_fn would be None
     # Fix: K_T._grad_fn is TransposeBackward instance
-    assert hasattr(K_T, '_grad_fn'), "Transpose should have _grad_fn"
+    assert hasattr(K_T, "_grad_fn"), "Transpose should have _grad_fn"
     assert K_T._grad_fn is not None, "Transpose _grad_fn should not be None"
 
     # Verify backward pass (attention pattern: Q @ K.T)
@@ -268,9 +268,9 @@ def test_regression_matmul_backward_uses_matmul():
 
 def run_all_tests():
     """Run all regression tests for gradient flow fixes."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("GRADIENT FLOW REGRESSION TEST SUITE")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     tests = [
         test_regression_batched_matmul,
@@ -294,15 +294,16 @@ def run_all_tests():
         except Exception as e:
             print(f"❌ {test_func.__name__} FAILED: {e}")
             import traceback
+
             traceback.print_exc()
             failed += 1
         print("")
 
-    print("="*70)
+    print("=" * 70)
     print(f"RESULTS: {passed} passed, {failed} failed")
     if failed == 0:
         print("✅ All gradient flow fixes verified - no regressions detected!")
-    print("="*70)
+    print("=" * 70)
 
     return failed == 0
 

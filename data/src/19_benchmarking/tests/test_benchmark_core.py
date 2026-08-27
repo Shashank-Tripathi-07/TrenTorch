@@ -19,8 +19,9 @@ WHAT WE TEST:
 3. Results are reproducible
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import statistics
 import sys
@@ -28,8 +29,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
 from trentorch.perf.benchmarking import Benchmark, MLPerf
 
 
@@ -43,6 +44,7 @@ class TestBenchmarkBasics:
 
     def test_benchmark_can_instantiate(self):
         """Verify Benchmark can be created."""
+
         # Create simple dummy model
         class DummyModel:
             def forward(self, x):
@@ -60,6 +62,7 @@ class TestBenchmarkBasics:
 
         WHY: Throughput (items/second) is a key performance metric.
         """
+
         # Simple model
         class SimpleModel:
             def __init__(self):
@@ -77,9 +80,7 @@ class TestBenchmarkBasics:
 
         assert len(results) > 0, "Benchmark should produce results"
         for model_name, result in results.items():
-            assert result.mean > 0, (
-                f"Latency should be positive, got {result.mean}"
-            )
+            assert result.mean > 0, f"Latency should be positive, got {result.mean}"
 
 
 class TestMLPerf:
@@ -95,11 +96,9 @@ class TestMLPerf:
         mlperf = MLPerf()
 
         # Should at least be able to list available benchmarks
-        if hasattr(mlperf, 'list_benchmarks'):
+        if hasattr(mlperf, "list_benchmarks"):
             benchmarks = mlperf.list_benchmarks()
-            assert isinstance(benchmarks, (list, dict)), (
-                "list_benchmarks should return a list or dict"
-            )
+            assert isinstance(benchmarks, (list, dict)), "list_benchmarks should return a list or dict"
 
 
 class TestBenchmarkMetrics:
@@ -107,6 +106,7 @@ class TestBenchmarkMetrics:
 
     def test_latency_is_positive(self):
         """Latency must always be positive."""
+
         class SimpleModel:
             def forward(self, x):
                 return x * 2
@@ -138,6 +138,7 @@ class TestBenchmarkMetrics:
         noisy, outlier-prone timing data, and still fails on genuinely
         inconsistent (not just occasionally-delayed) measurements.
         """
+
         class SimpleModel:
             def __init__(self):
                 self.layer = Linear(10, 10)

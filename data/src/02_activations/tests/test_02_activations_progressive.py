@@ -7,6 +7,7 @@ Students can trace back exactly where issues originate.
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -91,8 +92,8 @@ class TestProgressiveStackIntegration:
     def test_tensor_activation_pipeline(self):
         """Test tensors work correctly with activations."""
         try:
-            from trentorch.core.tensor import Tensor
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
 
             # Create tensor using Module 02
             x = Tensor(np.array([-1, 0, 1, 2]))
@@ -115,8 +116,8 @@ class TestProgressiveStackIntegration:
     def test_activation_chaining(self):
         """Test multiple activations can be chained."""
         try:
-            from trentorch.core.tensor import Tensor
             from trentorch.core.activations import ReLU, Sigmoid, Tanh
+            from trentorch.core.tensor import Tensor
 
             x = Tensor(rng.standard_normal((5, 10)))
 
@@ -125,8 +126,8 @@ class TestProgressiveStackIntegration:
             tanh = Tanh()
             sigmoid = Sigmoid()
 
-            h1 = relu(x)      # Apply ReLU
-            h2 = tanh(h1)     # Apply Tanh
+            h1 = relu(x)  # Apply ReLU
+            h2 = tanh(h1)  # Apply Tanh
             output = sigmoid(h2)  # Apply Sigmoid
 
             assert output.shape == x.shape, "Activation chaining broken"
@@ -141,8 +142,8 @@ class TestNonLinearityCapability:
     def test_nonlinearity_proof(self):
         """Test that activations actually provide non-linearity."""
         try:
-            from trentorch.core.tensor import Tensor
             from trentorch.core.activations import ReLU
+            from trentorch.core.tensor import Tensor
 
             relu = ReLU()
 
@@ -172,8 +173,8 @@ class TestXORProblemReadiness:
     def test_xor_components_available(self):
         """Test components needed for XOR are available."""
         try:
-            from trentorch.core.tensor import Tensor
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
 
             # XOR inputs
             X = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]))
@@ -196,8 +197,8 @@ class TestXORProblemReadiness:
     def test_activation_expressiveness(self):
         """Test activations provide sufficient expressiveness."""
         try:
-            from trentorch.core.tensor import Tensor
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.tensor import Tensor
 
             # Test that we can represent different patterns
             patterns = [
@@ -246,6 +247,7 @@ class TestRegressionPrevention:
             # If not implemented, that's fine
             # But numpy should still work
             import numpy as np
+
             arr = np.array([1, 2, 3])
             assert arr.shape == (3,), "Module 01: Numpy foundation broken"
 
@@ -255,11 +257,13 @@ class TestRegressionPrevention:
 
         # NumPy level
         import numpy as np
+
         assert np is not None, "NumPy broken"
 
         # Tensor level (if available)
         try:
             from trentorch.core.tensor import Tensor
+
             t = Tensor([1])
             assert t.shape == (1,), "Tensor level broken"
         except ImportError:
@@ -268,6 +272,7 @@ class TestRegressionPrevention:
         # Activation level (if available)
         try:
             from trentorch.core.activations import ReLU
+
             relu = ReLU()
             assert callable(relu), "Activation level broken"
         except ImportError:

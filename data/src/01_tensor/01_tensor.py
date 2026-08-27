@@ -60,7 +60,9 @@ Let's get started!
 #| export
 
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Constants for memory calculations
@@ -256,453 +258,10 @@ Tensor wraps with: shape=(2,3), size=6, dtype=float32
 - **Future-Proof**: Easy transition to GPU tensors in advanced modules
 """
 
-# %% nbgrader={"grade": false, "grade_id": "tensor-class", "solution": true}
-
-class Tensor:
-    """Educational tensor - the foundation of machine learning computation.
-
-    This class provides the core data structure for all ML operations:
-    - data: The actual numerical values (NumPy array)
-    - shape: Dimensions of the tensor
-    - ndim: Number of dimensions (0=scalar, 1=vector, 2=matrix, ...)
-    - size: Total number of elements
-    - dtype: Data type (float32)
-
-    All arithmetic, matrix, and shape operations are built on this foundation.
-    """
-
-    def __init__(self, data):
-        """Create a new tensor from data.
-
-        TODO: Initialize a Tensor by wrapping data in a NumPy array and setting attributes.
-
-        APPROACH:
-        1. Convert data to NumPy array with dtype=float32
-        2. Store the array as self.data
-        3. Set self.shape from the array's shape
-        4. Set self.size from the array's size
-        5. Set self.dtype from the array's dtype
-        EXAMPLE:
-        >>> t = Tensor([1, 2, 3])
-        >>> print(t.shape)
-        (3,)
-        >>> print(t.size)
-        3
-
-        HINT: Use np.array(data, dtype=np.float32) to convert data to NumPy array
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.__init__")
-        ### END SOLUTION
-
-    def __repr__(self):
-        """String representation of tensor for debugging."""
-        return f"Tensor(data={self.data}, shape={self.shape})"
-
-    def __str__(self):
-        """Human-readable string representation."""
-        return f"Tensor({self.data})"
-
-    def numpy(self):
-        """Return the underlying NumPy array."""
-        return self.data
-
-    def memory_footprint(self):
-        """Calculate exact memory usage in bytes.
-
-        Systems Concept: Understanding memory footprint is fundamental to ML systems.
-        Before running any operation, engineers should know how much memory it requires.
-
-        Returns:
-            int: Memory usage in bytes (e.g., 1000x1000 float32 = 4MB)
-        """
-        return self.data.nbytes
-
-    @property
-    def ndim(self):
-        """Number of tensor dimensions (0=scalar, 1=vector, 2=matrix, ...)."""
-        return len(self.shape)
-
-    def numel(self):
-        """Return total number of elements (PyTorch-compatible)."""
-        return self.size
-
-    def contiguous(self):
-        """Return a contiguous copy of the tensor data (PyTorch-compatible)."""
-        return Tensor(np.ascontiguousarray(self.data))
-
-    def view(self, *shape):
-        """Alias for reshape, matching PyTorch's Tensor.view() for contiguous tensors."""
-        return self.reshape(*shape)
-
-    def masked_fill(self, mask, value):
-        """Fill positions where mask is True with value, matching PyTorch's masked_fill.
-
-        Used in transformer attention to set padding positions to -inf before softmax.
-
-        Args:
-            mask:  A Tensor or numpy array of booleans, same shape as self (or broadcastable).
-            value: Scalar fill value (e.g. float('-inf') for attention masking).
-
-        Returns:
-            New Tensor with masked positions replaced by value.
-        """
-        mask_array = mask.data.astype(bool) if isinstance(mask, Tensor) else np.asarray(mask, dtype=bool)
-        result = self.data.copy()
-        result[mask_array] = value
-        return Tensor(result)
-
-    def __add__(self, other):
-        """Add two tensors element-wise with broadcasting support.
-
-        TODO: Implement element-wise addition that works with both Tensors and scalars.
-
-        APPROACH:
-        1. Check if other is a Tensor (use isinstance)
-        2. If Tensor: add self.data + other.data
-        3. If scalar: add self.data + other (broadcasting)
-        4. Wrap result in new Tensor
-
-        EXAMPLE:
-        >>> a = Tensor([1, 2, 3])
-        >>> b = Tensor([4, 5, 6])
-        >>> c = a + b
-        >>> print(c.data)
-        [5. 7. 9.]
-
-        HINT: NumPy's + operator handles broadcasting automatically
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.__add__")
-        ### END SOLUTION
-
-    def __radd__(self, other):
-        """Support natural scalar arithmetic: scalar + tensor."""
-        return self.__add__(other)
-
-    def __sub__(self, other):
-        """Subtract two tensors element-wise.
-
-        TODO: Implement element-wise subtraction (same pattern as __add__).
-
-        APPROACH:
-        1. Check if other is a Tensor
-        2. If Tensor: subtract self.data - other.data
-        3. If scalar: subtract self.data - other
-        4. Return new Tensor with result
-
-        EXAMPLE:
-        >>> a = Tensor([5, 7, 9])
-        >>> b = Tensor([1, 2, 3])
-        >>> c = a - b
-        >>> print(c.data)
-        [4. 5. 6.]
-
-        HINT: Follow the same pattern as __add__ but with subtraction
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.__sub__")
-        ### END SOLUTION
-
-    def __rsub__(self, other):
-        """Support natural scalar arithmetic: scalar - tensor."""
-        if isinstance(other, Tensor):
-            return Tensor(other.data - self.data)
-        return Tensor(other - self.data)
-
-    def __mul__(self, other):
-        """Multiply two tensors element-wise (NOT matrix multiplication).
-
-        TODO: Implement element-wise multiplication (same pattern as __add__).
-
-        APPROACH:
-        1. Check if other is a Tensor
-        2. If Tensor: multiply self.data * other.data
-        3. If scalar: multiply self.data * other
-        4. Return new Tensor with result
-
-        EXAMPLE:
-        >>> a = Tensor([1, 2, 3])
-        >>> b = Tensor([4, 5, 6])
-        >>> c = a * b
-        >>> print(c.data)
-        [ 4. 10. 18.]
-
-        HINT: Element-wise multiplication is *, not matrix multiplication (@)
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.__mul__")
-        ### END SOLUTION
-
-    def __rmul__(self, other):
-        """Support natural scalar arithmetic: scalar * tensor."""
-        return self.__mul__(other)
-
-    def __truediv__(self, other):
-        """Divide two tensors element-wise.
-
-        TODO: Implement element-wise division (same pattern as __add__).
-
-        APPROACH:
-        1. Check if other is a Tensor
-        2. If Tensor: divide self.data / other.data
-        3. If scalar: divide self.data / other
-        4. Return new Tensor with result
-
-        EXAMPLE:
-        >>> a = Tensor([4, 6, 8])
-        >>> b = Tensor([2, 2, 2])
-        >>> c = a / b
-        >>> print(c.data)
-        [2. 3. 4.]
-
-        HINT: Division creates float results automatically due to float32 dtype
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.__truediv__")
-        ### END SOLUTION
-
-    def __rtruediv__(self, other):
-        """Support natural scalar arithmetic: scalar / tensor."""
-        if isinstance(other, Tensor):
-            return Tensor(other.data / self.data)
-        return Tensor(other / self.data)
-
-    def _validate_matmul_shapes(self, other):
-        """Validate that two tensors are compatible for matrix multiplication.
-
-        This helper checks three conditions before any computation begins:
-        1. The other operand must be a Tensor (not a plain number or array)
-        2. Neither operand can be a 0D scalar (scalars use * instead)
-        3. For 2D+ tensors, the inner dimensions must align
-
-        TODO: Implement the three validation checks for matrix multiplication.
-
-        APPROACH:
-        1. Check isinstance(other, Tensor) - raise TypeError if not
-        2. Check both tensors are at least 1D - raise ValueError if 0D
-        3. For 2D+ tensors, check self.shape[-1] == other.shape[-2]
-
-        EXAMPLE:
-        >>> a = Tensor([[1, 2], [3, 4]])  # 2x2
-        >>> b = Tensor([[5, 6], [7, 8]])  # 2x2
-        >>> a._validate_matmul_shapes(b)  # No error - shapes are compatible
-        >>> c = Tensor([[1, 2, 3]])        # 1x3
-        >>> d = Tensor([[1], [2]])         # 2x1
-        >>> c._validate_matmul_shapes(d)   # ValueError - 3 != 2
-
-        HINT: Use len(tensor.shape) to check dimensionality and tensor.shape[-1]
-        to access the last dimension.
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor._validate_matmul_shapes")
-        ### END SOLUTION
-
-    def matmul(self, other):
-        """Matrix multiplication of two tensors.
-
-        Validates shapes via _validate_matmul_shapes, then computes the product.
-        For 2D matrices, uses explicit nested loops so you can see exactly how
-        each output element is a dot product of a row and a column. For batched
-        (3D+) inputs, delegates to np.matmul.
-
-        TODO: Validate inputs with _validate_matmul_shapes, then compute the
-        matrix product using explicit loops for 2D and np.matmul for 3D+.
-
-        APPROACH:
-        1. Call self._validate_matmul_shapes(other) to check compatibility
-        2. For 2D matrices: use explicit nested loops with np.dot per element
-        3. For batched (3D+): use np.matmul for correctness
-        4. Return result wrapped in Tensor
-
-        EXAMPLE:
-        >>> a = Tensor([[1, 2], [3, 4]])  # 2x2
-        >>> b = Tensor([[5, 6], [7, 8]])  # 2x2
-        >>> c = a.matmul(b)
-        >>> print(c.data)
-        [[19. 22.]
-         [43. 50.]]
-
-        HINTS:
-        - Inner dimensions must match: (M, K) @ (K, N) = (M, N)
-        - For 2D case: use np.dot(a[i, :], b[:, j]) for each output element
-        - The validation helper already handles all error cases
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.matmul")
-        ### END SOLUTION
-
-    def __matmul__(self, other):
-        """Enable @ operator for matrix multiplication."""
-        return self.matmul(other)
-
-    def __getitem__(self, key):
-        """Enable indexing and slicing operations on Tensors.
-
-        TODO: Implement indexing and slicing that returns a new Tensor.
-
-        APPROACH:
-        1. Use NumPy indexing: self.data[key]
-        2. If result is not an ndarray, wrap in np.array
-        3. Return result wrapped in new Tensor
-
-        EXAMPLE:
-        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])
-        >>> row = t[0]  # First row
-        >>> print(row.data)
-        [1. 2. 3.]
-        >>> element = t[0, 1]  # Single element
-        >>> print(element.data)
-        2.0
-
-        HINT: NumPy's indexing already handles all complex cases (slicing, fancy indexing)
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.__getitem__")
-        ### END SOLUTION
-
-    def reshape(self, *shape):
-        """Reshape tensor to new dimensions.
-
-        TODO: Reshape tensor while preserving total element count.
-
-        APPROACH:
-        1. Handle both reshape(2, 3) and reshape((2, 3)) calling styles
-        2. If -1 in shape, infer that dimension from total size
-        3. Validate total elements match: np.prod(new_shape) == self.size
-        4. Use np.reshape to create new view
-        5. Return result wrapped in new Tensor
-
-        EXAMPLE:
-        >>> t = Tensor([1, 2, 3, 4, 5, 6])
-        >>> reshaped = t.reshape(2, 3)
-        >>> print(reshaped.data)
-        [[1. 2. 3.]
-         [4. 5. 6.]]
-        >>> auto = t.reshape(2, -1)  # Infers -1 as 3
-        >>> print(auto.shape)
-        (2, 3)
-
-        HINTS:
-        - Use isinstance(shape[0], (tuple, list)) to detect tuple input
-        - For -1: unknown_dim = self.size // known_size
-        - Raise ValueError if total elements don't match
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.reshape")
-        ### END SOLUTION
-
-    def transpose(self, dim0=None, dim1=None):
-        """Transpose tensor dimensions.
-
-        TODO: Swap tensor dimensions (default: swap last two dimensions).
-
-        APPROACH:
-        1. If no dims specified: swap last two dimensions (most common case)
-        2. For 1D tensors: return copy (no transpose needed)
-        3. If both dims specified: swap those specific dimensions
-        4. Use np.transpose with axes list to perform the swap
-        5. Return result wrapped in new Tensor
-
-        EXAMPLE:
-        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])  # 2×3
-        >>> transposed = t.transpose()
-        >>> print(transposed.data)
-        [[1. 4.]
-         [2. 5.]
-         [3. 6.]]  # 3×2
-
-        HINTS:
-        - Create axes list: [0, 1, 2, ...] then swap positions
-        - For default: axes[-2], axes[-1] = axes[-1], axes[-2]
-        - Use np.transpose(self.data, axes)
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.transpose")
-        ### END SOLUTION
-
-    def sum(self, axis=None, keepdims=False):
-        """Sum tensor along specified axis.
-
-        TODO: Sum all elements or along specific axes.
-
-        APPROACH:
-        1. Use np.sum with axis and keepdims parameters
-        2. axis=None sums all elements (scalar result)
-        3. axis=N sums along dimension N
-        4. keepdims=True preserves original number of dimensions
-        5. Return result wrapped in Tensor
-
-        EXAMPLE:
-        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])
-        >>> total = t.sum()
-        >>> print(total.data)
-        21.0
-        >>> col_sum = t.sum(axis=0)
-        >>> print(col_sum.data)
-        [5. 7. 9.]
-
-        HINT: np.sum(data, axis=axis, keepdims=keepdims) does all the work
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.sum")
-        ### END SOLUTION
-
-    def mean(self, axis=None, keepdims=False):
-        """Compute mean of tensor along specified axis.
-
-        TODO: Calculate average of elements along axis (same pattern as sum).
-
-        APPROACH:
-        1. Use np.mean with axis and keepdims parameters
-        2. axis=None averages all elements
-        3. axis=N averages along dimension N
-        4. Return result wrapped in Tensor
-
-        EXAMPLE:
-        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])
-        >>> avg = t.mean()
-        >>> print(avg.data)
-        3.5
-        >>> col_mean = t.mean(axis=0)
-        >>> print(col_mean.data)
-        [2.5 3.5 4.5]
-
-        HINT: Follow the same pattern as sum() but with np.mean
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.mean")
-        ### END SOLUTION
-
-    def max(self, axis=None, keepdims=False):
-        """Find maximum values along specified axis.
-
-        TODO: Find maximum element(s) along axis (same pattern as sum).
-
-        APPROACH:
-        1. Use np.max with axis and keepdims parameters
-        2. axis=None finds maximum of all elements
-        3. axis=N finds maximum along dimension N
-        4. Return result wrapped in Tensor
-
-        EXAMPLE:
-        >>> t = Tensor([[1, 2, 3], [4, 5, 6]])
-        >>> maximum = t.max()
-        >>> print(maximum.data)
-        6.0
-        >>> row_max = t.max(axis=1)
-        >>> print(row_max.data)
-        [3. 6.]
-
-        HINT: Follow the same pattern as sum() and mean() but with np.max
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tensor.max")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class Tensor:
     """Educational tensor - the foundation of machine learning computation.
@@ -1272,6 +831,7 @@ class Tensor:
         return Tensor(result)
         ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: Tensor Creation
@@ -1282,6 +842,7 @@ This test validates our Tensor constructor works correctly with various data typ
 **Why it matters**: Foundation for all other operations - if creation fails, nothing works
 **Expected**: Tensor wraps data correctly with proper attributes and consistent dtype
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-tensor-creation", "locked": true, "points": 10}
 def test_unit_tensor_creation():
@@ -1328,6 +889,7 @@ def test_unit_tensor_creation():
     assert contig.data is not matrix.data, "contiguous() should return a copy"
 
     print("✅ Tensor creation works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_tensor_creation()
@@ -1439,6 +1001,7 @@ This test validates our arithmetic operations work correctly with both tensor-te
 **Expected**: Operations work with both tensors and scalars, proper broadcasting alignment
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-arithmetic", "locked": true, "points": 15}
 def test_unit_arithmetic_operations():
     """🧪 Test arithmetic operations with broadcasting."""
@@ -1468,9 +1031,9 @@ def test_unit_arithmetic_operations():
     # ⚠️ Broadcasting pitfall: verify shapes match before element-wise ops
     # In ML, predictions (batch, features) minus targets (features,) broadcasts
     # silently — the same target row repeats for every sample. Always check!
-    predictions = Tensor(np.ones((4, 3)))   # 4 samples, 3 features
+    predictions = Tensor(np.ones((4, 3)))  # 4 samples, 3 features
     targets_good = Tensor(np.zeros((4, 3)))  # correct: same shape
-    targets_bad = Tensor(np.zeros((3,)))     # dangerous: missing batch dim
+    targets_bad = Tensor(np.zeros((3,)))  # dangerous: missing batch dim
     assert predictions.shape == targets_good.shape, "Matching shapes — safe"
     assert predictions.shape != targets_bad.shape, (
         f"Shape mismatch: {predictions.shape} vs {targets_bad.shape}. "
@@ -1505,6 +1068,7 @@ def test_unit_arithmetic_operations():
     assert np.allclose(normalized.data, expected)
 
     print("✅ Arithmetic operations work correctly!")
+
 
 if __name__ == "__main__":
     test_unit_arithmetic_operations()
@@ -1629,6 +1193,7 @@ concept: `_validate_matmul_shapes` teaches input checking, while `matmul`
 teaches the algorithm itself.
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "tensor-validate-matmul", "locked": true, "points": 5}
 def test_unit_validate_matmul_shapes():
     """🧪 Test matmul shape validation catches all three error categories."""
@@ -1640,8 +1205,8 @@ def test_unit_validate_matmul_shapes():
     a._validate_matmul_shapes(b)  # No exception
 
     # Valid rectangular shapes
-    c = Tensor([[1, 2, 3]])       # 1x3
-    d = Tensor([[1], [2], [3]])   # 3x1
+    c = Tensor([[1, 2, 3]])  # 1x3
+    d = Tensor([[1], [2], [3]])  # 3x1
     c._validate_matmul_shapes(d)  # No exception (inner dim 3 matches)
 
     # Check 1: TypeError when other is not a Tensor
@@ -1662,8 +1227,8 @@ def test_unit_validate_matmul_shapes():
 
     # Check 3: ValueError when inner dimensions don't match
     try:
-        incompatible_a = Tensor([[1, 2]])         # 1x2
-        incompatible_b = Tensor([[1], [2], [3]])   # 3x1
+        incompatible_a = Tensor([[1, 2]])  # 1x2
+        incompatible_b = Tensor([[1], [2], [3]])  # 3x1
         incompatible_a._validate_matmul_shapes(incompatible_b)
         assert False, "Should have raised ValueError for shape mismatch"
     except ValueError as e:
@@ -1671,6 +1236,7 @@ def test_unit_validate_matmul_shapes():
         assert "2 vs 3" in str(e)
 
     print("✅ Matmul shape validation works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_validate_matmul_shapes()
@@ -1688,6 +1254,7 @@ numerical results.
 **Why it matters**: Core operation in linear algebra and data transformations
 **Expected**: Correct numerical results matching hand-calculated dot products
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "tensor-matmul", "locked": true, "points": 15}
 def test_unit_matrix_multiplication():
@@ -1723,6 +1290,7 @@ def test_unit_matrix_multiplication():
     assert np.array_equal(result_at.data, np.array([[19, 22], [43, 50]], dtype=np.float32))
 
     print("✅ Matrix multiplication works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_matrix_multiplication()
@@ -1835,6 +1403,7 @@ This test validates reshape and transpose operations work correctly with validat
 **Expected**: Correct shape changes, proper error handling for invalid operations
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-shape-ops", "locked": true, "points": 15}
 def test_unit_shape_manipulation():
     """🧪 Test reshape and transpose operations."""
@@ -1842,13 +1411,13 @@ def test_unit_shape_manipulation():
 
     # Test basic reshape (flatten → matrix)
     tensor = Tensor([1, 2, 3, 4, 5, 6])  # Shape: (6,)
-    reshaped = tensor.reshape(2, 3)      # Shape: (2, 3)
+    reshaped = tensor.reshape(2, 3)  # Shape: (2, 3)
     assert reshaped.shape == (2, 3)
     expected = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
     assert np.array_equal(reshaped.data, expected)
 
     # Test reshape with tuple (alternative calling style)
-    reshaped2 = tensor.reshape((3, 2))   # Shape: (3, 2)
+    reshaped2 = tensor.reshape((3, 2))  # Shape: (3, 2)
     assert reshaped2.shape == (3, 2)
     expected2 = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
     assert np.array_equal(reshaped2.data, expected2)
@@ -1867,7 +1436,7 @@ def test_unit_shape_manipulation():
 
     # Test matrix transpose (most common case)
     matrix = Tensor([[1, 2, 3], [4, 5, 6]])  # (2, 3)
-    transposed = matrix.transpose()          # (3, 2)
+    transposed = matrix.transpose()  # (3, 2)
     assert transposed.shape == (3, 2)
     expected = np.array([[1, 4], [2, 5], [3, 6]], dtype=np.float32)
     assert np.array_equal(transposed.data, expected)
@@ -1880,15 +1449,13 @@ def test_unit_shape_manipulation():
     # Non-symmetric shape so a wrong axis swap produces the wrong shape and data.
     tensor_3d = Tensor(np.arange(24).reshape(2, 3, 4))  # (2, 3, 4)
     swapped = tensor_3d.transpose(0, 2)  # (4, 3, 2)
-    assert swapped.shape == (4, 3, 2), (
-        f"transpose(0, 2) on (2,3,4) should give (4,3,2), got {swapped.shape}"
-    )
+    assert swapped.shape == (4, 3, 2), f"transpose(0, 2) on (2,3,4) should give (4,3,2), got {swapped.shape}"
     for i in range(2):
         for j in range(3):
             for k in range(4):
                 assert swapped.data[k, j, i] == tensor_3d.data[i, j, k], (
-                    f"Data mismatch at [{k},{j},{i}]: expected {tensor_3d.data[i,j,k]}, "
-                    f"got {swapped.data[k,j,i]}"
+                    f"Data mismatch at [{k},{j},{i}]: expected {tensor_3d.data[i, j, k]}, "
+                    f"got {swapped.data[k, j, i]}"
                 )
 
     # Test common reshape pattern (flatten multi-dimensional data)
@@ -1897,6 +1464,7 @@ def test_unit_shape_manipulation():
     assert flattened.shape == (2, 12)
 
     print("✅ Shape manipulation works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_shape_manipulation()
@@ -2001,6 +1569,7 @@ This test validates reduction operations work correctly with axis control and ma
 **Expected**: Correct reduction along specified axes with proper shape handling
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-reductions", "locked": true, "points": 10}
 def test_unit_reduction_operations():
     """🧪 Test reduction operations."""
@@ -2011,7 +1580,7 @@ def test_unit_reduction_operations():
     # Test sum all elements (common for loss computation)
     total = matrix.sum()
     assert total.data == 21.0  # 1+2+3+4+5+6
-    assert total.shape == ()   # Scalar result
+    assert total.shape == ()  # Scalar result
 
     # Test sum along axis 0 (columns) - batch dimension reduction
     col_sum = matrix.sum(axis=0)
@@ -2058,6 +1627,7 @@ def test_unit_reduction_operations():
 
     print("✅ Reduction operations work correctly!")
 
+
 if __name__ == "__main__":
     test_unit_reduction_operations()
 
@@ -2069,6 +1639,7 @@ Let's understand ONE key systems concept: **memory layout and cache behavior**.
 
 This single analysis reveals why certain operations are fast while others are slow, and why framework designers make specific architectural choices.
 """
+
 
 # %%
 def analyze_memory_layout():
@@ -2094,7 +1665,7 @@ def analyze_memory_layout():
         row_sum = matrix.data[i, :].sum()  # Access entire row sequentially
         row_sums.append(row_sum)
     row_time = time.time() - start
-    print(f"   Time: {row_time*1000:.1f}ms")
+    print(f"   Time: {row_time * 1000:.1f}ms")
     print("   Access pattern: Sequential (follows memory layout)")
 
     # Test 2: Column-wise access (cache-unfriendly)
@@ -2106,30 +1677,33 @@ def analyze_memory_layout():
         col_sum = matrix.data[:, j].sum()  # Access entire column with large strides
         col_sums.append(col_sum)
     col_time = time.time() - start
-    print(f"   Time: {col_time*1000:.1f}ms")
+    print(f"   Time: {col_time * 1000:.1f}ms")
     print(f"   Access pattern: Strided (jumps {size * BYTES_PER_FLOAT32} bytes per element)")
 
     # Calculate slowdown
     slowdown = col_time / row_time
     print("\n" + "=" * 60)
     print("📊 PERFORMANCE IMPACT:")
-    print(f"   Slowdown factor: {slowdown:.2f}× ({col_time/row_time:.1f}× slower)")
-    print(f"   Cache misses cause {(slowdown-1)*100:.0f}% performance loss")
+    print(f"   Slowdown factor: {slowdown:.2f}× ({col_time / row_time:.1f}× slower)")
+    print(f"   Cache misses cause {(slowdown - 1) * 100:.0f}% performance loss")
 
     # Educational insights
     print("\n💡 KEY INSIGHTS:")
     print("   1. Memory layout matters: Row-major (C-style) storage is sequential")
-    print("   2. Cache lines are ~64 bytes: Row access loads nearby elements \"for free\"")
+    print('   2. Cache lines are ~64 bytes: Row access loads nearby elements "for free"')
     print("   3. Column access misses cache: Must reload from DRAM every time")
     print(f"   4. This is O(n) algorithm but {slowdown:.1f}× different wall-clock time!")
 
     print("\n🚀 REAL-WORLD IMPLICATIONS:")
     print("   • Image processing libraries use specific memory formats for cache efficiency")
     print("   • Matrix multiplication optimized with blocking (tile into cache-sized chunks)")
-    print(f"   • Transpose is expensive ({slowdown:.1f}×) because it creates a non-contiguous view with poor cache locality")
+    print(
+        f"   • Transpose is expensive ({slowdown:.1f}×) because it creates a non-contiguous view with poor cache locality"
+    )
     print("   • Hardware-optimized libraries leverage memory layout for better performance")
 
     print("\n" + "=" * 60)
+
 
 # Run the systems analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -2203,6 +1777,7 @@ You'll see this affine transformation pattern used extensively as we build more 
 Final validation that everything works together correctly before module completion.
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "module-integration", "locked": true, "points": 20}
 def test_module():
     """🧪 Module Test: Complete Integration
@@ -2235,9 +1810,7 @@ def test_module():
     x = Tensor([[1, 2, 3], [4, 5, 6]])
 
     # First stage: 3 inputs → 4 intermediate values
-    W1 = Tensor([[0.1, 0.2, 0.3, 0.4],
-                 [0.5, 0.6, 0.7, 0.8],
-                 [0.9, 1.0, 1.1, 1.2]])
+    W1 = Tensor([[0.1, 0.2, 0.3, 0.4], [0.5, 0.6, 0.7, 0.8], [0.9, 1.0, 1.1, 1.2]])
     b1 = Tensor([0.1, 0.2, 0.3, 0.4])
 
     # Forward pass: hidden = xW1 + b1
@@ -2302,6 +1875,7 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 01")
+
 
 # Run comprehensive module test
 
@@ -2389,6 +1963,7 @@ Your Tensor is ready for machine learning operations.
 Every operation you just implemented will be used extensively as we build the full framework!
 """
 
+
 # %%
 def demo_tensor():
     """🎯 See your Tensor work just like NumPy."""
@@ -2417,6 +1992,7 @@ def demo_tensor():
 
     print("\n✨ Your Tensor is NumPy-compatible—ready for ML!")
 
+
 # %%
 if __name__ == "__main__":
     if os.environ.get("CI") == "true":
@@ -2430,7 +2006,9 @@ if __name__ == "__main__":
         # coverage here. Skipping both keeps the actual
         # verification (every individual test above) while
         # cutting the redundant full re-run.
-        print("\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant).")
+        print(
+            "\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant)."
+        )
     else:
         test_module()
         print("\n")

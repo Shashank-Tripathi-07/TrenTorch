@@ -15,10 +15,8 @@ Exit codes:
 """
 
 import re
-import subprocess
 import sys
 from pathlib import Path
-from typing import Set, Dict, List, Tuple
 
 # Directories to scan for markdown files
 DOCS_DIRS = ["site", "modules", "tests", "milestones"]
@@ -28,7 +26,7 @@ SKIP_PATTERNS = [".venv", "node_modules", "_build", ".git"]
 
 # Known valid commands from tren --help
 # Format: {command_group: [subcommands]}
-VALID_COMMANDS: Dict[str, List[str]] = {
+VALID_COMMANDS: dict[str, list[str]] = {
     "setup": [],  # No subcommands
     "update": [],  # No subcommands
     "export": [],  # Takes module args, not subcommands
@@ -58,7 +56,7 @@ KNOWN_INVALID = {
 }
 
 
-def get_valid_command_set() -> Set[str]:
+def get_valid_command_set() -> set[str]:
     """Build set of all valid tren commands."""
     valid = set()
 
@@ -70,7 +68,7 @@ def get_valid_command_set() -> Set[str]:
     return valid
 
 
-def extract_tren_commands(filepath: Path) -> List[Tuple[int, str]]:
+def extract_tren_commands(filepath: Path) -> list[tuple[int, str]]:
     """Extract all tren commands from a markdown file.
 
     Returns list of (line_number, command) tuples.
@@ -86,19 +84,23 @@ def extract_tren_commands(filepath: Path) -> List[Tuple[int, str]]:
     # Pattern matches tren commands in code blocks or inline code
     # Must start with ` or be at line start (after optional whitespace/comment chars)
     # Excludes title-case words that are clearly prose (e.g., "TREN CLI Reference")
-    code_block_pattern = r'`tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)'
-    line_start_pattern = r'^(?:#\s*)?tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)'
+    code_block_pattern = r"`tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)"
+    line_start_pattern = r"^(?:#\s*)?tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)"
 
     # Words that indicate prose, not commands (case-insensitive check on following word)
-    PROSE_INDICATORS = {'cli', 'command', 'commands', 'reference', 'overview', 'guide', 'tool', 'tools'}
+    PROSE_INDICATORS = {"cli", "command", "commands", "reference", "overview", "guide", "tool", "tools"}
 
-    for i, line in enumerate(content.split('\n'), 1):
+    for i, line in enumerate(content.split("\n"), 1):
         # Skip lines that are clearly URLs or links
-        if re.search(r'https?://|github\.com/', line, re.IGNORECASE):
+        if re.search(r"https?://|github\.com/", line, re.IGNORECASE):
             continue
 
         # Skip header lines (prose)
-        if line.strip().startswith('#') and 'tren' in line.lower() and any(p in line.lower() for p in PROSE_INDICATORS):
+        if (
+            line.strip().startswith("#")
+            and "tren" in line.lower()
+            and any(p in line.lower() for p in PROSE_INDICATORS)
+        ):
             continue
 
         # Try code block pattern first (most reliable)
@@ -124,7 +126,7 @@ def extract_tren_commands(filepath: Path) -> List[Tuple[int, str]]:
     return commands
 
 
-def find_markdown_files(base_dir: Path) -> List[Path]:
+def find_markdown_files(base_dir: Path) -> list[Path]:
     """Find all markdown files in specified directories."""
     files = []
 
@@ -144,7 +146,7 @@ def find_markdown_files(base_dir: Path) -> List[Path]:
     return files
 
 
-def validate_command(cmd: str, valid_commands: Set[str]) -> Tuple[bool, str]:
+def validate_command(cmd: str, valid_commands: set[str]) -> tuple[bool, str]:
     """Check if a command is valid.
 
     Returns (is_valid, error_message).
@@ -159,7 +161,7 @@ def validate_command(cmd: str, valid_commands: Set[str]) -> Tuple[bool, str]:
     if len(parts) < 2:
         return False, "Invalid command format"
 
-    base_cmd = f"{parts[0]} {parts[1]}"
+    f"{parts[0]} {parts[1]}"
 
     # Check if group exists
     if parts[1] not in VALID_COMMANDS:
@@ -167,7 +169,7 @@ def validate_command(cmd: str, valid_commands: Set[str]) -> Tuple[bool, str]:
 
     # If command has subcommand, validate it
     if len(parts) >= 3:
-        full_cmd = f"{parts[0]} {parts[1]} {parts[2]}"
+        f"{parts[0]} {parts[1]} {parts[2]}"
         subcommands = VALID_COMMANDS.get(parts[1], [])
 
         # If this group has defined subcommands, check them
@@ -202,7 +204,7 @@ def main():
     if verbose:
         print(f"Found {len(md_files)} markdown files to check")
 
-    errors: List[Tuple[Path, int, str, str]] = []
+    errors: list[tuple[Path, int, str, str]] = []
 
     for md_file in md_files:
         commands = extract_tren_commands(md_file)
@@ -215,9 +217,9 @@ def main():
                 errors.append((rel_path, line_num, cmd, error_msg))
 
     if errors:
-        print(f"\n{'='*60}")
-        print(f"CLI Documentation Validation FAILED")
-        print(f"{'='*60}\n")
+        print(f"\n{'=' * 60}")
+        print("CLI Documentation Validation FAILED")
+        print(f"{'=' * 60}\n")
         print(f"Found {len(errors)} invalid CLI command reference(s):\n")
 
         for filepath, line, cmd, msg in errors:

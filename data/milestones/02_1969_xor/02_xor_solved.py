@@ -73,25 +73,27 @@ This is the architecture that ended the AI Winter! Rumelhart, Hinton, and Willia
 proved that YOUR autograd can train hidden layers to learn useful features.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-from rich.live import Live
-from rich.text import Text
 from rich import box
+from rich.console import Console
+from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 # Add project root to path
 sys.path.insert(0, os.getcwd())
-sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
+sys.path.insert(0, os.path.join(os.getcwd(), "data"))  # trentorch/ lives at data/trentorch/
 
 # Seed will be set before training to guarantee 100% convergence
 
 # Import TrenTorch components YOU BUILT!
-from trentorch import Tensor, Linear, ReLU, Sigmoid, BinaryCrossEntropyLoss, SGD
+from trentorch import SGD, BinaryCrossEntropyLoss, Linear, ReLU, Sigmoid, Tensor
 
 console = Console()
 
@@ -143,6 +145,7 @@ console = Console()
 # 🎲 DATA GENERATION
 # ============================================================================
 
+
 def generate_xor_data(n_samples=100):
     """Generate XOR dataset with slight noise."""
     # Generate each XOR case with repetition
@@ -178,6 +181,7 @@ def generate_xor_data(n_samples=100):
 # ============================================================================
 # 🏗️ MULTI-LAYER NETWORK (The Solution!)
 # ============================================================================
+
 
 class XORNetwork:
     """
@@ -221,6 +225,7 @@ class XORNetwork:
 # 🔥 TRAINING FUNCTION (That Will SUCCEED on XOR!)
 # ============================================================================
 
+
 def train_network(model, X, y, epochs=500, lr=0.5):
     """
     Train multi-layer network on XOR.
@@ -259,12 +264,16 @@ def train_network(model, X, y, epochs=500, lr=0.5):
             # Update spinner with current progress
             spinner_text = Text()
             spinner_text.append("⠋ ", style="cyan")
-            spinner_text.append(f"Epoch {epoch+1:3d}/{epochs}  Loss: {loss.data:.4f}  Accuracy: {accuracy:.1%}")
+            spinner_text.append(
+                f"Epoch {epoch + 1:3d}/{epochs}  Loss: {loss.data:.4f}  Accuracy: {accuracy:.1%}"
+            )
             live.update(spinner_text)
 
             # Print progress every 100 epochs
             if (epoch + 1) % 100 == 0:
-                live.console.print(f"Epoch {epoch+1:3d}/{epochs}  Loss: {loss.data:.4f}  Accuracy: {accuracy:.1%}")
+                live.console.print(
+                    f"Epoch {epoch + 1:3d}/{epochs}  Loss: {loss.data:.4f}  Accuracy: {accuracy:.1%}"
+                )
 
     # Only declare success if the network actually converged on XOR.
     # Anything below ~95% on a noiseless 4-pattern problem means the
@@ -273,39 +282,36 @@ def train_network(model, X, y, epochs=500, lr=0.5):
     if final_accuracy >= 0.95:
         console.print("\n[green]✅ Training Complete - XOR Solved![/green]")
     else:
-        console.print(
-            f"\n[yellow]⚠️  Training Complete - but only {final_accuracy:.1%} accuracy.[/yellow]"
-        )
-        console.print(
-            "[yellow]   The network did not converge (likely stuck in a saddle point).[/yellow]"
-        )
+        console.print(f"\n[yellow]⚠️  Training Complete - but only {final_accuracy:.1%} accuracy.[/yellow]")
+        console.print("[yellow]   The network did not converge (likely stuck in a saddle point).[/yellow]")
         console.print(
             "[yellow]   Try re-running the milestone - random init can pin a 4-unit hidden[/yellow]"
         )
-        console.print(
-            "[yellow]   layer at 75% on XOR. See issue #1614.[/yellow]"
-        )
+        console.print("[yellow]   layer at 75% on XOR. See issue #1614.[/yellow]")
 
     return history
 
-def press_enter_to_continue() :
-    if sys.stdin.isatty() and sys.stdout.isatty() :
-        try :
+
+def press_enter_to_continue():
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        try:
             console.input("\n[yellow]Press Enter to continue...[/yellow] ")
-        except EOFError :
+        except EOFError:
             pass
         console.print()
+
 
 # ============================================================================
 # 📊 EVALUATION & CELEBRATION
 # ============================================================================
+
 
 def evaluate_and_celebrate(model, X, y, history):
     """Evaluate the successful model and celebrate the victory!"""
 
     predictions = model(X)
     pred_classes = (predictions.data > 0.5).astype(int)
-    final_accuracy = (pred_classes == y.data).mean()
+    (pred_classes == y.data).mean()
 
     # Get metrics
     initial_loss = history["loss"][0]
@@ -352,11 +358,7 @@ def evaluate_and_celebrate(model, X, y, history):
         all_correct = all_correct and correct
 
         truth_table.add_row(
-            f"{int(x1)}",
-            f"{int(x2)}",
-            f"{true_xor}",
-            f"{pred} ({pred_prob:.3f})",
-            "✅" if correct else "❌"
+            f"{int(x1)}", f"{int(x2)}", f"{true_xor}", f"{pred} ({pred_prob:.3f})", "✅" if correct else "❌"
         )
 
     console.print(truth_table)
@@ -374,6 +376,7 @@ def evaluate_and_celebrate(model, X, y, history):
 # 🎯 MAIN EXECUTION
 # ============================================================================
 
+
 def main():
     """Demonstrate solving XOR with multi-layer networks."""
 
@@ -381,14 +384,16 @@ def main():
     # ACT 1: THE CHALLENGE 🎯
     # ═══════════════════════════════════════════════════════════════════════
 
-    console.print(Panel.fit(
-        "[bold cyan]🎯 1986 - Ending the AI Winter[/bold cyan]\n\n"
-        "[dim]Can neural networks solve non-linearly separable problems?[/dim]\n"
-        "[dim]The XOR problem that stumped AI for 17 years![/dim]",
-        title="🔥 1986 AI Renaissance",
-        border_style="cyan",
-        box=box.DOUBLE
-    ))
+    console.print(
+        Panel.fit(
+            "[bold cyan]🎯 1986 - Ending the AI Winter[/bold cyan]\n\n"
+            "[dim]Can neural networks solve non-linearly separable problems?[/dim]\n"
+            "[dim]The XOR problem that stumped AI for 17 years![/dim]",
+            title="🔥 1986 AI Renaissance",
+            border_style="cyan",
+            box=box.DOUBLE,
+        )
+    )
 
     console.print("\n[bold]📊 The Data:[/bold]")
     X, y = generate_xor_data(n_samples=100)
@@ -437,6 +442,7 @@ def main():
     # at 75% (one of the four XOR cases stuck at p≈0.5). 1986 (the year of the
     # backprop paper) reliably escapes that saddle.
     import trentorch.core.layers as _layers
+
     _layers.rng = np.random.default_rng(1986)
 
     model = XORNetwork(hidden_size=4)
@@ -455,7 +461,7 @@ def main():
 
     history = train_network(model, X, y, epochs=500, lr=0.5)
 
-    #console.print("\n[green]✅ Training Complete - XOR Solved![/green]")
+    # console.print("\n[green]✅ Training Complete - XOR Solved![/green]")
 
     console.print("\n" + "─" * 70 + "\n")
 
@@ -479,84 +485,72 @@ def main():
     XOR_CONVERGENCE_THRESHOLD = 0.95
 
     if final_acc >= XOR_CONVERGENCE_THRESHOLD:
-        console.print(Panel.fit(
-            "[bold green]🎉 Success! You Ended the AI Winter![/bold green]\n\n"
-
-            f"Final accuracy: [bold]{final_acc:.1%}[/bold] (Perfect XOR solution!)\n\n"
-
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-            "[bold]💡 What YOU Just Accomplished:[/bold]\n"
-            "  ✓ Solved the problem that killed AI for 17 years!\n"
-            "  ✓ Built multi-layer network with YOUR components\n"
-            "  ✓ Hidden layer learns non-linear features\n"
-            "  ✓ Backprop through multiple layers works perfectly!\n"
-            "  ✓ Proved that deep networks CAN work!\n\n"
-
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-            "[bold]🎓 Why This Matters:[/bold]\n"
-            "  This ENDED the 17-year AI Winter!\n"
-            "  [bold red]1969:[/bold red] XOR crisis → single layers fail\n"
-            "  [bold yellow]1970-1986:[/bold yellow] AI Winter - research funding dries up\n"
-            "  [bold green]1986:[/bold green] Backprop + hidden layers solve it\n"
-            "  [bold cyan]TODAY:[/bold cyan] YOU recreated this breakthrough!\n\n"
-
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-            "[bold]📌 The Key Insight:[/bold]\n"
-            "  Hidden layers are the KEY to modern AI.\n"
-            "  They learn new features that make problems solvable.\n"
-            "  Every deep network (GPT, AlphaGo, etc.) uses this pattern!\n"
-            "  \n"
-            "  [green]Breakthrough:[/green] Non-linear activation functions (ReLU)\n"
-            "  enable networks to learn non-linear decision boundaries.\n\n"
-
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-            "[bold]🚀 What's Next:[/bold]\n"
-            "[dim]Milestone 03 applies this to digit images with YOUR DataLoader!\n"
-            "Train on handwritten digits and see modern ML in action![/dim]",
-
-            title="🌟 1986 AI Renaissance Complete",
-            border_style="green",
-            box=box.DOUBLE
-        ))
+        console.print(
+            Panel.fit(
+                "[bold green]🎉 Success! You Ended the AI Winter![/bold green]\n\n"
+                f"Final accuracy: [bold]{final_acc:.1%}[/bold] (Perfect XOR solution!)\n\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                "[bold]💡 What YOU Just Accomplished:[/bold]\n"
+                "  ✓ Solved the problem that killed AI for 17 years!\n"
+                "  ✓ Built multi-layer network with YOUR components\n"
+                "  ✓ Hidden layer learns non-linear features\n"
+                "  ✓ Backprop through multiple layers works perfectly!\n"
+                "  ✓ Proved that deep networks CAN work!\n\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                "[bold]🎓 Why This Matters:[/bold]\n"
+                "  This ENDED the 17-year AI Winter!\n"
+                "  [bold red]1969:[/bold red] XOR crisis → single layers fail\n"
+                "  [bold yellow]1970-1986:[/bold yellow] AI Winter - research funding dries up\n"
+                "  [bold green]1986:[/bold green] Backprop + hidden layers solve it\n"
+                "  [bold cyan]TODAY:[/bold cyan] YOU recreated this breakthrough!\n\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                "[bold]📌 The Key Insight:[/bold]\n"
+                "  Hidden layers are the KEY to modern AI.\n"
+                "  They learn new features that make problems solvable.\n"
+                "  Every deep network (GPT, AlphaGo, etc.) uses this pattern!\n"
+                "  \n"
+                "  [green]Breakthrough:[/green] Non-linear activation functions (ReLU)\n"
+                "  enable networks to learn non-linear decision boundaries.\n\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                "[bold]🚀 What's Next:[/bold]\n"
+                "[dim]Milestone 03 applies this to digit images with YOUR DataLoader!\n"
+                "Train on handwritten digits and see modern ML in action![/dim]",
+                title="🌟 1986 AI Renaissance Complete",
+                border_style="green",
+                box=box.DOUBLE,
+            )
+        )
     else:
         # Training did not converge - tell the student honestly and suggest
         # how to recover, instead of falsely advertising XOR as solved.
-        console.print(Panel.fit(
-            "[bold yellow]⚠️  Training Did Not Converge[/bold yellow]\n\n"
-
-            f"Final accuracy: [bold]{final_acc:.1%}[/bold] "
-            f"(below the {XOR_CONVERGENCE_THRESHOLD:.0%} convergence threshold)\n\n"
-
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-            "[bold]🔍 What Likely Happened:[/bold]\n"
-            "  A 4-unit hidden layer trained on XOR can land in a\n"
-            "  [italic]dead-ReLU saddle point[/italic] where one of the four XOR\n"
-            "  cases stays pinned at probability ≈ 0.5 forever.\n"
-            "  That gives the classic 75% accuracy plateau - the network\n"
-            "  has [bold]not[/bold] solved XOR.\n\n"
-
-            "[bold]🛠️  How to Recover:[/bold]\n"
-            "  • Re-run the milestone - a different random init usually escapes\n"
-            "  • Check your ReLU / Linear / autograd implementations\n"
-            "  • Try a larger hidden layer (e.g. hidden_size=8) for robustness\n\n"
-
-            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-
-            "[dim]Do not move on to Milestone 03 (TinyDigits) until XOR\n"
-            "actually converges - otherwise you are debugging on top of a\n"
-            "broken foundation.[/dim]",
-
-            title="⚠️  XOR Not Solved Yet",
-            border_style="yellow",
-            box=box.DOUBLE
-        ))
+        console.print(
+            Panel.fit(
+                "[bold yellow]⚠️  Training Did Not Converge[/bold yellow]\n\n"
+                f"Final accuracy: [bold]{final_acc:.1%}[/bold] "
+                f"(below the {XOR_CONVERGENCE_THRESHOLD:.0%} convergence threshold)\n\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                "[bold]🔍 What Likely Happened:[/bold]\n"
+                "  A 4-unit hidden layer trained on XOR can land in a\n"
+                "  [italic]dead-ReLU saddle point[/italic] where one of the four XOR\n"
+                "  cases stays pinned at probability ≈ 0.5 forever.\n"
+                "  That gives the classic 75% accuracy plateau - the network\n"
+                "  has [bold]not[/bold] solved XOR.\n\n"
+                "[bold]🛠️  How to Recover:[/bold]\n"
+                "  • Re-run the milestone - a different random init usually escapes\n"
+                "  • Check your ReLU / Linear / autograd implementations\n"
+                "  • Try a larger hidden layer (e.g. hidden_size=8) for robustness\n\n"
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                "[dim]Do not move on to Milestone 03 (TinyDigits) until XOR\n"
+                "actually converges - otherwise you are debugging on top of a\n"
+                "broken foundation.[/dim]",
+                title="⚠️  XOR Not Solved Yet",
+                border_style="yellow",
+                box=box.DOUBLE,
+            )
+        )
 
     press_enter_to_continue()
+
 
 if __name__ == "__main__":
     main()

@@ -3,10 +3,11 @@ Module 08: Training - Autograd Integration Tests
 Tests that automatic differentiation works with all previous modules
 """
 
-import numpy as np
-import pytest
 import sys
 from pathlib import Path
+
+import numpy as np
+import pytest
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
@@ -30,7 +31,7 @@ class TestAutogradTensorIntegration:
             # Should create Variable from array
             x = Variable(np.array([1.0, 2.0, 3.0]), requires_grad=True)
             assert x.shape == (3,)
-            assert x.requires_grad == True
+            assert x.requires_grad
 
         except ImportError:
             # Skip if autograd not implemented yet
@@ -44,11 +45,11 @@ class TestAutogradTensorIntegration:
             x = Variable(np.array([2.0]), requires_grad=True)
             y = x * x  # y = x²
 
-            if hasattr(y, 'backward'):
+            if hasattr(y, "backward"):
                 y.backward()
 
                 # dy/dx = 2x = 2*2 = 4
-                assert hasattr(x, 'grad'), "Should compute gradients"
+                assert hasattr(x, "grad"), "Should compute gradients"
                 if x.grad is not None:
                     assert np.isclose(x.grad, 4.0), f"Expected grad=4, got {x.grad}"
 
@@ -76,11 +77,11 @@ class TestAutogradLayerIntegration:
             output = layer(x)
 
             # Should be able to compute gradients
-            if hasattr(output, 'backward'):
+            if hasattr(output, "backward"):
                 loss = output * output  # Simple loss
                 loss.backward()
 
-                assert hasattr(x, 'grad'), "Input should have gradients"
+                assert hasattr(x, "grad"), "Input should have gradients"
 
         except (ImportError, AttributeError):
             assert True, "Dense-autograd integration not ready"
@@ -88,15 +89,15 @@ class TestAutogradLayerIntegration:
     def test_activation_gradients(self):
         """Test gradients flow through activations."""
         try:
-            from trentorch.core.autograd import Variable
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.autograd import Variable
 
             x = Variable(np.array([1.0, -1.0, 2.0]), requires_grad=True)
 
             relu = ReLU()
             relu_out = relu(x)
 
-            if hasattr(relu_out, 'backward'):
+            if hasattr(relu_out, "backward"):
                 loss = (relu_out * relu_out).sum()
                 loss.backward()
 
@@ -123,7 +124,7 @@ class TestAutogradComputationGraph:
             # z = x * y + x²
             z = x * y + x * x
 
-            if hasattr(z, 'backward'):
+            if hasattr(z, "backward"):
                 z.backward()
 
                 # dz/dx = y + 2x = 2 + 2*3 = 8
@@ -143,10 +144,10 @@ class TestAutogradComputationGraph:
             x = Variable(np.array([2.0]), requires_grad=True)
 
             # Chain: x -> x² -> (x²)²
-            y = x * x      # y = x²
-            z = y * y      # z = y² = (x²)²
+            y = x * x  # y = x²
+            z = y * y  # z = y² = (x²)²
 
-            if hasattr(z, 'backward'):
+            if hasattr(z, "backward"):
                 z.backward()
 
                 # dz/dx = dz/dy * dy/dx = 2y * 2x = 2(x²) * 2x = 4x³
@@ -173,7 +174,7 @@ class TestAutogradOptimizationIntegration:
             target = 2.0
             loss = (x - target) * (x - target)
 
-            if hasattr(loss, 'backward'):
+            if hasattr(loss, "backward"):
                 loss.backward()
 
                 # Gradient descent step
@@ -206,7 +207,7 @@ class TestAutogradOptimizationIntegration:
             output = layer(x)
             loss = output * output
 
-            if hasattr(loss, 'backward'):
+            if hasattr(loss, "backward"):
                 old_weights = layer.weight.data.copy()
 
                 loss.backward()

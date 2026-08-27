@@ -8,73 +8,92 @@ Uses pytest style - one test per specific behavior for clear reporting.
 Run with: pytest tests/system/test_shapes.py -v
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 import pytest
 
 # Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear
-from trentorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
-from trentorch.core.spatial import Conv2d
-from trentorch.core.transformers import TransformerBlock, LayerNorm
+from trentorch.core.activations import ReLU, Sigmoid, Softmax, Tanh
 from trentorch.core.embeddings import Embedding, PositionalEncoding
+from trentorch.core.layers import Linear
+from trentorch.core.spatial import Conv2d
+from trentorch.core.tensor import Tensor
+from trentorch.core.transformers import LayerNorm, TransformerBlock
+
 
 class Sequential:
     """Simple sequential container for testing."""
+
     def __init__(self, layers):
         self.layers = layers
+
     def __call__(self, x):
         for layer in self.layers:
             x = layer(x)
         return x
+
     def parameters(self):
         params = []
         for layer in self.layers:
-            if hasattr(layer, 'parameters'):
+            if hasattr(layer, "parameters"):
                 params.extend(layer.parameters())
         return params
 
+
 class F:
     """Functional interface for testing."""
+
     @staticmethod
     def relu(x):
         from trentorch.core.activations import ReLU
+
         return ReLU()(x)
+
     @staticmethod
     def sigmoid(x):
-        from trentorch.core.activations import Sigmoid
+
         return Sigmoid()(x)
+
     @staticmethod
     def tanh(x):
-        from trentorch.core.activations import Tanh
+
         return Tanh()(x)
+
     @staticmethod
     def softmax(x, dim=-1):
-        from trentorch.core.activations import Softmax
+
         return Softmax()(x)
+
     @staticmethod
     def max_pool2d(x, kernel_size):
         from trentorch.core.spatial import MaxPool2d
+
         return MaxPool2d(kernel_size)(x)
+
     @staticmethod
     def avg_pool2d(x, kernel_size):
         from trentorch.core.spatial import AvgPool2d
+
         return AvgPool2d(kernel_size)(x)
+
     @staticmethod
     def flatten(x, start_dim=1):
         import numpy as np
+
         shape = x.shape
         new_shape = shape[:start_dim] + (np.prod(shape[start_dim:]),)
         return x.reshape(*new_shape)
 
 
 # ============== Linear Layer Shape Tests ==============
+
 
 def test_linear_basic_shape():
     """Linear layer produces correct output shape."""
@@ -116,6 +135,7 @@ def test_linear_chain():
 
 
 # ============== Conv2d Shape Tests ==============
+
 
 def test_conv2d_basic():
     """Conv2d produces correct output shape with no padding."""
@@ -171,6 +191,7 @@ def test_conv2d_chain():
 
 # ============== Activation Shape Tests ==============
 
+
 def test_relu_preserves_2d_shape():
     """ReLU preserves 2D tensor shape."""
     x = Tensor(rng.standard_normal((10, 20)))
@@ -208,6 +229,7 @@ def test_softmax_preserves_shape():
 
 # ============== Pooling Shape Tests ==============
 
+
 def test_maxpool2d_kernel_2():
     """MaxPool2d with kernel=2 halves spatial dimensions."""
     x = Tensor(rng.standard_normal((2, 16, 32, 32)))
@@ -240,6 +262,7 @@ def test_pool_after_conv():
 
 
 # ============== Reshape Operation Tests ==============
+
 
 def test_flatten_4d():
     """Flatten 4D tensor for FC after Conv."""
@@ -278,6 +301,7 @@ def test_reshape_batch_preserve():
 
 
 # ============== Transformer Component Tests ==============
+
 
 def test_embedding_shape():
     """Embedding produces correct shape."""
@@ -331,6 +355,7 @@ def test_transformer_output_projection():
 
 # ============== Batch Size Flexibility Tests ==============
 
+
 @pytest.mark.parametrize("batch_size", [1, 2, 8, 32])
 def test_linear_batch_flexibility(batch_size):
     """Linear handles various batch sizes."""
@@ -352,17 +377,14 @@ def test_conv2d_batch_flexibility(batch_size):
 @pytest.mark.parametrize("batch_size", [1, 4, 16])
 def test_sequential_batch_flexibility(batch_size):
     """Sequential model handles various batch sizes."""
-    model = Sequential([
-        Linear(10, 20),
-        ReLU(),
-        Linear(20, 5)
-    ])
+    model = Sequential([Linear(10, 20), ReLU(), Linear(20, 5)])
     x = Tensor(rng.standard_normal((batch_size, 10)))
     y = model(x)
     assert y.shape == (batch_size, 5), f"Batch {batch_size}: expected ({batch_size}, 5), got {y.shape}"
 
 
 # ============== Edge Cases ==============
+
 
 def test_conv_small_spatial():
     """Conv on very small spatial dimensions."""
@@ -388,6 +410,7 @@ def test_single_channel_conv():
 
 
 # ============== Integration Pattern Tests ==============
+
 
 def test_mnist_cnn_dimensions():
     """Complete MNIST CNN dimension flow.
@@ -463,6 +486,7 @@ def test_cifar10_cnn_dimensions():
 if __name__ == "__main__":
     # When run directly, use pytest
     import subprocess
+
     result = subprocess.run(["pytest", __file__, "-v"], capture_output=True, text=True)
     print(result.stdout)
     if result.stderr:

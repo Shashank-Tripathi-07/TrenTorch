@@ -15,8 +15,9 @@ work individually but fail when connected.
 Modules tested: 01-08 (Tensor → Training)
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -24,12 +25,12 @@ from pathlib import Path
 # Add project root
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear
 from trentorch.core.activations import ReLU, Sigmoid
-from trentorch.core.losses import MSELoss, CrossEntropyLoss
-from trentorch.core.optimizers import SGD, Adam
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.layers import Linear
+from trentorch.core.losses import MSELoss
+from trentorch.core.optimizers import SGD, Adam
+from trentorch.core.tensor import Tensor
 
 # Enable autograd for all tests
 enable_autograd()
@@ -98,9 +99,7 @@ class TestOptimzerActuallyUpdatesWeights:
 
         optimizer.step()
 
-        assert not np.allclose(initial_weight, layer.weight.data), (
-            "Adam.step() did not change weights!"
-        )
+        assert not np.allclose(initial_weight, layer.weight.data), "Adam.step() did not change weights!"
 
 
 class TestTrainingReducesLoss:
@@ -127,13 +126,8 @@ class TestTrainingReducesLoss:
         optimizer = SGD(params, lr=0.5)
 
         # XOR-like data
-        X = Tensor([
-            [0., 0.],
-            [0., 1.],
-            [1., 0.],
-            [1., 1.]
-        ], requires_grad=True)
-        y = Tensor([[0.], [1.], [1.], [0.]])
+        X = Tensor([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]], requires_grad=True)
+        y = Tensor([[0.0], [1.0], [1.0], [0.0]])
 
         # Track loss over time
         losses = []
@@ -171,8 +165,7 @@ class TestTrainingReducesLoss:
         # Loss should decrease (at least 5% - being lenient for test stability)
         improvement = (initial_loss - final_loss) / initial_loss
         assert improvement > 0.05, (
-            f"Training improved loss by only {improvement*100:.1f}%\n"
-            f"  Expected at least 5% improvement"
+            f"Training improved loss by only {improvement * 100:.1f}%\n  Expected at least 5% improvement"
         )
 
 
@@ -215,18 +208,12 @@ class TestGradientChainNotBroken:
 
         # ALL layers must have gradients
         for i, layer in enumerate(layers):
-            assert layer.weight.grad is not None, (
-                f"Layer {i} weight.grad is None - gradient chain broken!"
-            )
-            assert layer.bias.grad is not None, (
-                f"Layer {i} bias.grad is None - gradient chain broken!"
-            )
+            assert layer.weight.grad is not None, f"Layer {i} weight.grad is None - gradient chain broken!"
+            assert layer.bias.grad is not None, f"Layer {i} bias.grad is None - gradient chain broken!"
 
             # Gradients should be non-trivial
             grad_norm = np.linalg.norm(layer.weight.grad)
-            assert grad_norm > 1e-10, (
-                f"Layer {i} has vanishing gradients: {grad_norm}"
-            )
+            assert grad_norm > 1e-10, f"Layer {i} has vanishing gradients: {grad_norm}"
 
     def test_input_receives_gradients(self):
         """Input tensor must receive gradients for visualization/debugging"""
@@ -235,17 +222,15 @@ class TestGradientChainNotBroken:
         if layer.bias is not None:
             layer.bias.requires_grad = True
 
-        x = Tensor([[1., 2., 3.]], requires_grad=True)
-        target = Tensor([[1., 0.]])
+        x = Tensor([[1.0, 2.0, 3.0]], requires_grad=True)
+        target = Tensor([[1.0, 0.0]])
 
         output = layer.forward(x)
         loss = MSELoss().forward(output, target)
         loss.backward()
 
         assert x.grad is not None, "Input tensor did not receive gradients!"
-        assert x.grad.shape == x.shape, (
-            f"Input gradient shape mismatch: {x.grad.shape} vs {x.shape}"
-        )
+        assert x.grad.shape == x.shape, f"Input gradient shape mismatch: {x.grad.shape} vs {x.shape}"
 
 
 class TestZeroGradWorks:
@@ -266,8 +251,8 @@ class TestZeroGradWorks:
             layer.bias.requires_grad = True
         optimizer = SGD([layer.weight, layer.bias], lr=0.1)
 
-        x = Tensor([[1., 2.]], requires_grad=True)
-        target = Tensor([[1.]])
+        x = Tensor([[1.0, 2.0]], requires_grad=True)
+        target = Tensor([[1.0]])
 
         # First forward/backward
         out1 = layer.forward(x)
@@ -319,8 +304,8 @@ class TestBatchTraining:
             layer.bias.requires_grad = True
 
         # Single sample
-        x1 = Tensor([[1., 2.]], requires_grad=True)
-        target1 = Tensor([[3.]])
+        x1 = Tensor([[1.0, 2.0]], requires_grad=True)
+        target1 = Tensor([[3.0]])
 
         out1 = layer.forward(x1)
         loss1 = MSELoss().forward(out1, target1)
@@ -333,8 +318,8 @@ class TestBatchTraining:
         layer.bias.grad = None
 
         # Batch of same sample repeated 4 times
-        x_batch = Tensor([[1., 2.]] * 4, requires_grad=True)
-        target_batch = Tensor([[3.]] * 4)
+        x_batch = Tensor([[1.0, 2.0]] * 4, requires_grad=True)
+        target_batch = Tensor([[3.0]] * 4)
 
         out_batch = layer.forward(x_batch)
         loss_batch = MSELoss().forward(out_batch, target_batch)
@@ -365,8 +350,8 @@ class TestQuickTrainingSmoke:
             layer.bias.requires_grad = True
         opt = SGD([layer.weight, layer.bias], lr=0.1)
 
-        x = Tensor([[1., 2.]], requires_grad=True)
-        y = Tensor([[1.]])
+        x = Tensor([[1.0, 2.0]], requires_grad=True)
+        y = Tensor([[1.0]])
 
         out = layer.forward(x)
         loss = MSELoss().forward(out, y)

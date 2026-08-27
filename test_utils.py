@@ -5,8 +5,8 @@ Shared utilities for integration tests across all modules.
 Provides setup functions and common test helpers.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 
@@ -22,7 +22,6 @@ def setup_integration_test():
     Call this at the top of integration test files before importing TrenTorch.
     """
     import warnings
-    import numpy as np
 
     # Ensure trentorch is on the path (from project root)
     project_root = Path(__file__).parent
@@ -30,14 +29,13 @@ def setup_integration_test():
         sys.path.insert(0, str(project_root))
 
     # Set random seed for reproducibility
-    rng = np.random.default_rng(7)
 
     # Suppress certain warnings during tests
-    warnings.filterwarnings('ignore', category=DeprecationWarning)
-    warnings.filterwarnings('ignore', category=FutureWarning)
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
 
     # Set quiet mode for trentorch imports during tests
-    os.environ['TRENTORCH_QUIET'] = '1'
+    os.environ["TRENTORCH_QUIET"] = "1"
 
 
 def get_project_root() -> Path:
@@ -85,15 +83,13 @@ def assert_tensors_close(t1, t2, rtol=1e-5, atol=1e-8, msg=""):
     import numpy as np
 
     # Extract data from tensors if needed
-    data1 = t1.data if hasattr(t1, 'data') else t1
-    data2 = t2.data if hasattr(t2, 'data') else t2
+    data1 = t1.data if hasattr(t1, "data") else t1
+    data2 = t2.data if hasattr(t2, "data") else t2
 
     if not np.allclose(data1, data2, rtol=rtol, atol=atol):
         diff = np.abs(data1 - data2)
         max_diff = np.max(diff)
-        raise AssertionError(
-            f"Tensors not close (max diff: {max_diff:.6e}). {msg}"
-        )
+        raise AssertionError(f"Tensors not close (max diff: {max_diff:.6e}). {msg}")
 
 
 def assert_gradients_exist(tensor, msg=""):
@@ -105,8 +101,10 @@ def assert_gradients_exist(tensor, msg=""):
 def skip_if_no_trentorch():
     """Pytest skip decorator for when trentorch isn't available."""
     import pytest
+
     try:
-        import trentorch
+        import trentorch  # noqa: F401 -- import-success check
+
         return pytest.mark.skipif(False, reason="TrenTorch available")
     except ImportError:
         return pytest.mark.skip(reason="TrenTorch not installed")

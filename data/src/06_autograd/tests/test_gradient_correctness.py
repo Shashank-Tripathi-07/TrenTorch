@@ -27,20 +27,21 @@ Tolerance notes (issue #1342):
   derivative complexity and clip boundaries respectively.
 """
 
-import numpy as np
-import pytest
 import sys
 from pathlib import Path
+
+import numpy as np
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
 # Import order matters: autograd must be enabled AFTER all modules are imported
 # so that enable_autograd() can patch their forward methods correctly.
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear
-from trentorch.core.activations import ReLU, Sigmoid, Tanh, GELU
-from trentorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
+from trentorch.core.activations import GELU, ReLU, Sigmoid, Tanh
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.layers import Linear
+from trentorch.core.losses import BinaryCrossEntropyLoss, CrossEntropyLoss, MSELoss
+from trentorch.core.tensor import Tensor
 
 enable_autograd()
 
@@ -49,7 +50,7 @@ enable_autograd()
 # Finite difference helpers
 # -----------------------------------------------
 
-EPS = 1e-3   # must be large enough to survive float32 quantization
+EPS = 1e-3  # must be large enough to survive float32 quantization
 RTOL = 5e-3  # relaxed for float32 precision
 ATOL = 1e-4
 
@@ -113,19 +114,18 @@ def check_grad(fn_tensor, x_data, atol=ATOL, rtol=RTOL, eps=EPS):
     numerical = finite_diff_grad(scalar_fn, x_data.copy(), eps=eps)
 
     np.testing.assert_allclose(
-        analytical, numerical,
-        rtol=rtol, atol=atol,
-        err_msg=(
-            "Gradient mismatch.\n"
-            "  analytical={}\n"
-            "  numerical={}".format(analytical, numerical)
-        )
+        analytical,
+        numerical,
+        rtol=rtol,
+        atol=atol,
+        err_msg=(f"Gradient mismatch.\n  analytical={analytical}\n  numerical={numerical}"),
     )
 
 
 # -----------------------------------------------
 # Arithmetic operations
 # -----------------------------------------------
+
 
 class TestArithmeticGradients:
     """Finite-difference checks for arithmetic backward passes."""
@@ -198,6 +198,7 @@ class TestArithmeticGradients:
 # Activations
 # -----------------------------------------------
 
+
 class TestActivationGradients:
     """Finite-difference checks for activation backward passes."""
 
@@ -234,8 +235,7 @@ class TestActivationGradients:
             return gelu(x).sum()
 
         # GELU's derivative changes rapidly; use smaller eps for accuracy
-        check_grad(fn, np.array([0.0, 1.0, -1.0, 0.5, -0.5]),
-                   rtol=1e-2, atol=1e-3, eps=1e-4)
+        check_grad(fn, np.array([0.0, 1.0, -1.0, 0.5, -0.5]), rtol=1e-2, atol=1e-3, eps=1e-4)
 
     def test_relu_zero_boundary(self):
         """ReLU grad at x=0 should be 0."""
@@ -245,14 +245,13 @@ class TestActivationGradients:
         out.backward(np.ones_like(out.data))
 
         assert x.grad is not None
-        assert np.allclose(x.grad, 0.0), (
-            "ReLU grad at 0 should be 0, got {}".format(x.grad)
-        )
+        assert np.allclose(x.grad, 0.0), f"ReLU grad at 0 should be 0, got {x.grad}"
 
 
 # -----------------------------------------------
 # Loss functions
 # -----------------------------------------------
+
 
 class TestLossGradients:
     """Finite-difference checks for loss backward passes."""
@@ -285,8 +284,7 @@ class TestLossGradients:
             return loss_fn.forward(x, Tensor(targets_data.copy()))
 
         # Test points well inside (0, 1) to avoid clip-boundary artifacts
-        check_grad(fn, np.array([0.7, 0.3, 0.8, 0.2]),
-                   rtol=1e-2, atol=1e-3)
+        check_grad(fn, np.array([0.7, 0.3, 0.8, 0.2]), rtol=1e-2, atol=1e-3)
 
     def test_crossentropy_backward(self):
         loss_fn = CrossEntropyLoss()
@@ -301,6 +299,7 @@ class TestLossGradients:
 # -----------------------------------------------
 # Composed graphs
 # -----------------------------------------------
+
 
 class TestComposedGradients:
     """Gradient correctness through multi-operation chains."""
@@ -333,8 +332,7 @@ class TestComposedGradients:
             h = relu(layer1.forward(x))
             return layer2.forward(h).sum()
 
-        check_grad(fn, np.array([[1.0, 0.5, -1.0]]),
-                   rtol=2e-3, atol=1e-4)
+        check_grad(fn, np.array([[1.0, 0.5, -1.0]]), rtol=2e-3, atol=1e-4)
 
     def test_mse_through_linear(self):
         """End-to-end gradient: input through linear layer through MSE loss."""
@@ -364,14 +362,16 @@ class TestComposedGradients:
         loss2.backward(np.ones_like(loss2.data))
 
         np.testing.assert_allclose(
-            x2.grad, grad_after_first * 2,
-            err_msg="Gradient accumulation should double gradient on second backward"
+            x2.grad,
+            grad_after_first * 2,
+            err_msg="Gradient accumulation should double gradient on second backward",
         )
 
 
 # -----------------------------------------------
 # No-grad context
 # -----------------------------------------------
+
 
 class TestNoGradContext:
     """Verify no_grad() stops gradient tracking."""
@@ -395,9 +395,7 @@ class TestNoGradContext:
             pass
 
         y = x + Tensor(np.array([1.0, 1.0]))
-        assert y.requires_grad, (
-            "Tensor created outside no_grad() should still require gradients"
-        )
+        assert y.requires_grad, "Tensor created outside no_grad() should still require gradients"
 
 
 if __name__ == "__main__":

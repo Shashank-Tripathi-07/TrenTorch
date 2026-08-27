@@ -17,10 +17,12 @@ WHAT STUDENTS LEARN:
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
@@ -52,10 +54,7 @@ class TestEmbeddingLayer:
         output = embed(tokens)
 
         assert output.shape == (3, 64), (
-            f"Embedding output shape wrong.\n"
-            f"  Input: 3 token IDs\n"
-            f"  Expected: (3, 64)\n"
-            f"  Got: {output.shape}"
+            f"Embedding output shape wrong.\n  Input: 3 token IDs\n  Expected: (3, 64)\n  Got: {output.shape}"
         )
 
     def test_embedding_batch(self):
@@ -107,9 +106,7 @@ class TestPositionalEncoding:
 
         output = pos_enc(x)
 
-        assert output.shape == x.shape, (
-            "Positional encoding should preserve shape"
-        )
+        assert output.shape == x.shape, "Positional encoding should preserve shape"
 
 
 if __name__ == "__main__":

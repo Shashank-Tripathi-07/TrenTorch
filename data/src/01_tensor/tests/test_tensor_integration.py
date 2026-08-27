@@ -4,6 +4,7 @@ Tests that Tensor works as foundation for all other modules
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -18,6 +19,7 @@ class TestTensorFoundation:
     def test_tensor_import(self):
         """Test Tensor can be imported from package."""
         from trentorch.core.tensor import Tensor
+
         assert Tensor is not None
 
     def test_tensor_creation(self):
@@ -127,7 +129,7 @@ class TestTensorIntegrationReadiness:
 
         # Should support reshaping for spatial operations
         flattened = Tensor(image.data.reshape(8, -1))
-        assert flattened.shape == (8, 32*32*3)
+        assert flattened.shape == (8, 32 * 32 * 3)
 
         # Should support slicing for convolution-like operations
         patch = Tensor(image.data[:, :3, :3, :])  # 3x3 patch
@@ -141,5 +143,5 @@ class TestTensorIntegrationReadiness:
         t = Tensor(np.array([1.0, 2.0, 3.0]))
 
         # Should support operations that will need gradients
-        squared = Tensor(t.data ** 2)
+        squared = Tensor(t.data**2)
         assert squared.shape == t.shape

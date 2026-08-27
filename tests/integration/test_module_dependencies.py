@@ -5,6 +5,7 @@ Tests how each module interfaces with modules that came before it
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Module dependency graph for TrenTorch
@@ -34,62 +35,15 @@ MODULE_DEPENDENCIES = {
     "17_acceleration": ["01_tensor"],  # Runtime optimization (general)
     "18_memoization": ["01_tensor"],  # Runtime optimization (transformer-specific)
     "19_benchmarking": ["01_tensor"],  # Performance testing
-    "20_capstone": ["01_tensor", "09_convolutions", "13_transformers"]  # Full stack
+    "20_capstone": ["01_tensor", "09_convolutions", "13_transformers"],  # Full stack
 }
-
-def get_module_integration_tests(module_name: str):
-    """
-    Get integration tests based on module dependencies.
-    Returns a list of test functions to run.
-    """
-    tests = []
-
-    # Get dependencies for this module
-    deps = MODULE_DEPENDENCIES.get(module_name, [])
-
-    # Generate tests based on dependencies
-    if "02_tensor" in deps:
-        tests.append(("test_tensor_integration", test_tensor_integration))
-
-    if "04_layers" in deps:
-        tests.append(("test_layer_integration", test_layer_integration))
-
-    if "05_dataloader" in deps:
-        tests.append(("test_dataloader_integration", test_dataloader_integration))
-
-    if "06_autograd" in deps:
-        tests.append(("test_autograd_integration", test_autograd_integration))
-
-    if "07_optimizers" in deps:
-        tests.append(("test_optimizer_integration", test_optimizer_integration))
-
-    # Module-specific integration tests
-    if module_name == "05_dataloader":
-        tests.append(("test_dataloader_with_tensor", test_dataloader_with_tensor))
-        tests.append(("test_dataloader_with_batching", test_dataloader_with_batching))
-        tests.append(("test_dataloader_pipeline", test_dataloader_pipeline))
-
-    elif module_name == "09_convolutions":
-        tests.append(("test_conv2d_with_tensor", test_conv2d_with_tensor))
-        tests.append(("test_pooling_integration", test_pooling_integration))
-
-    elif module_name == "07_attention":
-        tests.append(("test_attention_with_dense", test_attention_with_dense))
-        tests.append(("test_multihead_integration", test_multihead_integration))
-
-    elif module_name == "12_training":
-        tests.append(("test_training_loop_integration", test_training_loop_integration))
-        tests.append(("test_loss_backward_integration", test_loss_backward_integration))
-
-    return tests
 
 
 # Base integration tests that check module interfaces
 def test_tensor_integration():
     """Test that Tensor works as expected for dependent modules."""
-    from trentorch.core.tensor import Tensor
     import numpy as np
-    rng = np.random.default_rng(7)
+    from trentorch.core.tensor import Tensor
 
     # Test tensor creation
     t = Tensor(np.array([1, 2, 3]))
@@ -107,8 +61,8 @@ def test_layer_integration():
     from trentorch.core.layers import Layer
 
     # Test that Layer exists and has expected interface
-    assert hasattr(Layer, 'forward'), "Layer should have forward method"
-    assert hasattr(Layer, '__call__'), "Layer should be callable"
+    assert hasattr(Layer, "forward"), "Layer should have forward method"
+    assert hasattr(Layer, "__call__"), "Layer should be callable"
 
     # Test basic layer creation
     layer = Layer()
@@ -119,7 +73,6 @@ def test_dense_integration():
     """Test Dense layer integration with Tensor."""
     from trentorch.core.layers import Linear
     from trentorch.core.tensor import Tensor
-    import numpy as np
 
     # Test Dense with Tensor input
     layer = Linear(10, 5)
@@ -141,16 +94,16 @@ def test_dense_with_tensor():
     assert isinstance(layer.weight, Tensor), "Weights should be Tensor"
     assert layer.weight.shape == (10, 5), "Weight shape should match layer dims"
     # Bias may or may not exist depending on implementation
-    if hasattr(layer, 'bias') and layer.bias is not None:
+    if hasattr(layer, "bias") and layer.bias is not None:
         assert isinstance(layer.bias, Tensor), "Bias should be Tensor"
 
 
 def test_dense_with_activations():
     """Test Dense layer works with activation functions."""
-    from trentorch.core.layers import Linear
-    from trentorch.core.activations import ReLU, Sigmoid
-    from trentorch.core.tensor import Tensor
     import numpy as np
+    from trentorch.core.activations import ReLU, Sigmoid
+    from trentorch.core.layers import Linear
+    from trentorch.core.tensor import Tensor
 
     # Build small network: Dense -> ReLU -> Dense -> Sigmoid
     layer1 = Linear(10, 20)
@@ -179,14 +132,9 @@ def test_multi_layer_network():
     """Test building multi-layer networks with Dense."""
     from trentorch.core.layers import Linear
     from trentorch.core.tensor import Tensor
-    import numpy as np
 
     # Build 3-layer network
-    layers = [
-        Linear(784, 128),
-        Linear(128, 64),
-        Linear(64, 10)
-    ]
+    layers = [Linear(784, 128), Linear(128, 64), Linear(64, 10)]
 
     # Forward pass through all layers
     x = Tensor(rng.standard_normal((32, 784)))
@@ -207,7 +155,6 @@ def test_conv2d_with_tensor():
     """Test Conv2d integration with Tensor."""
     from trentorch.core.spatial import Conv2d
     from trentorch.core.tensor import Tensor
-    import numpy as np
 
     # Create Conv2d layer
     conv = Conv2d(in_channels=3, out_channels=16, kernel_size=3)
@@ -228,7 +175,6 @@ def test_pooling_integration():
     """Test pooling layers work with Conv2d output."""
     from trentorch.core.spatial import Conv2d, MaxPool2d
     from trentorch.core.tensor import Tensor
-    import numpy as np
 
     conv = Conv2d(3, 32, kernel_size=3, padding=1)
     pool = MaxPool2d(kernel_size=2, stride=2)
@@ -250,7 +196,6 @@ def test_attention_with_dense():
     """Test attention mechanism uses Dense layers."""
     from trentorch.core.attention import MultiHeadAttention
     from trentorch.core.tensor import Tensor
-    import numpy as np
 
     attention = MultiHeadAttention(embed_dim=64, num_heads=4)
     x = Tensor(rng.standard_normal((2, 10, 64)))  # (batch, seq_len, embed_dim)
@@ -263,7 +208,6 @@ def test_multihead_integration():
     """Test multi-head attention integration."""
     from trentorch.core.attention import MultiHeadAttention
     from trentorch.core.tensor import Tensor
-    import numpy as np
 
     mha = MultiHeadAttention(embed_dim=64, num_heads=8)
     x = Tensor(rng.standard_normal((2, 10, 64)))
@@ -278,8 +222,8 @@ def test_autograd_integration():
     NOTE: This test requires autograd to be enabled (Module 06+).
     It will skip if requires_grad is not available.
     """
-    from trentorch.core.tensor import Tensor
     import numpy as np
+    from trentorch.core.tensor import Tensor
 
     # Check if autograd is enabled (requires_grad parameter available)
     try:
@@ -288,18 +232,18 @@ def test_autograd_integration():
         # requires_grad not available - autograd not enabled yet
         return  # Skip test
 
-    assert hasattr(x, 'grad'), "Tensor should have grad attribute"
-    assert x.requires_grad == True, "Should track gradients"
+    assert hasattr(x, "grad"), "Tensor should have grad attribute"
+    assert x.requires_grad, "Should track gradients"
 
 
 def test_optimizer_integration():
     """Test optimizers work with layers."""
-    from trentorch.core.optimizers import SGD
     from trentorch.core.layers import Linear
+    from trentorch.core.optimizers import SGD
 
     layer = Linear(10, 5)
     params = layer.parameters()
-    optimizer = SGD(params, lr=0.01)
+    SGD(params, lr=0.01)
 
     # Test optimizer has params
     assert len(params) > 0, "Layer should have parameters"
@@ -308,15 +252,14 @@ def test_optimizer_integration():
 def test_training_loop_integration():
     """Test training loop integrates optimizer and autograd."""
     from trentorch.core.layers import Linear
-    from trentorch.core.optimizers import SGD
     from trentorch.core.losses import MSELoss
+    from trentorch.core.optimizers import SGD
     from trentorch.core.tensor import Tensor
-    import numpy as np
 
     # Simple model
     model = Linear(10, 1)
     params = model.parameters()
-    optimizer = SGD(params, lr=0.01)
+    SGD(params, lr=0.01)
     loss_fn = MSELoss()
 
     # Dummy data
@@ -337,9 +280,9 @@ def test_loss_backward_integration():
     NOTE: This test requires autograd to be enabled (Module 06+).
     It will skip if requires_grad is not available.
     """
+    import numpy as np
     from trentorch.core.losses import MSELoss
     from trentorch.core.tensor import Tensor
-    import numpy as np
 
     loss_fn = MSELoss()
 
@@ -355,5 +298,5 @@ def test_loss_backward_integration():
     loss = loss_fn(predictions, targets)
 
     # Test backward pass
-    if hasattr(loss, 'backward'):
+    if hasattr(loss, "backward"):
         loss.backward()

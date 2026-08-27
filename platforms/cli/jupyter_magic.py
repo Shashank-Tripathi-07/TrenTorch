@@ -36,9 +36,9 @@ def _badge(command: str, ok: bool, detail: str) -> str:
     safe_detail = html.escape(detail)
     return (
         '<div style="display:inline-block;margin-top:4px;padding:4px 10px;'
-        f'border-radius:6px;background:{bg};color:{color};'
+        f"border-radius:6px;background:{bg};color:{color};"
         'font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;">'
-        f'{icon} tren {safe_command} &mdash; {safe_detail}</div>'
+        f"{icon} tren {safe_command} &mdash; {safe_detail}</div>"
     )
 
 
@@ -101,10 +101,12 @@ class TrenMagics(Magics):
         "save" natively, then gives the browser a moment to actually
         write it before shutting anything down.
         """
-        display(Javascript(
-            "document.dispatchEvent(new KeyboardEvent('keydown', "
-            "{key: 's', code: 'KeyS', ctrlKey: true, bubbles: true}));"
-        ))
+        display(
+            Javascript(
+                "document.dispatchEvent(new KeyboardEvent('keydown', "
+                "{key: 's', code: 'KeyS', ctrlKey: true, bubbles: true}));"
+            )
+        )
         time.sleep(1.5)
 
         base_url, token = _running_server()
@@ -113,9 +115,7 @@ class TrenMagics(Magics):
             if token:
                 shutdown_url += f"?token={token}"
             try:
-                urllib.request.urlopen(
-                    urllib.request.Request(shutdown_url, method="POST"), timeout=5
-                )
+                urllib.request.urlopen(urllib.request.Request(shutdown_url, method="POST"), timeout=5)
             except Exception:
                 pass  # the server tearing itself down mid-response is expected
 
@@ -126,6 +126,7 @@ class TrenMagics(Magics):
             self.shell.kernel.do_shutdown(False)
         else:
             import os
+
             os._exit(0)
 
 

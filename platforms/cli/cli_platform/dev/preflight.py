@@ -11,30 +11,24 @@ Usage:
     tito dev preflight --ci         # CI mode (non-interactive, exit codes)
 """
 
+import json
 import subprocess
 import sys
 import time
-import json
 from argparse import ArgumentParser, Namespace
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 
 from rich.panel import Panel
 from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-from rich.console import Group
-from rich.text import Text
-from rich.live import Live
-from rich.status import Status
-from rich import box
 
 from platforms.cli.commands.base import BaseCommand
 
 
 class CheckStatus(Enum):
     """Status of a preflight check."""
+
     PASS = "pass"
     FAIL = "fail"
     WARN = "warn"
@@ -44,22 +38,24 @@ class CheckStatus(Enum):
 @dataclass
 class CheckResult:
     """Result of a single preflight check."""
+
     name: str
     status: CheckStatus
     message: str = ""
     duration_ms: int = 0
-    details: List[str] = field(default_factory=list)
+    details: list[str] = field(default_factory=list)
     command: str = ""  # The command that was run
-    stdout: str = ""   # Captured stdout
-    stderr: str = ""   # Captured stderr
+    stdout: str = ""  # Captured stdout
+    stderr: str = ""  # Captured stderr
 
 
 @dataclass
 class CheckCategory:
     """A category of preflight checks."""
+
     name: str
     emoji: str
-    checks: List[CheckResult] = field(default_factory=list)
+    checks: list[CheckResult] = field(default_factory=list)
 
     @property
     def passed(self) -> int:
@@ -90,41 +86,19 @@ class PreflightCommand(BaseCommand):
         return "Run preflight verification checks"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
+        parser.add_argument("--quick", action="store_true", help="Quick checks only (~10 seconds)")
         parser.add_argument(
-            '--quick',
-            action='store_true',
-            help='Quick checks only (~10 seconds)'
+            "--full", action="store_true", help="Full validation including module tests (~2-5 minutes)"
         )
         parser.add_argument(
-            '--full',
-            action='store_true',
-            help='Full validation including module tests (~2-5 minutes)'
+            "--release", action="store_true", help="Release validation - comprehensive (~10-30 minutes)"
         )
         parser.add_argument(
-            '--release',
-            action='store_true',
-            help='Release validation - comprehensive (~10-30 minutes)'
+            "--ci", action="store_true", help="CI mode: non-interactive, structured output, strict exit codes"
         )
-        parser.add_argument(
-            '--ci',
-            action='store_true',
-            help='CI mode: non-interactive, structured output, strict exit codes'
-        )
-        parser.add_argument(
-            '--json',
-            action='store_true',
-            help='Output results as JSON (implies --ci)'
-        )
-        parser.add_argument(
-            '--fix',
-            action='store_true',
-            help='Attempt to auto-fix common issues'
-        )
-        parser.add_argument(
-            '--verbose', '-v',
-            action='store_true',
-            help='Show commands as they execute'
-        )
+        parser.add_argument("--json", action="store_true", help="Output results as JSON (implies --ci)")
+        parser.add_argument("--fix", action="store_true", help="Attempt to auto-fix common issues")
+        parser.add_argument("--verbose", "-v", action="store_true", help="Show commands as they execute")
 
     def run(self, args: Namespace) -> int:
         console = self.console
@@ -136,7 +110,7 @@ class PreflightCommand(BaseCommand):
         log_dir.mkdir(parents=True, exist_ok=True)
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         self.log_file = log_dir / f"preflight_{timestamp}.log"
-        self.log_lines: List[str] = []
+        self.log_lines: list[str] = []
         self._log(f"TinyTorch Preflight - {timestamp}")
         self._log(f"Project root: {project_root}")
         self._log("-" * 60)
@@ -160,17 +134,19 @@ class PreflightCommand(BaseCommand):
             level_desc = "Standard Preflight"
 
         is_ci = args.ci or args.json
-        verbose = getattr(args, 'verbose', False)
+        verbose = getattr(args, "verbose", False)
 
         # Show header (unless JSON output)
         if not args.json:
-            console.print(Panel(
-                f"[bold cyan]{level_emoji} {level_desc}[/bold cyan]\n\n"
-                f"Running verification checks before {'CI/CD' if is_ci else 'your next step'}...\n"
-                f"[dim]Level: {level} | CI Mode: {is_ci} | Verbose: {verbose}[/dim]",
-                title="TinyTorch Preflight",
-                border_style="bright_cyan"
-            ))
+            console.print(
+                Panel(
+                    f"[bold cyan]{level_emoji} {level_desc}[/bold cyan]\n\n"
+                    f"Running verification checks before {'CI/CD' if is_ci else 'your next step'}...\n"
+                    f"[dim]Level: {level} | CI Mode: {is_ci} | Verbose: {verbose}[/dim]",
+                    title="TinyTorch Preflight",
+                    border_style="bright_cyan",
+                )
+            )
             console.print()
 
         # Run checks based on level
@@ -187,7 +163,9 @@ class PreflightCommand(BaseCommand):
 
         # Level 3: Full checks
         if level in ["full", "release"]:
-            categories.append(self._check_module_tests(project_root, quick=(level != "release"), verbose=verbose))
+            categories.append(
+                self._check_module_tests(project_root, quick=(level != "release"), verbose=verbose)
+            )
 
         # Level 4: Release checks
         if level == "release":
@@ -214,7 +192,18 @@ class PreflightCommand(BaseCommand):
         if args.json:
             self._output_json(categories, all_passed, duration)
         else:
-            self._output_rich(categories, all_passed, duration, total_passed, total_failed, total_warned, total_checks, level, is_ci, verbose)
+            self._output_rich(
+                categories,
+                all_passed,
+                duration,
+                total_passed,
+                total_failed,
+                total_warned,
+                total_checks,
+                level,
+                is_ci,
+                verbose,
+            )
 
             # Show log location on failure
             if not all_passed:
@@ -233,7 +222,9 @@ class PreflightCommand(BaseCommand):
         except Exception:
             pass  # Don't fail if we can't write log
 
-    def _run_command(self, cmd: List[str], cwd: Path, timeout: int = 60, verbose: bool = False) -> Tuple[int, str, str]:
+    def _run_command(
+        self, cmd: list[str], cwd: Path, timeout: int = 60, verbose: bool = False
+    ) -> tuple[int, str, str]:
         """Run a command and return (exit_code, stdout, stderr)."""
         cmd_str = " ".join(cmd)
         self._log(f"Running: {cmd_str}")
@@ -246,16 +237,18 @@ class PreflightCommand(BaseCommand):
                 cmd,
                 cwd=cwd,
                 capture_output=True,
-                text=True, encoding="utf-8", errors="replace",
-                timeout=timeout
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=timeout,
             )
 
             # Log output
             if result.stdout.strip():
-                for line in result.stdout.strip().split('\n')[:20]:  # First 20 lines
+                for line in result.stdout.strip().split("\n")[:20]:  # First 20 lines
                     self._log(f"  stdout: {line}")
             if result.stderr.strip():
-                for line in result.stderr.strip().split('\n')[:10]:  # First 10 lines
+                for line in result.stderr.strip().split("\n")[:10]:  # First 10 lines
                     self._log(f"  stderr: {line}")
             self._log(f"  exit code: {result.returncode}")
 
@@ -289,36 +282,44 @@ class PreflightCommand(BaseCommand):
             start = time.time()
             path = project_root / dir_path
             if path.exists() and path.is_dir():
-                category.checks.append(CheckResult(
-                    name=f"{dir_path} exists",
-                    status=CheckStatus.PASS,
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=f"{dir_path} exists",
+                        status=CheckStatus.PASS,
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
             else:
-                category.checks.append(CheckResult(
-                    name=f"{dir_path} exists",
-                    status=CheckStatus.FAIL,
-                    message=f"Missing: {desc}",
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=f"{dir_path} exists",
+                        status=CheckStatus.FAIL,
+                        message=f"Missing: {desc}",
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
 
         # Optional directories (generated, warn if missing)
         for dir_path, desc in optional_dirs:
             start = time.time()
             path = project_root / dir_path
             if path.exists() and path.is_dir():
-                category.checks.append(CheckResult(
-                    name=f"{dir_path} exists",
-                    status=CheckStatus.PASS,
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=f"{dir_path} exists",
+                        status=CheckStatus.PASS,
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
             else:
-                category.checks.append(CheckResult(
-                    name=f"{dir_path} exists",
-                    status=CheckStatus.WARN,
-                    message=desc,
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=f"{dir_path} exists",
+                        status=CheckStatus.WARN,
+                        message=desc,
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
 
         # Required files
         required_files = [
@@ -331,18 +332,22 @@ class PreflightCommand(BaseCommand):
             start = time.time()
             path = project_root / file_path
             if path.exists():
-                category.checks.append(CheckResult(
-                    name=f"{file_path} exists",
-                    status=CheckStatus.PASS,
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=f"{file_path} exists",
+                        status=CheckStatus.PASS,
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
             else:
-                category.checks.append(CheckResult(
-                    name=f"{file_path} exists",
-                    status=CheckStatus.FAIL,
-                    message=f"Missing required file",
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=f"{file_path} exists",
+                        status=CheckStatus.FAIL,
+                        message="Missing required file",
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
 
         # Check module count
         start = time.time()
@@ -350,18 +355,22 @@ class PreflightCommand(BaseCommand):
         if modules_dir.exists():
             module_count = len([d for d in modules_dir.iterdir() if d.is_dir() and d.name[0].isdigit()])
             if module_count >= 15:
-                category.checks.append(CheckResult(
-                    name=f"Module count ({module_count})",
-                    status=CheckStatus.PASS,
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=f"Module count ({module_count})",
+                        status=CheckStatus.PASS,
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
             else:
-                category.checks.append(CheckResult(
-                    name=f"Module count ({module_count})",
-                    status=CheckStatus.WARN,
-                    message=f"Expected 20+ modules, found {module_count}",
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=f"Module count ({module_count})",
+                        status=CheckStatus.WARN,
+                        message=f"Expected 20+ modules, found {module_count}",
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
 
         return category
 
@@ -370,7 +379,7 @@ class PreflightCommand(BaseCommand):
         category = CheckCategory(name="CLI Commands", emoji="🖥️")
 
         if verbose:
-            self.console.print(f"\n[bold]🖥️ CLI Commands[/bold]")
+            self.console.print("\n[bold]🖥️ CLI Commands[/bold]")
 
         cli_checks = [
             (["--version"], "tren --version"),
@@ -393,26 +402,30 @@ class PreflightCommand(BaseCommand):
             duration = int((time.time() - start) * 1000)
 
             if code == 0:
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.PASS,
-                    duration_ms=duration,
-                    command=cmd_str,
-                    stdout=stdout[:500],  # Capture first 500 chars
-                    stderr=stderr[:500]
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name,
+                        status=CheckStatus.PASS,
+                        duration_ms=duration,
+                        command=cmd_str,
+                        stdout=stdout[:500],  # Capture first 500 chars
+                        stderr=stderr[:500],
+                    )
+                )
                 if verbose:
                     self.console.print(f"    [green]✓[/green] {name} [dim]({duration}ms)[/dim]")
             else:
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.FAIL,
-                    message=stderr[:100] if stderr else "Command failed",
-                    duration_ms=duration,
-                    command=cmd_str,
-                    stdout=stdout[:1000],
-                    stderr=stderr[:1000]
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name,
+                        status=CheckStatus.FAIL,
+                        message=stderr[:100] if stderr else "Command failed",
+                        duration_ms=duration,
+                        command=cmd_str,
+                        stdout=stdout[:1000],
+                        stderr=stderr[:1000],
+                    )
+                )
                 if verbose:
                     self.console.print(f"    [red]✗[/red] {name}")
                     if stderr:
@@ -425,7 +438,7 @@ class PreflightCommand(BaseCommand):
         category = CheckCategory(name="Package Imports", emoji="📦")
 
         if verbose:
-            self.console.print(f"\n[bold]📦 Package Imports[/bold]")
+            self.console.print("\n[bold]📦 Package Imports[/bold]")
 
         # trentorch/ lives at data/trentorch/, not the repo root, so a bare
         # subprocess -c import needs data/ on sys.path first (bin/tren and
@@ -435,7 +448,11 @@ class PreflightCommand(BaseCommand):
         imports = [
             (_path_setup + "import trentorch", "trentorch package"),
             # Check Tensor is actually available (not None from failed import)
-            (_path_setup + "from trentorch import Tensor; assert Tensor is not None, 'Tensor not exported - run: tren dev export --all'", "Tensor class"),
+            (
+                _path_setup
+                + "from trentorch import Tensor; assert Tensor is not None, 'Tensor not exported - run: tren dev export --all'",
+                "Tensor class",
+            ),
             ("from platforms.cli.main import TrenTorchCLI", "CLI class"),
         ]
 
@@ -447,26 +464,32 @@ class PreflightCommand(BaseCommand):
             duration = int((time.time() - start) * 1000)
 
             if code == 0:
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.PASS,
-                    duration_ms=duration,
-                    command=import_stmt,
-                    stderr=stderr
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name,
+                        status=CheckStatus.PASS,
+                        duration_ms=duration,
+                        command=import_stmt,
+                        stderr=stderr,
+                    )
+                )
                 if verbose:
                     self.console.print(f"    [green]✓[/green] {name}")
             else:
                 # Tensor class is critical - fail if not available
                 is_critical = "Tensor" in name
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.FAIL if is_critical else CheckStatus.WARN,
-                    message="Import failed - run: tito dev export --all" if is_critical else "Import failed (may need export)",
-                    duration_ms=duration,
-                    command=import_stmt,
-                    stderr=stderr[:500]
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name,
+                        status=CheckStatus.FAIL if is_critical else CheckStatus.WARN,
+                        message="Import failed - run: tito dev export --all"
+                        if is_critical
+                        else "Import failed (may need export)",
+                        duration_ms=duration,
+                        command=import_stmt,
+                        stderr=stderr[:500],
+                    )
+                )
                 if verbose:
                     symbol = "[red]✗[/red]" if is_critical else "[yellow]⚠[/yellow]"
                     self.console.print(f"    {symbol} {name} - {stderr[:100] if stderr else 'failed'}")
@@ -483,55 +506,63 @@ class PreflightCommand(BaseCommand):
         duration = int((time.time() - start) * 1000)
 
         if code != 0:
-            category.checks.append(CheckResult(
-                name="Git repository",
-                status=CheckStatus.WARN,
-                message="Not a git repository",
-                duration_ms=duration
-            ))
+            category.checks.append(
+                CheckResult(
+                    name="Git repository",
+                    status=CheckStatus.WARN,
+                    message="Not a git repository",
+                    duration_ms=duration,
+                )
+            )
             return category
 
-        category.checks.append(CheckResult(
-            name="Git repository",
-            status=CheckStatus.PASS,
-            duration_ms=duration
-        ))
+        category.checks.append(
+            CheckResult(name="Git repository", status=CheckStatus.PASS, duration_ms=duration)
+        )
 
         # Check for uncommitted changes
         start = time.time()
         if stdout.strip():
-            lines = stdout.strip().split('\n')
-            category.checks.append(CheckResult(
-                name="Clean working tree",
-                status=CheckStatus.WARN,
-                message=f"{len(lines)} uncommitted changes",
-                duration_ms=int((time.time() - start) * 1000)
-            ))
+            lines = stdout.strip().split("\n")
+            category.checks.append(
+                CheckResult(
+                    name="Clean working tree",
+                    status=CheckStatus.WARN,
+                    message=f"{len(lines)} uncommitted changes",
+                    duration_ms=int((time.time() - start) * 1000),
+                )
+            )
         else:
-            category.checks.append(CheckResult(
-                name="Clean working tree",
-                status=CheckStatus.PASS,
-                duration_ms=int((time.time() - start) * 1000)
-            ))
+            category.checks.append(
+                CheckResult(
+                    name="Clean working tree",
+                    status=CheckStatus.PASS,
+                    duration_ms=int((time.time() - start) * 1000),
+                )
+            )
 
         # Check current branch
         start = time.time()
         code, stdout, stderr = self._run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"], project_root)
         branch = stdout.strip() if code == 0 else "unknown"
-        category.checks.append(CheckResult(
-            name=f"Branch: {branch}",
-            status=CheckStatus.PASS,
-            duration_ms=int((time.time() - start) * 1000)
-        ))
+        category.checks.append(
+            CheckResult(
+                name=f"Branch: {branch}",
+                status=CheckStatus.PASS,
+                duration_ms=int((time.time() - start) * 1000),
+            )
+        )
 
         return category
 
-    def _check_module_tests(self, project_root: Path, quick: bool = True, verbose: bool = False) -> CheckCategory:
+    def _check_module_tests(
+        self, project_root: Path, quick: bool = True, verbose: bool = False
+    ) -> CheckCategory:
         """Run module tests."""
         category = CheckCategory(name="Module Tests", emoji="🧪")
 
         if verbose:
-            self.console.print(f"\n[bold]🧪 Module Tests[/bold]")
+            self.console.print("\n[bold]🧪 Module Tests[/bold]")
 
         # Determine which tests to run
         if quick:
@@ -549,12 +580,11 @@ class PreflightCommand(BaseCommand):
             full_path = project_root / test_path
 
             if not full_path.exists():
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.SKIP,
-                    message="Test directory not found",
-                    duration_ms=0
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name, status=CheckStatus.SKIP, message="Test directory not found", duration_ms=0
+                    )
+                )
                 continue
 
             cmd = [sys.executable, "-m", "pytest", str(full_path), "-v", "--tb=short", "-q"]
@@ -566,42 +596,46 @@ class PreflightCommand(BaseCommand):
 
             if code == 0:
                 passed_count = "all"
-                for line in stdout.split('\n'):
-                    if 'passed' in line:
+                for line in stdout.split("\n"):
+                    if "passed" in line:
                         passed_count = line.strip()
                         break
 
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.PASS,
-                    message=passed_count,
-                    duration_ms=duration,
-                    command=cmd_str,
-                    stdout=stdout[-2000:],  # Last 2000 chars
-                    stderr=stderr
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name,
+                        status=CheckStatus.PASS,
+                        message=passed_count,
+                        duration_ms=duration,
+                        command=cmd_str,
+                        stdout=stdout[-2000:],  # Last 2000 chars
+                        stderr=stderr,
+                    )
+                )
                 if verbose:
                     self.console.print(f"    [green]✓[/green] {name}: {passed_count}")
             else:
                 failed_info = "Tests failed"
-                for line in stdout.split('\n'):
-                    if 'failed' in line.lower() or 'error' in line.lower():
+                for line in stdout.split("\n"):
+                    if "failed" in line.lower() or "error" in line.lower():
                         failed_info = line.strip()[:80]
                         break
 
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.FAIL,
-                    message=failed_info,
-                    duration_ms=duration,
-                    command=cmd_str,
-                    stdout=stdout[-3000:],  # More output on failure
-                    stderr=stderr
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name,
+                        status=CheckStatus.FAIL,
+                        message=failed_info,
+                        duration_ms=duration,
+                        command=cmd_str,
+                        stdout=stdout[-3000:],  # More output on failure
+                        stderr=stderr,
+                    )
+                )
                 if verbose:
                     self.console.print(f"    [red]✗[/red] {name}: {failed_info}")
                     # Show last few lines of output
-                    last_lines = stdout.strip().split('\n')[-5:]
+                    last_lines = stdout.strip().split("\n")[-5:]
                     for line in last_lines:
                         self.console.print(f"      [dim]{line}[/dim]")
 
@@ -612,15 +646,15 @@ class PreflightCommand(BaseCommand):
         category = CheckCategory(name="Milestones", emoji="🏆")
 
         if verbose:
-            self.console.print(f"\n[bold]🏆 Milestones[/bold]")
+            self.console.print("\n[bold]🏆 Milestones[/bold]")
 
         milestones_dir = project_root / "data" / "milestones"
         if not milestones_dir.exists():
-            category.checks.append(CheckResult(
-                name="Milestones directory",
-                status=CheckStatus.FAIL,
-                message="data/milestones/ not found"
-            ))
+            category.checks.append(
+                CheckResult(
+                    name="Milestones directory", status=CheckStatus.FAIL, message="data/milestones/ not found"
+                )
+            )
             return category
 
         milestone_scripts = [
@@ -634,20 +668,22 @@ class PreflightCommand(BaseCommand):
             full_path = milestones_dir / script_path
 
             if full_path.exists():
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.PASS,
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name, status=CheckStatus.PASS, duration_ms=int((time.time() - start) * 1000)
+                    )
+                )
                 if verbose:
                     self.console.print(f"    [green]✓[/green] {name}")
             else:
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.WARN,
-                    message="Script not found",
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                category.checks.append(
+                    CheckResult(
+                        name=name,
+                        status=CheckStatus.WARN,
+                        message="Script not found",
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
                 if verbose:
                     self.console.print(f"    [yellow]⚠[/yellow] {name} - not found")
 
@@ -658,15 +694,15 @@ class PreflightCommand(BaseCommand):
         category = CheckCategory(name="E2E Tests", emoji="🔄")
 
         if verbose:
-            self.console.print(f"\n[bold]🔄 E2E Tests[/bold]")
+            self.console.print("\n[bold]🔄 E2E Tests[/bold]")
 
         e2e_dir = project_root / "tests" / "e2e"
         if not e2e_dir.exists():
-            category.checks.append(CheckResult(
-                name="E2E test directory",
-                status=CheckStatus.WARN,
-                message="tests/e2e/ not found"
-            ))
+            category.checks.append(
+                CheckResult(
+                    name="E2E test directory", status=CheckStatus.WARN, message="tests/e2e/ not found"
+                )
+            )
             return category
 
         start = time.time()
@@ -677,28 +713,32 @@ class PreflightCommand(BaseCommand):
         duration = int((time.time() - start) * 1000)
 
         if code == 0:
-            category.checks.append(CheckResult(
-                name="E2E quick tests",
-                status=CheckStatus.PASS,
-                duration_ms=duration,
-                command=cmd_str,
-                stdout=stdout[-2000:]
-            ))
+            category.checks.append(
+                CheckResult(
+                    name="E2E quick tests",
+                    status=CheckStatus.PASS,
+                    duration_ms=duration,
+                    command=cmd_str,
+                    stdout=stdout[-2000:],
+                )
+            )
             if verbose:
-                self.console.print(f"    [green]✓[/green] E2E quick tests passed")
+                self.console.print("    [green]✓[/green] E2E quick tests passed")
         else:
-            category.checks.append(CheckResult(
-                name="E2E quick tests",
-                status=CheckStatus.FAIL,
-                message="E2E tests failed",
-                duration_ms=duration,
-                command=cmd_str,
-                stdout=stdout[-3000:],
-                stderr=stderr
-            ))
+            category.checks.append(
+                CheckResult(
+                    name="E2E quick tests",
+                    status=CheckStatus.FAIL,
+                    message="E2E tests failed",
+                    duration_ms=duration,
+                    command=cmd_str,
+                    stdout=stdout[-3000:],
+                    stderr=stderr,
+                )
+            )
             if verbose:
-                self.console.print(f"    [red]✗[/red] E2E quick tests failed")
-                last_lines = stdout.strip().split('\n')[-5:]
+                self.console.print("    [red]✗[/red] E2E quick tests failed")
+                last_lines = stdout.strip().split("\n")[-5:]
                 for line in last_lines:
                     self.console.print(f"      [dim]{line}[/dim]")
 
@@ -722,35 +762,35 @@ class PreflightCommand(BaseCommand):
                 # Check it's not empty
                 size = full_path.stat().st_size
                 if size > 100:
-                    category.checks.append(CheckResult(
-                        name=name,
-                        status=CheckStatus.PASS,
-                        duration_ms=int((time.time() - start) * 1000)
-                    ))
+                    category.checks.append(
+                        CheckResult(
+                            name=name, status=CheckStatus.PASS, duration_ms=int((time.time() - start) * 1000)
+                        )
+                    )
                 else:
-                    category.checks.append(CheckResult(
+                    category.checks.append(
+                        CheckResult(
+                            name=name,
+                            status=CheckStatus.WARN,
+                            message="File seems empty",
+                            duration_ms=int((time.time() - start) * 1000),
+                        )
+                    )
+            else:
+                category.checks.append(
+                    CheckResult(
                         name=name,
                         status=CheckStatus.WARN,
-                        message="File seems empty",
-                        duration_ms=int((time.time() - start) * 1000)
-                    ))
-            else:
-                category.checks.append(CheckResult(
-                    name=name,
-                    status=CheckStatus.WARN,
-                    message="File not found",
-                    duration_ms=int((time.time() - start) * 1000)
-                ))
+                        message="File not found",
+                        duration_ms=int((time.time() - start) * 1000),
+                    )
+                )
 
         return category
 
-    def _output_json(self, categories: List[CheckCategory], all_passed: bool, duration: float):
+    def _output_json(self, categories: list[CheckCategory], all_passed: bool, duration: float):
         """Output results as JSON for CI/CD."""
-        output = {
-            "success": all_passed,
-            "duration_seconds": round(duration, 2),
-            "categories": []
-        }
+        output = {"success": all_passed, "duration_seconds": round(duration, 2), "categories": []}
 
         for category in categories:
             cat_data = {
@@ -758,33 +798,40 @@ class PreflightCommand(BaseCommand):
                 "passed": category.passed,
                 "failed": category.failed,
                 "warned": category.warned,
-                "checks": []
+                "checks": [],
             }
             for check in category.checks:
-                cat_data["checks"].append({
-                    "name": check.name,
-                    "status": check.status.value,
-                    "message": check.message,
-                    "duration_ms": check.duration_ms
-                })
+                cat_data["checks"].append(
+                    {
+                        "name": check.name,
+                        "status": check.status.value,
+                        "message": check.message,
+                        "duration_ms": check.duration_ms,
+                    }
+                )
             output["categories"].append(cat_data)
 
         print(json.dumps(output, indent=2))
 
-    def _output_rich(self, categories: List[CheckCategory], all_passed: bool, duration: float,
-                     total_passed: int, total_failed: int, total_warned: int, total_checks: int,
-                     level: str, is_ci: bool, verbose: bool = False):
+    def _output_rich(
+        self,
+        categories: list[CheckCategory],
+        all_passed: bool,
+        duration: float,
+        total_passed: int,
+        total_failed: int,
+        total_warned: int,
+        total_checks: int,
+        level: str,
+        is_ci: bool,
+        verbose: bool = False,
+    ):
         """Output results with rich formatting."""
         console = self.console
 
         for category in categories:
             # Create table for category
-            table = Table(
-                show_header=False,
-                box=None,
-                padding=(0, 1),
-                expand=True
-            )
+            table = Table(show_header=False, box=None, padding=(0, 1), expand=True)
             table.add_column("Status", width=3)
             table.add_column("Check", style="bold")
             table.add_column("Message", style="dim")
@@ -820,37 +867,41 @@ class PreflightCommand(BaseCommand):
                     if check.command:
                         console.print(f"  [dim]Command: {check.command}[/dim]")
                     if check.stderr:
-                        console.print(f"  [dim red]Error:[/dim red]")
-                        for line in check.stderr.strip().split('\n')[:5]:
+                        console.print("  [dim red]Error:[/dim red]")
+                        for line in check.stderr.strip().split("\n")[:5]:
                             console.print(f"    [dim]{line}[/dim]")
                     if check.stdout and not check.stderr:
-                        console.print(f"  [dim]Output (last lines):[/dim]")
-                        for line in check.stdout.strip().split('\n')[-5:]:
+                        console.print("  [dim]Output (last lines):[/dim]")
+                        for line in check.stdout.strip().split("\n")[-5:]:
                             console.print(f"    [dim]{line}[/dim]")
 
         # Summary
         console.print()
         if all_passed:
-            console.print(Panel(
-                f"[bold green]✅ All preflight checks passed![/bold green]\n\n"
-                f"[green]{total_passed}[/green] passed  "
-                f"[yellow]{total_warned}[/yellow] warnings  "
-                f"[dim]{duration:.1f}s[/dim]\n\n"
-                f"[dim]Ready for: commit, PR, or {level} deployment[/dim]",
-                title="Preflight Complete",
-                border_style="green"
-            ))
+            console.print(
+                Panel(
+                    f"[bold green]✅ All preflight checks passed![/bold green]\n\n"
+                    f"[green]{total_passed}[/green] passed  "
+                    f"[yellow]{total_warned}[/yellow] warnings  "
+                    f"[dim]{duration:.1f}s[/dim]\n\n"
+                    f"[dim]Ready for: commit, PR, or {level} deployment[/dim]",
+                    title="Preflight Complete",
+                    border_style="green",
+                )
+            )
         else:
-            console.print(Panel(
-                f"[bold red]❌ Preflight checks failed[/bold red]\n\n"
-                f"[green]{total_passed}[/green] passed  "
-                f"[red]{total_failed}[/red] failed  "
-                f"[yellow]{total_warned}[/yellow] warnings  "
-                f"[dim]{duration:.1f}s[/dim]\n\n"
-                f"[dim]Fix the issues above before proceeding[/dim]",
-                title="Preflight Failed",
-                border_style="red"
-            ))
+            console.print(
+                Panel(
+                    f"[bold red]❌ Preflight checks failed[/bold red]\n\n"
+                    f"[green]{total_passed}[/green] passed  "
+                    f"[red]{total_failed}[/red] failed  "
+                    f"[yellow]{total_warned}[/yellow] warnings  "
+                    f"[dim]{duration:.1f}s[/dim]\n\n"
+                    f"[dim]Fix the issues above before proceeding[/dim]",
+                    title="Preflight Failed",
+                    border_style="red",
+                )
+            )
 
         # Show next steps
         if not is_ci:

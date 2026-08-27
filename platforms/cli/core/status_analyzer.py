@@ -9,27 +9,24 @@ This module provides detailed analysis of:
 """
 
 import ast
-import sys
-import subprocess
 import importlib.util
-import traceback
-import tempfile
 import os
-import time
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
+import subprocess
+import sys
+import tempfile
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
+from rich import box
 from rich.console import Console
 from rich.table import Table
-from rich.panel import Panel
-from rich.columns import Columns
-from rich import box
 
 
 @dataclass
 class ModuleStatus:
     """Complete status information for a TinyTorch module"""
+
     name: str
     path: Path
     has_dev_file: bool = False
@@ -58,7 +55,7 @@ class ModuleStatus:
     has_required_profiler: bool = False
 
     # Issues
-    issues: List[str] = None
+    issues: list[str] = None
 
     def __post_init__(self):
         if self.issues is None:
@@ -73,7 +70,7 @@ class ModuleStatus:
             self.has_implementation,
             self.has_testing,
             self.has_ml_systems_questions,
-            self.has_summary
+            self.has_summary,
         ]
         return sum(checks) / len(checks)
 
@@ -96,7 +93,7 @@ class ModuleStatus:
 class TinyTorchStatusAnalyzer:
     """Comprehensive TinyTorch system status analyzer"""
 
-    def __init__(self, repo_path: Optional[Path] = None):
+    def __init__(self, repo_path: Path | None = None):
         """Initialize the status analyzer.
 
         Args:
@@ -106,76 +103,86 @@ class TinyTorchStatusAnalyzer:
             repo_path = Path.cwd()
         self.repo_path = Path(repo_path)
         self.modules_path = self.repo_path / "data" / "modules" / "source"
-        self.modules: Dict[str, ModuleStatus] = {}
+        self.modules: dict[str, ModuleStatus] = {}
         self.environment_status = {}
         self.tito_status = {}
 
-    def check_environment(self) -> Dict[str, Any]:
+    def check_environment(self) -> dict[str, Any]:
         """Check Python environment and dependencies"""
         env_status = {
-            'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
-            'python_path': sys.executable,
-            'virtual_env_active': False,
-            'dependencies': {},
-            'issues': []
+            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+            "python_path": sys.executable,
+            "virtual_env_active": False,
+            "dependencies": {},
+            "issues": [],
         }
 
         # Check virtual environment
-        if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
-            env_status['virtual_env_active'] = True
+        if hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix):
+            env_status["virtual_env_active"] = True
         else:
-            env_status['issues'].append("Virtual environment not activated")
+            env_status["issues"].append("Virtual environment not activated")
 
         # Check critical dependencies
-        critical_deps = ['numpy', 'matplotlib', 'pytest', 'rich', 'networkx']
+        critical_deps = ["numpy", "matplotlib", "pytest", "rich", "networkx"]
 
         for dep in critical_deps:
             try:
                 spec = importlib.util.find_spec(dep)
                 if spec is not None:
                     module = importlib.import_module(dep)
-                    version = getattr(module, '__version__', 'unknown')
-                    env_status['dependencies'][dep] = {'status': 'installed', 'version': version}
+                    version = getattr(module, "__version__", "unknown")
+                    env_status["dependencies"][dep] = {"status": "installed", "version": version}
                 else:
-                    env_status['dependencies'][dep] = {'status': 'missing', 'version': None}
-                    env_status['issues'].append(f"Missing dependency: {dep}")
+                    env_status["dependencies"][dep] = {"status": "missing", "version": None}
+                    env_status["issues"].append(f"Missing dependency: {dep}")
             except Exception as e:
-                env_status['dependencies'][dep] = {'status': 'error', 'version': None, 'error': str(e)}
-                env_status['issues'].append(f"Error importing {dep}: {str(e)}")
+                env_status["dependencies"][dep] = {"status": "error", "version": None, "error": str(e)}
+                env_status["issues"].append(f"Error importing {dep}: {str(e)}")
 
         self.environment_status = env_status
         return env_status
 
-    def check_tito_health(self) -> Dict[str, Any]:
+    def check_tito_health(self) -> dict[str, Any]:
         """Check tito CLI system health"""
-        tito_status = {
-            'tito_available': False,
-            'commands_working': {},
-            'issues': []
-        }
+        tito_status = {"tito_available": False, "commands_working": {}, "issues": []}
 
         try:
             # Check if tren is available
-            result = subprocess.run(['tren', '--version'], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
+            result = subprocess.run(
+                ["tren", "--version"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
+            )
             if result.returncode == 0:
-                tito_status['tito_available'] = True
+                tito_status["tito_available"] = True
             else:
-                tito_status['issues'].append("Tren command not available")
+                tito_status["issues"].append("Tren command not available")
         except Exception as e:
-            tito_status['issues'].append(f"Tren CLI error: {str(e)}")
+            tito_status["issues"].append(f"Tren CLI error: {str(e)}")
 
         # Test key commands if tren is available
-        if tito_status['tito_available']:
-            test_commands = ['system info', 'module status']
+        if tito_status["tito_available"]:
+            test_commands = ["system info", "module status"]
             for cmd in test_commands:
                 try:
-                    result = subprocess.run(f'tren {cmd}'.split(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
-                    tito_status['commands_working'][cmd] = result.returncode == 0
+                    result = subprocess.run(
+                        f"tren {cmd}".split(),
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                        timeout=30,
+                    )
+                    tito_status["commands_working"][cmd] = result.returncode == 0
                     if result.returncode != 0:
-                        tito_status['issues'].append(f"Tren '{cmd}' command failed")
+                        tito_status["issues"].append(f"Tren '{cmd}' command failed")
                 except Exception as e:
-                    tito_status['commands_working'][cmd] = False
-                    tito_status['issues'].append(f"Tren '{cmd}' error: {str(e)}")
+                    tito_status["commands_working"][cmd] = False
+                    tito_status["issues"].append(f"Tren '{cmd}' error: {str(e)}")
 
         self.tito_status = tito_status
         return tito_status
@@ -188,7 +195,7 @@ class TinyTorchStatusAnalyzer:
         # Check basic files - try multiple naming patterns
         possible_dev_files = [
             module_path / f"{module_name}.py",
-            module_path / f"{module_name.split('_', 1)[1]}.py" if '_' in module_name else None,
+            module_path / f"{module_name.split('_', 1)[1]}.py" if "_" in module_name else None,
         ]
         dev_file = None
         for possible_file in possible_dev_files:
@@ -212,7 +219,7 @@ class TinyTorchStatusAnalyzer:
 
         # Analyze Python file
         try:
-            with open(dev_file, 'r', encoding='utf-8') as f:
+            with open(dev_file, encoding="utf-8") as f:
                 content = f.read()
 
             # Parse AST for code analysis
@@ -227,18 +234,18 @@ class TinyTorchStatusAnalyzer:
                 # Check for required profiler classes
                 required_profilers = {
                     # Foundation tier (01-08)
-                    '02_activations': 'ActivationProfiler',
-                    '03_layers': 'LayerArchitectureProfiler',
-                    '05_dataloader': 'DataPipelineProfiler',
-                    '06_autograd': 'AutogradSystemsProfiler',
-                    '08_training': 'TrainingPipelineProfiler',
+                    "02_activations": "ActivationProfiler",
+                    "03_layers": "LayerArchitectureProfiler",
+                    "05_dataloader": "DataPipelineProfiler",
+                    "06_autograd": "AutogradSystemsProfiler",
+                    "08_training": "TrainingPipelineProfiler",
                     # Architecture tier (09-13)
-                    '09_convolutions': 'ConvolutionProfiler',
-                    '12_attention': 'AttentionEfficiencyProfiler',
+                    "09_convolutions": "ConvolutionProfiler",
+                    "12_attention": "AttentionEfficiencyProfiler",
                     # Optimization tier (14-20)
-                    '16_compression': 'CompressionSystemsProfiler',
-                    '19_benchmarking': 'ProductionBenchmarkingProfiler',
-                    '20_capstone': 'ProductionMLSystemProfiler',
+                    "16_compression": "CompressionSystemsProfiler",
+                    "19_benchmarking": "ProductionBenchmarkingProfiler",
+                    "20_capstone": "ProductionMLSystemProfiler",
                 }
 
                 if module_name in required_profilers:
@@ -251,10 +258,14 @@ class TinyTorchStatusAnalyzer:
 
             # Check module structure compliance
             status.has_introduction = "Module Introduction" in content or "# Introduction" in content
-            status.has_math_background = "Mathematical Background" in content or "Mathematical Foundation" in content
+            status.has_math_background = (
+                "Mathematical Background" in content or "Mathematical Foundation" in content
+            )
             status.has_implementation = "Implementation" in content or "Core Implementation" in content
             status.has_testing = "Testing" in content and "test_" in content
-            status.has_ml_systems_questions = "ML Systems Thinking" in content or "Systems Thinking" in content
+            status.has_ml_systems_questions = (
+                "ML Systems Thinking" in content or "Systems Thinking" in content
+            )
             status.has_summary = "Module Summary" in content or "MODULE SUMMARY" in content
 
             # Check for inline tests
@@ -263,7 +274,7 @@ class TinyTorchStatusAnalyzer:
             # Test if module can be imported
             try:
                 # Create a temporary file to test import
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as temp_file:
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as temp_file:
                     # Write a minimal test to check if the module can be imported
                     test_code = f"""
 import sys
@@ -278,8 +289,14 @@ except Exception as e:
                     temp_file_path = temp_file.name
 
                 # Run the test
-                result = subprocess.run([sys.executable, temp_file_path],
-                                     capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
+                result = subprocess.run(
+                    [sys.executable, temp_file_path],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=30,
+                )
 
                 status.imports_successfully = "SUCCESS" in result.stdout
                 status.runs_without_errors = result.returncode == 0 and "SUCCESS" in result.stdout
@@ -298,13 +315,13 @@ except Exception as e:
 
         return status
 
-    def check_all_modules(self) -> Dict[str, ModuleStatus]:
+    def check_all_modules(self) -> dict[str, ModuleStatus]:
         """Check all modules in the source directory"""
         if not self.modules_path.exists():
             return {}
 
         modules = {}
-        module_dirs = [d for d in self.modules_path.iterdir() if d.is_dir() and not d.name.startswith('.')]
+        module_dirs = [d for d in self.modules_path.iterdir() if d.is_dir() and not d.name.startswith(".")]
 
         for module_dir in sorted(module_dirs):
             modules[module_dir.name] = self.analyze_module(module_dir)
@@ -314,9 +331,9 @@ except Exception as e:
 
     def generate_comprehensive_report(self, console: Console) -> None:
         """Generate comprehensive status report using rich console"""
-        console.print("\n" + "="*80, style="bold")
+        console.print("\n" + "=" * 80, style="bold")
         console.print("🔥 TINYTORCH COMPREHENSIVE STATUS DASHBOARD", style="bold red", justify="center")
-        console.print("="*80, style="bold")
+        console.print("=" * 80, style="bold")
 
         # Environment Status Panel
         self._print_environment_panel(console)
@@ -344,15 +361,15 @@ except Exception as e:
         env_table.add_row("Python", "✅", f"{env['python_version']}")
 
         # Virtual environment
-        venv_status = "✅ OK" if env['virtual_env_active'] else "❌ Not Activated"
+        venv_status = "✅ OK" if env["virtual_env_active"] else "❌ Not Activated"
         env_table.add_row("Virtual Env", venv_status, "Required for development")
 
         # Dependencies
-        for dep, info in env['dependencies'].items():
-            if info['status'] == 'installed':
+        for dep, info in env["dependencies"].items():
+            if info["status"] == "installed":
                 status = "✅"
                 detail = f"v{info['version']}"
-            elif info['status'] == 'missing':
+            elif info["status"] == "missing":
                 status = "❌"
                 detail = "Not installed"
             else:
@@ -381,10 +398,21 @@ except Exception as e:
         overview_table.add_column("Percentage", justify="center")
         overview_table.add_column("Description")
 
-        overview_table.add_row("🎉 EXCELLENT", str(excellent), f"{excellent/total_modules*100:.1f}%", "Fully compliant & working")
-        overview_table.add_row("✅ GOOD", str(good), f"{good/total_modules*100:.1f}%", "Minor compliance issues")
-        overview_table.add_row("⚠️ PARTIAL", str(partial), f"{partial/total_modules*100:.1f}%", "Major compliance issues")
-        overview_table.add_row("❌ BROKEN", str(broken), f"{broken/total_modules*100:.1f}%", "Not working")
+        overview_table.add_row(
+            "🎉 EXCELLENT",
+            str(excellent),
+            f"{excellent / total_modules * 100:.1f}%",
+            "Fully compliant & working",
+        )
+        overview_table.add_row(
+            "✅ GOOD", str(good), f"{good / total_modules * 100:.1f}%", "Minor compliance issues"
+        )
+        overview_table.add_row(
+            "⚠️ PARTIAL", str(partial), f"{partial / total_modules * 100:.1f}%", "Major compliance issues"
+        )
+        overview_table.add_row(
+            "❌ BROKEN", str(broken), f"{broken / total_modules * 100:.1f}%", "Not working"
+        )
 
         console.print(overview_table)
 
@@ -394,7 +422,12 @@ except Exception as e:
             return
 
         # Detailed module table
-        detail_table = Table(title="📋 Detailed Module Analysis", box=box.ROUNDED, show_header=True, header_style="bold magenta")
+        detail_table = Table(
+            title="📋 Detailed Module Analysis",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold magenta",
+        )
         detail_table.add_column("Module", style="cyan", width=15)
         detail_table.add_column("Status", justify="center", width=10)
         detail_table.add_column("Compliance", justify="center", width=10)
@@ -407,16 +440,11 @@ except Exception as e:
             module = self.modules[name]
 
             # Status indicator
-            status_map = {
-                "EXCELLENT": "🎉",
-                "GOOD": "✅",
-                "PARTIAL": "⚠️",
-                "BROKEN": "❌"
-            }
+            status_map = {"EXCELLENT": "🎉", "GOOD": "✅", "PARTIAL": "⚠️", "BROKEN": "❌"}
             status = status_map.get(module.overall_status, "❓")
 
             # Compliance score
-            compliance = f"{module.compliance_score*100:.0f}%"
+            compliance = f"{module.compliance_score * 100:.0f}%"
 
             # Code health
             if module.imports_successfully and module.runs_without_errors:
@@ -432,7 +460,7 @@ except Exception as e:
             # Issues summary
             issues_text = "; ".join(module.issues[:2]) if module.issues else "None"
             if len(module.issues) > 2:
-                issues_text += f" (+{len(module.issues)-2} more)"
+                issues_text += f" (+{len(module.issues) - 2} more)"
 
             detail_table.add_row(name, status, compliance, code_health, test_status, issues_text)
 
@@ -446,11 +474,11 @@ except Exception as e:
         actions = []
 
         # Environment issues
-        if not self.environment_status['virtual_env_active']:
+        if not self.environment_status["virtual_env_active"]:
             actions.append("🔴 HIGH: Activate virtual environment (.venv)")
 
-        for dep, info in self.environment_status['dependencies'].items():
-            if info['status'] != 'installed':
+        for dep, info in self.environment_status["dependencies"].items():
+            if info["status"] != "installed":
                 actions.append(f"🔴 HIGH: Install {dep} dependency")
 
         # Broken modules
@@ -459,12 +487,16 @@ except Exception as e:
             actions.append(f"🔴 HIGH: Fix broken module: {module_name}")
 
         # Compliance issues
-        partial_modules = [name for name, module in self.modules.items() if module.overall_status == "PARTIAL"]
+        partial_modules = [
+            name for name, module in self.modules.items() if module.overall_status == "PARTIAL"
+        ]
         for module_name in partial_modules[:3]:  # Show top 3
             actions.append(f"🟡 MED: Improve compliance for: {module_name}")
 
         # Missing profilers
-        missing_profilers = [name for name, module in self.modules.items() if not module.has_required_profiler]
+        missing_profilers = [
+            name for name, module in self.modules.items() if not module.has_required_profiler
+        ]
         for module_name in missing_profilers[:2]:  # Show top 2
             actions.append(f"🟡 MED: Add required profiler to: {module_name}")
 
@@ -475,7 +507,7 @@ except Exception as e:
         else:
             console.print("\n🎉 [bold green]All systems operational! No critical issues found.[/bold green]")
 
-    def run_full_analysis(self) -> Dict[str, Any]:
+    def run_full_analysis(self) -> dict[str, Any]:
         """Run complete TinyTorch system analysis"""
         # Run all checks
         env_status = self.check_environment()
@@ -483,17 +515,22 @@ except Exception as e:
         modules_status = self.check_all_modules()
 
         return {
-            'environment': env_status,
-            'tito': tito_status,
-            'modules': {name: {
-                'status': module.overall_status,
-                'compliance_score': module.compliance_score,
-                'issues': module.issues
-            } for name, module in modules_status.items()},
-            'summary': {
-                'total_modules': len(modules_status),
-                'working_modules': sum(1 for m in modules_status.values() if m.overall_status in ["EXCELLENT", "GOOD"]),
-                'environment_healthy': len(env_status['issues']) == 0,
-                'tito_working': tito_status['tito_available']
-            }
+            "environment": env_status,
+            "tito": tito_status,
+            "modules": {
+                name: {
+                    "status": module.overall_status,
+                    "compliance_score": module.compliance_score,
+                    "issues": module.issues,
+                }
+                for name, module in modules_status.items()
+            },
+            "summary": {
+                "total_modules": len(modules_status),
+                "working_modules": sum(
+                    1 for m in modules_status.values() if m.overall_status in ["EXCELLENT", "GOOD"]
+                ),
+                "environment_healthy": len(env_status["issues"]) == 0,
+                "tito_working": tito_status["tito_available"],
+            },
         }

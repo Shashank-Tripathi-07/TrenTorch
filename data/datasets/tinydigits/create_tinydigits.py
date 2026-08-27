@@ -14,15 +14,18 @@ Target sizes:
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import pickle
 from pathlib import Path
+
 
 def create_tinydigits():
     """Create TinyDigits train/test split from sklearn digits dataset."""
 
     # Load directly from sklearn
     from sklearn.datasets import load_digits
+
     digits = load_digits()
     images = digits.images.astype(np.float32) / 16.0  # Normalize to [0, 1]
     labels = digits.target  # (1797,)
@@ -30,7 +33,7 @@ def create_tinydigits():
     print(f"📊 Source dataset: {images.shape[0]} samples")
     print(f"   Shape: {images.shape}, dtype: {images.dtype}")
     print(f"   Range: [{images.min():.3f}, {images.max():.3f}]")
-    print(f"   ✓ Normalized to [0, 1]")
+    print("   ✓ Normalized to [0, 1]")
 
     # Set random seed for reproducibility
     rng = np.random.default_rng(7)
@@ -57,7 +60,7 @@ def create_tinydigits():
         train_labels.extend([digit] * train_count)
 
         # Test: Next 20 samples
-        test_images.append(images[digit_indices[train_count:train_count+test_count]])
+        test_images.append(images[digit_indices[train_count : train_count + test_count]])
         test_labels.extend([digit] * test_count)
 
         print(f"   Digit {digit}: {train_count} train, {test_count} test (from {digit_count} total)")
@@ -77,35 +80,36 @@ def create_tinydigits():
     test_images = test_images[test_shuffle]
     test_labels = test_labels[test_shuffle]
 
-    print(f"\n✅ Created TinyDigits:")
+    print("\n✅ Created TinyDigits:")
     print(f"   Training: {train_images.shape} images, {train_labels.shape} labels")
     print(f"   Test: {test_images.shape} images, {test_labels.shape} labels")
 
     # Save as pickle files
     output_dir = Path(__file__).parent
 
-    train_data = {'images': train_images, 'labels': train_labels}
-    with open(output_dir / 'train.pkl', 'wb') as f:
+    train_data = {"images": train_images, "labels": train_labels}
+    with open(output_dir / "train.pkl", "wb") as f:
         pickle.dump(train_data, f)
-    print(f"\n💾 Saved: train.pkl")
+    print("\n💾 Saved: train.pkl")
 
-    test_data = {'images': test_images, 'labels': test_labels}
-    with open(output_dir / 'test.pkl', 'wb') as f:
+    test_data = {"images": test_images, "labels": test_labels}
+    with open(output_dir / "test.pkl", "wb") as f:
         pickle.dump(test_data, f)
-    print(f"💾 Saved: test.pkl")
+    print("💾 Saved: test.pkl")
 
     # Calculate file sizes
-    train_size = (output_dir / 'train.pkl').stat().st_size / 1024
-    test_size = (output_dir / 'test.pkl').stat().st_size / 1024
+    train_size = (output_dir / "train.pkl").stat().st_size / 1024
+    test_size = (output_dir / "test.pkl").stat().st_size / 1024
     total_size = train_size + test_size
 
-    print(f"\n📦 File sizes:")
+    print("\n📦 File sizes:")
     print(f"   train.pkl: {train_size:.1f} KB")
     print(f"   test.pkl: {test_size:.1f} KB")
     print(f"   Total: {total_size:.1f} KB")
 
-    print(f"\n🎯 TinyDigits created successfully!")
+    print("\n🎯 TinyDigits created successfully!")
     print(f"   Perfect for TinyTorch on RasPi0 - only {total_size:.1f} KB!")
+
 
 if __name__ == "__main__":
     create_tinydigits()

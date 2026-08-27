@@ -4,6 +4,7 @@ Tests that Layer base class enables building neural network components
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -18,6 +19,7 @@ class TestLayerFoundation:
     def test_layer_base_import(self):
         """Test Layer base class can be imported."""
         from trentorch.core.layers import Layer
+
         assert Layer is not None
 
     def test_layer_interface(self):
@@ -27,7 +29,7 @@ class TestLayerFoundation:
         layer = Layer()
 
         # Should have forward method
-        assert hasattr(layer, 'forward'), "Layer should have forward method"
+        assert hasattr(layer, "forward"), "Layer should have forward method"
 
         # Should be callable (implement __call__)
         assert callable(layer), "Layer should be callable"
@@ -160,8 +162,8 @@ class TestLayerChaining:
 
         x = Tensor(np.array([[1, 2], [3, 4]]))
 
-        h1 = flatten(x)    # Shape: (4,)
-        h2 = scale(h1)     # Values doubled
+        h1 = flatten(x)  # Shape: (4,)
+        h2 = scale(h1)  # Values doubled
         output = reshape(h2)  # Shape: (2, 2)
 
         assert output.shape == (2, 2)
@@ -190,8 +192,8 @@ class TestLayerParameterManagement:
         output = layer(x)
 
         assert output.shape == (3, 5)
-        assert hasattr(layer, 'weight')
-        assert hasattr(layer, 'bias')
+        assert hasattr(layer, "weight")
+        assert hasattr(layer, "bias")
         assert isinstance(layer.weight, Tensor)
         assert isinstance(layer.bias, Tensor)
 

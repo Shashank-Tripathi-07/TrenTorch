@@ -22,14 +22,16 @@ WHAT STUDENTS LEARN:
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
-import pytest
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
+from trentorch.core.activations import ReLU, Sigmoid, Softmax, Tanh
 from trentorch.core.tensor import Tensor
 
 
@@ -85,8 +87,7 @@ class TestReLUActivation:
         gradient_mask = output.data > 0
         expected_mask = np.array([False, False, True, True])
         assert np.array_equal(gradient_mask, expected_mask), (
-            "ReLU gradient mask is wrong.\n"
-            "Gradient should flow (True) only where output > 0."
+            "ReLU gradient mask is wrong.\nGradient should flow (True) only where output > 0."
         )
 
     def test_relu_large_values(self):
@@ -105,10 +106,7 @@ class TestReLUActivation:
 
         expected = np.array([0, 1000])
         assert np.array_equal(output.data, expected), (
-            "ReLU failed on extreme values.\n"
-            f"  Input: {x.data}\n"
-            f"  Expected: {expected}\n"
-            f"  Got: {output.data}"
+            f"ReLU failed on extreme values.\n  Input: {x.data}\n  Expected: {expected}\n  Got: {output.data}"
         )
 
 
@@ -137,9 +135,7 @@ class TestSigmoidActivation:
         output = sigmoid(x)
 
         # Sigmoid(0) = 0.5
-        assert np.isclose(output.data[0], 0.5, atol=1e-6), (
-            f"Sigmoid(0) should be 0.5, got {output.data[0]}"
-        )
+        assert np.isclose(output.data[0], 0.5, atol=1e-6), f"Sigmoid(0) should be 0.5, got {output.data[0]}"
 
         # All outputs must be in (0, 1)
         assert np.all(output.data > 0) and np.all(output.data < 1), (
@@ -221,13 +217,10 @@ class TestTanhActivation:
         x = Tensor(np.array([0, 1, -1]))
         output = tanh(x)
 
-        assert np.isclose(output.data[0], 0, atol=1e-6), (
-            f"tanh(0) should be 0, got {output.data[0]}"
-        )
+        assert np.isclose(output.data[0], 0, atol=1e-6), f"tanh(0) should be 0, got {output.data[0]}"
 
         assert np.all(output.data > -1) and np.all(output.data < 1), (
-            f"tanh outputs must be in (-1, 1).\n"
-            f"  Got: {output.data}"
+            f"tanh outputs must be in (-1, 1).\n  Got: {output.data}"
         )
 
     def test_tanh_antisymmetry(self):
@@ -302,10 +295,7 @@ class TestSoftmaxActivation:
             f"  Sum: {np.sum(output.data)}"
         )
 
-        assert np.all(output.data > 0), (
-            f"Softmax outputs must all be positive.\n"
-            f"  Got: {output.data}"
-        )
+        assert np.all(output.data > 0), f"Softmax outputs must all be positive.\n  Got: {output.data}"
 
     def test_softmax_properties(self):
         """
@@ -386,7 +376,7 @@ class TestActivationComposition:
         x = Tensor(np.array([-2, -1, 0, 1, 2]))
 
         # Chain: x -> ReLU -> Sigmoid
-        h = relu(x)      # [-2,-1,0,1,2] -> [0,0,0,1,2]
+        h = relu(x)  # [-2,-1,0,1,2] -> [0,0,0,1,2]
         output = sigmoid(h)  # -> [0.5,0.5,0.5,0.73,0.88]
 
         assert output.shape == x.shape
@@ -434,14 +424,10 @@ class TestActivationComposition:
         assert relu(zero_input).data[0] == 0.0, "ReLU(0) should be 0"
 
         sigmoid = Sigmoid()
-        assert np.isclose(sigmoid(zero_input).data[0], 0.5, atol=1e-6), (
-            "Sigmoid(0) should be 0.5"
-        )
+        assert np.isclose(sigmoid(zero_input).data[0], 0.5, atol=1e-6), "Sigmoid(0) should be 0.5"
 
         tanh = Tanh()
-        assert np.isclose(tanh(zero_input).data[0], 0.0, atol=1e-6), (
-            "Tanh(0) should be 0"
-        )
+        assert np.isclose(tanh(zero_input).data[0], 0.0, atol=1e-6), "Tanh(0) should be 0"
 
 
 if __name__ == "__main__":

@@ -34,17 +34,19 @@ This regression test ensures convolution output dimensions are correctly calcula
 and match Linear layer input expectations.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Add parent directory to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.spatial import Conv2d, MaxPool2d
 from trentorch.core.layers import Linear
+from trentorch.core.spatial import Conv2d, MaxPool2d
+from trentorch.core.tensor import Tensor
 
 
 def calculate_conv_output_size(input_size, kernel_size, stride=1, padding=0):
@@ -192,9 +194,9 @@ def test_typical_cnn_architectures():
 
 
 if __name__ == "__main__":
-    print("="*60)
+    print("=" * 60)
     print("REGRESSION TEST: Conv2d to Linear Dimension Compatibility")
-    print("="*60)
+    print("=" * 60)
 
     # Run all tests
     all_pass = True

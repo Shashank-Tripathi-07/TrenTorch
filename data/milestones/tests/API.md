@@ -27,10 +27,7 @@ Marks a completed module in `.tren/progress.json`, checks whether any milestones
 are newly ready, writes `.tren/milestones.json`, and returns:
 
 ```python
-{
-    "newly_unlocked": ["01"],
-    "messages": ["Milestone ready to run ..."]
-}
+{"newly_unlocked": ["01"], "messages": ["Milestone ready to run ..."]}
 ```
 
 ### `show_progress()`

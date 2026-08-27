@@ -4,6 +4,7 @@ Tests that networks can solve non-linear problems
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -17,8 +18,8 @@ class TestXORCapability:
 
     def test_xor_network_structure(self):
         """Test building network for XOR problem."""
-        from trentorch.core.layers import Linear
         from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.layers import Linear
         from trentorch.core.tensor import Tensor
 
         # Build XOR network: 2 -> 4 -> 1
@@ -44,8 +45,8 @@ class TestXORCapability:
         from trentorch.core.layers import Linear
 
         # XOR needs at least 2 hidden units
-        hidden = Linear(2, 4)  # 4 hidden units is sufficient
-        output = Linear(4, 1)
+        Linear(2, 4)  # 4 hidden units is sufficient
+        Linear(4, 1)
 
         # Count parameters
         hidden_params = 2 * 4 + 4  # weights + bias
@@ -57,8 +58,8 @@ class TestXORCapability:
 
     def test_nonlinearity_required(self):
         """Test that non-linearity is essential for XOR."""
-        from trentorch.core.layers import Linear
         from trentorch.core.activations import ReLU
+        from trentorch.core.layers import Linear
         from trentorch.core.tensor import Tensor
 
         # Without activation, network is just linear
@@ -83,8 +84,8 @@ class TestMLPCapabilities:
 
     def test_universal_approximation(self):
         """Test that MLPs can approximate continuous functions."""
-        from trentorch.core.layers import Linear
         from trentorch.core.activations import ReLU
+        from trentorch.core.layers import Linear
         from trentorch.core.tensor import Tensor
 
         # Wide hidden layer can approximate any function
@@ -110,13 +111,7 @@ class TestMLPCapabilities:
         from trentorch.core.tensor import Tensor
 
         # Build 5-layer network
-        layers = [
-            Linear(100, 50),
-            Linear(50, 25),
-            Linear(25, 12),
-            Linear(12, 6),
-            Linear(6, 1)
-        ]
+        layers = [Linear(100, 50), Linear(50, 25), Linear(25, 12), Linear(12, 6), Linear(6, 1)]
 
         x = Tensor(rng.standard_normal((16, 100)))
 

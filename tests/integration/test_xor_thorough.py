@@ -2,11 +2,13 @@
 """
 Thorough XOR test to verify multi-layer networks work correctly.
 """
+
 import sys
-sys.path.insert(0, '.')
+
+sys.path.insert(0, ".")
 
 import numpy as np
-from trentorch import Tensor, Linear, ReLU, Sigmoid, BinaryCrossEntropyLoss, SGD
+from trentorch import SGD, BinaryCrossEntropyLoss, Linear, ReLU, Sigmoid, Tensor
 
 print("=" * 70)
 print("🧪 THOROUGH XOR TEST - Verifying Multi-Layer Networks")
@@ -36,9 +38,9 @@ loss_fn = BinaryCrossEntropyLoss()
 
 # Try different learning rates
 for lr in [1.0, 0.5, 0.1]:
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"🔥 Training with learning rate: {lr}")
-    print('='*70)
+    print("=" * 70)
 
     # Reset network
     hidden = Linear(2, hidden_size)
@@ -64,7 +66,7 @@ for lr in [1.0, 0.5, 0.1]:
 
         if (epoch + 1) % 200 == 0:
             accuracy = ((pred.data > 0.5).astype(float) == y.data).mean()
-            print(f"Epoch {epoch+1:4d}/{epochs}  Loss: {loss.data:.4f}  Accuracy: {accuracy:.1%}")
+            print(f"Epoch {epoch + 1:4d}/{epochs}  Loss: {loss.data:.4f}  Accuracy: {accuracy:.1%}")
 
     # Final evaluation
     print("\n✅ Final Predictions:")

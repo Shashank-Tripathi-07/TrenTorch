@@ -14,8 +14,9 @@ These tests catch issues at module boundaries in the NLP stack.
 Modules tested: 10-13 (Tokenization → Embeddings → Attention → Transformers)
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -23,13 +24,13 @@ from pathlib import Path
 # Add project root
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
+from trentorch.core.attention import MultiHeadAttention
 from trentorch.core.autograd import enable_autograd
 from trentorch.core.embeddings import Embedding
-from trentorch.core.attention import MultiHeadAttention
-from trentorch.core.transformers import TransformerBlock
 from trentorch.core.layers import Linear
 from trentorch.core.losses import CrossEntropyLoss
+from trentorch.core.tensor import Tensor
+from trentorch.core.transformers import TransformerBlock
 
 # Enable autograd
 enable_autograd()
@@ -65,16 +66,12 @@ class TestEmbeddingGradientFlow:
         loss.backward()
 
         # Embedding weights should have gradients
-        assert embedding.weight.grad is not None, (
-            "Embedding weights did not receive gradients!"
-        )
+        assert embedding.weight.grad is not None, "Embedding weights did not receive gradients!"
 
         # Only used token embeddings should have non-zero gradients
         for token_id in [1, 5, 3, 7, 2]:  # Use raw values instead of iterating tensor
             grad_row = embedding.weight.grad[token_id]
-            assert np.any(grad_row != 0), (
-                f"Token {token_id} embedding has zero gradient!"
-            )
+            assert np.any(grad_row != 0), f"Token {token_id} embedding has zero gradient!"
 
     def test_repeated_tokens_accumulate_gradients(self):
         """Same token appearing twice should have accumulated gradient"""
@@ -103,7 +100,7 @@ class TestEmbeddingGradientFlow:
             f"Repeated token gradient not accumulated!\n"
             f"  Token 5 (appears 2x) grad: {grad_5}\n"
             f"  Token 2 (appears 1x) grad: {grad_2}\n"
-            f"  Expected ratio ~2, got {grad_5/grad_2:.2f}"
+            f"  Expected ratio ~2, got {grad_5 / grad_2:.2f}"
         )
 
 
@@ -127,10 +124,7 @@ class TestAttentionGradientFlow:
         attention = MultiHeadAttention(embed_dim, num_heads)
 
         # Random input sequence
-        x = Tensor(
-            rng.standard_normal((batch_size, seq_len, embed_dim)),
-            requires_grad=True
-        )
+        x = Tensor(rng.standard_normal((batch_size, seq_len, embed_dim)), requires_grad=True)
 
         # Forward pass (self-attention - single input for Q, K, V)
         output = attention.forward(x)
@@ -140,14 +134,12 @@ class TestAttentionGradientFlow:
         loss.backward()
 
         # All projection matrices should have gradients
-        projections = ['W_q', 'W_k', 'W_v', 'W_o']
+        projections = ["W_q", "W_k", "W_v", "W_o"]
         for proj_name in projections:
             if hasattr(attention, proj_name):
                 proj = getattr(attention, proj_name)
-                if hasattr(proj, 'weight'):
-                    assert proj.weight.grad is not None, (
-                        f"{proj_name} did not receive gradients!"
-                    )
+                if hasattr(proj, "weight"):
+                    assert proj.weight.grad is not None, f"{proj_name} did not receive gradients!"
 
     def test_attention_input_receives_gradients(self):
         """Input to attention must receive gradients for residual connections"""
@@ -156,10 +148,7 @@ class TestAttentionGradientFlow:
 
         attention = MultiHeadAttention(embed_dim, num_heads)
 
-        x = Tensor(
-            rng.standard_normal((1, 4, embed_dim)),
-            requires_grad=True
-        )
+        x = Tensor(rng.standard_normal((1, 4, embed_dim)), requires_grad=True)
 
         output = attention.forward(x)
         # Use tensor operation to maintain computation graph
@@ -167,13 +156,10 @@ class TestAttentionGradientFlow:
         loss.backward()
 
         assert x.grad is not None, (
-            "Input to attention did not receive gradients!\n"
-            "This breaks residual connections in Transformers."
+            "Input to attention did not receive gradients!\nThis breaks residual connections in Transformers."
         )
 
-        assert x.grad.shape == x.shape, (
-            f"Input gradient shape mismatch: {x.grad.shape} vs {x.shape}"
-        )
+        assert x.grad.shape == x.shape, f"Input gradient shape mismatch: {x.grad.shape} vs {x.shape}"
 
 
 class TestTransformerGradientFlow:
@@ -194,10 +180,7 @@ class TestTransformerGradientFlow:
 
         block = TransformerBlock(embed_dim, num_heads, ff_dim)
 
-        x = Tensor(
-            rng.standard_normal((1, 8, embed_dim)),
-            requires_grad=True
-        )
+        x = Tensor(rng.standard_normal((1, 8, embed_dim)), requires_grad=True)
 
         output = block.forward(x)
         # Use Tensor operation to preserve computation graph
@@ -205,15 +188,11 @@ class TestTransformerGradientFlow:
         loss.backward()
 
         # Input must receive gradients (for stacking blocks)
-        assert x.grad is not None, (
-            "Transformer block input did not receive gradients!"
-        )
+        assert x.grad is not None, "Transformer block input did not receive gradients!"
 
         # Gradient should not be too small (vanishing)
         grad_norm = np.linalg.norm(x.grad)
-        assert grad_norm > 1e-6, (
-            f"Vanishing gradients in transformer block: {grad_norm}"
-        )
+        assert grad_norm > 1e-6, f"Vanishing gradients in transformer block: {grad_norm}"
 
     def test_stacked_transformer_blocks(self):
         """Gradients must flow through multiple stacked blocks"""
@@ -224,10 +203,7 @@ class TestTransformerGradientFlow:
 
         blocks = [TransformerBlock(embed_dim, num_heads, ff_dim) for _ in range(num_layers)]
 
-        x = Tensor(
-            rng.standard_normal((1, 8, embed_dim)),
-            requires_grad=True
-        )
+        x = Tensor(rng.standard_normal((1, 8, embed_dim)), requires_grad=True)
 
         # Forward through all blocks
         h = x
@@ -239,15 +215,11 @@ class TestTransformerGradientFlow:
         loss.backward()
 
         # Input must receive gradients through all layers
-        assert x.grad is not None, (
-            f"Gradients did not flow through {num_layers} transformer blocks!"
-        )
+        assert x.grad is not None, f"Gradients did not flow through {num_layers} transformer blocks!"
 
         # Check gradient magnitude is reasonable
         grad_norm = np.linalg.norm(x.grad)
-        assert grad_norm > 1e-8, (
-            f"Severe vanishing gradients through {num_layers} blocks: {grad_norm}"
-        )
+        assert grad_norm > 1e-8, f"Severe vanishing gradients through {num_layers} blocks: {grad_norm}"
 
 
 class TestNLPPipelineEndToEnd:
@@ -295,9 +267,7 @@ class TestNLPPipelineEndToEnd:
         loss.backward()
 
         # Verify classifier received gradients
-        assert classifier.weight.grad is not None, (
-            "Classifier did not receive gradients!"
-        )
+        assert classifier.weight.grad is not None, "Classifier did not receive gradients!"
 
 
 # Quick smoke tests for CI

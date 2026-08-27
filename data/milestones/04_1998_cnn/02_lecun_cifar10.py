@@ -77,9 +77,11 @@ CIFAR-10 contains 60,000 32×32 color images in 10 classes:
 - 🆕 Augmentation: Reduces overfitting, better generalization
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 import argparse
 import time
@@ -89,16 +91,20 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.append(project_root)
 
 # Import TrenTorch components YOU BUILT!
-from trentorch.core.tensor import Tensor              # Module 02: YOU built this!
-from trentorch.core.layers import Linear             # Module 04: YOU built this!
-from trentorch.core.activations import ReLU, Softmax  # Module 03: YOU built this!
-from trentorch.core.spatial import Conv2d, MaxPool2d, BatchNorm2d  # Module 09: YOU built this!
-from trentorch.core.optimizers import Adam            # Module 07: YOUR optimizer!
-from trentorch.core.dataloader import DataLoader, Dataset  # Module 05: YOU built this!
-from trentorch.core.dataloader import RandomHorizontalFlip, RandomCrop, Compose  # Module 05: Data Augmentation!
-
 # Import dataset manager
 from data_manager import DatasetManager
+from trentorch.core.activations import ReLU  # Module 03: YOU built this!
+from trentorch.core.dataloader import (  # Module 05: YOU built this!
+    Compose,
+    DataLoader,
+    Dataset,
+    RandomCrop,
+    RandomHorizontalFlip,
+)  # Module 05: Data Augmentation!
+from trentorch.core.layers import Linear  # Module 04: YOU built this!
+from trentorch.core.optimizers import Adam  # Module 07: YOUR optimizer!
+from trentorch.core.spatial import BatchNorm2d, Conv2d, MaxPool2d  # Module 09: YOU built this!
+from trentorch.core.tensor import Tensor  # Module 02: YOU built this!
 
 # =============================================================================
 # 🎯 YOUR TRENTORCH MODULES IN ACTION
@@ -162,6 +168,7 @@ from data_manager import DatasetManager
 # The Dataset abstraction YOU built defines a contract: __len__() and __getitem__().
 # This simple interface lets YOUR DataLoader handle any data source uniformly.
 
+
 class CIFARDataset(Dataset):
     """Custom CIFAR-10 Dataset using YOUR Dataset interface from Module 05!
 
@@ -197,10 +204,12 @@ class CIFARDataset(Dataset):
 
 
 # Training augmentation using YOUR transforms from Module 05!
-train_transforms = Compose([
-    RandomHorizontalFlip(p=0.5),   # 50% chance to flip - cars/animals look similar flipped!
-    RandomCrop(32, padding=4),      # Random crop with 4px padding - simulates translation
-])
+train_transforms = Compose(
+    [
+        RandomHorizontalFlip(p=0.5),  # 50% chance to flip - cars/animals look similar flipped!
+        RandomCrop(32, padding=4),  # Random crop with 4px padding - simulates translation
+    ]
+)
 
 
 # =============================================================================
@@ -209,10 +218,12 @@ train_transforms = Compose([
 # CNNs revolutionized vision by exploiting spatial structure. YOUR Conv2d uses
 # local connectivity + weight sharing to detect patterns with 100x fewer params.
 
+
 def flatten(x):
     """Flatten spatial features for dense layers - YOUR implementation!"""
     batch_size = x.data.shape[0]
     return Tensor(x.data.reshape(batch_size, -1))
+
 
 class CIFARCNN:
     """
@@ -229,7 +240,7 @@ class CIFARCNN:
         print("🧠 Building CIFAR-10 CNN with YOUR Tren🔥Torch modules...")
 
         # Convolutional feature extractors - YOUR spatial modules!
-        self.conv1 = Conv2d(in_channels=3, out_channels=32, kernel_size=(3, 3))   # Module 09!
+        self.conv1 = Conv2d(in_channels=3, out_channels=32, kernel_size=(3, 3))  # Module 09!
         self.bn1 = BatchNorm2d(32)  # Module 09: YOUR BatchNorm! Stabilizes training
         self.conv2 = Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3))  # Module 09!
         self.bn2 = BatchNorm2d(64)  # Module 09: YOUR BatchNorm!
@@ -241,23 +252,23 @@ class CIFARCNN:
         # Dense classification head
         # After conv1(32→30)→pool(15)→conv2(13)→pool(6): 64*6*6 = 2304 features
         self.fc1 = Linear(64 * 6 * 6, 256)  # Module 04: YOUR Linear!
-        self.fc2 = Linear(256, 10)          # Module 04: YOUR Linear!
+        self.fc2 = Linear(256, 10)  # Module 04: YOUR Linear!
 
         # Training mode flag
         self._training = True
 
         # Calculate total parameters (including BatchNorm gamma/beta)
-        conv1_params = 3 * 3 * 3 * 32 + 32     # 3×3 kernels, 3→32 channels
-        bn1_params = 32 * 2                    # gamma + beta
-        conv2_params = 3 * 3 * 32 * 64 + 64    # 3×3 kernels, 32→64 channels
-        bn2_params = 64 * 2                    # gamma + beta
-        fc1_params = 64 * 6 * 6 * 256 + 256    # Flattened→256
-        fc2_params = 256 * 10 + 10             # 256→10 classes
+        conv1_params = 3 * 3 * 3 * 32 + 32  # 3×3 kernels, 3→32 channels
+        bn1_params = 32 * 2  # gamma + beta
+        conv2_params = 3 * 3 * 32 * 64 + 64  # 3×3 kernels, 32→64 channels
+        bn2_params = 64 * 2  # gamma + beta
+        fc1_params = 64 * 6 * 6 * 256 + 256  # Flattened→256
+        fc2_params = 256 * 10 + 10  # 256→10 classes
         self.total_params = conv1_params + bn1_params + conv2_params + bn2_params + fc1_params + fc2_params
 
-        print(f"   Conv1: 3→32 channels + BatchNorm (YOUR modules!)")
-        print(f"   Conv2: 32→64 channels + BatchNorm (YOUR modules!)")
-        print(f"   Dense: 2304→256→10 (YOUR Linear classification)")
+        print("   Conv1: 3→32 channels + BatchNorm (YOUR modules!)")
+        print("   Conv2: 32→64 channels + BatchNorm (YOUR modules!)")
+        print("   Dense: 2304→256→10 (YOUR Linear classification)")
         print(f"   Total parameters: {self.total_params:,}")
 
     def train(self):
@@ -277,22 +288,22 @@ class CIFARCNN:
     def forward(self, x):
         """Forward pass through YOUR CNN architecture."""
         # First conv block: Conv → BatchNorm → ReLU → Pool (modern pattern)
-        x = self.conv1(x)           # Module 09: YOUR Conv2d!
-        x = self.bn1(x)             # Module 09: YOUR BatchNorm! Normalizes activations
-        x = self.relu(x)            # Module 03: YOUR ReLU!
-        x = self.pool(x)            # Module 09: YOUR MaxPool2d!
+        x = self.conv1(x)  # Module 09: YOUR Conv2d!
+        x = self.bn1(x)  # Module 09: YOUR BatchNorm! Normalizes activations
+        x = self.relu(x)  # Module 03: YOUR ReLU!
+        x = self.pool(x)  # Module 09: YOUR MaxPool2d!
 
         # Second conv block: Same modern pattern
-        x = self.conv2(x)           # Module 09: YOUR Conv2d!
-        x = self.bn2(x)             # Module 09: YOUR BatchNorm!
-        x = self.relu(x)            # Module 03: YOUR ReLU!
-        x = self.pool(x)            # Module 09: YOUR MaxPool2d!
+        x = self.conv2(x)  # Module 09: YOUR Conv2d!
+        x = self.bn2(x)  # Module 09: YOUR BatchNorm!
+        x = self.relu(x)  # Module 03: YOUR ReLU!
+        x = self.pool(x)  # Module 09: YOUR MaxPool2d!
 
         # Flatten and classify
-        x = flatten(x)              # Module 09: YOUR spatial→dense bridge!
-        x = self.fc1(x)             # Module 04: YOUR Linear!
-        x = self.relu(x)            # Module 03: YOUR ReLU!
-        x = self.fc2(x)             # Module 04: YOUR classification!
+        x = flatten(x)  # Module 09: YOUR spatial→dense bridge!
+        x = self.fc1(x)  # Module 04: YOUR Linear!
+        x = self.relu(x)  # Module 03: YOUR ReLU!
+        x = self.fc2(x)  # Module 04: YOUR classification!
 
         return x
 
@@ -303,19 +314,27 @@ class CIFARCNN:
     def parameters(self):
         """Get all trainable parameters from YOUR layers."""
         return [
-            self.conv1.weight, self.conv1.bias,
-            self.bn1.gamma, self.bn1.beta,
-            self.conv2.weight, self.conv2.bias,
-            self.bn2.gamma, self.bn2.beta,
-            self.fc1.weights, self.fc1.bias,
-            self.fc2.weights, self.fc2.bias
+            self.conv1.weight,
+            self.conv1.bias,
+            self.bn1.gamma,
+            self.bn1.beta,
+            self.conv2.weight,
+            self.conv2.bias,
+            self.bn2.gamma,
+            self.bn2.beta,
+            self.fc1.weights,
+            self.fc1.bias,
+            self.fc2.weights,
+            self.fc2.bias,
         ]
+
 
 # =============================================================================
 # VISUALIZATIONS - Teaching Aids for Understanding
 # =============================================================================
 # These ASCII diagrams make the invisible visible - showing how YOUR DataLoader
 # batches data and how YOUR CNN extracts hierarchical features from images.
+
 
 def visualize_dataloader(train_size, test_size, batch_size):
     """Show how YOUR DataLoader processes data - making the invisible visible!"""
@@ -350,11 +369,11 @@ def visualize_dataloader(train_size, test_size, batch_size):
     print("              |")
     print("              v YOUR DataLoader creates batches")
     print("              |")
-    print(f"  +--------------+  +--------------+       +--------------+")
+    print("  +--------------+  +--------------+       +--------------+")
     print(f"  | Batch 1      |  | Batch 2      |  ...  | Batch {batches_per_epoch:<5} |")
     print(f"  | {batch_size} images   |  | {batch_size} images   |       | {last_batch_size:<2} images   |")
-    print(f"  | shuffled!    |  | shuffled!    |       | (remainder)  |")
-    print(f"  +--------------+  +--------------+       +--------------+")
+    print("  | shuffled!    |  | shuffled!    |       | (remainder)  |")
+    print("  +--------------+  +--------------+       +--------------+")
     print("              |")
     print("              v Fed to YOUR CNN one batch at a time")
     print("              |")
@@ -365,15 +384,15 @@ def visualize_dataloader(train_size, test_size, batch_size):
     mem_batch = batch_size * 32 * 32 * 3 / (1024 * 1024)
     print(f"    * Without batching: {train_size:,} x 32x32x3 = {mem_all:.1f} MB in memory")
     print(f"    * With YOUR DataLoader: {batch_size} x 32x32x3 = {mem_batch:.2f} MB per batch")
-    print(f"    * Shuffling: Prevents model from memorizing order")
+    print("    * Shuffling: Prevents model from memorizing order")
     print("=" * 70)
 
 
 def visualize_cifar_cnn():
     """Show how CNNs process natural images."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🖼️  VISUALIZING CNN FEATURE EXTRACTION:")
-    print("="*70)
+    print("=" * 70)
 
     print("""
     How YOUR CNN Sees Images:           Feature Maps at Each Layer:
@@ -402,7 +421,8 @@ def visualize_cifar_cnn():
     ✓ TRANSLATION INVARIANCE: Detects patterns anywhere
     ✓ AUTOMATIC FEATURE LEARNING: No manual engineering!
     """)
-    print("="*70)
+    print("=" * 70)
+
 
 # =============================================================================
 # TRAINING LOOP - Your Modules Working Together
@@ -410,14 +430,15 @@ def visualize_cifar_cnn():
 # Watch YOUR complete ML system in action: DataLoader batches images, CNN extracts
 # features, Autograd computes gradients, Adam updates 600K+ parameters each step.
 
+
 def train_cifar_cnn(model, train_loader, epochs=3, learning_rate=0.001):
     """Train CNN using YOUR complete training system with DataLoader!"""
     print("\n🚀 Training CIFAR-10 CNN with YOUR Tren🔥Torch!")
     print(f"   Dataset: {len(train_loader.dataset)} color images")
     print(f"   Batch size: {train_loader.batch_size}")
-    print(f"   YOUR DataLoader (Module 05) handles batching!")
-    print(f"   YOUR BatchNorm (Module 09) uses batch statistics!")
-    print(f"   YOUR Adam optimizer (Module 07)!")
+    print("   YOUR DataLoader (Module 05) handles batching!")
+    print("   YOUR BatchNorm (Module 09) uses batch statistics!")
+    print("   YOUR Adam optimizer (Module 07)!")
 
     # Set model to training mode - BatchNorm uses batch statistics
     model.train()
@@ -426,7 +447,7 @@ def train_cifar_cnn(model, train_loader, epochs=3, learning_rate=0.001):
     optimizer = Adam(model.parameters(), learning_rate=learning_rate)
 
     for epoch in range(epochs):
-        print(f"\n   Epoch {epoch+1}/{epochs}:")
+        print(f"\n   Epoch {epoch + 1}/{epochs}:")
         epoch_loss = 0
         correct = 0
         total = 0
@@ -449,7 +470,7 @@ def train_cifar_cnn(model, train_loader, epochs=3, learning_rate=0.001):
 
             # Cross-entropy: -sum(y * log(softmax(x)))
             # Apply softmax first - handle nested data access
-            outputs_np = np.array(outputs.data.data if hasattr(outputs.data, 'data') else outputs.data)
+            outputs_np = np.array(outputs.data.data if hasattr(outputs.data, "data") else outputs.data)
             exp_outputs = np.exp(outputs_np - np.max(outputs_np, axis=1, keepdims=True))
             softmax_outputs = exp_outputs / np.sum(exp_outputs, axis=1, keepdims=True)
 
@@ -459,8 +480,8 @@ def train_cifar_cnn(model, train_loader, epochs=3, learning_rate=0.001):
 
             # Backward pass with YOUR autograd
             optimizer.zero_grad()  # Module 07!
-            loss.backward()        # Module 06: YOUR autodiff!
-            optimizer.step()       # Module 07!
+            loss.backward()  # Module 06: YOUR autodiff!
+            optimizer.step()  # Module 07!
 
             # Track accuracy
             predictions = np.argmax(outputs_np, axis=1)
@@ -473,22 +494,25 @@ def train_cifar_cnn(model, train_loader, epochs=3, learning_rate=0.001):
             # Progress
             if (batch_idx + 1) % 20 == 0:
                 acc = 100 * correct / total
-                print(f"   Batch {batch_idx+1}: "
-                      f"Loss = {loss_value:.4f}, Accuracy = {acc:.1f}%")
+                print(f"   Batch {batch_idx + 1}: Loss = {loss_value:.4f}, Accuracy = {acc:.1f}%")
 
         # Epoch summary
         epoch_acc = 100 * correct / total
         avg_loss = epoch_loss / max(1, batch_count)
-        print(f"   → Epoch Complete: Loss = {avg_loss:.4f}, "
-              f"Accuracy = {epoch_acc:.1f}% (YOUR CNN + DataLoader!)")
+        print(
+            f"   → Epoch Complete: Loss = {avg_loss:.4f}, "
+            f"Accuracy = {epoch_acc:.1f}% (YOUR CNN + DataLoader!)"
+        )
 
     return model
+
 
 # =============================================================================
 # TESTING - Evaluating Your CNN on Unseen Images
 # =============================================================================
 # True test of generalization: YOUR CNN must classify images it never saw during
 # training. BatchNorm switches to running statistics, no augmentation applied.
+
 
 def test_cifar_cnn(model, test_loader, class_names):
     """Test YOUR CNN on CIFAR-10 test set using DataLoader."""
@@ -510,7 +534,7 @@ def test_cifar_cnn(model, test_loader, class_names):
 
         outputs = model(batch_data)
 
-        outputs_np = np.array(outputs.data.data if hasattr(outputs.data, 'data') else outputs.data)
+        outputs_np = np.array(outputs.data.data if hasattr(outputs.data, "data") else outputs.data)
         predictions = np.argmax(outputs_np, axis=1)
         batch_y = batch_labels.data.flatten()
         correct += np.sum(predictions == batch_y)
@@ -529,7 +553,7 @@ def test_cifar_cnn(model, test_loader, class_names):
 
     # Per-class performance
     print("\n   Per-Class Performance (YOUR CNN's understanding):")
-    print("   " + "─"*50)
+    print("   " + "─" * 50)
     print("   │ Class      │ Accuracy │ Visual               │")
     print("   ├────────────┼──────────┼──────────────────────┤")
 
@@ -540,7 +564,7 @@ def test_cifar_cnn(model, test_loader, class_names):
             bar = "█" * bar_length + "░" * (20 - bar_length)
             print(f"   │ {class_name:10} │  {class_acc:5.1f}%  │ {bar} │")
 
-    print("   " + "─"*50)
+    print("   " + "─" * 50)
 
     if accuracy >= 65:
         print("\n   🎉 EXCELLENT! YOUR CNN mastered natural image recognition!")
@@ -551,27 +575,29 @@ def test_cifar_cnn(model, test_loader, class_names):
 
     return accuracy
 
+
 # =============================================================================
 # SYSTEMS ANALYSIS - Understanding the Engineering Trade-offs
 # =============================================================================
 # ML systems is about understanding trade-offs: parameters vs. computation,
 # memory vs. speed, accuracy vs. efficiency. YOUR CNN embodies these choices.
 
+
 def analyze_cnn_systems(model, batch_size=32):
     """Analyze YOUR CNN from an ML systems perspective."""
     print("\n🔬 SYSTEMS ANALYSIS of YOUR CNN Implementation:")
 
-    print(f"\n   Model Architecture:")
-    print(f"   • Convolutional layers: 2 (3→32→64 channels)")
-    print(f"   • Pooling layers: 2 (2×2 max pooling)")
-    print(f"   • Dense layers: 2 (2304→256→10)")
+    print("\n   Model Architecture:")
+    print("   • Convolutional layers: 2 (3→32→64 channels)")
+    print("   • Pooling layers: 2 (2×2 max pooling)")
+    print("   • Dense layers: 2 (2304→256→10)")
     print(f"   • Total parameters: {model.total_params:,}")
 
-    print(f"\n   Computational Complexity:")
-    print(f"   • Conv1: 32×30×30×(3×3×3) = 777,600 ops")
-    print(f"   • Conv2: 64×13×13×(3×3×32) = 3,093,504 ops")
-    print(f"   • Dense: 2,304×256 + 256×10 = 592,384 ops")
-    print(f"   • Total: ~4.5M ops per image")
+    print("\n   Computational Complexity:")
+    print("   • Conv1: 32×30×30×(3×3×3) = 777,600 ops")
+    print("   • Conv2: 64×13×13×(3×3×32) = 3,093,504 ops")
+    print("   • Dense: 2,304×256 + 256×10 = 592,384 ops")
+    print("   • Total: ~4.5M ops per image")
 
     # Memory profiling table - quantitative systems thinking
     params_mem = model.total_params * 4 / 1024  # KB
@@ -579,30 +605,35 @@ def analyze_cnn_systems(model, batch_size=32):
     batch_mem = batch_size * 32 * 32 * 3 * 4 / 1024  # Input batch in KB
     total_mem = params_mem + activations_mem + batch_mem
 
-    print(f"\n   🧮 MEMORY PROFILING - Where YOUR RAM Goes:")
-    print(f"   ┌────────────────────────┬──────────────┬─────────────┐")
-    print(f"   │ Component              │ Memory (KB)  │ Percentage  │")
-    print(f"   ├────────────────────────┼──────────────┼─────────────┤")
-    print(f"   │ Parameters (weights)   │ {params_mem:10.1f}   │ {100*params_mem/total_mem:5.1f}%      │")
-    print(f"   │ Activations (forward)  │ {activations_mem:10.1f}   │ {100*activations_mem/total_mem:5.1f}%      │")
-    print(f"   │ Batch data ({batch_size} imgs)   │ {batch_mem:10.1f}   │ {100*batch_mem/total_mem:5.1f}%      │")
-    print(f"   ├────────────────────────┼──────────────┼─────────────┤")
+    print("\n   🧮 MEMORY PROFILING - Where YOUR RAM Goes:")
+    print("   ┌────────────────────────┬──────────────┬─────────────┐")
+    print("   │ Component              │ Memory (KB)  │ Percentage  │")
+    print("   ├────────────────────────┼──────────────┼─────────────┤")
+    print(f"   │ Parameters (weights)   │ {params_mem:10.1f}   │ {100 * params_mem / total_mem:5.1f}%      │")
+    print(
+        f"   │ Activations (forward)  │ {activations_mem:10.1f}   │ {100 * activations_mem / total_mem:5.1f}%      │"
+    )
+    print(
+        f"   │ Batch data ({batch_size} imgs)   │ {batch_mem:10.1f}   │ {100 * batch_mem / total_mem:5.1f}%      │"
+    )
+    print("   ├────────────────────────┼──────────────┼─────────────┤")
     print(f"   │ TOTAL per batch        │ {total_mem:10.1f}   │ 100.0%      │")
-    print(f"   └────────────────────────┴──────────────┴─────────────┘")
-    print(f"\n   💡 KEY INSIGHT: Activations dominate! This is why gradient checkpointing")
-    print(f"      trades compute (recompute activations) for memory (don't store them).")
+    print("   └────────────────────────┴──────────────┴─────────────┘")
+    print("\n   💡 KEY INSIGHT: Activations dominate! This is why gradient checkpointing")
+    print("      trades compute (recompute activations) for memory (don't store them).")
 
-    print(f"\n   🏛️ CNN Evolution:")
-    print(f"   • 1989: LeCun's CNN for handwritten digits")
-    print(f"   • 2012: AlexNet revolutionizes ImageNet")
-    print(f"   • 2015: ResNet enables 100+ layer networks")
-    print(f"   • YOUR CNN: Core principles that power them all!")
+    print("\n   🏛️ CNN Evolution:")
+    print("   • 1989: LeCun's CNN for handwritten digits")
+    print("   • 2012: AlexNet revolutionizes ImageNet")
+    print("   • 2015: ResNet enables 100+ layer networks")
+    print("   • YOUR CNN: Core principles that power them all!")
 
-    print(f"\n   💡 Why CNNs Dominate Vision:")
-    print(f"   • Spatial hierarchy matches visual cortex")
-    print(f"   • Parameter sharing: 3×3 kernel vs 32×32 dense")
-    print(f"   • Translation invariance from weight sharing")
-    print(f"   • YOUR implementation demonstrates all of these!")
+    print("\n   💡 Why CNNs Dominate Vision:")
+    print("   • Spatial hierarchy matches visual cortex")
+    print("   • Parameter sharing: 3×3 kernel vs 32×32 dense")
+    print("   • Translation invariance from weight sharing")
+    print("   • YOUR implementation demonstrates all of these!")
+
 
 # =============================================================================
 # MAIN - Orchestrating Your Complete ML System
@@ -610,20 +641,16 @@ def analyze_cnn_systems(model, batch_size=32):
 # The main function ties everything together: data loading, model creation,
 # training, testing, and analysis. This is YOUR end-to-end ML pipeline.
 
+
 def main():
     """Demonstrate CIFAR-10 CNN using YOUR Tren🔥Torch!"""
 
-    parser = argparse.ArgumentParser(description='CIFAR-10 CNN')
-    parser.add_argument('--test-only', action='store_true',
-                       help='Test architecture only')
-    parser.add_argument('--epochs', type=int, default=3,
-                       help='Training epochs (demo mode)')
-    parser.add_argument('--batch-size', type=int, default=32,
-                       help='Batch size')
-    parser.add_argument('--visualize', action='store_true', default=True,
-                       help='Show CNN visualization')
-    parser.add_argument('--quick-test', action='store_true',
-                       help='Use small subset for testing')
+    parser = argparse.ArgumentParser(description="CIFAR-10 CNN")
+    parser.add_argument("--test-only", action="store_true", help="Test architecture only")
+    parser.add_argument("--epochs", type=int, default=3, help="Training epochs (demo mode)")
+    parser.add_argument("--batch-size", type=int, default=32, help="Batch size")
+    parser.add_argument("--visualize", action="store_true", default=True, help="Show CNN visualization")
+    parser.add_argument("--quick-test", action="store_true", help="Use small subset for testing")
     args = parser.parse_args()
 
     print("🎯 CIFAR-10 CNN - Natural Image Recognition with YOUR Convolution Modules!")
@@ -636,8 +663,7 @@ def main():
         visualize_cifar_cnn()
 
     # Class names
-    class_names = ['plane', 'car', 'bird', 'cat', 'deer',
-                   'dog', 'frog', 'horse', 'ship', 'truck']
+    class_names = ["plane", "car", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
 
     # Step 1: Load CIFAR-10
     print("\n📥 Loading CIFAR-10 dataset...")
@@ -668,7 +694,7 @@ def main():
     # Show DataLoader visualization - make YOUR implementation visible!
     visualize_dataloader(len(train_dataset), len(test_dataset), args.batch_size)
 
-    print(f"\n   ✅ Data Augmentation: RandomFlip + RandomCrop (training only)")
+    print("\n   ✅ Data Augmentation: RandomFlip + RandomCrop (training only)")
 
     # Step 3: Build CNN
     model = CIFARCNN()
@@ -718,6 +744,7 @@ def main():
     print("   • Continue to TinyGPT after Module 14 (Transformers)")
     print("   • YOUR spatial understanding scales to segmentation, detection, etc.")
     print(f"   • With {accuracy:.1f}% accuracy, YOUR computer vision works!")
+
 
 if __name__ == "__main__":
     main()

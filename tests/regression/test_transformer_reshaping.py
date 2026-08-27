@@ -33,19 +33,21 @@ This regression test ensures transformer outputs can be properly passed to Linea
 for vocabulary projection in language models.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Add parent directory to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear
-from trentorch.core.transformers import TransformerBlock, LayerNorm
-from trentorch.core.embeddings import Embedding, PositionalEncoding
 from trentorch.core.attention import MultiHeadAttention
+from trentorch.core.embeddings import Embedding, PositionalEncoding
+from trentorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
+from trentorch.core.transformers import TransformerBlock
 
 
 def test_transformer_to_linear_3d_to_2d():
@@ -63,12 +65,7 @@ def test_transformer_to_linear_3d_to_2d():
     vocab_size = 1000
 
     # Create transformer and output projection
-    transformer = TransformerBlock(
-        embed_dim=embed_dim,
-        num_heads=num_heads,
-        mlp_ratio=4,
-        dropout_prob=0.1
-    )
+    transformer = TransformerBlock(embed_dim=embed_dim, num_heads=num_heads, mlp_ratio=4, dropout_prob=0.1)
     output_proj = Linear(embed_dim, vocab_size)
 
     # Create dummy input (batch, seq, embed)
@@ -151,14 +148,10 @@ def test_full_gpt_architecture_shapes():
 
     # Stack of transformer blocks
     for i in range(num_layers):
-        transformer = TransformerBlock(
-            embed_dim=embed_dim,
-            num_heads=num_heads,
-            mlp_ratio=4
-        )
+        transformer = TransformerBlock(embed_dim=embed_dim, num_heads=num_heads, mlp_ratio=4)
         x = transformer(x)
         assert x.shape == (batch_size, seq_length, embed_dim)
-        print(f"After transformer {i+1}: {x.shape}")
+        print(f"After transformer {i + 1}: {x.shape}")
 
     # Output projection (with proper reshaping)
     output_proj = Linear(embed_dim, vocab_size)
@@ -203,7 +196,7 @@ def test_attention_kv_cache_shapes():
 
     # Process one token at a time (for autoregressive generation)
     for t in range(seq_length):
-        x_t = x[:, t:t+1, :]  # Single token
+        x_t = x[:, t : t + 1, :]  # Single token
         output_t = mha(x_t)
         assert output_t.shape == (batch_size, 1, embed_dim)
         print(f"  Token {t} output: {output_t.shape}")
@@ -240,9 +233,9 @@ def test_embedding_dimension_compatibility():
 
 
 if __name__ == "__main__":
-    print("="*60)
+    print("=" * 60)
     print("REGRESSION TEST: Transformer 3D to Linear 2D Reshaping")
-    print("="*60)
+    print("=" * 60)
 
     # Import required modules for testing
     try:

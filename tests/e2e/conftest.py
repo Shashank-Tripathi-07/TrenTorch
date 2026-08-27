@@ -4,8 +4,6 @@ E2E Test Configuration
 Registers pytest markers for categorizing tests by speed and purpose.
 """
 
-import pytest
-
 
 def pytest_configure(config):
     """Register custom markers for E2E tests."""

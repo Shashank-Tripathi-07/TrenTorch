@@ -12,13 +12,14 @@ Tests for the parts of Module 08 that are implemented but have no test coverage:
 - Trainer train → eval mode switching
 """
 
-import numpy as np
 import os
 import pickle
-import tempfile
-import pytest
 import sys
+import tempfile
 from pathlib import Path
+
+import numpy as np
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
@@ -26,16 +27,16 @@ from trentorch.core.autograd import enable_autograd
 
 enable_autograd()
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.layers import Linear
-from trentorch.core.losses import MSELoss, CrossEntropyLoss
+from trentorch.core.losses import CrossEntropyLoss, MSELoss
 from trentorch.core.optimizers import SGD
-from trentorch.core.training import Trainer, CosineSchedule, clip_grad_norm
-
+from trentorch.core.tensor import Tensor
+from trentorch.core.training import CosineSchedule, Trainer, clip_grad_norm
 
 # ─────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────
+
 
 def simple_model():
     """Linear(2→1) model with known initial weights for deterministic tests."""
@@ -54,6 +55,7 @@ def simple_trainer(lr=0.01, scheduler=None, grad_clip=None):
 # ─────────────────────────────────────────────
 # CosineSchedule
 # ─────────────────────────────────────────────
+
 
 class TestCosineSchedule:
     """CosineSchedule returns correct learning rates."""
@@ -82,7 +84,7 @@ class TestCosineSchedule:
         lrs = [s.get_lr(e) for e in range(101)]
         for i in range(len(lrs) - 1):
             assert lrs[i] >= lrs[i + 1], (
-                f"LR should be non-increasing: lr[{i}]={lrs[i]:.6f} > lr[{i+1}]={lrs[i+1]:.6f}"
+                f"LR should be non-increasing: lr[{i}]={lrs[i]:.6f} > lr[{i + 1}]={lrs[i + 1]:.6f}"
             )
 
     def test_past_total_epochs_returns_min_lr(self):
@@ -99,6 +101,7 @@ class TestCosineSchedule:
 # ─────────────────────────────────────────────
 # clip_grad_norm
 # ─────────────────────────────────────────────
+
 
 class TestClipGradNorm:
     """clip_grad_norm clips gradient magnitudes and returns the original norm."""
@@ -156,6 +159,7 @@ class TestClipGradNorm:
 # ─────────────────────────────────────────────
 # Checkpoint round-trip
 # ─────────────────────────────────────────────
+
 
 class TestCheckpointing:
     """save_checkpoint / load_checkpoint preserve all training state."""
@@ -264,6 +268,7 @@ class TestCheckpointing:
 # Trainer.evaluate
 # ─────────────────────────────────────────────
 
+
 class TestTrainerEvaluate:
     """Trainer.evaluate computes correct metrics without modifying the model."""
 
@@ -309,6 +314,7 @@ class TestTrainerEvaluate:
 
     def test_classification_accuracy(self):
         """Accuracy is 1.0 when argmax predictions match integer targets."""
+
         class PerfectClassifier:
             training = True
 
@@ -332,13 +338,14 @@ class TestTrainerEvaluate:
 
     def test_zero_accuracy_for_wrong_predictions(self):
         """Accuracy is 0.0 when predictions are always wrong."""
+
         class WrongClassifier:
             training = True
 
             def forward(self, x):
                 batch = x.data.shape[0]
                 logits = np.zeros((batch, 3))
-                logits[:, 1] = 10.0   # always predicts class 1
+                logits[:, 1] = 10.0  # always predicts class 1
                 return Tensor(logits)
 
             def parameters(self):
@@ -356,6 +363,7 @@ class TestTrainerEvaluate:
 # ─────────────────────────────────────────────
 # Scheduler integration
 # ─────────────────────────────────────────────
+
 
 class TestSchedulerIntegration:
     """CosineSchedule is applied correctly during train_epoch."""
@@ -395,13 +403,14 @@ class TestSchedulerIntegration:
         lrs = trainer.history["learning_rates"]
         for i in range(len(lrs) - 1):
             assert lrs[i] >= lrs[i + 1], (
-                f"LR should decrease: lrs[{i}]={lrs[i]:.6f} > lrs[{i+1}]={lrs[i+1]:.6f}"
+                f"LR should decrease: lrs[{i}]={lrs[i]:.6f} > lrs[{i + 1}]={lrs[i + 1]:.6f}"
             )
 
 
 # ─────────────────────────────────────────────
 # Gradient clipping integration
 # ─────────────────────────────────────────────
+
 
 class TestGradientClippingIntegration:
     """Gradient clipping actually limits gradient norms during training."""
@@ -439,14 +448,13 @@ class TestGradientClippingIntegration:
 
         update_clipped = np.abs(model_clipped.parameters()[0].data - w0).max()
         update_free = np.abs(model_free.parameters()[0].data - w0).max()
-        assert update_clipped < update_free, (
-            "Tightly clipped update should be smaller than unclipped update"
-        )
+        assert update_clipped < update_free, "Tightly clipped update should be smaller than unclipped update"
 
 
 # ─────────────────────────────────────────────
 # Train / eval mode switching
 # ─────────────────────────────────────────────
+
 
 class TestTrainEvalMode:
     """Trainer correctly switches model between train and eval mode."""

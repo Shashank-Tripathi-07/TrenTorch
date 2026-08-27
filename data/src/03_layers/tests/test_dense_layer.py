@@ -2,8 +2,9 @@
 Tests for Module 04: Linear/Networks
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -18,11 +19,13 @@ class TestLinearExports:
     def test_dense_import(self):
         """Test Linear can be imported from correct location."""
         from trentorch.core.layers import Linear
+
         assert Linear is not None
 
     def test_dense_creation(self):
         """Test Linear layer can be created."""
         from trentorch.core.layers import Linear
+
         layer = Linear(10, 5)
         assert layer.weight.shape == (10, 5)
 
@@ -83,8 +86,8 @@ class TestLinearIntegration:
 
     def test_dense_with_activations(self):
         """Test Linear works with activations (Module 03)."""
-        from trentorch.core.layers import Linear
         from trentorch.core.activations import ReLU, Sigmoid
+        from trentorch.core.layers import Linear
         from trentorch.core.tensor import Tensor
 
         layer = Linear(10, 5)

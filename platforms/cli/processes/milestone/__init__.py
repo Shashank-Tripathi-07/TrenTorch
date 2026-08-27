@@ -8,14 +8,19 @@ doesn't change any import path outside of it.
 """
 
 from .command import MilestoneCommand
-from .constants import MILESTONE_ALIASES, MILESTONE_SCRIPTS, MILESTONE_ACHIEVEMENT_HIGHLIGHTS, MODULE_EXPORT_CHECKS
+from .constants import (
+    MILESTONE_ACHIEVEMENT_HIGHLIGHTS,
+    MILESTONE_ALIASES,
+    MILESTONE_SCRIPTS,
+    MODULE_EXPORT_CHECKS,
+)
 from .system import (
     MilestoneSystem,
-    check_and_run_milestone_unlocks,
-    _module_progress_to_int,
     _load_completed_module_numbers,
+    _module_progress_to_int,
     _required_modules_for,
     _validate_required_exports,
+    check_and_run_milestone_unlocks,
 )
 
 __all__ = [
@@ -26,4 +31,8 @@ __all__ = [
     "MILESTONE_SCRIPTS",
     "MILESTONE_ACHIEVEMENT_HIGHLIGHTS",
     "MODULE_EXPORT_CHECKS",
+    "_load_completed_module_numbers",
+    "_module_progress_to_int",
+    "_required_modules_for",
+    "_validate_required_exports",
 ]

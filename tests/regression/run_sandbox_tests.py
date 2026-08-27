@@ -7,21 +7,22 @@ All core infrastructure must work perfectly so students can
 focus on learning ML systems, not debugging framework issues.
 """
 
-import sys
-import os
 import importlib
+import os
+import sys
 
 # Test modules to run
 TEST_MODULES = [
-    'test_conv_linear_dimensions',
-    'test_transformer_reshaping',
+    "test_conv_linear_dimensions",
+    "test_transformer_reshaping",
 ]
+
 
 def run_sandbox_tests():
     """Run all sandbox integrity tests."""
-    print("="*60)
+    print("=" * 60)
     print("🧪 TRENTORCH SANDBOX INTEGRITY CHECK")
-    print("="*60)
+    print("=" * 60)
     print("\nEnsuring the learning environment is robust...\n")
 
     all_passed = True
@@ -34,18 +35,18 @@ def run_sandbox_tests():
             module = importlib.import_module(test_module)
 
             # Look for a main function or run tests directly
-            if hasattr(module, 'main'):
-                result = module.main()
-            elif '__main__' in dir(module):
+            if hasattr(module, "main"):
+                module.main()
+            elif "__main__" in dir(module):
                 # Module runs tests when imported
-                result = True
+                pass
             else:
                 # Try to run all test functions
-                test_funcs = [f for f in dir(module) if f.startswith('test_')]
+                test_funcs = [f for f in dir(module) if f.startswith("test_")]
                 for func_name in test_funcs:
                     func = getattr(module, func_name)
                     func()
-                result = True
+                True
 
             results.append((test_module, True, "PASSED"))
             print(f"  ✅ {test_module}: PASSED\n")
@@ -57,9 +58,9 @@ def run_sandbox_tests():
             all_passed = False
 
     # Summary
-    print("="*60)
+    print("=" * 60)
     print("📊 SANDBOX TEST SUMMARY")
-    print("="*60)
+    print("=" * 60)
 
     for module, passed, status in results:
         icon = "✅" if passed else "❌"
@@ -74,6 +75,7 @@ def run_sandbox_tests():
         print("Some infrastructure tests failed.")
         print("Students might encounter framework issues.")
         return 1
+
 
 if __name__ == "__main__":
     # Add the test directory to path

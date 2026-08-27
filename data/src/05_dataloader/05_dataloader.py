@@ -69,9 +69,11 @@ import random
 import sys
 import time
 from abc import ABC, abstractmethod
-from typing import Iterator, List, Tuple
+from collections.abc import Iterator
+from typing import List, Tuple
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Import real Tensor class from trentorch package
@@ -159,46 +161,10 @@ Dataset Interface
 First, we implement the abstract Dataset base class that defines the interface.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "dataset-implementation", "solution": true}
-
-class Dataset(ABC):
-    """
-    Abstract base class for all datasets.
-
-    Provides the fundamental interface that all datasets must implement:
-    - __len__(): Returns the total number of samples
-    - __getitem__(idx): Returns the sample at given index
-
-    TODO: Implement the abstract Dataset base class
-
-    APPROACH:
-    1. Use ABC (Abstract Base Class) to define interface
-    2. Mark methods as @abstractmethod to force implementation
-    3. Provide clear docstrings for subclasses
-
-    EXAMPLE:
-    >>> class MyDataset(Dataset):
-    ...     def __len__(self): return 100
-    ...     def __getitem__(self, idx): return idx
-    >>> dataset = MyDataset()
-    >>> print(len(dataset))  # 100
-    >>> print(dataset[42])   # 42
-
-    HINT: Abstract methods force subclasses to implement core functionality
-    """
-
-    ### BEGIN SOLUTION
-    @abstractmethod
-    def __len__(self) -> int:
-        raise NotImplementedError("TODO: implement __len__")
-    @abstractmethod
-    def __getitem__(self, idx: int):
-        raise NotImplementedError("TODO: implement __getitem__")
-    ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class Dataset(ABC):
     """
@@ -250,7 +216,9 @@ class Dataset(ABC):
             Could be (data, label) tuple, single tensor, etc.
         """
         pass
+
     ### END SOLUTION
+
 
 # %% [markdown]
 """
@@ -262,6 +230,7 @@ This test validates our Dataset abstract base class is properly defined.
 **Why it matters**: Foundation interface for all dataset types
 **Expected**: Cannot instantiate abstract Dataset, can instantiate concrete implementations
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-dataset", "locked": true, "points": 10}
 def test_unit_dataset():
@@ -292,6 +261,7 @@ def test_unit_dataset():
     assert dataset[9] == "item_9"
 
     print("✅ Dataset interface works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_dataset()
@@ -361,105 +331,10 @@ The key insight: TensorDataset transforms "arrays of data" into "a dataset that 
 Now we implement TensorDataset for tensor-based data storage.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "tensordataset-implementation", "solution": true}
-
-class TensorDataset(Dataset):
-    """
-    Dataset wrapping tensors for supervised learning.
-
-    Each sample is a tuple of tensors from the same index across all input tensors.
-    All tensors must have the same size in their first dimension.
-
-    TODO: Implement TensorDataset for tensor-based data
-
-    APPROACH:
-    1. Store all input tensors
-    2. Validate they have same first dimension (number of samples)
-    3. Return tuple of tensor slices for each index
-
-    EXAMPLE:
-    >>> features = Tensor([[1, 2], [3, 4], [5, 6]])  # 3 samples, 2 features each
-    >>> labels = Tensor([0, 1, 0])                    # 3 labels
-    >>> dataset = TensorDataset(features, labels)
-    >>> print(len(dataset))  # 3
-    >>> print(dataset[1])    # (Tensor([3, 4]), Tensor(1))
-
-    HINTS:
-    - Use *tensors to accept variable number of tensor arguments
-    - Check all tensors have same length in dimension 0
-    - Return tuple of tensor[idx] for all tensors
-    """
-
-    def __init__(self, *tensors):
-        """
-        Create dataset from multiple tensors.
-
-        Args:
-            *tensors: Variable number of Tensor objects
-
-        All tensors must have the same size in their first dimension.
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement TensorDataset.__init__")
-        ### END SOLUTION
-
-    def __len__(self) -> int:
-        """
-        Return number of samples (size of first dimension).
-
-        TODO: Return the total number of samples in the dataset
-
-        APPROACH:
-        1. Access the first tensor from self.tensors
-        2. Return length of its data (first dimension size)
-
-        EXAMPLE:
-        >>> features = Tensor([[1, 2], [3, 4], [5, 6]])  # 3 samples
-        >>> labels = Tensor([0, 1, 0])
-        >>> dataset = TensorDataset(features, labels)
-        >>> print(len(dataset))  # 3
-
-        HINT: All tensors have same first dimension (validated in __init__)
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement TensorDataset.__len__")
-        ### END SOLUTION
-
-    def __getitem__(self, idx: int) -> Tuple[Tensor, ...]:
-        """
-        Return tuple of tensor slices at given index.
-
-        TODO: Return the sample at the given index
-
-        APPROACH:
-        1. Validate index is within bounds
-        2. Extract data at index from each tensor
-        3. Wrap each slice in a Tensor and return as tuple
-
-        Args:
-            idx: Sample index
-
-        Returns:
-            Tuple containing tensor[idx] for each input tensor
-
-        EXAMPLE:
-        >>> features = Tensor([[1, 2], [3, 4], [5, 6]])
-        >>> labels = Tensor([0, 1, 0])
-        >>> dataset = TensorDataset(features, labels)
-        >>> sample = dataset[1]
-        >>> # Returns: (Tensor([3, 4]), Tensor(1))
-
-        HINTS:
-        - Check idx < len(self) to prevent out-of-bounds access
-        - Use generator expression with tuple() for clean syntax
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement TensorDataset.__getitem__")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class TensorDataset(Dataset):
     """
@@ -538,7 +413,7 @@ class TensorDataset(Dataset):
         return len(self.tensors[0].data)
         ### END SOLUTION
 
-    def __getitem__(self, idx: int) -> Tuple[Tensor, ...]:
+    def __getitem__(self, idx: int) -> tuple[Tensor, ...]:
         """
         Return tuple of tensor slices at given index.
 
@@ -574,6 +449,7 @@ class TensorDataset(Dataset):
         return tuple(Tensor(tensor.data[idx]) for tensor in self.tensors)
         ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: TensorDataset
@@ -585,6 +461,7 @@ This test validates our TensorDataset implementation works correctly with tensor
 **Expected**: Correct sample retrieval with proper tensor wrapping
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-tensordataset", "locked": true, "points": 15}
 def test_unit_tensordataset():
     """🧪 Test TensorDataset implementation."""
@@ -592,7 +469,7 @@ def test_unit_tensordataset():
 
     # Test basic functionality
     features = Tensor([[1, 2], [3, 4], [5, 6]])  # 3 samples, 2 features
-    labels = Tensor([0, 1, 0])                   # 3 labels
+    labels = Tensor([0, 1, 0])  # 3 labels
 
     dataset = TensorDataset(features, labels)
 
@@ -618,13 +495,14 @@ def test_unit_tensordataset():
     # Test mismatched tensor sizes
     try:
         bad_features = Tensor([[1, 2], [3, 4]])  # Only 2 samples
-        bad_labels = Tensor([0, 1, 0])           # 3 labels - mismatch!
+        bad_labels = Tensor([0, 1, 0])  # 3 labels - mismatch!
         TensorDataset(bad_features, bad_labels)
         assert False, "Should raise error for mismatched tensor sizes"
     except ValueError:
         pass
 
     print("✅ TensorDataset works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_tensordataset()
@@ -709,134 +587,10 @@ This transforms the dataset from "access one sample" to "iterate through batches
 Now we implement the DataLoader class with batching and shuffling support.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "dataloader-implementation", "solution": true}
-
-class DataLoader:
-    """
-    Data loader with batching and shuffling support.
-
-    Wraps a dataset to provide batched iteration with optional shuffling.
-    Essential for efficient training with mini-batch gradient descent.
-
-    TODO: Implement DataLoader with batching and shuffling
-
-    APPROACH:
-    1. Store dataset, batch_size, and shuffle settings
-    2. Create iterator that groups samples into batches
-    3. Handle shuffling by randomizing indices
-    4. Collate individual samples into batch tensors
-
-    EXAMPLE:
-    >>> dataset = TensorDataset(Tensor([[1,2], [3,4], [5,6]]), Tensor([0,1,0]))
-    >>> loader = DataLoader(dataset, batch_size=2, shuffle=True)
-    >>> for batch in loader:
-    ...     features_batch, labels_batch = batch
-    ...     print(f"Features: {features_batch.shape}, Labels: {labels_batch.shape}")
-
-    HINTS:
-    - Use random.shuffle() for index shuffling
-    - Group consecutive samples into batches
-    - Stack individual tensors using np.stack()
-    """
-
-    def __init__(self, dataset: Dataset, batch_size: int, shuffle: bool = False):
-        """
-        Create DataLoader for batched iteration.
-
-        Args:
-            dataset: Dataset to load from
-            batch_size: Number of samples per batch
-            shuffle: Whether to shuffle data each epoch
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement DataLoader.__init__")
-        ### END SOLUTION
-
-    def __len__(self) -> int:
-        """
-        Return number of batches per epoch.
-
-        TODO: Calculate the number of batches based on dataset size and batch_size
-
-        APPROACH:
-        1. Use ceiling division: (dataset_size + batch_size - 1) // batch_size
-        2. This ensures we count the last partial batch
-
-        EXAMPLE:
-        >>> dataset = TensorDataset(Tensor([[1], [2], [3], [4], [5]]))
-        >>> loader = DataLoader(dataset, batch_size=2)
-        >>> print(len(loader))  # 3 (batches: [2, 2, 1])
-
-        HINT: Ceiling division handles uneven splits correctly
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement DataLoader.__len__")
-        ### END SOLUTION
-
-    def __iter__(self) -> Iterator:
-        """
-        Return iterator over batches.
-
-        TODO: Implement iteration that yields batches of data
-
-        APPROACH:
-        1. Create list of indices [0, 1, 2, ..., len(dataset)-1]
-        2. Shuffle indices if self.shuffle is True
-        3. Group indices into chunks of batch_size
-        4. For each chunk, retrieve samples and collate into batch
-
-        EXAMPLE:
-        >>> dataset = TensorDataset(Tensor([[1], [2], [3], [4]]))
-        >>> loader = DataLoader(dataset, batch_size=2)
-        >>> for batch in loader:
-        ...     print(batch[0].shape)  # (2, 1)
-
-        HINTS:
-        - Use random.shuffle() to randomize indices
-        - Use range(0, len(indices), batch_size) to create chunks
-        - Call self._collate_batch() to convert list of samples to batch tensors
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement DataLoader.__iter__")
-        ### END SOLUTION
-
-    def _collate_batch(self, batch: List[Tuple[Tensor, ...]]) -> Tuple[Tensor, ...]:
-        """
-        Collate individual samples into batch tensors.
-
-        TODO: Stack individual sample tensors into batch tensors
-
-        APPROACH:
-        1. Handle empty batch edge case
-        2. Determine how many tensors per sample (e.g., 2 for features + labels)
-        3. For each tensor position, extract all samples at that position
-        4. Stack them using np.stack() to create batch dimension
-        5. Wrap result in Tensor and return tuple
-
-        Args:
-            batch: List of sample tuples from dataset
-
-        Returns:
-            Tuple of batched tensors
-
-        EXAMPLE:
-        >>> # batch = [(Tensor([1,2]), Tensor(0)),
-        ...            (Tensor([3,4]), Tensor(1))]
-        >>> # Returns: (Tensor([[1,2], [3,4]]), Tensor([0, 1]))
-
-        HINTS:
-        - Use len(batch[0]) to get number of tensors per sample
-        - Extract .data from each tensor before stacking
-        - np.stack() creates new axis at position 0 (batch dimension)
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement DataLoader._collate_batch")
-        ### END SOLUTION
-
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class DataLoader:
     """
@@ -936,14 +690,14 @@ class DataLoader:
 
         # Yield batches
         for i in range(0, len(indices), self.batch_size):
-            batch_indices = indices[i:i + self.batch_size]
+            batch_indices = indices[i : i + self.batch_size]
             batch = [self.dataset[idx] for idx in batch_indices]
 
             # Collate batch - convert list of tuples to tuple of tensors
             yield self._collate_batch(batch)
         ### END SOLUTION
 
-    def _collate_batch(self, batch: List[Tuple[Tensor, ...]]) -> Tuple[Tensor, ...]:
+    def _collate_batch(self, batch: list[tuple[Tensor, ...]]) -> tuple[Tensor, ...]:
         """
         Collate individual samples into batch tensors.
 
@@ -1056,71 +810,10 @@ Training:                              Evaluation:
 Why? During evaluation, we want consistent, reproducible predictions. Augmentation during test would add randomness to predictions, making them unreliable.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "augmentation-transforms", "solution": true}
-
-class RandomHorizontalFlip:
-    """
-    Randomly flip images horizontally with given probability.
-
-    A simple but effective augmentation for most image datasets.
-    Flipping is appropriate when horizontal orientation doesn't change class
-    (cats, dogs, cars - not digits or text!).
-
-    Args:
-        p: Probability of flipping (default: 0.5)
-    """
-
-    def __init__(self, p=0.5):
-        """
-        Initialize RandomHorizontalFlip.
-
-        TODO: Store flip probability
-
-        APPROACH:
-        1. Validate probability is in range [0, 1]
-        2. Store p as instance variable
-
-        EXAMPLE:
-        >>> flip = RandomHorizontalFlip(p=0.5)  # 50% chance to flip
-
-        HINT: Raise ValueError if p is outside valid range
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement RandomHorizontalFlip.__init__")
-        ### END SOLUTION
-
-    def __call__(self, x):
-        """
-        Apply random horizontal flip to input.
-
-        TODO: Implement random horizontal flip
-
-        APPROACH:
-        1. Generate random number in [0, 1)
-        2. If random < p, flip horizontally
-        3. Otherwise, return unchanged
-
-        Args:
-            x: Input array with shape (..., H, W) or (..., H, W, C)
-               Flips along the last-1 axis (width dimension)
-
-        Returns:
-            Flipped or unchanged array (same shape as input)
-
-        EXAMPLE:
-        >>> flip = RandomHorizontalFlip(0.5)
-        >>> img = np.array([[1, 2, 3], [4, 5, 6]])  # 2x3 image
-        >>> # 50% chance output is [[3, 2, 1], [6, 5, 4]]
-
-        HINT: Think about all the possible position of the width axis to flip
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement RandomHorizontalFlip.__call__")
-        ### END SOLUTION
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class RandomHorizontalFlip:
     """
@@ -1217,6 +910,7 @@ class RandomHorizontalFlip:
         return x
         ### END SOLUTION
 
+
 # %% [markdown]
 """
 ### Padding an Image for Random Cropping
@@ -1241,6 +935,7 @@ We must pad ONLY spatial dimensions, never the channel dimension.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "dataloader-pad-image", "solution": true}
+
 
 def _pad_image(data, padding):
     """
@@ -1273,6 +968,7 @@ def _pad_image(data, padding):
 #| export
 # Solution
 
+
 def _pad_image(data, padding):
     """
     Detect image format and apply zero-padding to spatial dimensions only.
@@ -1298,18 +994,18 @@ def _pad_image(data, padding):
     ### BEGIN SOLUTION
     if data.ndim == 2:
         # (H, W) format — pad both axes
-        return np.pad(data, padding, mode='constant', constant_values=0)
+        return np.pad(data, padding, mode="constant", constant_values=0)
     elif data.ndim == 3:
         if data.shape[0] <= 4:
             # Channels-first: (C, H, W) — pad only H and W
-            return np.pad(data,
-                          ((0, 0), (padding, padding), (padding, padding)),
-                          mode='constant', constant_values=0)
+            return np.pad(
+                data, ((0, 0), (padding, padding), (padding, padding)), mode="constant", constant_values=0
+            )
         else:
             # Channels-last: (H, W, C) — pad only H and W
-            return np.pad(data,
-                          ((padding, padding), (padding, padding), (0, 0)),
-                          mode='constant', constant_values=0)
+            return np.pad(
+                data, ((padding, padding), (padding, padding), (0, 0)), mode="constant", constant_values=0
+            )
     else:
         raise ValueError(
             f"RandomCrop requires 2D or 3D input\n"
@@ -1330,6 +1026,7 @@ def _pad_image(data, padding):
 **Why it matters**: Incorrect padding (e.g., padding the channel axis) corrupts image data
 **Expected**: Shape grows by 2*padding on H and W, channels unchanged
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-pad-image", "locked": true, "points": 5}
 def test_unit_pad_image():
@@ -1365,6 +1062,7 @@ def test_unit_pad_image():
 
     print("✅ _pad_image works correctly!")
 
+
 if __name__ == "__main__":
     test_unit_pad_image()
 
@@ -1393,6 +1091,7 @@ computing two random integers within valid bounds.
 
 # %% nbgrader={"grade": false, "grade_id": "dataloader-crop-region", "solution": true}
 
+
 def _random_crop_region(padded_h, padded_w, target_h, target_w):
     """
     Sample a random (top, left) position for cropping.
@@ -1418,6 +1117,7 @@ def _random_crop_region(padded_h, padded_w, target_h, target_w):
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 def _random_crop_region(padded_h, padded_w, target_h, target_w):
     """
@@ -1452,6 +1152,7 @@ def _random_crop_region(padded_h, padded_w, target_h, target_w):
 **Expected**: top in [0, padded_h - target_h], left in [0, padded_w - target_w]
 """
 
+
 # %% nbgrader={"grade": true, "grade_id": "test-crop-region", "locked": true, "points": 5}
 def test_unit_random_crop_region():
     """🧪 Test _random_crop_region helper."""
@@ -1459,7 +1160,7 @@ def test_unit_random_crop_region():
 
     padded_h, padded_w = 40, 40
     target_h, target_w = 32, 32
-    max_top = padded_h - target_h   # 8
+    max_top = padded_h - target_h  # 8
     max_left = padded_w - target_w  # 8
 
     # Run many trials and verify bounds
@@ -1472,9 +1173,9 @@ def test_unit_random_crop_region():
     tops = set()
     lefts = set()
     for _ in range(500):
-        t, l = _random_crop_region(padded_h, padded_w, target_h, target_w)
+        t, left_pos = _random_crop_region(padded_h, padded_w, target_h, target_w)
         tops.add(t)
-        lefts.add(l)
+        lefts.add(left_pos)
 
     assert 0 in tops, "Position 0 should be reachable"
     assert max_top in tops, f"Position {max_top} should be reachable"
@@ -1486,6 +1187,7 @@ def test_unit_random_crop_region():
     assert top == 0 and left == 0, "Only valid position when padded == target"
 
     print("✅ _random_crop_region works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_random_crop_region()
@@ -1506,113 +1208,10 @@ Input image ──> _pad_image() ──> _random_crop_region() ──> slice ─
 Each step does ONE thing. The composition function wires them together.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "dataloader-random-crop", "solution": true}
-
-class RandomCrop:
-    """
-    Randomly crop image after padding.
-
-    This is the standard augmentation for CIFAR-10:
-    1. Pad image by `padding` pixels on each side
-    2. Randomly crop back to original size
-
-    This simulates small translations in the image, forcing the model
-    to recognize objects regardless of their exact position.
-
-    Args:
-        size: Output crop size (int for square, or tuple (H, W))
-        padding: Pixels to pad on each side before cropping (default: 4)
-    """
-
-    def __init__(self, size, padding=4):
-        """
-        Initialize RandomCrop.
-
-        TODO: Store crop parameters
-
-        APPROACH:
-        1. Convert size to tuple if it's an int (for square crops)
-        2. Store size and padding as instance variables
-
-        EXAMPLE:
-        >>> crop = RandomCrop(32, padding=4)  # CIFAR-10 standard
-        >>> # Pads to 40x40, then crops back to 32x32
-
-        HINT: Handle both int and tuple sizes for flexibility
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement RandomCrop.__init__")
-        ### END SOLUTION
-
-    def __call__(self, x):
-        """
-        Apply random crop after padding.
-
-        Composes _pad_image and _random_crop_region to perform:
-        1. Pad the image with zeros on spatial dimensions
-        2. Sample a random crop position
-        3. Extract the crop and return
-
-        TODO: Compose _pad_image → _random_crop_region → slice extraction
-
-        APPROACH:
-        1. Unwrap Tensor if needed, get raw numpy array
-        2. Call _pad_image(data, self.padding) to pad spatial dims
-        3. Determine padded spatial dimensions (H, W) based on format
-        4. Call _random_crop_region(padded_h, padded_w, target_h, target_w)
-        5. Slice the padded array at (top, left) for target size
-        6. Re-wrap as Tensor if input was Tensor
-
-        EXAMPLE:
-        >>> crop = RandomCrop(32, padding=4)
-        >>> img = rng.standard_normal((3, 32, 32))
-        >>> out = crop(img)
-        >>> print(out.shape)  # (3, 32, 32)
-
-        HINT: The slicing pattern differs by format:
-          2D:  padded[top:top+h, left:left+w]
-          CHW: padded[:, top:top+h, left:left+w]
-          HWC: padded[top:top+h, left:left+w, :]
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement RandomCrop.__call__")
-        ### END SOLUTION
-
-#| export
-
-class Compose:
-    """
-    Compose multiple transforms into a pipeline.
-
-    Applies transforms in sequence, passing output of each
-    as input to the next.
-
-    Args:
-        transforms: List of transform callables
-    """
-
-    def __init__(self, transforms):
-        """
-        Initialize Compose with list of transforms.
-
-        EXAMPLE:
-        >>> transforms = Compose([
-        ...     RandomHorizontalFlip(0.5),
-        ...     RandomCrop(32, padding=4)
-        ... ])
-        """
-        self.transforms = transforms
-
-    def __call__(self, x):
-        """Apply all transforms in sequence."""
-        for transform in self.transforms:
-            x = transform(x)
-        return x
-
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class RandomCrop:
     """
@@ -1697,22 +1296,24 @@ class RandomCrop:
         if data.ndim == 2:
             padded_h, padded_w = padded.shape
             top, left = _random_crop_region(padded_h, padded_w, target_h, target_w)
-            cropped = padded[top:top + target_h, left:left + target_w]
+            cropped = padded[top : top + target_h, left : left + target_w]
         elif data.shape[0] <= 4:
             # Channels-first: (C, H, W)
             padded_h, padded_w = padded.shape[1], padded.shape[2]
             top, left = _random_crop_region(padded_h, padded_w, target_h, target_w)
-            cropped = padded[:, top:top + target_h, left:left + target_w]
+            cropped = padded[:, top : top + target_h, left : left + target_w]
         else:
             # Channels-last: (H, W, C)
             padded_h, padded_w = padded.shape[0], padded.shape[1]
             top, left = _random_crop_region(padded_h, padded_w, target_h, target_w)
-            cropped = padded[top:top + target_h, left:left + target_w, :]
+            cropped = padded[top : top + target_h, left : left + target_w, :]
 
         return Tensor(cropped) if is_tensor else cropped
         ### END SOLUTION
 
+
 #| export
+
 
 class Compose:
     """
@@ -1793,10 +1394,7 @@ def test_unit_augmentation():
 
     # Test 3: Compose pipeline
     print("  Testing Compose...")
-    transforms = Compose([
-        RandomHorizontalFlip(p=0.5),
-        RandomCrop(32, padding=4)
-    ])
+    transforms = Compose([RandomHorizontalFlip(p=0.5), RandomCrop(32, padding=4)])
 
     img = rng.standard_normal((3, 32, 32))
     augmented = transforms(img)
@@ -1833,6 +1431,7 @@ def test_unit_augmentation():
 
     print("✅ Data Augmentation works correctly!")
 
+
 if __name__ == "__main__":
     test_unit_augmentation()
 
@@ -1846,6 +1445,7 @@ This test validates our DataLoader implementation with batching and shuffling.
 **Why it matters**: Core component for feeding data to training loops
 **Expected**: Correct batch sizes, proper shuffling, all data preserved
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-dataloader", "locked": true, "points": 20}
 def test_unit_dataloader():
@@ -1873,7 +1473,9 @@ def test_unit_dataloader():
 
     # Test last batch (should have 1 sample)
     batch_features, batch_labels = batches[2]
-    assert batch_features.data.shape == (1, 2), f"Wrong last batch features shape: {batch_features.data.shape}"
+    assert batch_features.data.shape == (1, 2), (
+        f"Wrong last batch features shape: {batch_features.data.shape}"
+    )
     assert batch_labels.data.shape == (1,), f"Wrong last batch labels shape: {batch_labels.data.shape}"
 
     # Test that data is preserved
@@ -1898,6 +1500,7 @@ def test_unit_dataloader():
 
     print("✅ DataLoader works correctly!")
 
+
 if __name__ == "__main__":
     test_unit_dataloader()
 
@@ -1911,6 +1514,7 @@ This test validates deterministic shuffling with fixed random seeds.
 **Why it matters**: Reproducibility is crucial for debugging and research
 **Expected**: Identical batches with same seed, different batches with different seeds
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-dataloader-deterministic", "locked": true, "points": 5}
 def test_unit_dataloader_deterministic():
@@ -1933,10 +1537,12 @@ def test_unit_dataloader_deterministic():
 
     # Should produce identical batches with same seed
     for i, (batch1, batch2) in enumerate(zip(batches1, batches2)):
-        assert np.array_equal(batch1[0].data, batch2[0].data), \
+        assert np.array_equal(batch1[0].data, batch2[0].data), (
             f"Batch {i} features should be identical with same seed"
-        assert np.array_equal(batch1[1].data, batch2[1].data), \
+        )
+        assert np.array_equal(batch1[1].data, batch2[1].data), (
             f"Batch {i} labels should be identical with same seed"
+        )
 
     # Test that different seeds produce different shuffles
     random.seed(42)
@@ -1957,6 +1563,7 @@ def test_unit_dataloader_deterministic():
     assert different, "Different seeds should produce different shuffles"
 
     print("✅ Deterministic shuffling works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_dataloader_deterministic()
@@ -2146,6 +1753,7 @@ We'll measure three critical metrics:
 These measurements will reveal whether our pipeline is CPU-bound (slow data loading) or compute-bound (slow model).
 """
 
+
 # %%
 def analyze_dataloader_performance():
     """📊 Analyze DataLoader performance characteristics."""
@@ -2176,7 +1784,7 @@ def analyze_dataloader_performance():
             end_time = time.time()
 
             elapsed = end_time - start_time
-            throughput = size / elapsed if elapsed > 0 else float('inf')
+            throughput = size / elapsed if elapsed > 0 else float("inf")
 
             print(f"  Batch size {batch_size:3d}: {elapsed:.3f}s ({throughput:,.0f} samples/sec)")
 
@@ -2193,13 +1801,13 @@ def analyze_dataloader_performance():
     # No shuffle
     loader_no_shuffle = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     start_time = time.time()
-    batches_no_shuffle = list(loader_no_shuffle)
+    list(loader_no_shuffle)
     time_no_shuffle = time.time() - start_time
 
     # With shuffle
     loader_shuffle = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     start_time = time.time()
-    batches_shuffle = list(loader_shuffle)
+    list(loader_shuffle)
     time_shuffle = time.time() - start_time
 
     shuffle_overhead = ((time_shuffle - time_no_shuffle) / time_no_shuffle) * 100
@@ -2245,8 +1853,8 @@ def analyze_memory_usage():
     print("\n🧪 Actual Tensor Memory Usage:")
 
     # Create different sized tensors
-    tensor_small = Tensor(rng.standard_normal((32, 784)))    # Small batch
-    tensor_large = Tensor(rng.standard_normal((512, 784)))   # Large batch
+    tensor_small = Tensor(rng.standard_normal((32, 784)))  # Small batch
+    tensor_large = Tensor(rng.standard_normal((512, 784)))  # Large batch
 
     # Measure actual memory (data array + object overhead)
     small_bytes = tensor_small.data.nbytes
@@ -2415,6 +2023,7 @@ Let's test how our DataLoader integrates with a complete training workflow, simu
 **Expected**: All samples processed correctly with proper batch shapes
 """
 
+
 # %% nbgrader={"grade": false, "grade_id": "integration-test", "solution": true}
 def test_unit_training_integration():
     """🧪 Test DataLoader integration with training workflow."""
@@ -2433,7 +2042,7 @@ def test_unit_training_integration():
 
     # Create train/val splits
     train_size = int(0.8 * len(dataset))
-    val_size = len(dataset) - train_size
+    len(dataset) - train_size
 
     # Manual split (in production, you'd use proper splitting utilities)
     train_indices = list(range(train_size))
@@ -2486,6 +2095,7 @@ def test_unit_training_integration():
 
     print("✅ Training integration works correctly!")
 
+
 if __name__ == "__main__":
     test_unit_training_integration()
 
@@ -2495,6 +2105,7 @@ if __name__ == "__main__":
 
 Final validation that everything works together correctly before module completion.
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "module-integration", "locked": true, "points": 20}
 def test_module():
@@ -2529,10 +2140,12 @@ def test_module():
     print("🧪 Integration Test: Augmentation with DataLoader...")
 
     # Create dataset with augmentation
-    train_transforms = Compose([
-        RandomHorizontalFlip(0.5),
-        RandomCrop(8, padding=2)  # Small images for test
-    ])
+    train_transforms = Compose(
+        [
+            RandomHorizontalFlip(0.5),
+            RandomCrop(8, padding=2),  # Small images for test
+        ]
+    )
 
     # Simulate CIFAR-style images (C, H, W)
     images = rng.standard_normal((100, 3, 8, 8))
@@ -2555,6 +2168,7 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 05")
+
 
 # %% [markdown]
 """
@@ -2767,6 +2381,7 @@ The fact that it handles shuffling, batching, and iteration means you've built s
 Your DataLoader is ready to power neural network training!
 """
 
+
 # %%
 def demo_dataloader():
     """🎯 See your DataLoader batch data correctly."""
@@ -2787,9 +2402,10 @@ def demo_dataloader():
 
     print("\nBatches:")
     for i, (batch_x, batch_y) in enumerate(loader):
-        print(f"  Batch {i+1}: {batch_x.shape[0]} samples, shape {batch_x.shape}")
+        print(f"  Batch {i + 1}: {batch_x.shape[0]} samples, shape {batch_x.shape}")
 
     print("\n✨ Your DataLoader organizes data for efficient training!")
+
 
 # %%
 if __name__ == "__main__":

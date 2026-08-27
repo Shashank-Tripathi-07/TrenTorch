@@ -5,8 +5,9 @@ Tests cross-module interfaces and compatibility between Tensor and Activation mo
 Focuses on integration, not re-testing individual module functionality.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 from test_utils import setup_integration_test
 
@@ -14,8 +15,8 @@ from test_utils import setup_integration_test
 setup_integration_test()
 
 # Import ONLY from TrenTorch package
+from trentorch.core.activations import ReLU, Sigmoid, Softmax, Tanh
 from trentorch.core.tensor import Tensor
-from trentorch.core.activations import ReLU, Sigmoid, Tanh, Softmax
 
 
 class TestTensorActivationInterface:
@@ -27,8 +28,8 @@ class TestTensorActivationInterface:
 
         # Test with different tensor shapes
         test_tensors = [
-            Tensor([1.0, -1.0, 0.0]),                    # 1D tensor
-            Tensor([[1.0, -1.0], [0.0, 2.0]]),          # 2D tensor
+            Tensor([1.0, -1.0, 0.0]),  # 1D tensor
+            Tensor([[1.0, -1.0], [0.0, 2.0]]),  # 2D tensor
             Tensor([[[1.0], [-1.0]], [[0.0], [2.0]]]),  # 3D tensor
         ]
 
@@ -48,8 +49,8 @@ class TestTensorActivationInterface:
 
         # Test with different tensor configurations
         test_cases = [
-            Tensor([[1.0, 2.0, 3.0]]),           # Single batch
-            Tensor([[1.0, 2.0], [3.0, 4.0]]),   # Multiple samples
+            Tensor([[1.0, 2.0, 3.0]]),  # Single batch
+            Tensor([[1.0, 2.0], [3.0, 4.0]]),  # Multiple samples
         ]
 
         for tensor in test_cases:
@@ -159,7 +160,9 @@ class TestActivationTensorSystemIntegration:
 
             # Verify complete workflow
             assert isinstance(final, Tensor), f"{type(activation).__name__} workflow should produce Tensor"
-            assert final.shape == original_tensor.shape, f"{type(activation).__name__} workflow should preserve shape"
+            assert final.shape == original_tensor.shape, (
+                f"{type(activation).__name__} workflow should preserve shape"
+            )
 
     def test_multiple_tensor_activation_operations(self):
         """Test multiple activation operations in sequence."""
@@ -222,12 +225,14 @@ class TestActivationInterfaceCompatibility:
             result = activation(original)
 
             # Verify property preservation
-            assert hasattr(result, 'shape'), f"{type(activation).__name__} result should have shape property"
-            assert hasattr(result, 'data'), f"{type(activation).__name__} result should have data property"
-            assert hasattr(result, 'dtype'), f"{type(activation).__name__} result should have dtype property"
+            assert hasattr(result, "shape"), f"{type(activation).__name__} result should have shape property"
+            assert hasattr(result, "data"), f"{type(activation).__name__} result should have data property"
+            assert hasattr(result, "dtype"), f"{type(activation).__name__} result should have dtype property"
 
             # Verify properties are accessible
-            assert result.shape == original.shape, f"{type(activation).__name__} should preserve shape property"
+            assert result.shape == original.shape, (
+                f"{type(activation).__name__} should preserve shape property"
+            )
             assert isinstance(result.data, np.ndarray), f"{type(activation).__name__} should have numpy data"
 
     def test_softmax_special_interface_requirements(self):
@@ -260,7 +265,7 @@ class TestActivationInterfaceCompatibility:
 
         # Test processing individual batch items
         for i in range(batch_size):
-            item_tensor = Tensor(batch_tensor.data[i:i+1])
+            item_tensor = Tensor(batch_tensor.data[i : i + 1])
             item_result = relu(item_tensor)
             assert isinstance(item_result, Tensor), f"Activation should handle batch item {i}"
 

@@ -23,15 +23,11 @@ Each phase builds confidence and understanding.
 import subprocess
 import sys
 from argparse import ArgumentParser, Namespace
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
 
 from rich.panel import Panel
-from rich.table import Table
-from rich.text import Text
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-from rich.console import Console, Group
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.rule import Rule
+from rich.table import Table
 
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.core.modules import get_module_mapping, normalize_module_number
@@ -56,9 +52,7 @@ class ModuleTestCommand(BaseCommand):
             default=None,
             help="Module number to test (01, 02, etc.)",
         )
-        parser.add_argument(
-            "--all", action="store_true", help="Test all modules sequentially"
-        )
+        parser.add_argument("--all", action="store_true", help="Test all modules sequentially")
         parser.add_argument(
             "--verbose",
             "-v",
@@ -90,7 +84,7 @@ class ModuleTestCommand(BaseCommand):
 
     def run_inline_tests(
         self, module_name: str, module_number: str, verbose: bool = False
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Phase 1: Run inline unit tests from the module source file.
 
@@ -133,7 +127,7 @@ class ModuleTestCommand(BaseCommand):
 
     def run_module_pytest(
         self, module_name: str, module_number: str, verbose: bool = False
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Phase 2: Run pytest on module-specific tests with educational output.
 
@@ -153,7 +147,9 @@ class ModuleTestCommand(BaseCommand):
             # Run pytest with --trentorch for educational output
             # Use --no-cov to avoid root pyproject.toml coverage requirements
             cmd = [
-                sys.executable, "-m", "pytest",
+                sys.executable,
+                "-m",
+                "pytest",
                 str(tests_dir),
                 "--trentorch",
                 "-v" if verbose else "-q",
@@ -187,9 +183,7 @@ class ModuleTestCommand(BaseCommand):
         except Exception as e:
             return False, f"Pytest execution failed: {str(e)}"
 
-    def run_integration_tests(
-        self, module_number: str, verbose: bool = False
-    ) -> Tuple[bool, str]:
+    def run_integration_tests(self, module_number: str, verbose: bool = False) -> tuple[bool, str]:
         """
         Phase 3: Run integration tests for modules 01 through N.
 
@@ -219,16 +213,18 @@ class ModuleTestCommand(BaseCommand):
             4: [],  # Loss tests that need training moved to module 7+
             5: ["test_dataloader_integration.py"],  # DataLoader
             6: [],  # Autograd-only tests (gradient_flow requires optimizers)
-            7: ["test_loss_gradients.py", "test_integration_gradient_flow.py", "test_training_flow.py"],  # Optimizers - can now run gradient tests
+            7: [
+                "test_loss_gradients.py",
+                "test_integration_gradient_flow.py",
+                "test_training_flow.py",
+            ],  # Optimizers - can now run gradient tests
             8: ["test_training_flow.py"],  # Training
-
             # Architecture modules (09-13)
             9: ["test_cnn_integration.py"],
             10: [],  # Tokenization: self-contained, no integration deps
             11: [],  # Embeddings: tested in NLP pipeline (module 12)
             12: ["test_nlp_pipeline_flow.py"],  # Attention
             13: ["test_nlp_pipeline_flow.py"],  # Transformers
-
             # Performance modules (14-19) - build on all previous
             # These use the same integration tests to ensure optimizations
             # don't break existing functionality
@@ -238,7 +234,6 @@ class ModuleTestCommand(BaseCommand):
             17: [],  # Acceleration: tested in module-specific tests
             18: [],  # Memoization: tested in module-specific tests
             19: [],  # Benchmarking: tested in module-specific tests
-
             # Capstone (20) - runs comprehensive validation
             20: ["test_training_flow.py", "test_nlp_pipeline_flow.py", "test_cnn_integration.py"],
         }
@@ -257,7 +252,9 @@ class ModuleTestCommand(BaseCommand):
         try:
             # Use --no-cov to avoid root pyproject.toml coverage requirements
             cmd = [
-                sys.executable, "-m", "pytest",
+                sys.executable,
+                "-m",
+                "pytest",
                 *relevant_tests,
                 "--trentorch",
                 "-v" if verbose else "-q",
@@ -291,9 +288,13 @@ class ModuleTestCommand(BaseCommand):
             return False, f"Integration tests failed: {str(e)}"
 
     def test_module(
-        self, module_name: str, module_number: str, verbose: bool = False,
-        unit_only: bool = False, no_integration: bool = False
-    ) -> Tuple[bool, str]:
+        self,
+        module_name: str,
+        module_number: str,
+        verbose: bool = False,
+        unit_only: bool = False,
+        no_integration: bool = False,
+    ) -> tuple[bool, str]:
         """
         Run comprehensive tests for a single module in three phases:
 
@@ -310,12 +311,14 @@ class ModuleTestCommand(BaseCommand):
 
         # Header
         console.print()
-        console.print(Panel(
-            f"[bold cyan]Testing Module {module_number}: {module_name}[/bold cyan]\n\n"
-            "[dim]Three-phase testing ensures your implementation is correct,[/dim]\n"
-            "[dim]handles edge cases, and integrates with previous modules.[/dim]",
-            border_style="cyan",
-        ))
+        console.print(
+            Panel(
+                f"[bold cyan]Testing Module {module_number}: {module_name}[/bold cyan]\n\n"
+                "[dim]Three-phase testing ensures your implementation is correct,[/dim]\n"
+                "[dim]handles edge cases, and integrates with previous modules.[/dim]",
+                border_style="cyan",
+            )
+        )
         console.print()
 
         # ─────────────────────────────────────────────────────────────
@@ -333,7 +336,9 @@ class ModuleTestCommand(BaseCommand):
         else:
             console.print("[red]✗ Phase 1 FAILED: Inline unit tests[/red]")
             if not verbose:
-                console.print(f"[dim]{output[:500]}...[/dim]" if len(output) > 500 else f"[dim]{output}[/dim]")
+                console.print(
+                    f"[dim]{output[:500]}...[/dim]" if len(output) > 500 else f"[dim]{output}[/dim]"
+                )
             all_passed = False
 
         console.print()
@@ -345,7 +350,9 @@ class ModuleTestCommand(BaseCommand):
         # ─────────────────────────────────────────────────────────────
         # Phase 2: Module Pytest Tests
         # ─────────────────────────────────────────────────────────────
-        console.print(Rule("[bold blue]Phase 2: Module Tests (with educational output)[/bold blue]", style="blue"))
+        console.print(
+            Rule("[bold blue]Phase 2: Module Tests (with educational output)[/bold blue]", style="blue")
+        )
         console.print("[dim]Running pytest with WHAT/WHY context for each test...[/dim]")
         console.print()
 
@@ -365,7 +372,9 @@ class ModuleTestCommand(BaseCommand):
         # ─────────────────────────────────────────────────────────────
         if not no_integration:
             console.print(Rule("[bold magenta]Phase 3: Integration Tests[/bold magenta]", style="magenta"))
-            console.print(f"[dim]Verifying Module {module_number} works with modules 01-{module_number}...[/dim]")
+            console.print(
+                f"[dim]Verifying Module {module_number} works with modules 01-{module_number}...[/dim]"
+            )
             console.print()
 
             success, output = self.run_integration_tests(module_number, verbose)
@@ -381,9 +390,7 @@ class ModuleTestCommand(BaseCommand):
 
         return all_passed, "\n".join(all_output)
 
-    def test_all_modules(
-        self, verbose: bool = False, stop_on_fail: bool = False
-    ) -> int:
+    def test_all_modules(self, verbose: bool = False, stop_on_fail: bool = False) -> int:
         """Test all modules sequentially."""
         console = self.console
         module_mapping = get_module_mapping()
@@ -411,7 +418,7 @@ class ModuleTestCommand(BaseCommand):
             TextColumn("[progress.description]{task.description}"),
             BarColumn(),
             TaskProgressColumn(),
-            console=console
+            console=console,
         ) as progress:
             task = progress.add_task("[cyan]Testing modules...", total=len(module_mapping))
 
@@ -490,7 +497,7 @@ class ModuleTestCommand(BaseCommand):
                     f"[green]Passed: {pass_count} modules[/green]\n"
                     f"[red]Failed: {fail_count} modules[/red]\n"
                     + (f"[dim]Skipped: {skip_count} modules[/dim]\n" if skip_count > 0 else "")
-                    + f"\n[bold]Failed modules:[/bold]\n"
+                    + "\n[bold]Failed modules:[/bold]\n"
                     + "\n".join([f"  • Module {num}: {name}" for num, name in failed]),
                     title="⚠️  Test Failures",
                     border_style="red",
@@ -515,9 +522,7 @@ class ModuleTestCommand(BaseCommand):
 
         # Handle --all (test all modules)
         if getattr(args, "all", False):
-            return self.test_all_modules(
-                verbose=args.verbose, stop_on_fail=args.stop_on_fail
-            )
+            return self.test_all_modules(verbose=args.verbose, stop_on_fail=args.stop_on_fail)
 
         # Require module number for single module test
         if not args.module_number:

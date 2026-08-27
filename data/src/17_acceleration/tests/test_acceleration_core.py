@@ -12,8 +12,9 @@ can provide significant speedups. These tests verify:
 - Performance actually improves
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -21,11 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
 from trentorch.core.tensor import Tensor
-from trentorch.perf.acceleration import (
-    vectorized_matmul,
-    fused_gelu,
-    tiled_matmul
-)
+from trentorch.perf.acceleration import fused_gelu, tiled_matmul, vectorized_matmul
 
 
 class TestAccelerationBasics:
@@ -55,10 +52,7 @@ class TestAccelerationBasics:
 
         # Verify against numpy reference
         reference = np.matmul(A.data, B.data)
-        assert np.allclose(result.data, reference, rtol=1e-5), (
-            "Vectorized matmul gives different results!"
-        )
-
+        assert np.allclose(result.data, reference, rtol=1e-5), "Vectorized matmul gives different results!"
 
     def test_fused_gelu_correctness(self):
         """
@@ -112,9 +106,7 @@ class TestMemoryOptimization:
         """
         # Create contiguous tensor
         contiguous = Tensor(rng.standard_normal((10, 10)))
-        assert contiguous.data.flags['C_CONTIGUOUS'], (
-            "Fresh tensor should be contiguous"
-        )
+        assert contiguous.data.flags["C_CONTIGUOUS"], "Fresh tensor should be contiguous"
 
 
 if __name__ == "__main__":

@@ -2,15 +2,17 @@
 Health command for TinyTorch CLI: environment health check and validation.
 """
 
-import sys
 import os
 import subprocess
+import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
+
 from rich.panel import Panel
 from rich.table import Table
 
 from platforms.cli.commands.base import BaseCommand
+
 
 class HealthCommand(BaseCommand):
     @property
@@ -29,8 +31,9 @@ class HealthCommand(BaseCommand):
         console = self.console
 
         # Run quick health check
-        console.print(Panel("💚 TinyTorch Environment Health Check",
-                           title="System Health", border_style="bright_green"))
+        console.print(
+            Panel("💚 TinyTorch Environment Health Check", title="System Health", border_style="bright_green")
+        )
         console.print()
 
         # Track issues for summary
@@ -48,11 +51,13 @@ class HealthCommand(BaseCommand):
         venv_exists = self.venv_path.exists()
         in_venv = (
             # Method 1: Check VIRTUAL_ENV environment variable (most reliable for activation)
-            os.environ.get('VIRTUAL_ENV') is not None or
+            os.environ.get("VIRTUAL_ENV") is not None
+            or
             # Method 2: Check sys.prefix vs sys.base_prefix (works for running Python in venv)
-            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
+            (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
+            or
             # Method 3: Check for sys.real_prefix (older Python versions)
-            hasattr(sys, 'real_prefix')
+            hasattr(sys, "real_prefix")
         )
 
         if venv_exists and in_venv:
@@ -67,11 +72,11 @@ class HealthCommand(BaseCommand):
 
         # Required dependencies (from requirements.txt)
         required_deps = [
-            ('NumPy', 'numpy'),
-            ('Rich', 'rich'),
-            ('PyYAML', 'yaml'),
-            ('Pytest', 'pytest'),
-            ('Jupytext', 'jupytext'),
+            ("NumPy", "numpy"),
+            ("Rich", "rich"),
+            ("PyYAML", "yaml"),
+            ("Pytest", "pytest"),
+            ("Jupytext", "jupytext"),
         ]
         for display_name, import_name in required_deps:
             try:
@@ -83,8 +88,8 @@ class HealthCommand(BaseCommand):
 
         # Workflow-critical dependencies (needed for module complete/export)
         workflow_deps = [
-            ('nbdev (export)', 'nbdev'),
-            ('ipykernel (Jupyter)', 'ipykernel'),
+            ("nbdev (export)", "nbdev"),
+            ("ipykernel (Jupyter)", "ipykernel"),
         ]
         for display_name, import_name in workflow_deps:
             try:
@@ -96,8 +101,8 @@ class HealthCommand(BaseCommand):
 
         # Optional dependencies (nice to have, not required for core workflow)
         optional_deps = [
-            ('JupyterLab', 'jupyterlab'),
-            ('Matplotlib', 'matplotlib'),
+            ("JupyterLab", "jupyterlab"),
+            ("Matplotlib", "matplotlib"),
         ]
         for display_name, import_name in optional_deps:
             try:
@@ -119,17 +124,14 @@ class HealthCommand(BaseCommand):
         # 1. Can we import the trentorch package at all?
         try:
             import trentorch
+
             nb_table.add_row(
                 "TrenTorch package",
                 "[green]✅ OK[/green]",
-                f"v{getattr(trentorch, '__version__', 'unknown')}"
+                f"v{getattr(trentorch, '__version__', 'unknown')}",
             )
-        except ImportError as e:
-            nb_table.add_row(
-                "TrenTorch package",
-                "[red]❌ Not importable[/red]",
-                "run: pip install -e ."
-            )
+        except ImportError:
+            nb_table.add_row("TrenTorch package", "[red]❌ Not importable[/red]", "run: pip install -e .")
             issues.append("trentorch package not importable — run: pip install -e .")
 
         # 2. Does trentorch/core/tensor.py exist? (the most common failure point)
@@ -139,38 +141,29 @@ class HealthCommand(BaseCommand):
             nb_table.add_row(
                 "Core module files",
                 "[green]✅ OK[/green]",
-                f"{len(list(core_dir.glob('*.py')))} files in data/trentorch/core/"
+                f"{len(list(core_dir.glob('*.py')))} files in data/trentorch/core/",
             )
         else:
             nb_table.add_row(
-                "Core module files",
-                "[red]❌ Missing[/red]",
-                "data/trentorch/core/tensor.py not found"
+                "Core module files", "[red]❌ Missing[/red]", "data/trentorch/core/tensor.py not found"
             )
             issues.append("data/trentorch/core/tensor.py missing — package may be corrupted")
 
         # 3. Can the Tensor class actually be imported?
         try:
             from trentorch.core.tensor import Tensor
+
             if Tensor is not None:
                 nb_table.add_row(
-                    "Tensor import",
-                    "[green]✅ OK[/green]",
-                    "from trentorch.core.tensor import Tensor"
+                    "Tensor import", "[green]✅ OK[/green]", "from trentorch.core.tensor import Tensor"
                 )
             else:
                 nb_table.add_row(
-                    "Tensor import",
-                    "[yellow]⚠️  None[/yellow]",
-                    "Module 01 may not be exported yet"
+                    "Tensor import", "[yellow]⚠️  None[/yellow]", "Module 01 may not be exported yet"
                 )
                 issues.append("Tensor is None — complete Module 01: tren module complete 01")
         except ImportError as e:
-            nb_table.add_row(
-                "Tensor import",
-                "[red]❌ Failed[/red]",
-                str(e)[:35]
-            )
+            nb_table.add_row("Tensor import", "[red]❌ Failed[/red]", str(e)[:35])
             issues.append(f"Cannot import Tensor: {e}")
 
         # 4. Jupyter kernel check — does a kernel exist that points to this Python?
@@ -184,38 +177,28 @@ class HealthCommand(BaseCommand):
         kernel_python = self._get_kernel_python()
         if kernel_python:
             if os.path.realpath(kernel_python) == os.path.realpath(sys.executable):
-                nb_table.add_row(
-                    "Kernel ↔ tito Python",
-                    "[green]✅ Match[/green]",
-                    "Same interpreter"
-                )
+                nb_table.add_row("Kernel ↔ tito Python", "[green]✅ Match[/green]", "Same interpreter")
             else:
-                nb_table.add_row(
-                    "Kernel ↔ tito Python",
-                    "[red]❌ Mismatch[/red]",
-                    f"Kernel: {kernel_python}"
-                )
+                nb_table.add_row("Kernel ↔ tito Python", "[red]❌ Mismatch[/red]", f"Kernel: {kernel_python}")
                 issues.append(
-                    f"Jupyter kernel uses a different Python than tito — "
-                    f"run: python -m ipykernel install --user --name tinytorch"
+                    "Jupyter kernel uses a different Python than tito — "
+                    "run: python -m ipykernel install --user --name tinytorch"
                 )
         else:
-            nb_table.add_row(
-                "Kernel ↔ tito Python",
-                "[dim]○ Skipped[/dim]",
-                "No kernel to check"
-            )
+            nb_table.add_row("Kernel ↔ tito Python", "[dim]○ Skipped[/dim]", "No kernel to check")
 
         console.print(nb_table)
         console.print()
 
         # ── Issues Summary ──
         if issues:
-            console.print(Panel(
-                "\n".join(f"  • {issue}" for issue in issues),
-                title=f"⚠️  {len(issues)} issue{'s' if len(issues) > 1 else ''} found",
-                border_style="yellow"
-            ))
+            console.print(
+                Panel(
+                    "\n".join(f"  • {issue}" for issue in issues),
+                    title=f"⚠️  {len(issues)} issue{'s' if len(issues) > 1 else ''} found",
+                    border_style="yellow",
+                )
+            )
             console.print()
 
         # Module structure table
@@ -225,10 +208,10 @@ class HealthCommand(BaseCommand):
         struct_table.add_column("Type", style="dim", width=25)
 
         required_paths = [
-            ('data/src/', 'Source modules directory (student workspace)'),
-            ('tests/', 'Cross-cutting test suites'),
-            ('platforms/cli/', 'CLI infrastructure'),
-            ('requirements.txt', 'Dependencies file')
+            ("data/src/", "Source modules directory (student workspace)"),
+            ("tests/", "Cross-cutting test suites"),
+            ("platforms/cli/", "CLI infrastructure"),
+            ("requirements.txt", "Dependencies file"),
         ]
 
         for path, desc in required_paths:
@@ -245,12 +228,12 @@ class HealthCommand(BaseCommand):
         # (Python version, disk space, memory) -- nothing module-related --
         # instead of actual per-module status. Read the real completion
         # data directly instead.
-        from platforms.cli.processes.module_workflow.workflow import ModuleWorkflowCommand
         from platforms.cli.core.modules import get_module_mapping
+        from platforms.cli.processes.module_workflow.workflow import ModuleWorkflowCommand
 
         module_mapping = get_module_mapping()
         progress = ModuleWorkflowCommand(self.config).get_progress_data()
-        completed = progress.get('completed_modules', [])
+        completed = progress.get("completed_modules", [])
         completed_count = len(completed)
         total_count = len(module_mapping)
 
@@ -262,8 +245,7 @@ class HealthCommand(BaseCommand):
         else:
             status_text += "\n[dim]All modules complete![/dim]"
 
-        console.print(Panel(status_text,
-                           title="📋 Module Status", border_style="bright_blue"))
+        console.print(Panel(status_text, title="📋 Module Status", border_style="bright_blue"))
         return 0
 
     def _check_jupyter_kernel(self):
@@ -271,7 +253,11 @@ class HealthCommand(BaseCommand):
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "jupyter", "kernelspec", "list"],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
             )
             if result.returncode == 0 and "tinytorch" in result.stdout:
                 return "[green]✅ Registered[/green]", "tinytorch kernel found"
@@ -279,7 +265,7 @@ class HealthCommand(BaseCommand):
                 # Jupyter works but no tinytorch kernel
                 return (
                     "[yellow]⚠️  No tinytorch kernel[/yellow]",
-                    "run: python -m ipykernel install --user --name tinytorch"
+                    "run: python -m ipykernel install --user --name tinytorch",
                 )
             else:
                 return "[yellow]⚠️  Cannot list[/yellow]", "jupyter kernelspec list failed"
@@ -297,7 +283,11 @@ class HealthCommand(BaseCommand):
             for kernel_name in ("tinytorch", "python3"):
                 result = subprocess.run(
                     [sys.executable, "-m", "jupyter", "kernelspec", "list", "--json"],
-                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=10,
                 )
                 if result.returncode != 0:
                     return None

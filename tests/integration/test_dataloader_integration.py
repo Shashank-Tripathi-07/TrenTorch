@@ -6,16 +6,17 @@ actual training pipelines, not just in isolation.
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
-import sys
 import os
+import sys
 
 # Add project root to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Import from TrenTorch package
 from trentorch import Tensor
-from trentorch.core.dataloader import Dataset, TensorDataset, DataLoader
+from trentorch.core.dataloader import DataLoader, TensorDataset
 
 
 def test_training_workflow_integration():
@@ -42,7 +43,7 @@ def test_training_workflow_integration():
 
     # Split into train/val (80/20 split)
     train_size = int(0.8 * num_samples)
-    val_size = num_samples - train_size
+    num_samples - train_size
 
     train_samples = [dataset_full[i] for i in range(train_size)]
     val_samples = [dataset_full[i] for i in range(train_size, num_samples)]
@@ -61,7 +62,7 @@ def test_training_workflow_integration():
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    print(f"📊 Dataset splits:")
+    print("📊 Dataset splits:")
     print(f"  Training: {len(train_dataset)} samples, {len(train_loader)} batches")
     print(f"  Validation: {len(val_dataset)} samples, {len(val_loader)} batches")
 

@@ -12,11 +12,12 @@ Usage:
     tren system health --verify
 """
 
-import sys
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
+
 import pytest
 
 
@@ -34,9 +35,9 @@ class TestPythonEnvironment:
         """Virtual environment should be active."""
         # Check if we're in a virtual environment
         in_venv = (
-            os.environ.get('VIRTUAL_ENV') is not None or
-            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
-            hasattr(sys, 'real_prefix')
+            os.environ.get("VIRTUAL_ENV") is not None
+            or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
+            or hasattr(sys, "real_prefix")
         )
 
         if not in_venv:
@@ -46,11 +47,7 @@ class TestPythonEnvironment:
 
     def test_pip_available(self):
         """pip must be available for package management."""
-        result = subprocess.run(
-            [sys.executable, "-m", "pip", "--version"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run([sys.executable, "-m", "pip", "--version"], capture_output=True, text=True)
         assert result.returncode == 0, "pip not available"
         print(f"✅ pip available: {result.stdout.strip()}")
 
@@ -61,6 +58,7 @@ class TestCoreDependencies:
     def test_numpy_import(self):
         """NumPy must be importable."""
         import numpy as np
+
         print(f"✅ NumPy {np.__version__} imported")
 
     def test_numpy_operations(self):
@@ -87,7 +85,8 @@ class TestCoreDependencies:
         """Matplotlib is optional - warn if not installed."""
         try:
             import matplotlib
-            import matplotlib.pyplot as plt
+            import matplotlib.pyplot  # noqa: F401 -- import-success check
+
             print(f"✅ Matplotlib {matplotlib.__version__} imported (optional)")
         except ImportError:
             print("⚠️  Matplotlib not installed (optional dependency)")
@@ -96,7 +95,8 @@ class TestCoreDependencies:
         """Matplotlib plotting is optional - warn if not installed."""
         try:
             import matplotlib
-            matplotlib.use('Agg')  # Non-GUI backend for testing
+
+            matplotlib.use("Agg")  # Non-GUI backend for testing
             import matplotlib.pyplot as plt
 
             # Create a simple plot
@@ -104,7 +104,7 @@ class TestCoreDependencies:
             ax.plot([1, 2, 3], [1, 4, 9])
 
             # Save to temporary file
-            with tempfile.NamedTemporaryFile(suffix='.png', delete=True) as tmp:
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as tmp:
                 fig.savefig(tmp.name)
                 assert Path(tmp.name).exists(), "Failed to save plot"
 
@@ -115,11 +115,7 @@ class TestCoreDependencies:
 
     def test_pytest_available(self):
         """pytest must be available for testing."""
-        result = subprocess.run(
-            [sys.executable, "-m", "pytest", "--version"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run([sys.executable, "-m", "pytest", "--version"], capture_output=True, text=True)
         assert result.returncode == 0, "pytest not available"
         print(f"✅ pytest available: {result.stdout.strip()}")
 
@@ -128,7 +124,7 @@ class TestCoreDependencies:
         import yaml
 
         # Test YAML operations
-        data = {'key': 'value', 'number': 42}
+        data = {"key": "value", "number": 42}
         yaml_str = yaml.dump(data)
         loaded = yaml.safe_load(yaml_str)
         assert loaded == data, "YAML serialization failed"
@@ -158,41 +154,30 @@ class TestJupyterEnvironment:
 
     def test_jupyter_import(self):
         """Jupyter must be importable."""
-        import jupyter
+
         print("✅ Jupyter installed")
 
     def test_jupyterlab_import(self):
         """JupyterLab must be importable."""
         import jupyterlab
+
         print(f"✅ JupyterLab {jupyterlab.__version__} installed")
 
     def test_jupyter_command_available(self):
         """Jupyter command must be available."""
-        result = subprocess.run(
-            ["jupyter", "--version"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run(["jupyter", "--version"], capture_output=True, text=True)
         assert result.returncode == 0, "jupyter command not found"
         print(f"✅ jupyter command available:\n{result.stdout.strip()}")
 
     def test_jupyter_lab_command(self):
         """JupyterLab command must be available."""
-        result = subprocess.run(
-            ["jupyter", "lab", "--version"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run(["jupyter", "lab", "--version"], capture_output=True, text=True)
         assert result.returncode == 0, "jupyter lab command not found"
         print(f"✅ jupyter lab command available: {result.stdout.strip()}")
 
     def test_jupyter_kernelspec(self):
         """Jupyter kernel must be configured."""
-        result = subprocess.run(
-            ["jupyter", "kernelspec", "list"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run(["jupyter", "kernelspec", "list"], capture_output=True, text=True)
         assert result.returncode == 0, "Cannot list Jupyter kernels"
         assert "python3" in result.stdout, "Python3 kernel not found"
         print(f"✅ Jupyter kernel configured:\n{result.stdout.strip()}")
@@ -200,6 +185,7 @@ class TestJupyterEnvironment:
     def test_jupytext_available(self):
         """Jupytext must be available for .py ↔ .ipynb conversion."""
         import jupytext
+
         print(f"✅ Jupytext {jupytext.__version__} available")
 
 
@@ -209,22 +195,25 @@ class TestTrenTorchPackage:
     def test_trentorch_import(self):
         """TrenTorch package must be importable."""
         import trentorch
+
         print(f"✅ TrenTorch package imported from {trentorch.__file__}")
 
     def test_trentorch_core_import(self):
         """TrenTorch core modules must be importable."""
-        from trentorch import core
+
         print("✅ TrenTorch core module available")
 
     def test_trentorch_version(self):
         """TrenTorch must have version info."""
         import trentorch
-        assert hasattr(trentorch, '__version__'), "TrenTorch version not defined"
+
+        assert hasattr(trentorch, "__version__"), "TrenTorch version not defined"
         print(f"✅ TrenTorch version: {trentorch.__version__}")
 
     def test_trentorch_tensor_import(self):
         """Tensor class must be importable."""
         from trentorch import Tensor
+
         assert Tensor is not None, "Tensor class not available"
         print("✅ Tensor class available")
 
@@ -265,7 +254,7 @@ class TestProjectStructure:
         assert src_dir.is_dir(), "data/src/ is not a directory"
 
         # Count module directories
-        module_dirs = [d for d in src_dir.iterdir() if d.is_dir() and d.name.startswith('0')]
+        module_dirs = [d for d in src_dir.iterdir() if d.is_dir() and d.name.startswith("0")]
         print(f"✅ Source directory: {src_dir.absolute()} ({len(module_dirs)} modules)")
 
     def test_tests_directory(self):
@@ -280,6 +269,7 @@ class TestProjectStructure:
         # Try to import the tren CLI package (platforms.cli)
         try:
             import platforms.cli
+
             print(f"✅ TREN CLI available: {platforms.cli.__file__}")
         except ImportError:
             pytest.fail("TREN CLI not importable")
@@ -302,6 +292,7 @@ class TestSystemResources:
         """Check available system memory."""
         try:
             import psutil
+
             mem = psutil.virtual_memory()
             free_gb = mem.available / (1024**3)
             total_gb = mem.total / (1024**3)
@@ -326,14 +317,12 @@ class TestSystemResources:
         if system == "Darwin" and arch == "x86_64":
             try:
                 result = subprocess.run(
-                    ["sysctl", "-n", "machdep.cpu.brand_string"],
-                    capture_output=True,
-                    text=True
+                    ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True
                 )
                 if "Apple" in result.stdout:
                     print("⚠️  Running x86_64 Python on Apple Silicon (Rosetta)")
                     print("   Consider using native arm64 Python for better performance")
-            except:
+            except Exception:
                 pass
 
 
@@ -342,26 +331,14 @@ class TestGitConfiguration:
 
     def test_git_available(self):
         """Git command must be available."""
-        result = subprocess.run(
-            ["git", "--version"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run(["git", "--version"], capture_output=True, text=True)
         assert result.returncode == 0, "git command not found"
         print(f"✅ Git available: {result.stdout.strip()}")
 
     def test_git_user_configured(self):
         """Git user.name and user.email should be configured."""
-        name_result = subprocess.run(
-            ["git", "config", "user.name"],
-            capture_output=True,
-            text=True
-        )
-        email_result = subprocess.run(
-            ["git", "config", "user.email"],
-            capture_output=True,
-            text=True
-        )
+        name_result = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True)
+        email_result = subprocess.run(["git", "config", "user.email"], capture_output=True, text=True)
 
         if name_result.returncode != 0 or email_result.returncode != 0:
             print("⚠️  Git user not configured (optional but recommended)")
@@ -406,30 +383,26 @@ def run_all_validation_tests():
     import pytest
 
     # Run tests with verbose output
-    args = [
-        __file__,
-        "-v",
-        "--tb=short",
-        "--color=yes"
-    ]
+    args = [__file__, "-v", "--tb=short", "--color=yes"]
 
     exit_code = pytest.main(args)
 
     if exit_code == 0:
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("🎉 All validation tests passed!")
         print("✅ TrenTorch environment is correctly configured")
         print("💡 Next: tren module 01")
-        print("="*70)
+        print("=" * 70)
     else:
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("❌ Some validation tests failed")
         print("🔧 Please fix the issues above and run: tren system health --verify")
-        print("="*70)
+        print("=" * 70)
 
     return exit_code
 
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(run_all_validation_tests())

@@ -6,32 +6,40 @@ Tests that models can actually learn (not just forward pass).
 Validates gradient flow, parameter updates, and convergence.
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
 
-from trentorch.core.tensor import Tensor
-from trentorch.core.layers import Linear
 from trentorch.core.activations import ReLU, Sigmoid
-from trentorch.core.losses import MSELoss as MeanSquaredError, CrossEntropyLoss
+from trentorch.core.layers import Linear
+from trentorch.core.losses import CrossEntropyLoss
+from trentorch.core.losses import MSELoss as MeanSquaredError
 from trentorch.core.optimizers import SGD, Adam
+from trentorch.core.tensor import Tensor
+
+
 class Sequential:
     """Simple sequential container for testing."""
+
     def __init__(self, layers):
         self.layers = layers
+
     def __call__(self, x):
         for layer in self.layers:
             x = layer(x)
         return x
+
     def parameters(self):
         params = []
         for layer in self.layers:
-            if hasattr(layer, 'parameters'):
+            if hasattr(layer, "parameters"):
                 params.extend(layer.parameters())
         return params
 
@@ -62,7 +70,7 @@ class TrainingTester:
     def summary(self):
         """Print test summary."""
         total = len(self.passed) + len(self.failed)
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"TRAINING TESTS: {len(self.passed)}/{total} passed")
         if self.failed:
             print("\nFailed tests:")
@@ -105,7 +113,7 @@ def test_linear_regression():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        except:
+        except Exception:
             # If autograd not available, skip gradient update
             pass
 
@@ -126,12 +134,7 @@ def test_xor_learning():
     y_tensor = Tensor(y)
 
     # Network with hidden layer
-    model = Sequential([
-        Linear(2, 8),
-        ReLU(),
-        Linear(8, 1),
-        Sigmoid()
-    ])
+    model = Sequential([Linear(2, 8), ReLU(), Linear(8, 1), Sigmoid()])
 
     optimizer = Adam(model.parameters(), lr=0.1)
     criterion = MeanSquaredError()
@@ -153,7 +156,7 @@ def test_xor_learning():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        except:
+        except Exception:
             pass
 
     # Check convergence
@@ -176,8 +179,7 @@ def test_multiclass_classification():
     X = []
     y = []
     for i in range(n_classes):
-        center = np.array([np.cos(2 * np.pi * i / n_classes),
-                          np.sin(2 * np.pi * i / n_classes)]) * 2
+        center = np.array([np.cos(2 * np.pi * i / n_classes), np.sin(2 * np.pi * i / n_classes)]) * 2
         cluster = rng.standard_normal((n_samples // n_classes, n_features)) * 0.5 + center
         X.append(cluster)
         y.extend([i] * (n_samples // n_classes))
@@ -189,13 +191,7 @@ def test_multiclass_classification():
     y_tensor = Tensor(y)
 
     # Build classifier
-    model = Sequential([
-        Linear(n_features, 16),
-        ReLU(),
-        Linear(16, 8),
-        ReLU(),
-        Linear(8, n_classes)
-    ])
+    model = Sequential([Linear(n_features, 16), ReLU(), Linear(16, 8), ReLU(), Linear(8, n_classes)])
 
     optimizer = Adam(model.parameters(), lr=0.01)
     criterion = CrossEntropyLoss()
@@ -220,7 +216,7 @@ def test_multiclass_classification():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        except:
+        except Exception:
             pass
 
     # Check if loss decreased significantly
@@ -265,13 +261,13 @@ def test_gradient_flow():
         # Check if gradients exist in all layers
         gradients_exist = True
         for layer in model.layers:
-            if hasattr(layer, 'weight'):
+            if hasattr(layer, "weight"):
                 if layer.weight.grad is None:
                     gradients_exist = False
                     break
 
         return gradients_exist
-    except:
+    except Exception:
         return False
 
 
@@ -302,12 +298,13 @@ def test_optimizer_updates():
         # Check if weights changed
         weights_changed = not np.allclose(initial_weights, model.weight.data)
         return weights_changed
-    except:
+    except Exception:
         return False
 
 
 def test_learning_rate_effect():
     """Test that learning rate affects convergence speed."""
+
     def train_with_lr(lr):
         model = Linear(1, 1)
         optimizer = SGD(model.parameters(), lr=lr)
@@ -327,10 +324,10 @@ def test_learning_rate_effect():
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-            except:
+            except Exception:
                 pass
 
-        return losses[-1] if losses else float('inf')
+        return losses[-1] if losses else float("inf")
 
     # Test different learning rates
     loss_small_lr = train_with_lr(0.001)
@@ -344,17 +341,13 @@ def test_learning_rate_effect():
 
 def test_adam_vs_sgd():
     """Test that Adam converges faster than SGD on non-convex problems."""
+
     def train_with_optimizer(opt_class):
         # Non-convex problem (XOR-like)
         X = Tensor(rng.standard_normal((20, 2)).astype(np.float32))
         y = Tensor((np.sum(X.data, axis=1, keepdims=True) > 0).astype(np.float32))
 
-        model = Sequential([
-            Linear(2, 10),
-            ReLU(),
-            Linear(10, 1),
-            Sigmoid()
-        ])
+        model = Sequential([Linear(2, 10), ReLU(), Linear(10, 1), Sigmoid()])
 
         optimizer = opt_class(model.parameters(), lr=0.01)
         criterion = MeanSquaredError()
@@ -369,10 +362,10 @@ def test_adam_vs_sgd():
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-            except:
+            except Exception:
                 pass
 
-        return losses[-1] if losses else float('inf')
+        return losses[-1] if losses else float("inf")
 
     sgd_loss = train_with_optimizer(SGD)
     adam_loss = train_with_optimizer(Adam)
@@ -384,10 +377,10 @@ def test_adam_vs_sgd():
 
 def run_all_training_tests():
     """Run comprehensive training tests."""
-    print("="*60)
+    print("=" * 60)
     print("TRAINING CAPABILITY TEST SUITE")
     print("Testing that models can actually learn")
-    print("="*60)
+    print("=" * 60)
 
     tester = TrainingTester()
 

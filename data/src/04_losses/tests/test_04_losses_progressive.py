@@ -7,6 +7,7 @@ This is the FOUNDATION MILESTONE - everything should work together for neural ne
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -29,6 +30,7 @@ class TestEntireFoundationStack:
 
         # Dependencies
         import numpy as np
+
         assert np.__version__ is not None, "Foundation broken: Numpy"
 
     def test_tensor_foundation_intact(self):
@@ -75,7 +77,7 @@ class TestEntireFoundationStack:
 
             # Layer base class should exist
             layer = Layer()
-            assert hasattr(layer, 'forward'), "Foundation broken: Layer interface"
+            assert hasattr(layer, "forward"), "Foundation broken: Layer interface"
             assert callable(layer), "Foundation broken: Layer callable"
 
         except ImportError:
@@ -95,7 +97,7 @@ class TestDenseNetworkCapability:
             layer = Linear(10, 5)
 
             # Should have proper weights and bias
-            assert hasattr(layer, 'weight'), "Dense broken: No weights"
+            assert hasattr(layer, "weight"), "Dense broken: No weights"
             assert layer.weight.shape == (10, 5), "Dense broken: Wrong weight shape"
 
             # Should work with tensor input
@@ -110,8 +112,8 @@ class TestDenseNetworkCapability:
     def test_multi_layer_network(self):
         """Test building multi-layer networks."""
         try:
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.layers import Linear
             from trentorch.core.tensor import Tensor
 
             # Build 3-layer network for XOR
@@ -124,9 +126,9 @@ class TestDenseNetworkCapability:
             X = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32))
 
             # Forward pass through complete network
-            h = hidden(X)           # Dense transformation
-            h_act = relu(h)         # Non-linear activation
-            out = output(h_act)     # Output transformation
+            h = hidden(X)  # Dense transformation
+            h_act = relu(h)  # Non-linear activation
+            out = output(h_act)  # Output transformation
             predictions = sigmoid(out)  # Output activation
 
             assert predictions.shape == (4, 1), "Multi-layer network broken"
@@ -143,13 +145,13 @@ class TestXORProblemSolution:
     def test_xor_network_architecture(self):
         """Test XOR network architecture is possible."""
         try:
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.layers import Linear
             from trentorch.core.tensor import Tensor
 
             # XOR problem setup
             X = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32))
-            y_target = np.array([[0], [1], [1], [0]], dtype=np.float32)
+            np.array([[0], [1], [1], [0]], dtype=np.float32)
 
             # Network: 2 -> 4 -> 1 (sufficient for XOR)
             hidden = Linear(2, 4, bias=True)
@@ -180,8 +182,8 @@ class TestXORProblemSolution:
     def test_nonlinear_problem_solvability(self):
         """Test that non-linear problems are now solvable."""
         try:
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU
+            from trentorch.core.layers import Linear
             from trentorch.core.tensor import Tensor
 
             # Create network that can solve non-linear problems
@@ -215,8 +217,8 @@ class TestFoundationMilestoneReadiness:
     def test_mnist_mlp_architecture_possible(self):
         """Test we can build MNIST MLP architecture."""
         try:
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU, Softmax
+            from trentorch.core.layers import Linear
             from trentorch.core.tensor import Tensor
 
             # MNIST MLP: 784 -> 128 -> 64 -> 10
@@ -230,9 +232,9 @@ class TestFoundationMilestoneReadiness:
             x = Tensor(rng.standard_normal((32, 784)))  # 32 images, flattened
 
             # Forward pass through MLP
-            h1 = relu(layer1(x))     # 32 x 128
-            h2 = relu(layer2(h1))    # 32 x 64
-            logits = layer3(h2)      # 32 x 10
+            h1 = relu(layer1(x))  # 32 x 128
+            h2 = relu(layer2(h1))  # 32 x 64
+            logits = layer3(h2)  # 32 x 10
             probs = softmax(logits)  # 32 x 10
 
             assert probs.shape == (32, 10), "MNIST MLP architecture broken"
@@ -247,8 +249,8 @@ class TestFoundationMilestoneReadiness:
     def test_classification_capability(self):
         """Test basic classification capability."""
         try:
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU, Softmax
+            from trentorch.core.layers import Linear
             from trentorch.core.tensor import Tensor
 
             # Simple classifier: features -> hidden -> classes
@@ -280,9 +282,9 @@ class TestCompleteStackValidation:
     def test_end_to_end_neural_network(self):
         """Test complete neural network from scratch."""
         try:
-            from trentorch.core.tensor import Tensor
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU, Sigmoid
+            from trentorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
 
             # End-to-end test: Build and run a complete neural network
 
@@ -300,8 +302,8 @@ class TestCompleteStackValidation:
             sigmoid = Sigmoid()
 
             # 4. Forward pass (everything working together)
-            h1 = relu(layer1(X))      # 10 x 8
-            h2 = relu(layer2(h1))     # 10 x 3
+            h1 = relu(layer1(X))  # 10 x 8
+            h2 = relu(layer2(h1))  # 10 x 3
             output = sigmoid(layer3(h2))  # 10 x 1
 
             # 5. Validation
@@ -310,9 +312,9 @@ class TestCompleteStackValidation:
             assert np.all(output.data <= 1), "Network output invalid"
 
             # 6. Network should be trainable (parameters exist)
-            assert hasattr(layer1, 'weight'), "Layer 1 not trainable"
-            assert hasattr(layer2, 'weight'), "Layer 2 not trainable"
-            assert hasattr(layer3, 'weight'), "Layer 3 not trainable"
+            assert hasattr(layer1, "weight"), "Layer 1 not trainable"
+            assert hasattr(layer2, "weight"), "Layer 2 not trainable"
+            assert hasattr(layer3, "weight"), "Layer 3 not trainable"
 
         except ImportError:
             assert True, "End-to-end neural network not ready yet"
@@ -320,9 +322,9 @@ class TestCompleteStackValidation:
     def test_foundation_stability_under_load(self):
         """Test foundation remains stable under computational load."""
         try:
-            from trentorch.core.tensor import Tensor
-            from trentorch.core.layers import Linear
             from trentorch.core.activations import ReLU
+            from trentorch.core.layers import Linear
+            from trentorch.core.tensor import Tensor
 
             # Stress test: Large network
             layer1 = Linear(100, 200)

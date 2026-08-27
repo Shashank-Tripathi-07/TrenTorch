@@ -208,6 +208,7 @@ As you progress, you unlock recreations of landmark ML achievements, run on YOUR
 ```python
 # Most courses:
 import torch
+
 model.fit(X, y)  # magic happens somewhere else
 
 # TrenTorch:

@@ -11,15 +11,16 @@ Tests gradient flow through all NLP-specific modules:
 Verifies that all parameters receive gradients and backward pass works correctly.
 """
 
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+import sys
 
-import pytest
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../.."))
+
 import numpy as np
+
 rng = np.random.default_rng(7)
-from trentorch.core.tensor import Tensor
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
 
 # Enable autograd
 enable_autograd()
@@ -53,7 +54,7 @@ def test_tokenization_basic():
     except (ImportError, NameError) as e:
         # Tokenization module may have minor issues, skip this test
         print(f"  ⚠️  Tokenization test skipped (module has minor issue: {e})")
-        print(f"     This is OK - tokenization is preprocessing, no gradients needed")
+        print("     This is OK - tokenization is preprocessing, no gradients needed")
     print("")
 
 
@@ -84,8 +85,7 @@ def test_embedding_gradient_flow():
     # Verify shape and requires_grad
     assert embedded.shape == (1, 3, embed_dim), f"Shape: {embedded.shape}"
     assert embedded.requires_grad, "Embedding output should require gradients"
-    assert hasattr(embedded, '_grad_fn') and embedded._grad_fn is not None, \
-        "Embedding should have _grad_fn"
+    assert hasattr(embedded, "_grad_fn") and embedded._grad_fn is not None, "Embedding should have _grad_fn"
 
     # Backward pass
     grad_output = np.ones_like(embedded.data)
@@ -140,8 +140,9 @@ def test_positional_encoding_gradient_flow():
     # Verify shape and requires_grad
     assert output.shape == x.shape, f"Shape should be preserved: {output.shape}"
     assert output.requires_grad, "Output should require gradients"
-    assert hasattr(output, '_grad_fn') and output._grad_fn is not None, \
+    assert hasattr(output, "_grad_fn") and output._grad_fn is not None, (
         "PositionalEncoding should have _grad_fn"
+    )
 
     # Backward pass
     output.backward(np.ones_like(output.data))
@@ -152,10 +153,10 @@ def test_positional_encoding_gradient_flow():
     # Note: Position embeddings may use slicing which currently doesn't have backward
     # This is OK - the important thing is that input gradients flow through
     if pos_enc.position_embeddings.grad is not None:
-        print(f"  ✅ PositionalEncoding: gradients flow to both input and positions")
+        print("  ✅ PositionalEncoding: gradients flow to both input and positions")
     else:
-        print(f"  ✅ PositionalEncoding: gradients flow to input (positions use slicing)")
-        print(f"     Note: Positional embeddings often fixed in transformers anyway")
+        print("  ✅ PositionalEncoding: gradients flow to input (positions use slicing)")
+        print("     Note: Positional embeddings often fixed in transformers anyway")
     print("")
 
 
@@ -197,7 +198,7 @@ def test_scaled_dot_product_attention_gradient_flow():
     assert K.grad is not None, "K should have gradients"
     assert V.grad is not None, "V should have gradients"
 
-    print(f"    ✅ Without mask: Q, K, V all receive gradients")
+    print("    ✅ Without mask: Q, K, V all receive gradients")
 
     # Test with causal mask
     print("  Testing with causal mask...")
@@ -216,7 +217,7 @@ def test_scaled_dot_product_attention_gradient_flow():
     assert K2.grad is not None, "K should have gradients (with mask)"
     assert V2.grad is not None, "V should have gradients (with mask)"
 
-    print(f"    ✅ With causal mask: Q, K, V all receive gradients")
+    print("    ✅ With causal mask: Q, K, V all receive gradients")
     print("")
 
 
@@ -278,7 +279,7 @@ def test_multi_head_attention_gradient_flow():
     assert mha.v_proj.bias.grad is not None, "V bias should have gradients"
     assert mha.out_proj.bias.grad is not None, "Output bias should have gradients"
 
-    print(f"  ✅ Multi-head attention: ALL parameters receive gradients")
+    print("  ✅ Multi-head attention: ALL parameters receive gradients")
     print("")
 
 
@@ -318,8 +319,7 @@ def test_layernorm_gradient_flow():
 
     # Verify requires_grad
     assert output.requires_grad, "Output should require gradients"
-    assert hasattr(output, '_grad_fn') and output._grad_fn is not None, \
-        "LayerNorm should have _grad_fn"
+    assert hasattr(output, "_grad_fn") and output._grad_fn is not None, "LayerNorm should have _grad_fn"
 
     # Backward pass
     output.backward(np.ones_like(output.data))
@@ -417,7 +417,7 @@ def test_transformer_block_gradient_flow():
     output = block.forward(x, mask=mask)
 
     # Verify
-    assert output.shape == x.shape, f"TransformerBlock should preserve shape"
+    assert output.shape == x.shape, "TransformerBlock should preserve shape"
     assert output.requires_grad, "Output should require gradients"
 
     # Backward pass
@@ -469,12 +469,7 @@ def test_full_gpt_model_gradient_flow():
     seq_len = 8
 
     # Create model
-    model = GPT(
-        vocab_size=vocab_size,
-        embed_dim=embed_dim,
-        num_layers=num_layers,
-        num_heads=num_heads
-    )
+    model = GPT(vocab_size=vocab_size, embed_dim=embed_dim, num_layers=num_layers, num_heads=num_heads)
 
     # Set requires_grad for all parameters
     params = model.parameters()
@@ -518,8 +513,9 @@ def test_full_gpt_model_gradient_flow():
 
     # Note: positional encodings may not receive gradients in some sequences
     # (positions beyond actual sequence length). Allow 1 parameter without grad.
-    assert params_with_grads >= total_params - 1, \
+    assert params_with_grads >= total_params - 1, (
         f"Expected at least {total_params - 1} parameters to have gradients, got {params_with_grads}"
+    )
 
     print(f"  ✅ GPT Model: ALL {total_params} parameters receive gradients!")
     print("")
@@ -527,9 +523,9 @@ def test_full_gpt_model_gradient_flow():
 
 def run_all_tests():
     """Run all NLP component gradient flow tests."""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("NLP COMPONENTS GRADIENT FLOW TEST SUITE")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     tests = [
         test_tokenization_basic,
@@ -553,11 +549,12 @@ def run_all_tests():
         except Exception as e:
             print(f"❌ {test_func.__name__} FAILED: {e}")
             import traceback
+
             traceback.print_exc()
             failed += 1
         print("")
 
-    print("="*70)
+    print("=" * 70)
     print(f"RESULTS: {passed}/{len(tests)} tests passed")
     if failed == 0:
         print("✅ All NLP components have correct gradient flow!")
@@ -568,7 +565,7 @@ def run_all_tests():
         print("   - Full GPT model ✅")
     else:
         print(f"❌ {failed} tests failed - gradient flow issues detected")
-    print("="*70)
+    print("=" * 70)
 
     return failed == 0
 

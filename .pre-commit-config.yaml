@@ -47,17 +47,11 @@ repos:
   # PYTHON CODE QUALITY
   # ===========================================================================
 
-  # Uncomment to enable Python linting/formatting
-  # - repo: https://github.com/psf/black
-  #   rev: 24.4.2
-  #   hooks:
-  #     - id: black
-  #       name: "Format Python code"
-  #       files: ^(data/src/|data/trentorch/|platforms/).*\.py$
-
-  # - repo: https://github.com/pycqa/isort
-  #   rev: 5.13.2
-  #   hooks:
-  #     - id: isort
-  #       name: "Sort imports"
-  #       files: ^(data/src/|data/trentorch/|platforms/).*\.py$
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.4
+    hooks:
+      - id: ruff
+        name: "Lint Python code"
+        args: [--fix]
+      - id: ruff-format
+        name: "Format Python code"

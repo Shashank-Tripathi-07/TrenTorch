@@ -21,7 +21,6 @@ Usage:
     python tools/dev/fix_ascii_boxes.py --verbose    # Show detailed info
 """
 
-import sys
 from pathlib import Path
 
 
@@ -31,7 +30,7 @@ def find_simple_boxes(content: str) -> list[tuple[int, int, list[str]]]:
 
     Returns list of (start_line, end_line, lines) tuples.
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     boxes = []
     i = 0
 
@@ -39,21 +38,21 @@ def find_simple_boxes(content: str) -> list[tuple[int, int, list[str]]]:
         line = lines[i]
 
         # Look for box start: ┌...┐
-        if '┌' in line and '┐' in line:
-            first_corner = line.index('┌')
+        if "┌" in line and "┐" in line:
+            first_corner = line.index("┌")
 
             # Skip nested boxes (│ before ┌)
-            if '│' in line[:first_corner]:
+            if "│" in line[:first_corner]:
                 i += 1
                 continue
 
             # Skip side-by-side boxes
-            if line.count('┌') > 1:
+            if line.count("┌") > 1:
                 i += 1
                 continue
 
             # Skip dashed boxes
-            if '─ ─' in line:
+            if "─ ─" in line:
                 i += 1
                 continue
 
@@ -67,29 +66,29 @@ def find_simple_boxes(content: str) -> list[tuple[int, int, list[str]]]:
             while j < len(lines) and j - i < 100:
                 current_line = lines[j]
 
-                if '─ ─' in current_line:
+                if "─ ─" in current_line:
                     is_simple = False
                     break
 
                 # Content line
-                if '│' in current_line:
+                if "│" in current_line:
                     # Check if simple (exactly 2 │)
-                    bar_count = current_line.count('│')
-                    first_bar = current_line.index('│')
+                    bar_count = current_line.count("│")
+                    first_bar = current_line.index("│")
                     if bar_count != 2 or first_bar != left_pos:
                         is_simple = False
                     box_lines.append(current_line)
                     j += 1
                 # Separator line
-                elif '├' in current_line and '┤' in current_line:
-                    first_sep = current_line.index('├')
+                elif "├" in current_line and "┤" in current_line:
+                    first_sep = current_line.index("├")
                     if first_sep != left_pos:
                         is_simple = False
                     box_lines.append(current_line)
                     j += 1
                 # Bottom line
-                elif '└' in current_line and '┘' in current_line:
-                    if current_line.count('└') > 1:
+                elif "└" in current_line and "┘" in current_line:
+                    if current_line.count("└") > 1:
                         is_simple = False
                     box_lines.append(current_line)
                     if is_simple:
@@ -112,21 +111,21 @@ def needs_fixing(box_lines: list[str]) -> bool:
         return False
 
     top_line = box_lines[0]
-    target_right = top_line.index('┐')
+    target_right = top_line.index("┐")
 
     for line in box_lines[1:-1]:
-        if '│' in line:
-            last_bar = line.rindex('│')
+        if "│" in line:
+            last_bar = line.rindex("│")
             if last_bar != target_right:
                 return True
-        elif '├' in line and '┤' in line:
-            last_corner = line.rindex('┤')
+        elif "├" in line and "┤" in line:
+            last_corner = line.rindex("┤")
             if last_corner != target_right:
                 return True
 
     bottom_line = box_lines[-1]
-    if '┘' in bottom_line:
-        if bottom_line.rindex('┘') != target_right:
+    if "┘" in bottom_line:
+        if bottom_line.rindex("┘") != target_right:
             return True
 
     return False
@@ -138,47 +137,47 @@ def fix_box_alignment(box_lines: list[str]) -> list[str]:
         return box_lines
 
     top_line = box_lines[0]
-    left_pos = top_line.index('┌')
-    target_right = top_line.index('┐')
+    left_pos = top_line.index("┌")
+    target_right = top_line.index("┐")
     inner_width = target_right - left_pos - 1
 
     fixed_lines = [top_line]
 
     for line in box_lines[1:-1]:
-        if '├' in line and '┤' in line:
+        if "├" in line and "┤" in line:
             prefix = line[:left_pos]
-            last_pos = line.rindex('┤')
-            after = line[last_pos + 1:] if last_pos + 1 < len(line) else ''
-            fixed_line = prefix + '├' + '─' * inner_width + '┤' + after
+            last_pos = line.rindex("┤")
+            after = line[last_pos + 1 :] if last_pos + 1 < len(line) else ""
+            fixed_line = prefix + "├" + "─" * inner_width + "┤" + after
             fixed_lines.append(fixed_line)
-        elif '│' in line:
-            first_bar = line.index('│')
-            last_bar = line.rindex('│')
+        elif "│" in line:
+            first_bar = line.index("│")
+            last_bar = line.rindex("│")
 
             if first_bar == last_bar:
                 fixed_lines.append(line)
                 continue
 
             prefix = line[:first_bar]
-            content = line[first_bar + 1:last_bar]
-            after = line[last_bar + 1:] if last_bar + 1 < len(line) else ''
+            content = line[first_bar + 1 : last_bar]
+            after = line[last_bar + 1 :] if last_bar + 1 < len(line) else ""
 
             content_stripped = content.rstrip()
             padded_content = content_stripped.ljust(inner_width)
 
-            fixed_line = prefix + '│' + padded_content + '│' + after
+            fixed_line = prefix + "│" + padded_content + "│" + after
             fixed_lines.append(fixed_line)
         else:
             fixed_lines.append(line)
 
     # Bottom line
     bottom_line = box_lines[-1]
-    if '└' in bottom_line and '┘' in bottom_line:
-        bottom_left = bottom_line.index('└')
+    if "└" in bottom_line and "┘" in bottom_line:
+        bottom_left = bottom_line.index("└")
         prefix = bottom_line[:bottom_left]
-        bottom_right = bottom_line.rindex('┘')
-        after = bottom_line[bottom_right + 1:] if bottom_right + 1 < len(bottom_line) else ''
-        fixed_bottom = prefix + '└' + '─' * inner_width + '┘' + after
+        bottom_right = bottom_line.rindex("┘")
+        after = bottom_line[bottom_right + 1 :] if bottom_right + 1 < len(bottom_line) else ""
+        fixed_bottom = prefix + "└" + "─" * inner_width + "┘" + after
         fixed_lines.append(fixed_bottom)
     else:
         fixed_lines.append(bottom_line)
@@ -192,7 +191,7 @@ def find_tables(content: str) -> list[tuple[int, int, list[str]]]:
 
     Returns list of (start_line, end_line, lines) tuples.
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     tables = []
     i = 0
 
@@ -200,11 +199,11 @@ def find_tables(content: str) -> list[tuple[int, int, list[str]]]:
         line = lines[i]
 
         # Look for table start: ┌...┬...┐ (has column separator)
-        if '┌' in line and '┐' in line and '┬' in line:
-            first_corner = line.index('┌')
+        if "┌" in line and "┐" in line and "┬" in line:
+            first_corner = line.index("┌")
 
             # Skip nested (│ before ┌)
-            if '│' in line[:first_corner]:
+            if "│" in line[:first_corner]:
                 i += 1
                 continue
 
@@ -218,19 +217,19 @@ def find_tables(content: str) -> list[tuple[int, int, list[str]]]:
                 current_line = lines[j]
 
                 # Content line (multiple │)
-                if '│' in current_line:
-                    first_bar = current_line.index('│')
+                if "│" in current_line:
+                    first_bar = current_line.index("│")
                     if first_bar == left_pos:
                         table_lines.append(current_line)
                         j += 1
                     else:
                         break
                 # Separator line with ┼
-                elif '├' in current_line and '┤' in current_line:
+                elif "├" in current_line and "┤" in current_line:
                     table_lines.append(current_line)
                     j += 1
                 # Bottom line with ┴
-                elif '└' in current_line and '┘' in current_line:
+                elif "└" in current_line and "┘" in current_line:
                     table_lines.append(current_line)
                     tables.append((table_start, j, table_lines))
                     i = j
@@ -256,43 +255,43 @@ def fix_table_alignment(table_lines: list[str]) -> list[str]:
         return table_lines
 
     top_line = table_lines[0]
-    left_pos = top_line.index('┌')
-    right_pos = top_line.index('┐')
-    total_width = right_pos - left_pos + 1
+    left_pos = top_line.index("┌")
+    right_pos = top_line.index("┐")
+    right_pos - left_pos + 1
 
     # Find column separator positions (┬) in top line
-    separators = [i for i, c in enumerate(top_line) if c == '┬']
+    separators = [i for i, c in enumerate(top_line) if c == "┬"]
 
     # Column boundaries: [left_pos, sep1, sep2, ..., right_pos]
     boundaries = [left_pos] + separators + [right_pos]
 
     # Calculate column widths (between separators)
-    col_widths = [boundaries[i+1] - boundaries[i] - 1 for i in range(len(boundaries) - 1)]
+    col_widths = [boundaries[i + 1] - boundaries[i] - 1 for i in range(len(boundaries) - 1)]
 
     fixed_lines = [top_line]  # Top line stays as-is (defines structure)
 
     for line in table_lines[1:-1]:
         prefix = line[:left_pos]
 
-        if '├' in line and '┤' in line:
+        if "├" in line and "┤" in line:
             # Separator row - rebuild with ┼
-            parts = ['├']
+            parts = ["├"]
             for i, w in enumerate(col_widths):
-                parts.append('─' * w)
+                parts.append("─" * w)
                 if i < len(col_widths) - 1:
-                    parts.append('┼')
-            parts.append('┤')
-            fixed_lines.append(prefix + ''.join(parts))
+                    parts.append("┼")
+            parts.append("┤")
+            fixed_lines.append(prefix + "".join(parts))
 
-        elif '│' in line:
+        elif "│" in line:
             # Content row - extract cells by splitting on │
             # Remove prefix, get content between first and last │
-            first_bar = line.index('│')
-            last_bar = line.rindex('│')
-            inner = line[first_bar + 1:last_bar]
+            first_bar = line.index("│")
+            last_bar = line.rindex("│")
+            inner = line[first_bar + 1 : last_bar]
 
             # Split on │ to get cells
-            cells = inner.split('│')
+            cells = inner.split("│")
 
             # Pad/trim each cell to its column width
             fixed_cells = []
@@ -307,22 +306,22 @@ def fix_table_alignment(table_lines: list[str]) -> list[str]:
                 else:
                     fixed_cells.append(cell)
 
-            fixed_line = prefix + '│' + '│'.join(fixed_cells) + '│'
+            fixed_line = prefix + "│" + "│".join(fixed_cells) + "│"
             fixed_lines.append(fixed_line)
         else:
             fixed_lines.append(line)
 
     # Bottom line - rebuild with ┴
     bottom_line = table_lines[-1]
-    if '└' in bottom_line and '┘' in bottom_line:
+    if "└" in bottom_line and "┘" in bottom_line:
         prefix = bottom_line[:left_pos]
-        parts = ['└']
+        parts = ["└"]
         for i, w in enumerate(col_widths):
-            parts.append('─' * w)
+            parts.append("─" * w)
             if i < len(col_widths) - 1:
-                parts.append('┴')
-        parts.append('┘')
-        fixed_lines.append(prefix + ''.join(parts))
+                parts.append("┴")
+        parts.append("┘")
+        fixed_lines.append(prefix + "".join(parts))
     else:
         fixed_lines.append(bottom_line)
 
@@ -340,25 +339,25 @@ def table_needs_fixing(table_lines: list[str]) -> tuple[bool, bool]:
         return False, False
 
     top_line = table_lines[0]
-    left_pos = top_line.index('┌')
-    right_pos = top_line.index('┐')
+    top_line.index("┌")
+    right_pos = top_line.index("┐")
 
     content_too_wide = False
     misaligned = False
 
     for line in table_lines[1:]:
-        if '│' in line:
-            last_bar = line.rindex('│')
+        if "│" in line:
+            last_bar = line.rindex("│")
             if last_bar != right_pos:
                 misaligned = True
                 if last_bar > right_pos:
                     content_too_wide = True
-        elif '┤' in line:
-            last_corner = line.rindex('┤')
+        elif "┤" in line:
+            last_corner = line.rindex("┤")
             if last_corner != right_pos:
                 misaligned = True
-        elif '┘' in line:
-            last_corner = line.rindex('┘')
+        elif "┘" in line:
+            last_corner = line.rindex("┘")
             if last_corner != right_pos:
                 misaligned = True
 
@@ -367,23 +366,23 @@ def table_needs_fixing(table_lines: list[str]) -> tuple[bool, bool]:
 
 def count_complex_boxes(content: str) -> int:
     """Count boxes that are too complex to auto-fix."""
-    lines = content.split('\n')
+    lines = content.split("\n")
     count = 0
     i = 0
 
     while i < len(lines):
         line = lines[i]
-        if '┌' in line and '┐' in line:
-            first_corner = line.index('┌')
+        if "┌" in line and "┐" in line:
+            first_corner = line.index("┌")
             # Skip tables (handled separately)
-            if '┬' in line:
+            if "┬" in line:
                 i += 1
                 continue
             # Nested box
-            if '│' in line[:first_corner]:
+            if "│" in line[:first_corner]:
                 count += 1
             # Side-by-side
-            elif line.count('┌') > 1:
+            elif line.count("┌") > 1:
                 count += 1
             i += 1
         else:
@@ -395,8 +394,8 @@ def count_complex_boxes(content: str) -> int:
 def process_file(filepath: Path, fix: bool = False, verbose: bool = False) -> tuple[bool, int, int, int]:
     """Process a single file. Returns (has_changes, num_boxes_fixed, num_tables_fixed, num_complex)."""
     try:
-        content = filepath.read_text(encoding='utf-8')
-    except Exception as e:
+        content = filepath.read_text(encoding="utf-8")
+    except Exception:
         return False, 0, 0, 0
 
     boxes = find_simple_boxes(content)
@@ -406,7 +405,7 @@ def process_file(filepath: Path, fix: bool = False, verbose: bool = False) -> tu
     if not boxes and not tables and complex_count == 0:
         return False, 0, 0, 0
 
-    lines = content.split('\n')
+    lines = content.split("\n")
     original_content = content
     boxes_fixed = 0
     tables_fixed = 0
@@ -434,11 +433,11 @@ def process_file(filepath: Path, fix: bool = False, verbose: bool = False) -> tu
                 if len(fixed_lines) > 5:
                     print(f"       ... ({len(fixed_lines) - 5} more lines)")
 
-            lines[start_line:end_line + 1] = fixed_lines
+            lines[start_line : end_line + 1] = fixed_lines
 
     # Rebuild content after box fixes
-    content = '\n'.join(lines)
-    lines = content.split('\n')
+    content = "\n".join(lines)
+    lines = content.split("\n")
 
     # Find tables again (line numbers may have shifted)
     tables = find_tables(content)
@@ -455,7 +454,9 @@ def process_file(filepath: Path, fix: bool = False, verbose: bool = False) -> tu
             # Content is wider than header - needs manual fix
             tables_skipped += 1
             if verbose:
-                print(f"\n  ⚠️  Table at lines {start_line + 1}-{end_line + 1} has content wider than header (manual fix needed)")
+                print(
+                    f"\n  ⚠️  Table at lines {start_line + 1}-{end_line + 1} has content wider than header (manual fix needed)"
+                )
             continue
 
         fixed_lines = fix_table_alignment(table_lines)
@@ -472,15 +473,15 @@ def process_file(filepath: Path, fix: bool = False, verbose: bool = False) -> tu
                 for line in fixed_lines:
                     print(f"       {line}")
 
-            lines[start_line:end_line + 1] = fixed_lines
+            lines[start_line : end_line + 1] = fixed_lines
 
     complex_count += tables_skipped  # Count tables needing manual fix as complex
 
-    new_content = '\n'.join(lines)
+    new_content = "\n".join(lines)
     changes_made = new_content != original_content
 
     if changes_made and fix:
-        filepath.write_text(new_content, encoding='utf-8')
+        filepath.write_text(new_content, encoding="utf-8")
 
     return changes_made, boxes_fixed, tables_fixed, complex_count
 
@@ -488,24 +489,26 @@ def process_file(filepath: Path, fix: bool = False, verbose: bool = False) -> tu
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Fix ASCII box alignment in Python files')
-    parser.add_argument('paths', nargs='*', default=['.'])
-    parser.add_argument('--fix', action='store_true', help='Apply fixes')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Show detailed changes')
+    parser = argparse.ArgumentParser(description="Fix ASCII box alignment in Python files")
+    parser.add_argument("paths", nargs="*", default=["."])
+    parser.add_argument("--fix", action="store_true", help="Apply fixes")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Show detailed changes")
 
     args = parser.parse_args()
 
     py_files = []
     for path_str in args.paths:
         path = Path(path_str)
-        if path.is_file() and path.suffix == '.py':
+        if path.is_file() and path.suffix == ".py":
             py_files.append(path)
         elif path.is_dir():
-            py_files.extend(path.rglob('*.py'))
+            py_files.extend(path.rglob("*.py"))
 
-    py_files = [f for f in py_files if not any(
-        part in f.parts for part in ['venv', '.venv', '__pycache__', 'lib', 'bin', '.git']
-    )]
+    py_files = [
+        f
+        for f in py_files
+        if not any(part in f.parts for part in ["venv", ".venv", "__pycache__", "lib", "bin", ".git"])
+    ]
 
     if not py_files:
         print("No Python files found.")
@@ -519,7 +522,9 @@ def main():
     files_changed = 0
 
     for filepath in sorted(py_files):
-        has_changes, boxes_fixed, tables_fixed, complex_count = process_file(filepath, fix=args.fix, verbose=args.verbose)
+        has_changes, boxes_fixed, tables_fixed, complex_count = process_file(
+            filepath, fix=args.fix, verbose=args.verbose
+        )
         total_boxes += boxes_fixed
         total_tables += tables_fixed
         total_complex += complex_count
@@ -528,7 +533,9 @@ def main():
         if has_changes or complex_count > 0:
             if has_changes:
                 files_changed += 1
-            status = "✅ Fixed" if args.fix and total_fixed > 0 else "⚠️  Needs fixing" if total_fixed > 0 else ""
+            status = (
+                "✅ Fixed" if args.fix and total_fixed > 0 else "⚠️  Needs fixing" if total_fixed > 0 else ""
+            )
             parts = []
             if boxes_fixed > 0:
                 parts.append(f"{boxes_fixed} box{'es' if boxes_fixed != 1 else ''}")
@@ -537,7 +544,11 @@ def main():
             if complex_count > 0:
                 parts.append(f"{complex_count} complex")
             if parts:
-                print(f"{status}: {filepath} ({', '.join(parts)})" if status else f"📋 {filepath} ({', '.join(parts)})")
+                print(
+                    f"{status}: {filepath} ({', '.join(parts)})"
+                    if status
+                    else f"📋 {filepath} ({', '.join(parts)})"
+                )
 
     print()
     total_all = total_boxes + total_tables
@@ -551,13 +562,17 @@ def main():
                     parts.append(f"{total_boxes} box{'es' if total_boxes != 1 else ''}")
                 if total_tables > 0:
                     parts.append(f"{total_tables} table{'s' if total_tables != 1 else ''}")
-                print(f"✅ Fixed {' and '.join(parts)} in {files_changed} file{'s' if files_changed != 1 else ''}.")
+                print(
+                    f"✅ Fixed {' and '.join(parts)} in {files_changed} file{'s' if files_changed != 1 else ''}."
+                )
             else:
                 print(f"⚠️  Found {total_all} misaligned item{'s' if total_all != 1 else ''}.")
                 print("    Run with --fix to apply corrections.")
         if total_complex > 0:
-            print(f"📋 Found {total_complex} complex/nested box{'es' if total_complex != 1 else ''} (require manual review).")
+            print(
+                f"📋 Found {total_complex} complex/nested box{'es' if total_complex != 1 else ''} (require manual review)."
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

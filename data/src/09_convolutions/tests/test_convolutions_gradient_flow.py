@@ -10,8 +10,9 @@ These tests ensure that:
 Prevents regression of gradient flow issues discovered in milestone testing.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -19,9 +20,9 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.autograd import enable_autograd
 from trentorch.core.spatial import Conv2d, MaxPool2d
+from trentorch.core.tensor import Tensor
 
 
 def test_conv2d_has_backward_function():
@@ -35,10 +36,11 @@ def test_conv2d_has_backward_function():
     output = conv(x)
 
     # Check _grad_fn is attached
-    assert hasattr(output, '_grad_fn'), "Conv2d output should have _grad_fn"
+    assert hasattr(output, "_grad_fn"), "Conv2d output should have _grad_fn"
     assert output._grad_fn is not None, "Conv2d output._grad_fn should not be None"
-    assert type(output._grad_fn).__name__ == "Conv2dBackward", \
+    assert type(output._grad_fn).__name__ == "Conv2dBackward", (
         f"Expected Conv2dBackward, got {type(output._grad_fn).__name__}"
+    )
 
     print("✅ Conv2d properly attaches Conv2dBackward")
 
@@ -121,10 +123,11 @@ def test_maxpool2d_has_backward_function():
     output = pool(x)
 
     # Check _grad_fn is attached
-    assert hasattr(output, '_grad_fn'), "MaxPool2d output should have _grad_fn"
+    assert hasattr(output, "_grad_fn"), "MaxPool2d output should have _grad_fn"
     assert output._grad_fn is not None, "MaxPool2d output._grad_fn should not be None"
-    assert type(output._grad_fn).__name__ == "MaxPool2dBackward", \
+    assert type(output._grad_fn).__name__ == "MaxPool2dBackward", (
         f"Expected MaxPool2dBackward, got {type(output._grad_fn).__name__}"
+    )
 
     print("✅ MaxPool2d properly attaches MaxPool2dBackward")
 
@@ -211,25 +214,25 @@ def test_conv2d_gradient_correctness():
     for i in range(conv.weight.data.shape[0]):
         for j in range(conv.weight.data.shape[1]):
             for k in range(conv.weight.data.shape[2]):
-                for l in range(conv.weight.data.shape[3]):
+                for kw in range(conv.weight.data.shape[3]):
                     # Save original
-                    original = conv.weight.data[i, j, k, l]
+                    original = conv.weight.data[i, j, k, kw]
 
                     # +epsilon
-                    conv.weight.data[i, j, k, l] = original + epsilon
+                    conv.weight.data[i, j, k, kw] = original + epsilon
                     out_plus = conv.forward(x)
                     loss_plus = out_plus.data.sum()
 
                     # -epsilon
-                    conv.weight.data[i, j, k, l] = original - epsilon
+                    conv.weight.data[i, j, k, kw] = original - epsilon
                     out_minus = conv.forward(x)
                     loss_minus = out_minus.data.sum()
 
                     # Restore
-                    conv.weight.data[i, j, k, l] = original
+                    conv.weight.data[i, j, k, kw] = original
 
                     # Numerical gradient
-                    numerical_grad[i, j, k, l] = (loss_plus - loss_minus) / (2 * epsilon)
+                    numerical_grad[i, j, k, kw] = (loss_plus - loss_minus) / (2 * epsilon)
 
     # Compare (relaxed tolerance for explicit loop implementation)
     analytical_grad = conv.weight.grad.data
@@ -252,7 +255,7 @@ def test_data_bypass_detection():
 
     # Correct way (should have _grad_fn)
     output_correct = conv(x)
-    assert hasattr(output_correct, '_grad_fn'), "Correct usage should have _grad_fn"
+    assert hasattr(output_correct, "_grad_fn"), "Correct usage should have _grad_fn"
 
     # WRONG way (would break gradient flow if we did this)
     # output_wrong = Tensor(conv(x).data)  # Creating new Tensor from .data
@@ -262,9 +265,9 @@ def test_data_bypass_detection():
 
 
 if __name__ == "__main__":
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SPATIAL GRADIENT FLOW TESTS")
-    print("="*70)
+    print("=" * 70)
 
     tests = [
         test_conv2d_has_backward_function,
@@ -292,9 +295,9 @@ if __name__ == "__main__":
             print(f"❌ {test.__name__} ERROR: {e}")
             failed += 1
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(f"Results: {passed} passed, {failed} failed")
-    print("="*70)
+    print("=" * 70)
 
     if failed > 0:
         sys.exit(1)

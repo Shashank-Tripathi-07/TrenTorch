@@ -10,5 +10,5 @@ under tren/platforms/ now, organized by feature -- see tren/platforms/.
 from .base import BaseCommand
 
 __all__ = [
-    'BaseCommand',
+    "BaseCommand",
 ]

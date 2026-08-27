@@ -52,48 +52,52 @@ WITHOUT KV Cache (Slow):              WITH KV Cache (Fast):
   | With KV Cache       |   ~1.5ms   |  6-10×  |  Higher |
 """
 
-import sys
 import os
+import sys
 import time
+
 import numpy as np
+
 rng = np.random.default_rng(7)
-from pathlib import Path
 
 # Add project root
 sys.path.insert(0, os.getcwd())
-sys.path.insert(0, os.path.join(os.getcwd(), 'data'))  # trentorch/ lives at data/trentorch/
+sys.path.insert(0, os.path.join(os.getcwd(), "data"))  # trentorch/ lives at data/trentorch/
 
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
-from rich import box
 
 console = Console()
 
-def press_enter_to_continue() :
-    if sys.stdin.isatty() and sys.stdout.isatty() :
-        try :
+
+def press_enter_to_continue():
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        try:
             console.input("\n[yellow]Press Enter to continue...[/yellow] ")
-        except EOFError :
+        except EOFError:
             pass
         console.print()
+
 
 def main():
     # ========================================================================
     # WELCOME
     # ========================================================================
 
-    console.print(Panel(
-        "[bold cyan]╔═══ Milestone 06.2 ════╗[/bold cyan]\n"
-        "[bold cyan]║[/bold cyan] [bold]⚡ GENERATION SPEEDUP [/bold][bold cyan]║[/bold cyan]\n"
-        "[bold cyan]║[/bold cyan] [bold]  with KV Caching     [/bold][bold cyan]║[/bold cyan]\n"
-        "[bold cyan]║[/bold cyan]                       [bold cyan]║[/bold cyan]\n"
-        "[bold cyan]║[/bold cyan] Make YOUR Transformer [bold cyan]║[/bold cyan]\n"
-        "[bold cyan]║[/bold cyan] generate 6-10× faster [bold cyan]║[/bold cyan]\n"
-        "[bold cyan]╚═══════════════════════╝[/bold cyan]",
-        border_style="bright_cyan"
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]╔═══ Milestone 06.2 ════╗[/bold cyan]\n"
+            "[bold cyan]║[/bold cyan] [bold]⚡ GENERATION SPEEDUP [/bold][bold cyan]║[/bold cyan]\n"
+            "[bold cyan]║[/bold cyan] [bold]  with KV Caching     [/bold][bold cyan]║[/bold cyan]\n"
+            "[bold cyan]║[/bold cyan]                       [bold cyan]║[/bold cyan]\n"
+            "[bold cyan]║[/bold cyan] Make YOUR Transformer [bold cyan]║[/bold cyan]\n"
+            "[bold cyan]║[/bold cyan] generate 6-10× faster [bold cyan]║[/bold cyan]\n"
+            "[bold cyan]╚═══════════════════════╝[/bold cyan]",
+            border_style="bright_cyan",
+        )
+    )
     press_enter_to_continue()
 
     # ========================================================================
@@ -104,34 +108,41 @@ def main():
 
     try:
         # Core components
-        from trentorch.core.tensor import Tensor
+        from trentorch.core.activations import ReLU  # noqa: F401 -- import-success check
         from trentorch.core.layers import Linear
-        from trentorch.core.activations import ReLU
+        from trentorch.core.tensor import Tensor
+
         console.print("  [green]✓[/green] Tensor, Linear, ReLU (YOUR Modules 01-03)")
 
         # Embeddings and attention
         from trentorch.core.embeddings import Embedding, PositionalEncoding
+
         console.print("  [green]✓[/green] Embedding, PositionalEncoding (YOUR Module 11)")
 
         from trentorch.core.attention import MultiHeadAttention
+
         console.print("  [green]✓[/green] MultiHeadAttention (YOUR Module 12)")
 
         # Profiler
         from trentorch.perf.profiling import Profiler
+
         console.print("  [green]✓[/green] Profiler (YOUR Module 14)")
 
         # KV Cache
         from trentorch.perf.memoization import KVCache
+
         console.print("  [green]✓[/green] KVCache (YOUR Module 18)")
 
     except ImportError as e:
-        console.print(Panel(
-            f"[red]Import Error: {e}[/red]\n\n"
-            f"[yellow]This milestone requires modules 01-08, 11, 12, 14, and 18.[/yellow]\n"
-            f"[dim]Make sure you've completed and exported these modules.[/dim]",
-            title="Missing Modules",
-            border_style="red"
-        ))
+        console.print(
+            Panel(
+                f"[red]Import Error: {e}[/red]\n\n"
+                f"[yellow]This milestone requires modules 01-08, 11, 12, 14, and 18.[/yellow]\n"
+                f"[dim]Make sure you've completed and exported these modules.[/dim]",
+                title="Missing Modules",
+                border_style="red",
+            )
+        )
         return 1
 
     console.print("\n[green]✅ All implementations loaded![/green]")
@@ -141,15 +152,17 @@ def main():
     # CREATE A SIMPLE TRANSFORMER
     # ========================================================================
 
-    console.print(Panel(
-        "[bold cyan]🤖 Building Mini Transformer[/bold cyan]\n"
-        "Same architecture as Milestone 05, optimized for generation",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]🤖 Building Mini Transformer[/bold cyan]\n"
+            "Same architecture as Milestone 05, optimized for generation",
+            border_style="cyan",
+        )
+    )
 
     # Configuration
-    vocab_size = 27    # A-Z + padding
-    embed_dim = 32     # Small for demo
+    vocab_size = 27  # A-Z + padding
+    embed_dim = 32  # Small for demo
     num_heads = 2
     max_seq_len = 32
 
@@ -164,7 +177,7 @@ def main():
     console.print(f"  [green]✓[/green] Attention heads: {num_heads}")
     console.print(f"  [green]✓[/green] Max sequence: {max_seq_len}")
     press_enter_to_continue()
-    
+
     # Simple forward pass function
     def forward_no_cache(tokens):
         """Standard forward pass - recomputes everything."""
@@ -177,34 +190,38 @@ def main():
     # EXPLAIN WHY GENERATION IS SLOW
     # ========================================================================
 
-    console.print(Panel(
-        "[bold yellow]🐌 WHY is Generation Slow?[/bold yellow]\n\n"
-        "[bold]Autoregressive generation:[/bold]\n"
-        "  Token 1: Process [A]           → Predict next\n"
-        "  Token 2: Process [A, B]        → Predict next\n"
-        "  Token 3: Process [A, B, C]     → Predict next\n"
-        "  Token N: Process [A, B, ... N] → Predict next\n\n"
-        "[bold red]Problem:[/bold red] We recompute attention over ALL tokens each time!\n"
-        "  • Token 1: 1 attention computation\n"
-        "  • Token 2: 2 attention computations\n"
-        "  • Token N: N attention computations\n"
-        "  • Total: 1 + 2 + ... + N = O(N²) attention ops!\n\n"
-        "[bold green]Solution:[/bold green] Cache the Key and Value projections!",
-        border_style="yellow"
-    ))
+    console.print(
+        Panel(
+            "[bold yellow]🐌 WHY is Generation Slow?[/bold yellow]\n\n"
+            "[bold]Autoregressive generation:[/bold]\n"
+            "  Token 1: Process [A]           → Predict next\n"
+            "  Token 2: Process [A, B]        → Predict next\n"
+            "  Token 3: Process [A, B, C]     → Predict next\n"
+            "  Token N: Process [A, B, ... N] → Predict next\n\n"
+            "[bold red]Problem:[/bold red] We recompute attention over ALL tokens each time!\n"
+            "  • Token 1: 1 attention computation\n"
+            "  • Token 2: 2 attention computations\n"
+            "  • Token N: N attention computations\n"
+            "  • Total: 1 + 2 + ... + N = O(N²) attention ops!\n\n"
+            "[bold green]Solution:[/bold green] Cache the Key and Value projections!",
+            border_style="yellow",
+        )
+    )
     press_enter_to_continue()
 
     # ========================================================================
     # BENCHMARK WITHOUT CACHE
     # ========================================================================
 
-    console.print(Panel(
-        "[bold red]⏱️ STEP 1: Benchmark WITHOUT KV Cache[/bold red]\n"
-        "Measure baseline generation speed (slow)",
-        border_style="red"
-    ))
+    console.print(
+        Panel(
+            "[bold red]⏱️ STEP 1: Benchmark WITHOUT KV Cache[/bold red]\n"
+            "Measure baseline generation speed (slow)",
+            border_style="red",
+        )
+    )
 
-    profiler = Profiler()
+    Profiler()
 
     # Generate 16 tokens without cache
     seq_len = 16
@@ -232,23 +249,21 @@ def main():
     # BENCHMARK WITH KV CACHE
     # ========================================================================
 
-    console.print(Panel(
-        "[bold green]⚡ STEP 2: Benchmark WITH YOUR KV Cache[/bold green]\n"
-        "Using the cache you built in Module 18",
-        border_style="green"
-    ))
+    console.print(
+        Panel(
+            "[bold green]⚡ STEP 2: Benchmark WITH YOUR KV Cache[/bold green]\n"
+            "Using the cache you built in Module 18",
+            border_style="green",
+        )
+    )
 
     # Create YOUR KVCache
     head_dim = embed_dim // num_heads
     cache = KVCache(
-        batch_size=1,
-        max_seq_len=max_seq_len,
-        num_layers=1,
-        num_heads=num_heads,
-        head_dim=head_dim
+        batch_size=1, max_seq_len=max_seq_len, num_layers=1, num_heads=num_heads, head_dim=head_dim
     )
 
-    console.print(f"  [green]✓[/green] Created KVCache (YOUR Module 18)")
+    console.print("  [green]✓[/green] Created KVCache (YOUR Module 18)")
     console.print(f"  Cache shape: batch=1, layers=1, heads={num_heads}, max_seq={max_seq_len}")
 
     times_with_cache = []
@@ -299,17 +314,12 @@ def main():
     table.add_column("Per Token", style="green", justify="right")
     table.add_column("Speedup", style="bold magenta", justify="right")
 
-    table.add_row(
-        "🐌 Without Cache",
-        f"{total_no_cache:.1f} ms",
-        f"{avg_no_cache:.2f} ms",
-        "1×"
-    )
+    table.add_row("🐌 Without Cache", f"{total_no_cache:.1f} ms", f"{avg_no_cache:.2f} ms", "1×")
     table.add_row(
         "⚡ With YOUR KVCache",
         f"{total_with_cache:.1f} ms",
         f"{avg_with_cache:.2f} ms",
-        f"[green]{speedup:.1f}×[/green]"
+        f"[green]{speedup:.1f}×[/green]",
     )
 
     console.print(table)
@@ -320,44 +330,48 @@ def main():
     # ========================================================================
 
     cache_stats = cache.get_memory_usage()
-    cache_memory_mb = cache_stats['total_mb']
+    cache_memory_mb = cache_stats["total_mb"]
 
-    console.print(Panel(
-        "[bold cyan]💾 THE TRADEOFF: Speed vs Memory[/bold cyan]\n\n"
-        f"[bold]Cache Memory Used:[/bold] {cache_memory_mb * 1024:.2f} KB\n\n"
-        "[bold]Why is this worth it?[/bold]\n"
-        f"  • Generation is {speedup:.1f}× faster\n"
-        f"  • Memory cost is small ({cache_memory_mb * 1024:.1f} KB)\n"
-        f"  • For GPT-2 (1.5B params), cache is ~1% of model size\n"
-        f"  • [green]Speed gain >> Memory cost[/green]\n\n"
-        "[dim]This is why ALL production LLMs use KV caching![/dim]",
-        border_style="cyan"
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]💾 THE TRADEOFF: Speed vs Memory[/bold cyan]\n\n"
+            f"[bold]Cache Memory Used:[/bold] {cache_memory_mb * 1024:.2f} KB\n\n"
+            "[bold]Why is this worth it?[/bold]\n"
+            f"  • Generation is {speedup:.1f}× faster\n"
+            f"  • Memory cost is small ({cache_memory_mb * 1024:.1f} KB)\n"
+            f"  • For GPT-2 (1.5B params), cache is ~1% of model size\n"
+            f"  • [green]Speed gain >> Memory cost[/green]\n\n"
+            "[dim]This is why ALL production LLMs use KV caching![/dim]",
+            border_style="cyan",
+        )
+    )
     press_enter_to_continue()
 
     # ========================================================================
     # SUCCESS
     # ========================================================================
 
-    console.print(Panel(
-        "[bold green]🏆 MILESTONE 06.2 COMPLETE![/bold green]\n\n"
-        "[green]You demonstrated generation speedup with:[/green]\n"
-        "  • YOUR Embedding (Module 11)\n"
-        "  • YOUR MultiHeadAttention (Module 12)\n"
-        "  • YOUR Profiler (Module 14)\n"
-        "  • YOUR KVCache (Module 18)\n\n"
-        f"[bold]Result: {speedup:.1f}× faster generation![/bold]\n\n"
-        "[cyan]What you learned:[/cyan]\n"
-        "  ✅ Why autoregressive generation is O(N²)\n"
-        "  ✅ How KV caching reduces redundant computation\n"
-        "  ✅ The speed-memory tradeoff in production\n"
-        "  ✅ Why every LLM deployment uses this technique\n\n"
-        "[bold]You've learned production LLM optimization![/bold]",
-        title="🎯 Generation Optimization Complete",
-        border_style="bright_green",
-        box=box.DOUBLE,
-        padding=(1, 2)
-    ))
+    console.print(
+        Panel(
+            "[bold green]🏆 MILESTONE 06.2 COMPLETE![/bold green]\n\n"
+            "[green]You demonstrated generation speedup with:[/green]\n"
+            "  • YOUR Embedding (Module 11)\n"
+            "  • YOUR MultiHeadAttention (Module 12)\n"
+            "  • YOUR Profiler (Module 14)\n"
+            "  • YOUR KVCache (Module 18)\n\n"
+            f"[bold]Result: {speedup:.1f}× faster generation![/bold]\n\n"
+            "[cyan]What you learned:[/cyan]\n"
+            "  ✅ Why autoregressive generation is O(N²)\n"
+            "  ✅ How KV caching reduces redundant computation\n"
+            "  ✅ The speed-memory tradeoff in production\n"
+            "  ✅ Why every LLM deployment uses this technique\n\n"
+            "[bold]You've learned production LLM optimization![/bold]",
+            title="🎯 Generation Optimization Complete",
+            border_style="bright_green",
+            box=box.DOUBLE,
+            padding=(1, 2),
+        )
+    )
     press_enter_to_continue()
 
     return 0

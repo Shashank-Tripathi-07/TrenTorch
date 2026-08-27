@@ -27,8 +27,9 @@ CONNECTION TO OTHER MODULES:
 - Enables Transformers (Module 13) - attention is the core component
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -36,9 +37,9 @@ from pathlib import Path
 # Add project root
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.attention import MultiHeadAttention, scaled_dot_product_attention
 from trentorch.core.autograd import enable_autograd
+from trentorch.core.tensor import Tensor
 
 enable_autograd()
 
@@ -112,20 +113,28 @@ class TestScaledDotProductAttention:
 
         This is a semantic test - does attention do what it's supposed to?
         """
-        dim = 4
+        4
 
         # Query vector
         Q = Tensor(np.array([[[1.0, 0.0, 0.0, 0.0]]]))  # (1, 1, 4)
 
         # Keys: one similar to Q, others different
-        K = Tensor(np.array([[[
-            [1.0, 0.0, 0.0, 0.0],   # Very similar to Q
-            [0.0, 1.0, 0.0, 0.0],   # Orthogonal
-            [0.0, 0.0, 1.0, 0.0],   # Orthogonal
-        ]]]))  # (1, 1, 3, 4) - but we'll reshape
-        K = Tensor(np.array([[[1.0, 0.0, 0.0, 0.0],
-                              [0.0, 1.0, 0.0, 0.0],
-                              [0.0, 0.0, 1.0, 0.0]]]))  # (1, 3, 4)
+        K = Tensor(
+            np.array(
+                [
+                    [
+                        [
+                            [1.0, 0.0, 0.0, 0.0],  # Very similar to Q
+                            [0.0, 1.0, 0.0, 0.0],  # Orthogonal
+                            [0.0, 0.0, 1.0, 0.0],  # Orthogonal
+                        ]
+                    ]
+                ]
+            )
+        )  # (1, 1, 3, 4) - but we'll reshape
+        K = Tensor(
+            np.array([[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]])
+        )  # (1, 3, 4)
 
         V = Tensor(rng.standard_normal((1, 3, 4)))
 

@@ -21,10 +21,12 @@ WHAT STUDENTS LEARN:
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
@@ -116,9 +118,7 @@ class TestTensorCreation:
             data = rng.standard_normal(shape)
             t = Tensor(data)
             assert t.shape == shape, (
-                f"Shape mismatch for {description}.\n"
-                f"  Expected: {shape}\n"
-                f"  Got: {t.shape}"
+                f"Shape mismatch for {description}.\n  Expected: {shape}\n  Got: {t.shape}"
             )
 
 
@@ -200,7 +200,7 @@ class TestTensorOperations:
         t2 = Tensor([[5, 6], [7, 8]])  # 2×2
 
         # Matrix multiplication using @ operator
-        if hasattr(t1, '__matmul__'):
+        if hasattr(t1, "__matmul__"):
             result = t1 @ t2
         else:
             result = Tensor(t1.data @ t2.data)
@@ -263,9 +263,8 @@ class TestTensorMemory:
         data = np.array([1, 2, 3, 4])
         t = Tensor(data)
 
-        assert hasattr(t, 'data'), (
-            "Tensor must have a .data attribute.\n"
-            "This gives access to the underlying NumPy array."
+        assert hasattr(t, "data"), (
+            "Tensor must have a .data attribute.\nThis gives access to the underlying NumPy array."
         )
         assert np.array_equal(t.data, data)
 
@@ -312,10 +311,7 @@ class TestTensorMemory:
         t = Tensor(data)
 
         assert t.shape == (1000, 1000)
-        assert t.data.size == 1000000, (
-            f"Tensor should have 1M elements.\n"
-            f"  Got: {t.data.size} elements"
-        )
+        assert t.data.size == 1000000, f"Tensor should have 1M elements.\n  Got: {t.data.size} elements"
 
 
 class TestTensorReshaping:
@@ -340,7 +336,7 @@ class TestTensorReshaping:
         """
         t = Tensor(np.arange(12))  # [0, 1, 2, ..., 11]
 
-        if hasattr(t, 'reshape'):
+        if hasattr(t, "reshape"):
             reshaped = t.reshape(3, 4)
             assert reshaped.shape == (3, 4), (
                 f"Reshape failed.\n"
@@ -365,11 +361,11 @@ class TestTensorReshaping:
         """
         t = Tensor(rng.standard_normal((2, 3, 4)))  # 2×3×4 = 24 elements
 
-        if hasattr(t, 'flatten'):
+        if hasattr(t, "flatten"):
             flat = t.flatten()
             assert flat.shape == (24,), (
                 f"Flatten failed.\n"
-                f"  Original: {t.shape} = {2*3*4} elements\n"
+                f"  Original: {t.shape} = {2 * 3 * 4} elements\n"
                 f"  Expected: (24,)\n"
                 f"  Got: {flat.shape}"
             )
@@ -391,14 +387,11 @@ class TestTensorReshaping:
         """
         t = Tensor([[1, 2, 3], [4, 5, 6]])  # 2×3
 
-        if hasattr(t, 'T') or hasattr(t, 'transpose'):
-            transposed = t.T if hasattr(t, 'T') else t.transpose()
+        if hasattr(t, "T") or hasattr(t, "transpose"):
+            transposed = t.T if hasattr(t, "T") else t.transpose()
 
             assert transposed.shape == (3, 2), (
-                f"Transpose failed.\n"
-                f"  Original: {t.shape}\n"
-                f"  Expected: (3, 2)\n"
-                f"  Got: {transposed.shape}"
+                f"Transpose failed.\n  Original: {t.shape}\n  Expected: (3, 2)\n  Got: {transposed.shape}"
             )
             expected = np.array([[1, 4], [2, 5], [3, 6]])
             assert np.array_equal(transposed.data, expected)
@@ -466,13 +459,11 @@ class TestTensorBroadcasting:
         (2,3) + (2,) fails because 2 doesn't align with 3.
         """
         t1 = Tensor([[1, 2, 3], [4, 5, 6]])  # 2×3
-        t2 = Tensor([10, 20, 30])            # 3,
+        t2 = Tensor([10, 20, 30])  # 3,
 
         result = t1 + t2
         assert result.shape == (2, 3), (
-            f"Broadcasting produced wrong shape.\n"
-            f"  (2,3) + (3,) should give (2,3)\n"
-            f"  Got: {result.shape}"
+            f"Broadcasting produced wrong shape.\n  (2,3) + (3,) should give (2,3)\n  Got: {result.shape}"
         )
         expected = np.array([[11, 22, 33], [14, 25, 36]])
         assert np.array_equal(result.data, expected), (

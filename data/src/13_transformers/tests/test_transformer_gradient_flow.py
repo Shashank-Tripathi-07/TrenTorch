@@ -6,6 +6,7 @@ LayerNorm, MLP) properly propagate gradients during backpropagation.
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
@@ -13,10 +14,10 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.autograd import enable_autograd
-from trentorch.core.transformers import GPT, MultiHeadAttention, LayerNorm, MLP
 from trentorch.core.losses import CrossEntropyLoss
+from trentorch.core.tensor import Tensor
+from trentorch.core.transformers import GPT, MLP, LayerNorm, MultiHeadAttention
 
 
 def test_multihead_attention_gradient_flow():
@@ -52,8 +53,9 @@ def test_multihead_attention_gradient_flow():
         else:
             params_without_grad.append(i)
 
-    assert params_with_grad == len(params), \
+    assert params_with_grad == len(params), (
         f"All {len(params)} MHA parameters should have gradients, but only {params_with_grad} do. Missing: {params_without_grad}"
+    )
 
     print(f"✅ All {len(params)} MultiHeadAttention parameters receive gradients")
 
@@ -132,7 +134,7 @@ def test_full_gpt_gradient_flow():
         embed_dim=embed_dim,
         num_layers=num_layers,
         num_heads=num_heads,
-        max_seq_len=max_seq_len
+        max_seq_len=max_seq_len,
     )
 
     # Enable gradient tracking on all parameters
@@ -188,20 +190,22 @@ def test_full_gpt_gradient_flow():
 
         for block_idx in range(num_layers):
             print(f"     Block {block_idx}:")
-            print(f"       {param_idx}-{param_idx+7}: Attention (Q/K/V/out + biases)")
+            print(f"       {param_idx}-{param_idx + 7}: Attention (Q/K/V/out + biases)")
             param_idx += 8
-            print(f"       {param_idx}-{param_idx+1}: LayerNorm 1 (gamma, beta)")
+            print(f"       {param_idx}-{param_idx + 1}: LayerNorm 1 (gamma, beta)")
             param_idx += 2
-            print(f"       {param_idx}-{param_idx+1}: LayerNorm 2 (gamma, beta)")
+            print(f"       {param_idx}-{param_idx + 1}: LayerNorm 2 (gamma, beta)")
             param_idx += 2
-            print(f"       {param_idx}-{param_idx+3}: MLP (2 linears + biases)")
+            print(f"       {param_idx}-{param_idx + 3}: MLP (2 linears + biases)")
             param_idx += 4
 
-        print(f"     {param_idx}-{param_idx+1}: Final LayerNorm (gamma, beta)")
+        print(f"     {param_idx}-{param_idx + 1}: Final LayerNorm (gamma, beta)")
         param_idx += 2
         print(f"     {param_idx}: LM head weight")
 
-        raise AssertionError(f"Expected at least {len(params)-1} parameters to have gradients, but {len(params_without_grad)} don't")
+        raise AssertionError(
+            f"Expected at least {len(params) - 1} parameters to have gradients, but {len(params_without_grad)} don't"
+        )
 
     print(f"✅ All {len(params)} GPT parameters receive gradients")
 
@@ -235,16 +239,17 @@ def test_attention_mask_gradient_flow():
     params = mha.parameters()
     params_with_grad = sum(1 for p in params if p.grad is not None and np.abs(p.grad).max() > 1e-10)
 
-    assert params_with_grad == len(params), \
+    assert params_with_grad == len(params), (
         f"Masking should not break gradient flow. Expected {len(params)} params with grads, got {params_with_grad}"
+    )
 
     print("✅ Attention with masking preserves gradient flow")
 
 
 if __name__ == "__main__":
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("TRANSFORMER GRADIENT FLOW TEST SUITE")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     test_multihead_attention_gradient_flow()
     test_layernorm_gradient_flow()
@@ -252,6 +257,6 @@ if __name__ == "__main__":
     test_attention_mask_gradient_flow()
     test_full_gpt_gradient_flow()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("✅ ALL TRANSFORMER GRADIENT FLOW TESTS PASSED")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")

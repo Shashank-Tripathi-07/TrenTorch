@@ -8,35 +8,40 @@ how layers work together with other modules and complete system behaviors.
 """
 
 import sys
-import os
-import numpy as np
-rng = np.random.default_rng(7)
-import pytest
 
-from trentorch.core.tensor import Tensor
+import numpy as np
+
+rng = np.random.default_rng(7)
+
 from trentorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
 
 
 class Sequential:
     """Simple sequential container for testing."""
+
     def __init__(self, layers=None):
         self.layers = layers if layers else []
+
     def add(self, layer):
         self.layers.append(layer)
+
     def __call__(self, x):
         for layer in self.layers:
             x = layer(x)
         return x
+
     def parameters(self):
         params = []
         for layer in self.layers:
-            if hasattr(layer, 'parameters'):
+            if hasattr(layer, "parameters"):
                 params.extend(layer.parameters())
         return params
 
 
 class Flatten:
     """Flatten layer for testing."""
+
     def __call__(self, x):
         batch_size = x.shape[0]
         return x.reshape(batch_size, -1)
@@ -49,12 +54,14 @@ def test_complete_neural_networks():
 
     print("\n1. MLP for Classification (MNIST-style):")
     # Multi-layer perceptron for image classification
-    mlp = Sequential([
-        Flatten(),              # Flatten input images
-        Linear(784, 256),       # First hidden layer
-        Linear(256, 128),       # Second hidden layer
-        Linear(128, 10)         # Output layer (10 classes)
-    ])
+    mlp = Sequential(
+        [
+            Flatten(),  # Flatten input images
+            Linear(784, 256),  # First hidden layer
+            Linear(256, 128),  # Second hidden layer
+            Linear(128, 10),  # Output layer (10 classes)
+        ]
+    )
 
     # Test with batch of "images"
     batch_images = Tensor(rng.standard_normal((32, 28, 28)))  # 32 MNIST-like images
@@ -70,12 +77,14 @@ def test_complete_neural_networks():
 
     print("\n2. CNN-style Architecture (with Flatten):")
     # Simulate CNN -> Flatten -> Dense pattern
-    cnn_style = Sequential([
-        # Simulate Conv2D output with random "features"
-        Flatten(),              # Flatten spatial features
-        Linear(512, 256),       # Dense layer after convolution
-        Linear(256, 10)         # Classification head
-    ])
+    cnn_style = Sequential(
+        [
+            # Simulate Conv2D output with random "features"
+            Flatten(),  # Flatten spatial features
+            Linear(512, 256),  # Dense layer after convolution
+            Linear(256, 10),  # Classification head
+        ]
+    )
 
     # Test with simulated conv output
     conv_features = Tensor(rng.standard_normal((16, 8, 8, 8)))  # Simulated (B,C,H,W)
@@ -94,8 +103,8 @@ def test_complete_neural_networks():
     layer_sizes = [100, 80, 60, 40, 20, 10]
 
     for i in range(len(layer_sizes) - 1):
-        deep_net.add(Linear(layer_sizes[i], layer_sizes[i+1]))
-        print(f"   Added layer: {layer_sizes[i]} -> {layer_sizes[i+1]}")
+        deep_net.add(Linear(layer_sizes[i], layer_sizes[i + 1]))
+        print(f"   Added layer: {layer_sizes[i]} -> {layer_sizes[i + 1]}")
 
     # Test deep network
     deep_input = Tensor(rng.standard_normal((8, 100)))
@@ -109,7 +118,7 @@ def test_complete_neural_networks():
     print("   ✅ Deep network integration test passed")
 
     print("\n4. Parameter Management Across Networks:")
-    networks = {'MLP': mlp, 'CNN-style': cnn_style, 'Deep': deep_net}
+    networks = {"MLP": mlp, "CNN-style": cnn_style, "Deep": deep_net}
 
     for name, net in networks.items():
         params = net.parameters()
@@ -146,11 +155,13 @@ def test_cross_module_compatibility():
     print("   ✅ List input compatibility")
 
     # Test 2: Sequential networks with mixed operations
-    complex_net = Sequential([
-        Linear(10, 8),
-        Flatten(),  # Should be no-op for 2D tensors
-        Linear(8, 5)
-    ])
+    complex_net = Sequential(
+        [
+            Linear(10, 8),
+            Flatten(),  # Should be no-op for 2D tensors
+            Linear(8, 5),
+        ]
+    )
 
     test_input = Tensor(rng.standard_normal((3, 10)))
     complex_output = complex_net(test_input)
@@ -168,12 +179,7 @@ def run_performance_benchmarks():
     import time
 
     # Benchmark: Large MLP forward pass
-    large_mlp = Sequential([
-        Linear(1000, 500),
-        Linear(500, 250),
-        Linear(250, 100),
-        Linear(100, 10)
-    ])
+    large_mlp = Sequential([Linear(1000, 500), Linear(500, 250), Linear(250, 100), Linear(100, 10)])
 
     large_batch = Tensor(rng.standard_normal((1000, 1000)))  # 1000 samples, 1000 features
 
@@ -189,7 +195,7 @@ def run_performance_benchmarks():
     avg_time = (end_time - start_time) / 10
     samples_per_sec = 1000 / avg_time
 
-    print(f"   Large MLP (1000→500→250→100→10):")
+    print("   Large MLP (1000→500→250→100→10):")
     print(f"   Average time: {avg_time:.4f} seconds")
     print(f"   Throughput: {samples_per_sec:.0f} samples/second")
     print(f"   Output shape: {output.shape}")
@@ -224,5 +230,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Integration test failed: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

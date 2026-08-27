@@ -9,17 +9,18 @@ This test suite ensures:
 5. No orphaned command files exist without registration
 """
 
-import pytest
 import argparse
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
 
 # Add repo root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from platforms.cli.main import TrenTorchCLI
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.core.config import CLIConfig
+from platforms.cli.main import TrenTorchCLI
 
 
 class TestCLIRegistry:
@@ -41,12 +42,10 @@ class TestCLIRegistry:
         """Verify all commands have a description."""
         for cmd_name, cmd_class in self.cli.commands.items():
             cmd_instance = cmd_class(self.config)
-            assert hasattr(cmd_instance, 'description'), (
+            assert hasattr(cmd_instance, "description"), (
                 f"Command '{cmd_name}' must have a 'description' attribute"
             )
-            assert cmd_instance.description, (
-                f"Command '{cmd_name}' has empty description"
-            )
+            assert cmd_instance.description, f"Command '{cmd_name}' has empty description"
             assert len(cmd_instance.description) > 10, (
                 f"Command '{cmd_name}' description too short: '{cmd_instance.description}'"
             )
@@ -55,18 +54,14 @@ class TestCLIRegistry:
         """Verify all commands implement execute() method."""
         for cmd_name, cmd_class in self.cli.commands.items():
             cmd_instance = cmd_class(self.config)
-            assert hasattr(cmd_instance, 'execute'), (
-                f"Command '{cmd_name}' must implement execute() method"
-            )
-            assert callable(cmd_instance.execute), (
-                f"Command '{cmd_name}' execute must be callable"
-            )
+            assert hasattr(cmd_instance, "execute"), f"Command '{cmd_name}' must implement execute() method"
+            assert callable(cmd_instance.execute), f"Command '{cmd_name}' execute must be callable"
 
     def test_all_commands_implement_add_arguments(self):
         """Verify all commands implement add_arguments() method."""
         for cmd_name, cmd_class in self.cli.commands.items():
             cmd_instance = cmd_class(self.config)
-            assert hasattr(cmd_instance, 'add_arguments'), (
+            assert hasattr(cmd_instance, "add_arguments"), (
                 f"Command '{cmd_name}' must implement add_arguments() method"
             )
             assert callable(cmd_instance.add_arguments), (
@@ -84,8 +79,7 @@ class TestCLIRegistry:
 
         # Get all subparsers
         subparsers_actions = [
-            action for action in parser._actions
-            if isinstance(action, argparse._SubParsersAction)
+            action for action in parser._actions if isinstance(action, argparse._SubParsersAction)
         ]
 
         assert len(subparsers_actions) == 1, "Should have exactly one subparsers group"
@@ -114,9 +108,7 @@ class TestCLIRegistry:
         for cmd_name in self.cli.commands.keys():
             # This should not raise any exceptions
             help_text = parser.format_help()
-            assert cmd_name in help_text or cmd_name == 'src', (
-                f"Command '{cmd_name}' not found in help text"
-            )
+            assert cmd_name in help_text or cmd_name == "src", f"Command '{cmd_name}' not found in help text"
 
 
 class TestCommandFiles:
@@ -139,21 +131,19 @@ class TestCommandFiles:
         jupyter.py) stays in tren/commands/.
         """
         cmd_to_file = {
-            'setup': self.cli_platform_dir / 'setup.py',
-            'system': self.cli_platform_dir / 'system' / '__init__.py',
-            'dev': self.cli_platform_dir / 'dev' / '__init__.py',
-            'package': self.cli_platform_dir / 'package' / '__init__.py',
-            'module': self.processes_dir / 'module_workflow' / '__init__.py',
-            'milestone': self.processes_dir / 'milestone' / '__init__.py',
-            'olympics': self.processes_dir / 'olympics.py',
-            'benchmark': self.processes_dir / 'benchmark.py',
+            "setup": self.cli_platform_dir / "setup.py",
+            "system": self.cli_platform_dir / "system" / "__init__.py",
+            "dev": self.cli_platform_dir / "dev" / "__init__.py",
+            "package": self.cli_platform_dir / "package" / "__init__.py",
+            "module": self.processes_dir / "module_workflow" / "__init__.py",
+            "milestone": self.processes_dir / "milestone" / "__init__.py",
+            "olympics": self.processes_dir / "olympics.py",
+            "benchmark": self.processes_dir / "benchmark.py",
         }
 
         for cmd_name, file_path in cmd_to_file.items():
             if cmd_name in self.cli.commands:
-                assert file_path.exists(), (
-                    f"Command '{cmd_name}' registered but file missing: {file_path}"
-                )
+                assert file_path.exists(), f"Command '{cmd_name}' registered but file missing: {file_path}"
 
     def test_no_orphaned_command_files(self):
         """Warn about command files that aren't registered anywhere."""
@@ -163,13 +153,12 @@ class TestCommandFiles:
         # that one command group owns, so there's nothing to orphan-check
         # there beyond "does the registered command's file exist" above.
         command_files = [
-            f for f in self.commands_dir.glob("*.py")
-            if f.name not in ['__init__.py', 'base.py']
+            f for f in self.commands_dir.glob("*.py") if f.name not in ["__init__.py", "base.py"]
         ]
 
         expected_files = {
-            'export_utils.py',  # Helper for export functionality, shared by cli_platform/dev and processes/module_workflow
-            'jupyter.py',  # Jupyter component: server lifecycle, %tren magic registration
+            "export_utils.py",  # Helper for export functionality, shared by cli_platform/dev and processes/module_workflow
+            "jupyter.py",  # Jupyter component: server lifecycle, %tren magic registration
         }
 
         orphaned = []
@@ -179,9 +168,9 @@ class TestCommandFiles:
 
         if orphaned:
             pytest.fail(
-                f"Found {len(orphaned)} orphaned command files:\n" +
-                "\n".join(f"  - {item}" for item in orphaned) +
-                "\n\nEither register these commands or move to platforms/"
+                f"Found {len(orphaned)} orphaned command files:\n"
+                + "\n".join(f"  - {item}" for item in orphaned)
+                + "\n\nEither register these commands or move to platforms/"
             )
 
 
@@ -198,13 +187,7 @@ class TestEpilogDocumentation:
         epilog = parser.epilog
 
         # Key command groups that should be mentioned
-        expected_groups = [
-            'system',
-            'module',
-            'package',
-            'milestone',
-            'olympics'
-        ]
+        expected_groups = ["system", "module", "package", "milestone", "olympics"]
 
         missing = []
         for group in expected_groups:
@@ -219,5 +202,5 @@ class TestEpilogDocumentation:
             )
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

@@ -14,15 +14,16 @@ WHAT STUDENTS LEARN:
 3. Loss must be differentiable for gradient-based training
 """
 
-import numpy as np
-import pytest
 import sys
 from pathlib import Path
 
+import numpy as np
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
+from trentorch.core.losses import BinaryCrossEntropyLoss, CrossEntropyLoss, MSELoss
 from trentorch.core.tensor import Tensor
-from trentorch.core.losses import MSELoss, CrossEntropyLoss, BinaryCrossEntropyLoss
 
 
 class TestMSELoss:
@@ -47,11 +48,9 @@ class TestMSELoss:
         # MSE = (0² + 0² + 1²) / 3 = 1/3
         expected = 1.0 / 3.0
         assert np.isclose(float(loss.data), expected, atol=1e-5), (
-            f"MSE wrong.\n"
-            f"  Errors: [0, 0, 1]\n"
-            f"  MSE = (0+0+1)/3 = 0.333\n"
-            f"  Got: {loss.data}"
+            f"MSE wrong.\n  Errors: [0, 0, 1]\n  MSE = (0+0+1)/3 = 0.333\n  Got: {loss.data}"
         )
+
 
 class TestCrossEntropyLoss:
     """Test Cross-Entropy loss for classification."""
@@ -75,9 +74,7 @@ class TestCrossEntropyLoss:
         loss = loss_fn(logits, target)
 
         # Loss should be small (predicted correct class)
-        assert float(loss.data) < 1.0, (
-            "CE loss should be small when predicting correct class"
-        )
+        assert float(loss.data) < 1.0, "CE loss should be small when predicting correct class"
 
     def test_cross_entropy_wrong_prediction(self):
         """
@@ -97,9 +94,7 @@ class TestCrossEntropyLoss:
         loss = loss_fn(logits, target)
 
         # Loss should be high
-        assert float(loss.data) > 1.0, (
-            "CE loss should be high for confident wrong predictions"
-        )
+        assert float(loss.data) > 1.0, "CE loss should be high for confident wrong predictions"
 
 
 if __name__ == "__main__":

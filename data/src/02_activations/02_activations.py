@@ -38,6 +38,7 @@ By the end of this module, you will:
 
 Let's add intelligence to your tensors!
 """
+
 # %% [markdown]
 """
 ## 📦 Where This Code Lives in the Final Package
@@ -90,7 +91,9 @@ If you see import errors, ensure you've run `tren module complete 01`.
 #| export
 
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 from typing import Optional
 
@@ -101,7 +104,7 @@ from trentorch.core.tensor import Tensor
 TOLERANCE = 1e-10  # Small tolerance for floating-point comparisons in tests
 
 # Export only activation classes
-__all__ = ['Sigmoid', 'ReLU', 'Tanh', 'GELU', 'Softmax']
+__all__ = ["Sigmoid", "ReLU", "Tanh", "GELU", "Softmax"]
 
 # %% [markdown]
 """
@@ -208,51 +211,10 @@ Sigmoid Curve:
 **Why Sigmoid matters**: In binary classification, we need outputs between 0 and 1 to represent probabilities. Sigmoid gives us exactly that!
 """
 
-# %% nbgrader={"grade": false, "grade_id": "sigmoid-impl", "solution": true}
-
-class Sigmoid:
-    """
-    Sigmoid activation: σ(x) = 1/(1 + e^(-x))
-
-    Maps any real number to (0, 1) range.
-    Perfect for probabilities and binary classification.
-    """
-
-    def parameters(self):
-        """Return empty list (activations have no learnable parameters)."""
-        return []
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Apply sigmoid activation element-wise.
-
-        TODO: Implement sigmoid function
-
-        APPROACH:
-        1. Apply sigmoid formula: 1 / (1 + exp(-x))
-        2. Use np.exp for exponential
-        3. Return result wrapped in new Tensor
-
-        EXAMPLE:
-        >>> sigmoid = Sigmoid()
-        >>> x = Tensor([-2, 0, 2])
-        >>> result = sigmoid(x)
-        >>> print(result.data)
-        [0.119, 0.5, 0.881]  # All values between 0 and 1
-
-        HINT: Use np.exp(-x.data) for numerical stability
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Sigmoid.forward")
-        ### END SOLUTION
-
-    def __call__(self, x: Tensor) -> Tensor:
-        """Allows the activation to be called like a function."""
-        return self.forward(x)
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class Sigmoid:
     """
@@ -305,6 +267,7 @@ class Sigmoid:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: Sigmoid
@@ -315,6 +278,7 @@ This test validates sigmoid activation behavior.
 **Why it matters**: Ensures proper probability-like outputs
 **Expected**: All outputs between 0 and 1, sigmoid(0) = 0.5
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-sigmoid", "locked": true, "points": 10}
 def test_unit_sigmoid():
@@ -340,6 +304,7 @@ def test_unit_sigmoid():
     assert np.allclose(result.data[1], 1, atol=TOLERANCE), "sigmoid(+∞) should approach 1"
 
     print("✅ Sigmoid works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_sigmoid()
@@ -379,50 +344,10 @@ ReLU Function:
 **Why ReLU matters**: By zeroing negative values, ReLU creates sparsity (many zeros) which makes computation faster and helps prevent overfitting.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "relu-impl", "solution": true}
-
-class ReLU:
-    """
-    ReLU activation: f(x) = max(0, x)
-
-    Sets negative values to zero, keeps positive values unchanged.
-    Most popular activation for hidden layers.
-    """
-
-    def parameters(self):
-        """Return empty list (activations have no learnable parameters)."""
-        return []
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Apply ReLU activation element-wise.
-
-        TODO: Implement ReLU function
-
-        APPROACH:
-        1. Use np.maximum(0, x.data) for element-wise max with zero
-        2. Return result wrapped in new Tensor
-
-        EXAMPLE:
-        >>> relu = ReLU()
-        >>> x = Tensor([-2, -1, 0, 1, 2])
-        >>> result = relu(x)
-        >>> print(result.data)
-        [0, 0, 0, 1, 2]  # Negative values become 0, positive unchanged
-
-        HINT: np.maximum handles element-wise maximum automatically
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement ReLU.forward")
-        ### END SOLUTION
-
-    def __call__(self, x: Tensor) -> Tensor:
-        """Allows the activation to be called like a function."""
-        return self.forward(x)
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class ReLU:
     """
@@ -465,6 +390,7 @@ class ReLU:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: ReLU
@@ -475,6 +401,7 @@ This test validates ReLU activation behavior.
 **Why it matters**: ReLU's sparsity helps neural networks train efficiently
 **Expected**: Negative becomes 0, positive unchanged, zero becomes 0
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-relu", "locked": true, "points": 10}
 def test_unit_relu():
@@ -506,6 +433,7 @@ def test_unit_relu():
     assert zeros == 3, f"ReLU should create sparsity, got {zeros} zeros out of 4"
 
     print("✅ ReLU works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_relu()
@@ -542,50 +470,10 @@ Tanh Curve:
 **Why Tanh matters**: Unlike sigmoid, tanh outputs are centered around zero, which is a desirable property for composing multiple transformations.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "tanh-impl", "solution": true}
-
-class Tanh:
-    """
-    Tanh activation: f(x) = (e^x - e^(-x))/(e^x + e^(-x))
-
-    Maps any real number to (-1, 1) range.
-    Zero-centered alternative to sigmoid.
-    """
-
-    def parameters(self):
-        """Return empty list (activations have no learnable parameters)."""
-        return []
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Apply tanh activation element-wise.
-
-        TODO: Implement tanh function
-
-        APPROACH:
-        1. Use np.tanh(x.data) for hyperbolic tangent
-        2. Return result wrapped in new Tensor
-
-        EXAMPLE:
-        >>> tanh = Tanh()
-        >>> x = Tensor([-2, 0, 2])
-        >>> result = tanh(x)
-        >>> print(result.data)
-        [-0.964, 0.0, 0.964]  # Range (-1, 1), symmetric around 0
-
-        HINT: NumPy provides np.tanh function
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Tanh.forward")
-        ### END SOLUTION
-
-    def __call__(self, x: Tensor) -> Tensor:
-        """Allows the activation to be called like a function."""
-        return self.forward(x)
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class Tanh:
     """
@@ -628,6 +516,7 @@ class Tanh:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: Tanh
@@ -638,6 +527,7 @@ This test validates tanh activation behavior.
 **Why it matters**: Zero-centered activations have desirable mathematical properties
 **Expected**: All outputs in (-1, 1), tanh(0) = 0, symmetric behavior
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-tanh", "locked": true, "points": 10}
 def test_unit_tanh():
@@ -670,6 +560,7 @@ def test_unit_tanh():
     assert np.allclose(result.data[1], 1, atol=TOLERANCE), "tanh(+∞) should approach 1"
 
     print("✅ Tanh works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_tanh()
@@ -721,52 +612,10 @@ GELU Function:
 **Why GELU matters**: Used in GPT, BERT, and other modern architectures. The smoothness helps with optimization compared to ReLU's sharp corner.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "gelu-impl", "solution": true}
-
-class GELU:
-    """
-    GELU activation: f(x) = x * Φ(x) ≈ x * Sigmoid(1.702 * x)
-
-    Smooth approximation to ReLU, used in modern architectures.
-    Where Φ(x) is the cumulative distribution function of standard normal.
-    """
-
-    def parameters(self):
-        """Return empty list (activations have no learnable parameters)."""
-        return []
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Apply GELU activation element-wise.
-
-        TODO: Implement GELU approximation
-
-        APPROACH:
-        1. Use approximation: x * sigmoid(1.702 * x)
-        2. Compute sigmoid part: 1 / (1 + exp(-1.702 * x))
-        3. Multiply by x element-wise
-        4. Return result wrapped in new Tensor
-
-        EXAMPLE:
-        >>> gelu = GELU()
-        >>> x = Tensor([-1, 0, 1])
-        >>> result = gelu(x)
-        >>> print(result.data)
-        [-0.15, 0.0, 0.85]  # Smooth, like ReLU but differentiable everywhere
-
-        HINT: The 1.702 constant is empirically fitted so that sigmoid(1.702x) ≈ Φ(x)
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement GELU.forward")
-        ### END SOLUTION
-
-    def __call__(self, x: Tensor) -> Tensor:
-        """Allows the activation to be called like a function."""
-        return self.forward(x)
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class GELU:
     """
@@ -809,6 +658,7 @@ class GELU:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: GELU
@@ -819,6 +669,7 @@ This test validates GELU activation behavior.
 **Why it matters**: GELU is used in modern transformers like GPT and BERT
 **Expected**: Smooth curve, GELU(0) approximately 0, positive values preserved roughly
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-gelu", "locked": true, "points": 10}
 def test_unit_gelu():
@@ -851,6 +702,7 @@ def test_unit_gelu():
     assert diff1 < 0.01 and diff2 < 0.01, "GELU should be smooth around zero"
 
     print("✅ GELU works correctly!")
+
 
 if __name__ == "__main__":
     test_unit_gelu()
@@ -886,56 +738,10 @@ Raw scores: [1, 2, 3, 4]
 **Why Softmax matters**: In multi-class classification, we need outputs that represent probabilities for each class. Softmax guarantees valid probabilities.
 """
 
-# %% nbgrader={"grade": false, "grade_id": "softmax-impl", "solution": true}
-
-class Softmax:
-    """
-    Softmax activation: f(x_i) = e^(x_i) / Σ(e^(x_j))
-
-    Converts any vector to a probability distribution.
-    Sum of all outputs equals 1.0.
-    """
-
-    def parameters(self):
-        """Return empty list (activations have no learnable parameters)."""
-        return []
-
-    def forward(self, x: Tensor, dim: int = -1) -> Tensor:
-        """
-        Apply softmax activation along specified dimension.
-
-        TODO: Implement numerically stable softmax
-
-        APPROACH:
-        1. Subtract max for numerical stability: x - max(x)
-        2. Compute exponentials: exp(x - max(x))
-        3. Sum along dimension: sum(exp_values)
-        4. Divide: exp_values / sum
-        5. Return result wrapped in new Tensor
-
-        EXAMPLE:
-        >>> softmax = Softmax()
-        >>> x = Tensor([1, 2, 3])
-        >>> result = softmax(x)
-        >>> print(result.data)
-        [0.090, 0.245, 0.665]  # Sums to 1.0, larger inputs get higher probability
-
-        HINTS:
-        - Use np.max(x.data, axis=dim, keepdims=True) for max
-        - Use np.sum(exp_values, axis=dim, keepdims=True) for sum
-        - The max subtraction prevents overflow in exponentials
-        """
-        ### BEGIN SOLUTION
-        raise NotImplementedError("TODO: implement Softmax.forward")
-        ### END SOLUTION
-
-    def __call__(self, x: Tensor, dim: int = -1) -> Tensor:
-        """Allows the activation to be called like a function."""
-        return self.forward(x, dim)
-
 # %% tags=["solution"]
 #| export
 # Solution
+
 
 class Softmax:
     """
@@ -994,6 +800,7 @@ class Softmax:
         """Allows the activation to be called like a function."""
         return self.forward(x, dim)
 
+
 # %% [markdown]
 """
 ### 🧪 Unit Test: Softmax
@@ -1004,6 +811,7 @@ This test validates softmax activation behavior.
 **Why it matters**: Essential for multi-class classification outputs
 **Expected**: Outputs sum to 1.0, all values in (0, 1), largest input gets highest probability
 """
+
 
 # %% nbgrader={"grade": true, "grade_id": "test-softmax", "locked": true, "points": 10}
 def test_unit_softmax():
@@ -1047,6 +855,7 @@ def test_unit_softmax():
 
     print("✅ Softmax works correctly!")
 
+
 if __name__ == "__main__":
     test_unit_softmax()
 
@@ -1081,6 +890,7 @@ Final validation that everything works together correctly.
 """
 
 # %% nbgrader={"grade": true, "grade_id": "module-test", "locked": true, "points": 20}
+
 
 def test_module():
     """🧪 Module Test: Complete Integration
@@ -1155,6 +965,7 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 02")
+
 
 # Run comprehensive module test
 
@@ -1256,6 +1067,7 @@ Let's understand ONE key systems concept: **computational cost differences betwe
 This analysis reveals why ReLU dominates hidden layers while more expensive activations are reserved for specific use cases.
 """
 
+
 # %%
 def analyze_activation_performance():
     """Demonstrate computational cost differences between activation functions."""
@@ -1310,9 +1122,9 @@ def analyze_activation_performance():
 
     print("\n🧪 Activation Performance Results:")
     print(f"   ReLU:    {relu_time:.2f}ms (baseline)")
-    print(f"   Sigmoid: {sigmoid_time:.2f}ms ({sigmoid_time/relu_time:.1f}x slower)")
-    print(f"   Tanh:    {tanh_time:.2f}ms ({tanh_time/relu_time:.1f}x slower)")
-    print(f"   GELU:    {gelu_time:.2f}ms ({gelu_time/relu_time:.1f}x slower)")
+    print(f"   Sigmoid: {sigmoid_time:.2f}ms ({sigmoid_time / relu_time:.1f}x slower)")
+    print(f"   Tanh:    {tanh_time:.2f}ms ({tanh_time / relu_time:.1f}x slower)")
+    print(f"   GELU:    {gelu_time:.2f}ms ({gelu_time / relu_time:.1f}x slower)")
 
     print("\n" + "=" * 60)
     print("KEY INSIGHTS:")
@@ -1326,6 +1138,7 @@ def analyze_activation_performance():
     print("   - GPT uses GELU: worth the cost for better gradients")
     print("   - Sigmoid/Tanh: reserved for output layers or gates")
     print("=" * 60)
+
 
 # Run the analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1347,6 +1160,7 @@ complex patterns like recognizing faces or understanding language.
 
 Your activations are ready to be combined with Linear layers in Module 03!
 """
+
 
 # %%
 def demo_activations():
@@ -1378,6 +1192,7 @@ def demo_activations():
 
     print("\n✨ Activations add nonlinearity—the key to deep learning!")
 
+
 # %%
 if __name__ == "__main__":
     if os.environ.get("CI") == "true":
@@ -1391,7 +1206,9 @@ if __name__ == "__main__":
         # coverage here. Skipping both keeps the actual
         # verification (every individual test above) while
         # cutting the redundant full re-run.
-        print("\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant).")
+        print(
+            "\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant)."
+        )
     else:
         test_module()
         print("\n")

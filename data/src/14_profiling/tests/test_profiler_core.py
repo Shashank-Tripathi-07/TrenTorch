@@ -24,16 +24,17 @@ CONNECTION TO OTHER MODULES:
 - Essential for benchmarking (Module 19)
 """
 
-import pytest
 import numpy as np
+import pytest
+
 rng = np.random.default_rng(7)
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-from trentorch.core.tensor import Tensor
 from trentorch.core.layers import Linear
+from trentorch.core.tensor import Tensor
 from trentorch.perf.profiling import Profiler
 
 
@@ -66,10 +67,12 @@ class TestProfilerBasics:
         - Larger models need more compute
         - This is the first thing you check about a model
         """
+
         # Create a simple model
         class SimpleModel:
             def __init__(self):
                 self.layer = Linear(10, 5)
+
             def parameters(self):
                 return self.layer.parameters()
 
@@ -82,9 +85,7 @@ class TestProfilerBasics:
         # Linear(10, 5) has: 10*5 weights + 5 bias = 55 parameters
         expected = 10 * 5 + 5
         assert param_count == expected, (
-            f"Parameter count wrong!\n"
-            f"  Expected: {expected} (10*5 weights + 5 bias)\n"
-            f"  Got: {param_count}"
+            f"Parameter count wrong!\n  Expected: {expected} (10*5 weights + 5 bias)\n  Got: {param_count}"
         )
 
 
@@ -97,9 +98,11 @@ class TestLatencyMeasurement:
 
         WHY: Execution time must be positive and non-zero.
         """
+
         class SimpleModel:
             def __init__(self):
                 self.weight = Tensor(rng.standard_normal((10, 10)))
+
             def forward(self, x):
                 return x.matmul(self.weight)
 
@@ -109,9 +112,7 @@ class TestLatencyMeasurement:
 
         latency = profiler.measure_latency(model, x, warmup=1, iterations=3)
 
-        assert latency > 0, (
-            f"Latency should be positive, got {latency}"
-        )
+        assert latency > 0, f"Latency should be positive, got {latency}"
 
 
 if __name__ == "__main__":

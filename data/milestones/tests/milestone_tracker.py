@@ -8,7 +8,6 @@ names or write to a separate home-directory progress file.
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from rich import box
 from rich.console import Console
@@ -24,7 +23,7 @@ def _project_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _module_number(module_name: str) -> Optional[str]:
+def _module_number(module_name: str) -> str | None:
     prefix = str(module_name).split("_", 1)[0]
     try:
         return f"{int(prefix):02d}"
@@ -32,7 +31,7 @@ def _module_number(module_name: str) -> Optional[str]:
         return None
 
 
-def _build_milestones() -> Dict[str, Dict]:
+def _build_milestones() -> dict[str, dict]:
     milestones = {}
     for milestone_id, milestone in sorted(MILESTONE_SCRIPTS.items()):
         milestones[milestone_id] = {
@@ -53,8 +52,8 @@ class MilestoneTracker:
 
     def __init__(
         self,
-        progress_file: Optional[Path] = None,
-        module_progress_file: Optional[Path] = None,
+        progress_file: Path | None = None,
+        module_progress_file: Path | None = None,
     ):
         root = _project_root()
         self.progress_file = progress_file or root / "user_data" / "milestones.json"
@@ -63,10 +62,10 @@ class MilestoneTracker:
         self.module_progress_file.parent.mkdir(parents=True, exist_ok=True)
         self.progress = self._load_progress()
 
-    def _load_progress(self) -> Dict:
+    def _load_progress(self) -> dict:
         if self.progress_file.exists():
             try:
-                with open(self.progress_file, "r") as f:
+                with open(self.progress_file) as f:
                     progress = json.load(f)
             except (json.JSONDecodeError, OSError):
                 progress = {}
@@ -84,11 +83,11 @@ class MilestoneTracker:
         with open(self.progress_file, "w") as f:
             json.dump(self.progress, f, indent=2)
 
-    def _load_completed_modules(self) -> List[str]:
+    def _load_completed_modules(self) -> list[str]:
         if not self.module_progress_file.exists():
             return []
         try:
-            with open(self.module_progress_file, "r") as f:
+            with open(self.module_progress_file) as f:
                 progress = json.load(f)
         except (json.JSONDecodeError, OSError):
             return []
@@ -100,11 +99,11 @@ class MilestoneTracker:
                 completed.append(module_num)
         return completed
 
-    def _save_completed_modules(self, completed_modules: List[str]) -> None:
+    def _save_completed_modules(self, completed_modules: list[str]) -> None:
         progress = {}
         if self.module_progress_file.exists():
             try:
-                with open(self.module_progress_file, "r") as f:
+                with open(self.module_progress_file) as f:
                     progress = json.load(f)
             except (json.JSONDecodeError, OSError):
                 progress = {}
@@ -112,7 +111,7 @@ class MilestoneTracker:
         with open(self.module_progress_file, "w") as f:
             json.dump(progress, f, indent=2)
 
-    def mark_module_complete(self, module_name: str) -> List[str]:
+    def mark_module_complete(self, module_name: str) -> list[str]:
         """Mark a module complete and return newly runnable milestone IDs."""
         module_num = _module_number(module_name)
         if module_num is None:
@@ -128,7 +127,7 @@ class MilestoneTracker:
             self._show_unlock_message(milestone_id)
         return newly_unlocked
 
-    def _check_unlocked_milestones(self) -> List[str]:
+    def _check_unlocked_milestones(self) -> list[str]:
         newly_unlocked = []
         completed = set(self._load_completed_modules())
         unlocked = set(self.progress["unlocked_milestones"])
@@ -152,14 +151,16 @@ class MilestoneTracker:
     def _show_unlock_message(self, milestone_id: str) -> None:
         milestone = MILESTONES[milestone_id]
         console.print()
-        console.print(Panel.fit(
-            f"[bold green]Milestone ready to run[/bold green]\n\n"
-            f"[bold cyan]{milestone['name']}[/bold cyan]\n"
-            f"{milestone['description']}\n\n"
-            f"[bold]Run:[/bold] [yellow]{milestone['run_command']}[/yellow]",
-            border_style="green",
-            box=box.DOUBLE,
-        ))
+        console.print(
+            Panel.fit(
+                f"[bold green]Milestone ready to run[/bold green]\n\n"
+                f"[bold cyan]{milestone['name']}[/bold cyan]\n"
+                f"{milestone['description']}\n\n"
+                f"[bold]Run:[/bold] [yellow]{milestone['run_command']}[/yellow]",
+                border_style="green",
+                box=box.DOUBLE,
+            )
+        )
         console.print()
 
     def show_progress(self) -> None:
@@ -201,7 +202,8 @@ class MilestoneTracker:
 
     def list_unlocked_tests(self) -> None:
         unlocked = [
-            mid for mid in self.progress["unlocked_milestones"]
+            mid
+            for mid in self.progress["unlocked_milestones"]
             if mid not in self.progress["completed_milestones"]
         ]
         if not unlocked:
@@ -230,14 +232,16 @@ def check_module_export(module_name: str, console=None):
         result["messages"].append(message)
         if console:
             console.print()
-            console.print(Panel.fit(
-                f"[bold green]Milestone ready to run[/bold green]\n\n"
-                f"[bold cyan]{milestone['name']}[/bold cyan]\n"
-                f"{milestone['description']}\n\n"
-                f"[bold]Run:[/bold] [yellow]{milestone['run_command']}[/yellow]",
-                border_style="green",
-                box=box.DOUBLE,
-            ))
+            console.print(
+                Panel.fit(
+                    f"[bold green]Milestone ready to run[/bold green]\n\n"
+                    f"[bold cyan]{milestone['name']}[/bold cyan]\n"
+                    f"{milestone['description']}\n\n"
+                    f"[bold]Run:[/bold] [yellow]{milestone['run_command']}[/yellow]",
+                    border_style="green",
+                    box=box.DOUBLE,
+                )
+            )
             console.print()
     return result
 

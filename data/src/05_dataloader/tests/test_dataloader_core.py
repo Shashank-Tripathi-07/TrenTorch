@@ -17,15 +17,17 @@ WHAT STUDENTS LEARN:
 """
 
 import numpy as np
+
 rng = np.random.default_rng(7)
-import pytest
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
+from trentorch.core.dataloader import DataLoader, TensorDataset
 from trentorch.core.tensor import Tensor
-from trentorch.core.dataloader import TensorDataset, DataLoader
 
 
 class TestDataLoaderBasics:
@@ -72,8 +74,7 @@ class TestDataLoaderBasics:
         batch_x, batch_y = first_batch
 
         assert batch_x.shape[0] == 32 or batch_x.shape[0] <= 32, (
-            f"Batch size should be 32 (or less for last batch)\n"
-            f"  Got: {batch_x.shape[0]}"
+            f"Batch size should be 32 (or less for last batch)\n  Got: {batch_x.shape[0]}"
         )
 
     def test_shuffling(self):
@@ -111,8 +112,7 @@ class TestDataLoaderBasics:
         # which is negligible, so this is a reliable signal that shuffling is working.
         # (Note: there is a vanishingly small chance this assertion fails by coincidence.)
         assert not np.array_equal(batch1.data, batch2.data), (
-            "Two independently-shuffled loaders produced identical first batches — "
-            "shuffle may not be working"
+            "Two independently-shuffled loaders produced identical first batches — shuffle may not be working"
         )
 
 

@@ -27,12 +27,12 @@ import sys
 
 # Environment variables set by common CI / automation providers.
 _CI_ENV_VARS = (
-    "CI",              # generic; set by GitHub Actions, GitLab, CircleCI, Travis, ...
+    "CI",  # generic; set by GitHub Actions, GitLab, CircleCI, Travis, ...
     "GITHUB_ACTIONS",
     "GITLAB_CI",
     "JENKINS_URL",
     "BUILDKITE",
-    "TF_BUILD",        # Azure Pipelines
+    "TF_BUILD",  # Azure Pipelines
     "TEAMCITY_VERSION",
 )
 

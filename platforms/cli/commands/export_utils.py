@@ -12,7 +12,6 @@ import stat
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Dict, List, Optional
 
 # ---------------------------------------------------------------------------
 # Stub / solution variant splitting
@@ -105,6 +104,7 @@ def make_solution_variant(source: str) -> str:
             i += 1
     return "".join(out)
 
+
 # Mapping from generated package paths back to source files
 # Keys are (subpackage, module) tuples matching default_exp directives
 SOURCE_MAPPINGS = {
@@ -135,7 +135,12 @@ def get_export_target(module_path: Path) -> str:
     """Read export target from #| default_exp in the source file."""
     module_name = module_path.name
     path_str = str(module_path)
-    in_generated_dir = "data/modules" in path_str or "data/solutions" in path_str or "data\\modules" in path_str or "data\\solutions" in path_str
+    in_generated_dir = (
+        "data/modules" in path_str
+        or "data/solutions" in path_str
+        or "data\\modules" in path_str
+        or "data\\solutions" in path_str
+    )
     source_path = Path("data") / "src" / module_name if in_generated_dir else module_path
     dev_file = source_path / f"{module_name}.py"
     if not dev_file.exists():
@@ -152,7 +157,7 @@ def get_export_target(module_path: Path) -> str:
     return "unknown"
 
 
-def discover_modules(source_dir: Path = Path("data") / "src") -> List[str]:
+def discover_modules(source_dir: Path = Path("data") / "src") -> list[str]:
     """List module directories under src/ excluding common non-module folders."""
     modules = []
     if source_dir.exists():
@@ -163,7 +168,7 @@ def discover_modules(source_dir: Path = Path("data") / "src") -> List[str]:
     return sorted(modules)
 
 
-def validate_notebook_integrity(notebook_path: Path) -> Dict:
+def validate_notebook_integrity(notebook_path: Path) -> dict:
     """Basic validation for generated notebooks."""
     try:
         notebook_data = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -232,11 +237,18 @@ def validate_notebook_integrity(notebook_path: Path) -> Dict:
 
 def _resolve_jupytext_path(venv_path: Path, console) -> str:
     from ..core.virtual_env_manager import get_venv_bin_dir
+
     jupytext_path = "jupytext"
     venv_jupytext = get_venv_bin_dir(venv_path) / "jupytext"
 
     if venv_jupytext.exists():
-        test_result = subprocess.run([str(venv_jupytext), "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        test_result = subprocess.run(
+            [str(venv_jupytext), "--version"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
         if test_result.returncode == 0:
             console.print(f"[dim]🔧 Using venv jupytext: {venv_jupytext}[/dim]")
             return str(venv_jupytext)
@@ -245,7 +257,9 @@ def _resolve_jupytext_path(venv_path: Path, console) -> str:
     return jupytext_path
 
 
-def convert_py_to_notebook(module_path: Path, venv_path: Path, console, variant: str = "stub", target_root: str = "data/modules") -> bool:
+def convert_py_to_notebook(
+    module_path: Path, venv_path: Path, console, variant: str = "stub", target_root: str = "data/modules"
+) -> bool:
     """Convert src/<module>.py to <target_root>/<module>.ipynb using jupytext.
 
     variant selects which cell content the notebook gets:
@@ -276,7 +290,11 @@ def convert_py_to_notebook(module_path: Path, venv_path: Path, console, variant:
 
     rel_notebook = notebook_file.relative_to(project_root)
     console.print(f"[dim]📄 Source: {dev_file.name} → Target: {rel_notebook}[/dim]")
-    console.print("[dim]🔄 Overwriting existing notebook (Python file is source of truth)[/dim]" if notebook_file.exists() else "[dim]✨ Creating new notebook from Python file[/dim]")
+    console.print(
+        "[dim]🔄 Overwriting existing notebook (Python file is source of truth)[/dim]"
+        if notebook_file.exists()
+        else "[dim]✨ Creating new notebook from Python file[/dim]"
+    )
 
     tmp_source = None
     try:
@@ -288,11 +306,15 @@ def convert_py_to_notebook(module_path: Path, venv_path: Path, console, variant:
             tmp.write(transformed)
             tmp_source = Path(tmp.name)
 
-        console.print(f"[dim]⚙️  Running: {jupytext_path} --to ipynb ({variant} variant) --output {notebook_file}[/dim]")
+        console.print(
+            f"[dim]⚙️  Running: {jupytext_path} --to ipynb ({variant} variant) --output {notebook_file}[/dim]"
+        )
         result = subprocess.run(
             [jupytext_path, "--to", "ipynb", str(tmp_source), "--output", str(notebook_file)],
             capture_output=True,
-            text=True, encoding="utf-8", errors="replace",
+            text=True,
+            encoding="utf-8",
+            errors="replace",
             cwd=project_root,
         )
 
@@ -335,7 +357,9 @@ def convert_py_to_notebook(module_path: Path, venv_path: Path, console, variant:
                 pass
 
 
-def convert_all_modules(venv_path: Path, console, variant: str = "stub", target_root: str = "data/modules") -> List[str]:
+def convert_all_modules(
+    venv_path: Path, console, variant: str = "stub", target_root: str = "data/modules"
+) -> list[str]:
     """Convert all src modules to notebooks of the given variant."""
     converted = []
     for module_name in discover_modules():

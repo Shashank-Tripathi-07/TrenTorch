@@ -13,16 +13,15 @@ from pathlib import Path
 import numpy as np
 from rich.console import Console
 
+from platforms.cli.cli_platform.package.reset import ResetCommand
 from platforms.cli.commands.export_utils import find_source_file_for_export
+from platforms.cli.core.config import CLIConfig
 from platforms.cli.processes.milestone import (
     MILESTONE_SCRIPTS,
     _required_modules_for,
     _validate_required_exports,
 )
 from platforms.cli.processes.module_workflow.workflow import ModuleWorkflowCommand
-from platforms.cli.cli_platform.package.reset import ResetCommand
-from platforms.cli.core.config import CLIConfig
-
 
 TRENTORCH_ROOT = Path(__file__).resolve().parents[3]
 
@@ -36,11 +35,7 @@ def _import_script(path: Path):
 
 def test_mlperf_full_requirements_match_all_default_parts():
     milestone = MILESTONE_SCRIPTS["06"]
-    part_union = sorted({
-        module
-        for script in milestone["scripts"]
-        for module in script["required_modules"]
-    })
+    part_union = sorted({module for script in milestone["scripts"] for module in script["required_modules"]})
 
     assert _required_modules_for(milestone) == part_union
     assert {11, 12}.issubset(set(milestone["required_modules"]))
@@ -144,13 +139,9 @@ def test_mlperf_optimization_loads_packaged_tinydigits():
 
 
 def test_generation_speedup_import_error_lists_actual_requirements():
-    text = (
-        TRENTORCH_ROOT
-        / "data"
-        / "milestones"
-        / "06_2018_mlperf"
-        / "02_generation_speedup.py"
-    ).read_text(encoding="utf-8")
+    text = (TRENTORCH_ROOT / "data" / "milestones" / "06_2018_mlperf" / "02_generation_speedup.py").read_text(
+        encoding="utf-8"
+    )
 
     assert "modules 01-08, 11, 12, 14, and 18" in text
     assert "modules 11-17" not in text
