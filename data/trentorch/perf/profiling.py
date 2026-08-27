@@ -17,29 +17,33 @@
 # %% auto #0
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'KB_TO_BYTES', 'MB_TO_BYTES', 'Profiler', 'quick_profile', 'analyze_weight_distribution']
 
-# %% ../../solutions/14_profiling/profiling.ipynb #8f2317f6
-import sys
+# %% ../../solutions/14_profiling/profiling.ipynb #9f5e9ba8
 import os
+import sys
 import time
+
 import numpy as np
+
 rng = np.random.default_rng(7)
-import tracemalloc
-from typing import Dict, List, Any, Optional, Tuple
-from collections import defaultdict
 import gc
+import tracemalloc
+from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
+
+from ..core.layers import Linear
+from ..core.spatial import Conv2d
 
 # Import from TrenTorch package (previous modules must be completed and exported)
 from ..core.tensor import Tensor
-from ..core.layers import Linear
-from ..core.spatial import Conv2d
 
 # Constants for memory and performance measurement
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/14_profiling/profiling.ipynb #28e84274
+# %% ../../solutions/14_profiling/profiling.ipynb #19c11bf4
 # Solution
+
 
 class Profiler:
     """
@@ -108,9 +112,9 @@ class Profiler:
         """
         ### BEGIN SOLUTION
         params = 0
-        if hasattr(layer, 'weight'):
+        if hasattr(layer, "weight"):
             params += layer.weight.data.size
-            if hasattr(layer, 'bias') and layer.bias is not None:
+            if hasattr(layer, "bias") and layer.bias is not None:
                 params += layer.bias.data.size
         return params
         ### END SOLUTION
@@ -139,16 +143,16 @@ class Profiler:
         - Handle models with and without parameters() method
         """
         ### BEGIN SOLUTION
-        if hasattr(model, 'layers'):
+        if hasattr(model, "layers"):
             return sum(p.data.size for layer in model.layers for p in layer.parameters())
-        elif hasattr(model, 'parameters'):
+        elif hasattr(model, "parameters"):
             return sum(p.data.size for p in model.parameters())
-        elif hasattr(model, 'weight'):
+        elif hasattr(model, "weight"):
             return self._count_layer_parameters(model)
         return 0
         ### END SOLUTION
 
-    def _count_linear_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+    def _count_linear_flops(self, model, input_shape: tuple[int, ...]) -> int:
         """
         Count FLOPs for a Linear layer forward pass.
 
@@ -168,11 +172,11 @@ class Profiler:
         """
         ### BEGIN SOLUTION
         in_features = input_shape[-1]
-        out_features = model.weight.shape[1] if hasattr(model, 'weight') else 1
+        out_features = model.weight.shape[1] if hasattr(model, "weight") else 1
         return in_features * out_features * 2
         ### END SOLUTION
 
-    def _count_conv_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+    def _count_conv_flops(self, model, input_shape: tuple[int, ...]) -> int:
         """
         Count FLOPs for a Conv2d layer forward pass.
 
@@ -191,7 +195,7 @@ class Profiler:
             int: FLOP count for one forward pass
         """
         ### BEGIN SOLUTION
-        if not (hasattr(model, 'kernel_size') and hasattr(model, 'in_channels')):
+        if not (hasattr(model, "kernel_size") and hasattr(model, "in_channels")):
             return 0
 
         in_channels = model.in_channels
@@ -199,14 +203,14 @@ class Profiler:
         kernel_h = kernel_w = model.kernel_size
 
         input_h, input_w = input_shape[-2], input_shape[-1]
-        stride = model.stride if hasattr(model, 'stride') else 1
+        stride = model.stride if hasattr(model, "stride") else 1
         output_h = input_h // stride
         output_w = input_w // stride
 
         return output_h * output_w * kernel_h * kernel_w * in_channels * out_channels * 2
         ### END SOLUTION
 
-    def _count_sequential_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+    def _count_sequential_flops(self, model, input_shape: tuple[int, ...]) -> int:
         """
         Count FLOPs for a Sequential model by summing per-layer FLOPs.
 
@@ -229,12 +233,12 @@ class Profiler:
         current_shape = input_shape
         for layer in model.layers:
             total_flops += self.count_flops(layer, current_shape)
-            if hasattr(layer, 'weight'):
+            if hasattr(layer, "weight"):
                 current_shape = current_shape[:-1] + (layer.weight.shape[1],)
         return total_flops
         ### END SOLUTION
 
-    def count_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+    def count_flops(self, model, input_shape: tuple[int, ...]) -> int:
         """
         Count FLOPs (Floating Point Operations) for one forward pass.
 
@@ -257,11 +261,11 @@ class Profiler:
         ### BEGIN SOLUTION
         model_name = model.__class__.__name__
 
-        if model_name == 'Linear':
+        if model_name == "Linear":
             return self._count_linear_flops(model, input_shape)
-        elif model_name == 'Conv2d':
+        elif model_name == "Conv2d":
             return self._count_conv_flops(model, input_shape)
-        elif model_name == 'Sequential' or hasattr(model, 'layers'):
+        elif model_name == "Sequential" or hasattr(model, "layers"):
             return self._count_sequential_flops(model, input_shape)
         else:
             return int(np.prod(input_shape))
@@ -314,7 +318,7 @@ class Profiler:
         return min(ratio, 1.0)
         ### END SOLUTION
 
-    def measure_memory(self, model, input_shape: Tuple[int, ...]) -> Dict[str, float]:
+    def measure_memory(self, model, input_shape: tuple[int, ...]) -> dict[str, float]:
         """
         Measure memory usage during forward pass.
 
@@ -351,10 +355,10 @@ class Profiler:
 
         useful_memory = parameter_memory_mb + activation_memory_mb
         return {
-            'parameter_memory_mb': parameter_memory_mb,
-            'activation_memory_mb': activation_memory_mb,
-            'peak_memory_mb': max(peak_memory_mb, useful_memory),
-            'memory_efficiency': self._calculate_memory_efficiency(useful_memory, peak_memory_mb)
+            "parameter_memory_mb": parameter_memory_mb,
+            "activation_memory_mb": activation_memory_mb,
+            "peak_memory_mb": max(peak_memory_mb, useful_memory),
+            "memory_efficiency": self._calculate_memory_efficiency(useful_memory, peak_memory_mb),
         }
         ### END SOLUTION
 
@@ -407,7 +411,7 @@ class Profiler:
         return float(median_latency)
         ### END SOLUTION
 
-    def profile_layer(self, layer, input_shape: Tuple[int, ...]) -> Dict[str, Any]:
+    def profile_layer(self, layer, input_shape: tuple[int, ...]) -> dict[str, Any]:
         """
         Profile a single layer comprehensively.
 
@@ -446,17 +450,18 @@ class Profiler:
         gflops_per_second = (flops / 1e9) / max(latency / 1000, 1e-6)
 
         return {
-            'layer_type': layer.__class__.__name__,
-            'parameters': params,
-            'flops': flops,
-            'latency_ms': latency,
-            'gflops_per_second': gflops_per_second,
-            **memory
+            "layer_type": layer.__class__.__name__,
+            "parameters": params,
+            "flops": flops,
+            "latency_ms": latency,
+            "gflops_per_second": gflops_per_second,
+            **memory,
         }
         ### END SOLUTION
 
-    def _compute_derived_metrics(self, flops: int, latency_ms: float,
-                                  peak_memory_mb: float) -> Dict[str, float]:
+    def _compute_derived_metrics(
+        self, flops: int, latency_ms: float, peak_memory_mb: float
+    ) -> dict[str, float]:
         """
         Compute throughput and efficiency metrics from raw measurements.
 
@@ -483,14 +488,13 @@ class Profiler:
         computational_efficiency = min(gflops_per_second / theoretical_peak_gflops, 1.0)
 
         return {
-            'gflops_per_second': gflops_per_second,
-            'memory_bandwidth_mbs': memory_bandwidth,
-            'computational_efficiency': computational_efficiency
+            "gflops_per_second": gflops_per_second,
+            "memory_bandwidth_mbs": memory_bandwidth,
+            "computational_efficiency": computational_efficiency,
         }
         ### END SOLUTION
 
-    def _analyze_bottleneck(self, gflops_per_second: float,
-                            memory_bandwidth_mbs: float) -> Dict[str, Any]:
+    def _analyze_bottleneck(self, gflops_per_second: float, memory_bandwidth_mbs: float) -> dict[str, Any]:
         """
         Identify whether workload is memory-bound or compute-bound.
 
@@ -510,13 +514,13 @@ class Profiler:
         ### BEGIN SOLUTION
         is_memory_bound = memory_bandwidth_mbs > gflops_per_second * 100
         return {
-            'is_memory_bound': is_memory_bound,
-            'is_compute_bound': not is_memory_bound,
-            'bottleneck': 'memory' if is_memory_bound else 'compute'
+            "is_memory_bound": is_memory_bound,
+            "is_compute_bound": not is_memory_bound,
+            "bottleneck": "memory" if is_memory_bound else "compute",
         }
         ### END SOLUTION
 
-    def profile_forward_pass(self, model, input_tensor) -> Dict[str, Any]:
+    def profile_forward_pass(self, model, input_tensor) -> dict[str, Any]:
         """
         Comprehensive profiling of a model's forward pass.
 
@@ -543,18 +547,20 @@ class Profiler:
         memory_stats = self.measure_memory(model, input_tensor.shape)
         latency_ms = self.measure_latency(model, input_tensor, warmup=5, iterations=20)
 
-        derived = self._compute_derived_metrics(flops, latency_ms, memory_stats['peak_memory_mb'])
-        bottleneck = self._analyze_bottleneck(derived['gflops_per_second'],
-                                              derived['memory_bandwidth_mbs'])
+        derived = self._compute_derived_metrics(flops, latency_ms, memory_stats["peak_memory_mb"])
+        bottleneck = self._analyze_bottleneck(derived["gflops_per_second"], derived["memory_bandwidth_mbs"])
 
         return {
-            'parameters': param_count, 'flops': flops, 'latency_ms': latency_ms,
-            **memory_stats, **derived, **bottleneck
+            "parameters": param_count,
+            "flops": flops,
+            "latency_ms": latency_ms,
+            **memory_stats,
+            **derived,
+            **bottleneck,
         }
         ### END SOLUTION
 
-    def _estimate_backward_costs(self, forward_flops: int,
-                                  forward_latency_ms: float) -> Dict[str, float]:
+    def _estimate_backward_costs(self, forward_flops: int, forward_latency_ms: float) -> dict[str, float]:
         """
         Estimate backward pass compute costs from forward pass measurements.
 
@@ -576,13 +582,10 @@ class Profiler:
             dict with backward_flops and backward_latency_ms
         """
         ### BEGIN SOLUTION
-        return {
-            'backward_flops': forward_flops * 2,
-            'backward_latency_ms': forward_latency_ms * 2
-        }
+        return {"backward_flops": forward_flops * 2, "backward_latency_ms": forward_latency_ms * 2}
         ### END SOLUTION
 
-    def _estimate_optimizer_memory(self, gradient_memory_mb: float) -> Dict[str, float]:
+    def _estimate_optimizer_memory(self, gradient_memory_mb: float) -> dict[str, float]:
         """
         Estimate additional memory required by different optimizers.
 
@@ -605,13 +608,13 @@ class Profiler:
         """
         ### BEGIN SOLUTION
         return {
-            'sgd': 0,
-            'adam': gradient_memory_mb * 2,
-            'adamw': gradient_memory_mb * 2,
+            "sgd": 0,
+            "adam": gradient_memory_mb * 2,
+            "adamw": gradient_memory_mb * 2,
         }
         ### END SOLUTION
 
-    def profile_backward_pass(self, model, input_tensor, _loss_fn=None) -> Dict[str, Any]:
+    def profile_backward_pass(self, model, input_tensor, _loss_fn=None) -> dict[str, Any]:
         """
         Profile both forward and backward passes for training analysis.
 
@@ -635,30 +638,30 @@ class Profiler:
         """
         ### BEGIN SOLUTION
         fwd = self.profile_forward_pass(model, input_tensor)
-        bwd = self._estimate_backward_costs(fwd['flops'], fwd['latency_ms'])
+        bwd = self._estimate_backward_costs(fwd["flops"], fwd["latency_ms"])
 
-        gradient_memory_mb = fwd['parameter_memory_mb']
-        total_flops = fwd['flops'] + bwd['backward_flops']
-        total_latency_ms = fwd['latency_ms'] + bwd['backward_latency_ms']
-        total_memory_mb = fwd['parameter_memory_mb'] + fwd['activation_memory_mb'] + gradient_memory_mb
+        gradient_memory_mb = fwd["parameter_memory_mb"]
+        total_flops = fwd["flops"] + bwd["backward_flops"]
+        total_latency_ms = fwd["latency_ms"] + bwd["backward_latency_ms"]
+        total_memory_mb = fwd["parameter_memory_mb"] + fwd["activation_memory_mb"] + gradient_memory_mb
 
         return {
-            'forward_flops': fwd['flops'],
-            'forward_latency_ms': fwd['latency_ms'],
-            'forward_memory_mb': fwd['peak_memory_mb'],
+            "forward_flops": fwd["flops"],
+            "forward_latency_ms": fwd["latency_ms"],
+            "forward_memory_mb": fwd["peak_memory_mb"],
             **bwd,
-            'gradient_memory_mb': gradient_memory_mb,
-            'total_flops': total_flops,
-            'total_latency_ms': total_latency_ms,
-            'total_memory_mb': total_memory_mb,
-            'total_gflops_per_second': (total_flops / 1e9) / (total_latency_ms / 1000.0),
-            'optimizer_memory_estimates': self._estimate_optimizer_memory(gradient_memory_mb),
-            'memory_efficiency': fwd['memory_efficiency'],
-            'bottleneck': fwd['bottleneck']
+            "gradient_memory_mb": gradient_memory_mb,
+            "total_flops": total_flops,
+            "total_latency_ms": total_latency_ms,
+            "total_memory_mb": total_memory_mb,
+            "total_gflops_per_second": (total_flops / 1e9) / (total_latency_ms / 1000.0),
+            "optimizer_memory_estimates": self._estimate_optimizer_memory(gradient_memory_mb),
+            "memory_efficiency": fwd["memory_efficiency"],
+            "bottleneck": fwd["bottleneck"],
         }
         ### END SOLUTION
 
-# %% ../../solutions/14_profiling/profiling.ipynb #3f861377
+# %% ../../solutions/14_profiling/profiling.ipynb #331747b8
 def quick_profile(model, input_tensor, profiler=None):
     """
     Quick profiling function for immediate insights.
@@ -692,11 +695,11 @@ def quick_profile(model, input_tensor, profiler=None):
     print(f"   Latency: {profile['latency_ms']:.2f} ms")
     print(f"   Memory: {profile['peak_memory_mb']:.2f} MB")
     print(f"   Bottleneck: {profile['bottleneck']}")
-    print(f"   Efficiency: {profile['computational_efficiency']*100:.1f}%")
+    print(f"   Efficiency: {profile['computational_efficiency'] * 100:.1f}%")
 
     return profile
 
-# %% ../../solutions/14_profiling/profiling.ipynb #2a9d1f5c
+# %% ../../solutions/14_profiling/profiling.ipynb #e6465584
 def analyze_weight_distribution(model, percentiles=[10, 25, 50, 75, 90]):
     """
     Analyze weight distribution across layers.
@@ -718,33 +721,33 @@ def analyze_weight_distribution(model, percentiles=[10, 25, 50, 75, 90]):
     """
     # Collect all weights
     weights = []
-    if hasattr(model, 'parameters'):
+    if hasattr(model, "parameters"):
         for param in model.parameters():
             weights.extend(param.data.flatten().tolist())
-    elif hasattr(model, 'weight'):
+    elif hasattr(model, "weight"):
         weights.extend(model.weight.data.flatten().tolist())
     else:
-        return {'error': 'No weights found'}
+        return {"error": "No weights found"}
 
     weights = np.array(weights)
     abs_weights = np.abs(weights)
 
     # Calculate statistics
     stats = {
-        'total_weights': len(weights),
-        'mean': float(np.mean(abs_weights)),
-        'std': float(np.std(abs_weights)),
-        'min': float(np.min(abs_weights)),
-        'max': float(np.max(abs_weights)),
+        "total_weights": len(weights),
+        "mean": float(np.mean(abs_weights)),
+        "std": float(np.std(abs_weights)),
+        "min": float(np.min(abs_weights)),
+        "max": float(np.max(abs_weights)),
     }
 
     # Percentile analysis
     for p in percentiles:
-        stats[f'percentile_{p}'] = float(np.percentile(abs_weights, p))
+        stats[f"percentile_{p}"] = float(np.percentile(abs_weights, p))
 
     # Threshold analysis (useful for pruning)
     for threshold in [0.001, 0.01, 0.1]:
         below = np.sum(abs_weights < threshold) / len(weights) * 100
-        stats[f'below_threshold_{str(threshold).replace(".", "")}'] = below
+        stats[f"below_threshold_{str(threshold).replace('.', '')}"] = below
 
     return stats

@@ -18,29 +18,32 @@
 __all__ = ['rng', 'DEFAULT_WARMUP_ITERATIONS', 'DEFAULT_TIMING_ITERATIONS', 'BYTES_PER_FLOAT32', 'vectorized_matmul',
            'fused_gelu', 'tiled_matmul']
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #993c2191
+# %% ../../solutions/17_acceleration/acceleration.ipynb #1983296a
 #| default_exp perf.acceleration
 #| export
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #c3fca6c6
+# %% ../../solutions/17_acceleration/acceleration.ipynb #2dbe4362
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 import time
-from typing import Dict, List, Tuple, Optional, Any, Union
 import warnings
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Constants for performance measurement
 DEFAULT_WARMUP_ITERATIONS = 2  # Default warmup iterations for timing
 DEFAULT_TIMING_ITERATIONS = 5  # Default timing iterations for measurement
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #08679461
+# %% ../../solutions/17_acceleration/acceleration.ipynb #09ecd4ce
 # Import from TrenTorch package (previous modules must be completed and exported)
 from ..core.tensor import Tensor
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #66c1c14d
+# %% ../../solutions/17_acceleration/acceleration.ipynb #958a0610
 # Solution
+
 
 def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
     """
@@ -112,8 +115,9 @@ def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
     return Tensor(result_data)
     ### END SOLUTION
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #0312c825
+# %% ../../solutions/17_acceleration/acceleration.ipynb #cc91b49e
 # Solution
+
 
 def fused_gelu(x: Tensor) -> Tensor:
     """
@@ -168,15 +172,14 @@ def fused_gelu(x: Tensor) -> Tensor:
     # By computing the full expression in a single line, we avoid creating intermediate
     # Tensor objects. Note: NumPy still allocates temporary arrays internally —
     # real kernel fusion requires compiled frameworks like XLA or torch.compile.
-    result_data = 0.5 * x.data * (
-        1.0 + np.tanh(sqrt_2_over_pi * (x.data + 0.044715 * x.data**3))
-    )
+    result_data = 0.5 * x.data * (1.0 + np.tanh(sqrt_2_over_pi * (x.data + 0.044715 * x.data**3)))
 
     return Tensor(result_data)
     ### END SOLUTION
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #2de14668
+# %% ../../solutions/17_acceleration/acceleration.ipynb #20c3d2d8
 # Solution
+
 
 def tiled_matmul(a: Tensor, b: Tensor, tile_size: int = 64) -> Tensor:
     """

@@ -19,16 +19,18 @@ __all__ = ['rng', 'DEFAULT_KERNEL_SIZE', 'DEFAULT_STRIDE', 'DEFAULT_PADDING', 'B
            'validate_4d_input', 'Conv2dBackward', 'Conv2d', 'MaxPool2dBackward', 'MaxPool2d', 'AvgPool2dBackward',
            'AvgPool2d', 'BatchNorm2d', 'SimpleCNN']
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #c21998e2
+# %% ../../solutions/09_convolutions/convolutions.ipynb #817ca839
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 import time
 
+# Enable autograd for gradient tracking (required for BatchNorm2d learnable parameters)
+from .autograd import Function, ReLUBackward, enable_autograd
 from .tensor import Tensor
 
-# Enable autograd for gradient tracking (required for BatchNorm2d learnable parameters)
-from .autograd import enable_autograd, Function, ReLUBackward
 enable_autograd()
 
 # Constants for convolution defaults
@@ -41,7 +43,7 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #780700e8
+# %% ../../solutions/09_convolutions/convolutions.ipynb #2d473b84
 def validate_4d_input(x, layer_name):
     """
     Validate that input tensor is 4D (batch, channels, height, width).
@@ -81,8 +83,9 @@ def validate_4d_input(x, layer_name):
             f"  Reshape your input to 4D with the correct dimensions"
         )
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #3418dfc9
+# %% ../../solutions/09_convolutions/convolutions.ipynb #dd6de49f
 # Solution
+
 
 class Conv2dBackward(Function):
     """
@@ -128,9 +131,12 @@ class Conv2dBackward(Function):
 
         # Apply padding to input if needed (for gradient computation)
         if self.padding > 0:
-            padded_input = np.pad(self.x.data,
-                                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
-                                mode='constant', constant_values=0)
+            padded_input = np.pad(
+                self.x.data,
+                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
+                mode="constant",
+                constant_values=0,
+            )
         else:
             padded_input = self.x.data
 
@@ -176,9 +182,7 @@ class Conv2dBackward(Function):
 
         # Remove padding from input gradient
         if self.padding > 0:
-            grad_input = grad_input_padded[:, :,
-                                          self.padding:-self.padding,
-                                          self.padding:-self.padding]
+            grad_input = grad_input_padded[:, :, self.padding : -self.padding, self.padding : -self.padding]
         else:
             grad_input = grad_input_padded
 
@@ -187,7 +191,9 @@ class Conv2dBackward(Function):
             return grad_input, grad_weight
         return grad_input, grad_weight, grad_bias
 
+
 #| export
+
 
 class Conv2d:
     """
@@ -242,9 +248,9 @@ class Conv2d:
         std = np.sqrt(2.0 / fan_in)
 
         # Weight shape: (out_channels, in_channels, kernel_h, kernel_w)
-        self.weight = Tensor(rng.normal(0, std,
-                           (out_channels, in_channels, kernel_h, kernel_w)),
-                           requires_grad=True)
+        self.weight = Tensor(
+            rng.normal(0, std, (out_channels, in_channels, kernel_h, kernel_w)), requires_grad=True
+        )
 
         # Bias initialization
         if bias:
@@ -305,11 +311,12 @@ class Conv2d:
         """
         ### BEGIN SOLUTION
         if self.padding > 0:
-            return np.pad(x_data,
-                         ((0, 0), (0, 0),
-                          (self.padding, self.padding),
-                          (self.padding, self.padding)),
-                         mode='constant', constant_values=0)
+            return np.pad(
+                x_data,
+                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
+                mode="constant",
+                constant_values=0,
+            )
         else:
             return x_data
         ### END SOLUTION
@@ -360,9 +367,7 @@ class Conv2d:
                         for k_h in range(kernel_h):
                             for k_w in range(kernel_w):
                                 for in_ch in range(in_channels):
-                                    input_val = padded[b, in_ch,
-                                                      in_h_start + k_h,
-                                                      in_w_start + k_w]
+                                    input_val = padded[b, in_ch, in_h_start + k_h, in_w_start + k_w]
                                     weight_val = self.weight.data[out_ch, in_ch, k_h, k_w]
                                     conv_sum += input_val * weight_val
 
@@ -417,9 +422,7 @@ class Conv2d:
         # Attach backward function for gradient computation (following TrenTorch protocol)
         if result.requires_grad:
             result._grad_fn = Conv2dBackward(
-                x, self.weight, self.bias,
-                self.stride, self.padding, self.kernel_size,
-                padded_input.shape
+                x, self.weight, self.bias, self.stride, self.padding, self.kernel_size, padded_input.shape
             )
 
         return result
@@ -436,8 +439,9 @@ class Conv2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #02a71be0
+# %% ../../solutions/09_convolutions/convolutions.ipynb #97b0689e
 # Solution
+
 
 class MaxPool2dBackward(Function):
     """
@@ -473,9 +477,12 @@ class MaxPool2dBackward(Function):
 
         # Apply padding if needed
         if self.padding > 0:
-            padded_input = np.pad(self.x.data,
-                                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
-                                mode='constant', constant_values=-np.inf)
+            padded_input = np.pad(
+                self.x.data,
+                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
+                mode="constant",
+                constant_values=-np.inf,
+            )
             grad_input_padded = np.zeros_like(padded_input)
         else:
             padded_input = self.x.data
@@ -506,16 +513,16 @@ class MaxPool2dBackward(Function):
 
         # Remove padding
         if self.padding > 0:
-            grad_input = grad_input_padded[:, :,
-                                          self.padding:-self.padding,
-                                          self.padding:-self.padding]
+            grad_input = grad_input_padded[:, :, self.padding : -self.padding, self.padding : -self.padding]
         else:
             grad_input = grad_input_padded
 
         # Return as tuple (following Function protocol)
         return (grad_input,)
 
+
 #| export
+
 
 class MaxPool2d:
     """
@@ -624,9 +631,7 @@ class MaxPool2d:
                         max_val = -np.inf
                         for k_h in range(kernel_h):
                             for k_w in range(kernel_w):
-                                input_val = padded[b, c,
-                                                  in_h_start + k_h,
-                                                  in_w_start + k_w]
+                                input_val = padded[b, c, in_h_start + k_h, in_w_start + k_w]
                                 max_val = max(max_val, input_val)
 
                         output[b, c, oh, ow] = max_val
@@ -662,9 +667,12 @@ class MaxPool2d:
 
         # Step 3: Apply padding (use -inf for max pooling so padded values are never selected)
         if self.padding > 0:
-            padded_input = np.pad(x.data,
-                                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
-                                mode='constant', constant_values=-np.inf)
+            padded_input = np.pad(
+                x.data,
+                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
+                mode="constant",
+                constant_values=-np.inf,
+            )
         else:
             padded_input = x.data
 
@@ -675,9 +683,7 @@ class MaxPool2d:
         result = Tensor(output, requires_grad=x.requires_grad)
 
         if result.requires_grad:
-            result._grad_fn = MaxPool2dBackward(
-                x, result.shape, self.kernel_size, self.stride, self.padding
-            )
+            result._grad_fn = MaxPool2dBackward(x, result.shape, self.kernel_size, self.stride, self.padding)
 
         return result
         ### END SOLUTION
@@ -690,8 +696,9 @@ class MaxPool2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #0753edad
+# %% ../../solutions/09_convolutions/convolutions.ipynb #e001bda3
 # Solution
+
 
 class AvgPool2dBackward(Function):
     """
@@ -729,9 +736,7 @@ class AvgPool2dBackward(Function):
         # zeros too (matching the forward pass).
         if self.padding > 0:
             grad_input_padded = np.zeros(
-                (batch_size, channels,
-                 in_height + 2 * self.padding,
-                 in_width + 2 * self.padding)
+                (batch_size, channels, in_height + 2 * self.padding, in_width + 2 * self.padding)
             )
         else:
             grad_input_padded = np.zeros_like(self.x.data)
@@ -750,16 +755,16 @@ class AvgPool2dBackward(Function):
 
         # Remove padding
         if self.padding > 0:
-            grad_input = grad_input_padded[:, :,
-                                          self.padding:-self.padding,
-                                          self.padding:-self.padding]
+            grad_input = grad_input_padded[:, :, self.padding : -self.padding, self.padding : -self.padding]
         else:
             grad_input = grad_input_padded
 
         # Return as tuple (following Function protocol)
         return (grad_input,)
 
+
 #| export
+
 
 class AvgPool2d:
     """
@@ -867,9 +872,7 @@ class AvgPool2d:
                         window_sum = 0.0
                         for k_h in range(kernel_h):
                             for k_w in range(kernel_w):
-                                input_val = padded[b, c,
-                                                  in_h_start + k_h,
-                                                  in_w_start + k_w]
+                                input_val = padded[b, c, in_h_start + k_h, in_w_start + k_w]
                                 window_sum += input_val
 
                         output[b, c, oh, ow] = window_sum / (kernel_h * kernel_w)
@@ -905,9 +908,12 @@ class AvgPool2d:
 
         # Step 3: Apply padding (use zeros for average pooling)
         if self.padding > 0:
-            padded_input = np.pad(x.data,
-                                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
-                                mode='constant', constant_values=0)
+            padded_input = np.pad(
+                x.data,
+                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
+                mode="constant",
+                constant_values=0,
+            )
         else:
             padded_input = x.data
 
@@ -918,9 +924,7 @@ class AvgPool2d:
         result = Tensor(output, requires_grad=x.requires_grad)
 
         if result.requires_grad:
-            result._grad_fn = AvgPool2dBackward(
-                x, result.shape, self.kernel_size, self.stride, self.padding
-            )
+            result._grad_fn = AvgPool2dBackward(x, result.shape, self.kernel_size, self.stride, self.padding)
 
         return result
         ### END SOLUTION
@@ -933,8 +937,9 @@ class AvgPool2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #7d8a859c
+# %% ../../solutions/09_convolutions/convolutions.ipynb #1e10d308
 # Solution
+
 
 class BatchNorm2d:
     """
@@ -1074,7 +1079,7 @@ class BatchNorm2d:
             # Compute batch statistics per channel
             # Mean over batch and spatial dimensions: axes (0, 2, 3)
             batch_mean = np.mean(x.data, axis=(0, 2, 3))  # Shape: (C,)
-            batch_var = np.var(x.data, axis=(0, 2, 3))    # Shape: (C,)
+            batch_var = np.var(x.data, axis=(0, 2, 3))  # Shape: (C,)
 
             # Update running statistics (exponential moving average)
             self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * batch_mean
@@ -1140,8 +1145,9 @@ class BatchNorm2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #6ecaf946
+# %% ../../solutions/09_convolutions/convolutions.ipynb #29b3a28d
 # Solution
+
 
 class SimpleCNN:
     """

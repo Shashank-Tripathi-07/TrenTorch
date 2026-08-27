@@ -68,13 +68,11 @@ from trentorch.perf.acceleration import vectorized_matmul, fused_gelu
 #| export
 
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 import time
+from typing import Dict, List, Tuple, Optional, Any, Union
 import warnings
-from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Constants for performance measurement
 DEFAULT_WARMUP_ITERATIONS = 2  # Default warmup iterations for timing
@@ -238,10 +236,57 @@ For c₁₁: Row₁ · Column₁ = a₁₁×b₁₁ + a₁₂×b₂₁ + a₁₃
 - **Cache-friendly**: Data reuse in inner loops
 """
 
+# %% nbgrader={"grade": false, "grade_id": "vectorized-matmul", "solution": true}
+
+def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
+    """
+    High-performance matrix multiplication using vectorized operations.
+
+    This implementation leverages optimized BLAS libraries that use:
+    - SIMD instructions for parallel computation
+    - Cache-blocking for memory efficiency
+    - Multi-threading for CPU parallelization
+
+    TODO: Implement production-grade matrix multiplication
+
+    APPROACH:
+    1. Validate shapes are compatible for matrix multiplication
+    2. Use NumPy's optimized dot product (calls BLAS GEMM)
+    3. Return result wrapped in Tensor
+
+    Args:
+        a: First tensor for multiplication (M×K or batch×M×K)
+        b: Second tensor for multiplication (K×N or batch×K×N)
+
+    Returns:
+        Result tensor of shape (M×N or batch×M×N)
+
+    EXAMPLE:
+    Matrix multiplication visualization:
+    >>> a = Tensor([[1, 2], [3, 4]])  # 2×2
+    >>> b = Tensor([[5, 6], [7, 8]])  # 2×2
+    >>> result = vectorized_matmul(a, b)
+    >>> print(result.data)
+    [[19 22]    # [1×5+2×7, 1×6+2×8] = [19, 22]
+     [43 50]]   # [3×5+4×7, 3×6+4×8] = [43, 50]
+
+    PERFORMANCE CHARACTERISTICS:
+    - Time Complexity: O(N³) but highly optimized
+    - Space Complexity: O(N²) for result
+    - Arithmetic Intensity: 2N³ FLOPs / (3N² × 4) bytes = N/6 (good for large N)
+
+    HINTS:
+    - Check a.shape[-1] == b.shape[-2] for inner dimension match
+    - Use np.matmul() for batch support and optimization
+    - Trust BLAS to handle the vectorization magic
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement vectorized_matmul")
+    ### END SOLUTION
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
     """
@@ -313,7 +358,6 @@ def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
     return Tensor(result_data)
     ### END SOLUTION
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-vectorized-matmul", "locked": true, "points": 10}
 def test_unit_vectorized_matmul():
     """🧪 Test vectorized matrix multiplication implementation."""
@@ -356,7 +400,6 @@ def test_unit_vectorized_matmul():
         assert "shape mismatch" in str(e).lower()
 
     print("✅ vectorized_matmul works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_vectorized_matmul()
@@ -425,10 +468,60 @@ Unfused Operations:                    Fused Operation:
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "fused-gelu", "solution": true}
+
+def fused_gelu(x: Tensor) -> Tensor:
+    """
+    Fused GELU activation that combines all operations in a single kernel.
+
+    GELU combines the benefits of ReLU and sigmoid:
+    - Smooth everywhere (unlike ReLU's discontinuity at 0)
+    - Non-saturating for positive values (unlike sigmoid)
+    - Probabilistic interpretation: x * P(X ≤ x) where X ~ N(0,1)
+
+    Mathematical Definition:
+    GELU(x) = x * Φ(x) where Φ(x) is the standard normal CDF
+
+    Fast Approximation (used here):
+    GELU(x) ≈ 0.5 * x * (1 + tanh(√(2/π) * (x + 0.044715 * x³)))
+
+    TODO: Implement fused GELU to minimize memory bandwidth
+
+    APPROACH:
+    1. Compute all intermediate values in a single expression
+    2. Avoid creating temporary arrays
+    3. Let NumPy's broadcasting handle vectorization
+
+    Args:
+        x: Input tensor to apply GELU activation
+
+    Returns:
+        GELU-activated tensor (same shape as input)
+
+    EXAMPLE:
+    >>> x = Tensor([-2, -1, 0, 1, 2])
+    >>> result = fused_gelu(x)
+    >>> print(result.data)
+    [-0.04540231 -0.15880801  0.          0.84119199  1.95459769]
+    # Notice: smooth transition through 0, positive bias
+
+    MEMORY EFFICIENCY:
+    - Unfused: 5 temporary arrays × input_size × 4 bytes
+    - Fused: 0 temporary arrays, direct computation
+    - Bandwidth reduction: ~80% for memory-bound operations
+
+    HINTS:
+    - Use np.sqrt(2.0 / np.pi) for the constant
+    - Keep entire expression in one line for maximum fusion
+    - NumPy will optimize the expression tree automatically
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement fused_gelu")
+    ### END SOLUTION
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def fused_gelu(x: Tensor) -> Tensor:
     """
@@ -483,11 +576,12 @@ def fused_gelu(x: Tensor) -> Tensor:
     # By computing the full expression in a single line, we avoid creating intermediate
     # Tensor objects. Note: NumPy still allocates temporary arrays internally —
     # real kernel fusion requires compiled frameworks like XLA or torch.compile.
-    result_data = 0.5 * x.data * (1.0 + np.tanh(sqrt_2_over_pi * (x.data + 0.044715 * x.data**3)))
+    result_data = 0.5 * x.data * (
+        1.0 + np.tanh(sqrt_2_over_pi * (x.data + 0.044715 * x.data**3))
+    )
 
     return Tensor(result_data)
     ### END SOLUTION
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-fused-gelu", "locked": true, "points": 10}
 def test_unit_fused_gelu():
@@ -529,7 +623,6 @@ def test_unit_fused_gelu():
 
     print("✅ fused_gelu works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_fused_gelu()
 
@@ -540,9 +633,50 @@ if __name__ == "__main__":
 Let's quantify the impact of kernel fusion by comparing fused vs unfused implementations.
 """
 
+# %% nbgrader={"grade": false, "grade_id": "unfused-gelu", "solution": true}
+
+def unfused_gelu(x: Tensor) -> Tensor:
+    """
+    Deliberately unfused GELU implementation for performance comparison.
+
+    This version creates multiple intermediate tensors to simulate
+    the memory bandwidth overhead of unfused operations.
+
+    TODO: Implement GELU with explicit intermediate steps
+
+    APPROACH:
+    1. Break computation into individual steps
+    2. Create temporary Tensor objects for each step
+    3. This simulates real memory allocation overhead
+
+    Args:
+        x: Input tensor
+
+    Returns:
+        GELU-activated tensor (same shape as input)
+
+    EXAMPLE:
+    >>> x = Tensor([0.5, 1.0, -0.5])
+    >>> result = unfused_gelu(x)
+    >>> print(result.shape)
+    (3,)  # Same as input
+
+    PERFORMANCE IMPACT:
+    - Creates 7 temporary arrays
+    - Each array allocation/deallocation has overhead
+    - More memory bandwidth usage
+    - Potential cache misses between operations
+
+    HINTS:
+    - Create each step as: temp = Tensor(operation)
+    - This forces memory allocation for educational comparison
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement unfused_gelu")
+    ### END SOLUTION
+
 # %% tags=["solution"]
 # Solution
-
 
 def unfused_gelu(x: Tensor) -> Tensor:
     """
@@ -597,7 +731,6 @@ def unfused_gelu(x: Tensor) -> Tensor:
     return result
     ### END SOLUTION
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-fusion-speedup", "locked": true, "points": 10}
 def test_unit_fusion_speedup():
     """🧪 Measure the performance impact of kernel fusion."""
@@ -631,33 +764,28 @@ def test_unit_fusion_speedup():
     fused_time = time.time() - start
 
     # Verify numerical correctness
-    assert np.allclose(result_unfused.data, result_fused.data, atol=1e-6), (
+    assert np.allclose(result_unfused.data, result_fused.data, atol=1e-6), \
         "Fused and unfused implementations must be numerically equivalent"
-    )
 
     # Calculate performance metrics
     speedup = unfused_time / fused_time if fused_time > 0 else 1.0
     unfused_per_elem = (unfused_time / timing_iterations) / (size * size) * 1e9  # ns per element
     fused_per_elem = (fused_time / timing_iterations) / (size * size) * 1e9
 
-    print("📊 Kernel Fusion Performance Analysis:")
-    print(f"   Tensor size: {size}×{size} = {size * size:,} elements")
-    print(f"   Unfused time: {unfused_time / timing_iterations * 1000:.2f} ms")
-    print(f"   Fused time:   {fused_time / timing_iterations * 1000:.2f} ms")
+    print(f"📊 Kernel Fusion Performance Analysis:")
+    print(f"   Tensor size: {size}×{size} = {size*size:,} elements")
+    print(f"   Unfused time: {unfused_time/timing_iterations*1000:.2f} ms")
+    print(f"   Fused time:   {fused_time/timing_iterations*1000:.2f} ms")
     print(f"   Speedup: {speedup:.2f}× faster")
     print(f"   Per-element: {unfused_per_elem:.1f} ns → {fused_per_elem:.1f} ns")
 
     # Memory bandwidth estimate
     bytes_per_elem = 4  # float32
     unfused_memory_ops = 7  # 7 intermediate arrays
-    fused_memory_ops = 2  # read input, write output
+    fused_memory_ops = 2   # read input, write output
 
-    unfused_bandwidth = (
-        (unfused_memory_ops * size * size * bytes_per_elem) / (unfused_time / timing_iterations) / 1e9
-    )
-    fused_bandwidth = (
-        (fused_memory_ops * size * size * bytes_per_elem) / (fused_time / timing_iterations) / 1e9
-    )
+    unfused_bandwidth = (unfused_memory_ops * size * size * bytes_per_elem) / (unfused_time / timing_iterations) / 1e9
+    fused_bandwidth = (fused_memory_ops * size * size * bytes_per_elem) / (fused_time / timing_iterations) / 1e9
 
     print(f"   Memory efficiency: {unfused_memory_ops}→{fused_memory_ops} memory ops")
     print(f"   Effective bandwidth: {unfused_bandwidth:.1f}→{fused_bandwidth:.1f} GB/s")
@@ -671,7 +799,6 @@ def test_unit_fusion_speedup():
         print("⚠️  Limited speedup - may be compute-bound or small tensor size")
 
     print("✅ Fusion performance analysis completed!")
-
 
 if __name__ == "__main__":
     test_unit_fusion_speedup()
@@ -697,10 +824,53 @@ When matrices are larger than cache, we get **cache misses** that slow us down d
 Tiling keeps working set in cache for maximum reuse.
 """
 
+# %% nbgrader={"grade": false, "grade_id": "tiled-matmul", "solution": true}
+
+def tiled_matmul(a: Tensor, b: Tensor, tile_size: int = 64) -> Tensor:
+    """
+    Cache-aware matrix multiplication using tiling/blocking.
+
+    Demonstrates blocking algorithm for cache optimization by breaking
+    large matrix multiplications into cache-sized chunks.
+
+    TODO: Implement cache-aware tiled matrix multiplication
+
+    APPROACH:
+    1. Validate inputs for matrix multiplication compatibility
+    2. Use NumPy's optimized matmul (which already implements tiling internally)
+    3. In production, explicit tiling would use nested loops over blocks
+
+    Args:
+        a: First matrix (M×K)
+        b: Second matrix (K×N)
+        tile_size: Block size for cache efficiency (default: 64)
+
+    Returns:
+        Result matrix (M×N)
+
+    EXAMPLE:
+    >>> a = Tensor(rng.standard_normal((256, 256)))
+    >>> b = Tensor(rng.standard_normal((256, 256)))
+    >>> result = tiled_matmul(a, b, tile_size=64)
+    >>> # Same result as vectorized_matmul, but more cache-friendly for large matrices
+
+    PERFORMANCE CHARACTERISTICS:
+    - Reduces cache misses by working on blocks that fit in L1/L2
+    - Especially beneficial for matrices larger than cache size
+    - tile_size should match cache line size (typically 64 bytes)
+
+    HINTS:
+    - For educational purposes, we use NumPy's optimized BLAS
+    - BLAS libraries (MKL, OpenBLAS) already implement cache blocking
+    - Explicit tiling would use 6 nested loops (3 for tiles, 3 for elements)
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement tiled_matmul")
+    ### END SOLUTION
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def tiled_matmul(a: Tensor, b: Tensor, tile_size: int = 64) -> Tensor:
     """
@@ -776,7 +946,6 @@ def tiled_matmul(a: Tensor, b: Tensor, tile_size: int = 64) -> Tensor:
     return Tensor(result_data)
     ### END SOLUTION
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-tiled-matmul", "locked": true, "points": 10}
 def test_unit_tiled_matmul():
     """🧪 Test cache-aware tiled matrix multiplication."""
@@ -789,9 +958,8 @@ def test_unit_tiled_matmul():
     result_tiled = tiled_matmul(a, b, tile_size=32)
     result_reference = vectorized_matmul(a, b)
 
-    assert np.allclose(result_tiled.data, result_reference.data, atol=1e-5), (
+    assert np.allclose(result_tiled.data, result_reference.data, atol=1e-5), \
         "Tiled and vectorized results should match"
-    )
 
     # Test different tile sizes
     for tile_size in [16, 32, 64]:
@@ -809,7 +977,6 @@ def test_unit_tiled_matmul():
 
     print("✅ tiled_matmul works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_tiled_matmul()
 
@@ -819,7 +986,6 @@ if __name__ == "__main__":
 
 Let's analyze how our acceleration techniques perform across different scenarios and understand their scaling characteristics.
 """
-
 
 # %% nbgrader={"grade": false, "grade_id": "analyze-vectorization", "solution": true}
 def analyze_vectorization_scaling():
@@ -848,7 +1014,7 @@ def analyze_vectorization_scaling():
         iterations = max(1, 100 // (size // 64))  # Fewer iterations for larger sizes
         start = time.time()
         for _ in range(iterations):
-            vectorized_matmul(a, b)
+            result = vectorized_matmul(a, b)
         elapsed = (time.time() - start) / iterations
 
         # Calculate performance metrics
@@ -862,19 +1028,16 @@ def analyze_vectorization_scaling():
         estimated_peak_gflops = 200  # Conservative estimate
         efficiency = min(100, gflops / estimated_peak_gflops * 100)
 
-        print(
-            f"│ {size:6d}  │ {elapsed * 1000:9.2f}   │ {gflops:9.1f}   │ {bandwidth:9.1f}   │ {efficiency:9.1f}   │"
-        )
+        print(f"│ {size:6d}  │ {elapsed*1000:9.2f}   │ {gflops:9.1f}   │ {bandwidth:9.1f}   │ {efficiency:9.1f}   │")
 
     print("└─────────┴─────────────┴─────────────┴─────────────┴─────────────┘")
 
-    print("\n💡 Vectorization insights:")
-    print("   • Small matrices: Limited by overhead and cache effects")
-    print("   • Medium matrices: Sweet spot for cache reuse")
-    print("   • Large matrices: Memory bandwidth becomes limiting factor")
-    print("   • BLAS libraries automatically optimize for each size regime")
+    print(f"\n💡 Vectorization insights:")
+    print(f"   • Small matrices: Limited by overhead and cache effects")
+    print(f"   • Medium matrices: Sweet spot for cache reuse")
+    print(f"   • Large matrices: Memory bandwidth becomes limiting factor")
+    print(f"   • BLAS libraries automatically optimize for each size regime")
     print("🚀 Vectorization effectiveness depends on problem size and hardware")
-
 
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -882,7 +1045,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
     # benchmarks) take multiple minutes of real computation. Run this
     # file directly (not through CI) to see the full analysis.
     analyze_vectorization_scaling()
-
 
 # %% nbgrader={"grade": false, "grade_id": "analyze-arithmetic-intensity", "solution": true}
 def analyze_arithmetic_intensity():
@@ -892,7 +1054,7 @@ def analyze_arithmetic_intensity():
     size = 1024
     iterations = 10
 
-    []
+    operations = []
 
     # Create test data
     x = Tensor(rng.standard_normal((size, size)).astype(np.float32))
@@ -916,9 +1078,7 @@ def analyze_arithmetic_intensity():
     add_gflops = add_flops / (add_time * 1e9)
     add_bandwidth = add_bytes / (add_time * 1e9)
 
-    print(
-        f"│ Element-wise Add    │ {add_ai:6.3f}  │ {add_time * 1000:9.2f}   │ {add_gflops:9.1f}   │ {add_bandwidth:9.1f}   │"
-    )
+    print(f"│ Element-wise Add    │ {add_ai:6.3f}  │ {add_time*1000:9.2f}   │ {add_gflops:9.1f}   │ {add_bandwidth:9.1f}   │")
 
     # 2. Element-wise multiply (still low, but slightly higher)
     start = time.time()
@@ -932,9 +1092,7 @@ def analyze_arithmetic_intensity():
     mul_gflops = mul_flops / (mul_time * 1e9)
     mul_bandwidth = mul_bytes / (mul_time * 1e9)
 
-    print(
-        f"│ Element-wise Mult   │ {mul_ai:6.3f}  │ {mul_time * 1000:9.2f}   │ {mul_gflops:9.1f}   │ {mul_bandwidth:9.1f}   │"
-    )
+    print(f"│ Element-wise Mult   │ {mul_ai:6.3f}  │ {mul_time*1000:9.2f}   │ {mul_gflops:9.1f}   │ {mul_bandwidth:9.1f}   │")
 
     # 3. GELU (medium arithmetic intensity)
     start = time.time()
@@ -948,9 +1106,7 @@ def analyze_arithmetic_intensity():
     gelu_gflops = gelu_flops / (gelu_time * 1e9)
     gelu_bandwidth = gelu_bytes / (gelu_time * 1e9)
 
-    print(
-        f"│ Fused GELU          │ {gelu_ai:6.3f}  │ {gelu_time * 1000:9.2f}   │ {gelu_gflops:9.1f}   │ {gelu_bandwidth:9.1f}   │"
-    )
+    print(f"│ Fused GELU          │ {gelu_ai:6.3f}  │ {gelu_time*1000:9.2f}   │ {gelu_gflops:9.1f}   │ {gelu_bandwidth:9.1f}   │")
 
     # 4. Matrix multiplication (high arithmetic intensity)
     start = time.time()
@@ -964,20 +1120,17 @@ def analyze_arithmetic_intensity():
     matmul_gflops = matmul_flops / (matmul_time * 1e9)
     matmul_bandwidth = matmul_bytes / (matmul_time * 1e9)
 
-    print(
-        f"│ Matrix Multiply     │ {matmul_ai:6.3f}  │ {matmul_time * 1000:9.2f}   │ {matmul_gflops:9.1f}   │ {matmul_bandwidth:9.1f}   │"
-    )
+    print(f"│ Matrix Multiply     │ {matmul_ai:6.3f}  │ {matmul_time*1000:9.2f}   │ {matmul_gflops:9.1f}   │ {matmul_bandwidth:9.1f}   │")
 
     print("└─────────────────────┴─────────┴─────────────┴─────────────┴─────────────┘")
 
-    print("\n💡 Roofline Model Insights:")
-    print("   📊 Low AI (< 1): Memory bound - limited by bandwidth")
-    print("   📊 Med AI (1-10): Transitional - depends on implementation")
-    print("   📊 High AI (> 10): Compute bound - limited by ALU throughput")
+    print(f"\n💡 Roofline Model Insights:")
+    print(f"   📊 Low AI (< 1): Memory bound - limited by bandwidth")
+    print(f"   📊 Med AI (1-10): Transitional - depends on implementation")
+    print(f"   📊 High AI (> 10): Compute bound - limited by ALU throughput")
     print(f"   🎯 Matrix multiplication ({matmul_ai:.1f} AI) is ideal for GPUs/TPUs")
     print(f"   ⚡ Element-wise ops ({add_ai:.3f} AI) need memory optimization")
     print("🚀 Design algorithms with high arithmetic intensity for performance")
-
 
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -993,7 +1146,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
 Understanding memory allocation patterns is crucial for perf.
 Let's measure how different implementations use memory.
 """
-
 
 # %% nbgrader={"grade": false, "grade_id": "analyze-memory", "solution": false}
 def analyze_memory_efficiency():
@@ -1032,9 +1184,7 @@ def analyze_memory_efficiency():
         _, fused_peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
-        print(
-            f"│ {size:6d}  │ {matmul_peak / 1e6:10.2f}   │ {unfused_peak / 1e6:10.2f}   │ {fused_peak / 1e6:8.2f}   │"
-        )
+        print(f"│ {size:6d}  │ {matmul_peak/1e6:10.2f}   │ {unfused_peak/1e6:10.2f}   │ {fused_peak/1e6:8.2f}   │")
 
     print("└─────────┴──────────────┴──────────────┴──────────────┘")
 
@@ -1044,7 +1194,6 @@ def analyze_memory_efficiency():
     print("   • Fused GELU: ~2× input size (1 input + 1 output only)")
     print("   • Fusion reduces memory allocations by 4-5×")
     print("🚀 Memory efficiency critical for large batch sizes and limited GPU memory")
-
 
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -1060,7 +1209,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
 Understanding when and how to apply different acceleration techniques in real-world scenarios.
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "acceleration-decision-framework", "solution": true}
 def analyze_acceleration_decision_framework():
     """📊 Decision framework for choosing acceleration techniques."""
@@ -1068,56 +1216,41 @@ def analyze_acceleration_decision_framework():
 
     # Define workload characteristics
     workloads = [
-        (
-            "Research Training",
-            {
-                "memory_pressure": "medium",
-                "latency_sensitive": False,
-                "stability_critical": False,
-                "development_speed": "high",
-                "hardware_variety": "high",
-            },
-        ),
-        (
-            "Production Training",
-            {
-                "memory_pressure": "high",
-                "latency_sensitive": False,
-                "stability_critical": True,
-                "development_speed": "medium",
-                "hardware_variety": "low",
-            },
-        ),
-        (
-            "Real-time Inference",
-            {
-                "memory_pressure": "medium",
-                "latency_sensitive": True,
-                "stability_critical": True,
-                "development_speed": "low",
-                "hardware_variety": "medium",
-            },
-        ),
-        (
-            "Edge Deployment",
-            {
-                "memory_pressure": "very_high",
-                "latency_sensitive": True,
-                "stability_critical": True,
-                "development_speed": "low",
-                "hardware_variety": "very_high",
-            },
-        ),
-        (
-            "Batch Inference",
-            {
-                "memory_pressure": "low",
-                "latency_sensitive": False,
-                "stability_critical": True,
-                "development_speed": "medium",
-                "hardware_variety": "low",
-            },
-        ),
+        ("Research Training", {
+            "memory_pressure": "medium",
+            "latency_sensitive": False,
+            "stability_critical": False,
+            "development_speed": "high",
+            "hardware_variety": "high"
+        }),
+        ("Production Training", {
+            "memory_pressure": "high",
+            "latency_sensitive": False,
+            "stability_critical": True,
+            "development_speed": "medium",
+            "hardware_variety": "low"
+        }),
+        ("Real-time Inference", {
+            "memory_pressure": "medium",
+            "latency_sensitive": True,
+            "stability_critical": True,
+            "development_speed": "low",
+            "hardware_variety": "medium"
+        }),
+        ("Edge Deployment", {
+            "memory_pressure": "very_high",
+            "latency_sensitive": True,
+            "stability_critical": True,
+            "development_speed": "low",
+            "hardware_variety": "very_high"
+        }),
+        ("Batch Inference", {
+            "memory_pressure": "low",
+            "latency_sensitive": False,
+            "stability_critical": True,
+            "development_speed": "medium",
+            "hardware_variety": "low"
+        })
     ]
 
     # Define technique characteristics
@@ -1127,22 +1260,22 @@ def analyze_acceleration_decision_framework():
             "memory_benefit": "none",
             "latency_benefit": "high",
             "stability_risk": "none",
-            "hardware_dependency": "low",
+            "hardware_dependency": "low"
         },
         "Kernel Fusion": {
             "implementation_cost": "medium",
             "memory_benefit": "medium",
             "latency_benefit": "medium",
             "stability_risk": "low",
-            "hardware_dependency": "medium",
+            "hardware_dependency": "medium"
         },
         "Graph Optimization": {
             "implementation_cost": "very_high",
             "memory_benefit": "medium",
             "latency_benefit": "very_high",
             "stability_risk": "low",
-            "hardware_dependency": "very_high",
-        },
+            "hardware_dependency": "very_high"
+        }
     }
 
     print("\n🎯 Acceleration Technique Recommendations:")
@@ -1205,33 +1338,32 @@ def analyze_acceleration_decision_framework():
     print("└─────────────────────┴─────────────┴─────────────┴─────────────┴─────────────┘")
 
     # Implementation priority framework
-    print("\n🛠️  Implementation Priority Framework:")
-    print("   📊 Phase 1 (Always): Vectorization")
-    print("      • Low risk, high reward")
-    print("      • Works on any hardware")
-    print("      • Foundation for other optimizations")
-    print("   ")
-    print("   📊 Phase 2 (Memory constrained): Kernel Fusion")
-    print("      • Targets memory-bound operations")
-    print("      • Moderate complexity")
-    print("      • Significant wins on element-wise ops")
-    print("   ")
-    print("      • Essential for large model training")
-    print("      • Requires careful validation")
-    print("      • Hardware-dependent benefits")
-    print("   ")
-    print("   📊 Phase 4 (Production): Graph Optimization")
-    print("      • Maximum performance extraction")
-    print("      • High implementation cost")
-    print("      • Deployment-specific tuning")
+    print(f"\n🛠️  Implementation Priority Framework:")
+    print(f"   📊 Phase 1 (Always): Vectorization")
+    print(f"      • Low risk, high reward")
+    print(f"      • Works on any hardware")
+    print(f"      • Foundation for other optimizations")
+    print(f"   ")
+    print(f"   📊 Phase 2 (Memory constrained): Kernel Fusion")
+    print(f"      • Targets memory-bound operations")
+    print(f"      • Moderate complexity")
+    print(f"      • Significant wins on element-wise ops")
+    print(f"   ")
+    print(f"      • Essential for large model training")
+    print(f"      • Requires careful validation")
+    print(f"      • Hardware-dependent benefits")
+    print(f"   ")
+    print(f"   📊 Phase 4 (Production): Graph Optimization")
+    print(f"      • Maximum performance extraction")
+    print(f"      • High implementation cost")
+    print(f"      • Deployment-specific tuning")
 
-    print("\n💡 Key Decision Factors:")
-    print("   🎯 Start simple: Vectorization first, always")
-    print("   📈 Scale up: Add complexity only when needed")
-    print("   ⚡ Measure impact: Profile before and after each optimization")
-    print("   🔄 Iterate: Optimization is an ongoing process, not one-time")
+    print(f"\n💡 Key Decision Factors:")
+    print(f"   🎯 Start simple: Vectorization first, always")
+    print(f"   📈 Scale up: Add complexity only when needed")
+    print(f"   ⚡ Measure impact: Profile before and after each optimization")
+    print(f"   🔄 Iterate: Optimization is an ongoing process, not one-time")
     print("🚀 Systematic acceleration beats random optimization")
-
 
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -1253,7 +1385,6 @@ This is how professional ML engineers work: profile → optimize → measure →
 # Import Profiler from Module 14 (Module 17 comes after Module 14)
 from trentorch.perf.profiling import Profiler
 
-
 def explore_acceleration_with_profiler():
     """📊 Demonstrate acceleration gains using Profiler from Module 14."""
 
@@ -1265,7 +1396,6 @@ def explore_acceleration_with_profiler():
     # Create two simple models: one slow (loop-based), one fast (vectorized)
     class SlowLinear:
         """Linear layer using explicit loops (slow)."""
-
         def __init__(self, in_features, out_features):
             self.weight = Tensor(rng.standard_normal((in_features, out_features)).astype(np.float32) * 0.01)
             self.name = "slow_linear"
@@ -1285,7 +1415,6 @@ def explore_acceleration_with_profiler():
 
     class FastLinear:
         """Linear layer using vectorized matmul (fast)."""
-
         def __init__(self, in_features, out_features):
             self.weight = Tensor(rng.standard_normal((in_features, out_features)).astype(np.float32) * 0.01)
             self.name = "fast_linear"
@@ -1334,11 +1463,10 @@ def explore_acceleration_with_profiler():
     print(f"   Throughput improvement: {speedup:.1f}x more inferences/second")
 
     print("\n💡 Key Insight:")
-    print("   Vectorization with numpy.matmul leverages optimized BLAS libraries")
-    print("   that use SIMD instructions and cache-friendly memory access patterns.")
+    print(f"   Vectorization with numpy.matmul leverages optimized BLAS libraries")
+    print(f"   that use SIMD instructions and cache-friendly memory access patterns.")
     print(f"   This is why {speedup:.0f}x speedups are possible with the same FLOPs!")
     print("\n✅ This is the power of acceleration: same math, different execution!")
-
 
 if __name__ == "__main__":
     explore_acceleration_with_profiler()
@@ -1349,7 +1477,6 @@ if __name__ == "__main__":
 
 Final validation that all acceleration components work together correctly.
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-module", "locked": true, "points": 20}
 def test_module():
@@ -1408,7 +1535,6 @@ def test_module():
     final_output = Tensor(activated.data.reshape(batch_size, seq_len, hidden_dim))
     assert final_output.shape == x.shape
     print(f"   ✅ Output reshape: {activated.shape} → {final_output.shape}")
-
     class TransformerBlock:
         def __init__(self, hidden_dim):
             self.hidden_dim = hidden_dim
@@ -1476,7 +1602,7 @@ def test_module():
         assert matmul_time < 1.0, f"Matrix multiplication too slow: {matmul_time:.3f}s"
         assert gelu_time < 0.1, f"GELU activation too slow: {gelu_time:.3f}s"
 
-        print(f"   ✅ Size {size}: matmul={matmul_time * 1000:.1f}ms, gelu={gelu_time * 1000:.1f}ms")
+        print(f"   ✅ Size {size}: matmul={matmul_time*1000:.1f}ms, gelu={gelu_time*1000:.1f}ms")
 
     print("   Testing memory efficiency...")
 
@@ -1485,7 +1611,6 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 17")
-
 
 # Run comprehensive module test
 
@@ -1535,7 +1660,6 @@ memory bandwidth by 60-80%, a huge win since memory is often the bottleneck.
 Combined with vectorization (SIMD), these techniques make neural networks 2-5× faster.
 """
 
-
 # %%
 def demo_acceleration():
     """🎯 See fused operations produce correct results."""
@@ -1550,7 +1674,9 @@ def demo_acceleration():
 
     # Compute reference using NumPy directly
     sqrt_2_over_pi = np.sqrt(2.0 / np.pi)
-    result_reference = 0.5 * x.data * (1.0 + np.tanh(sqrt_2_over_pi * (x.data + 0.044715 * x.data**3)))
+    result_reference = 0.5 * x.data * (
+        1.0 + np.tanh(sqrt_2_over_pi * (x.data + 0.044715 * x.data**3))
+    )
 
     # Display inputs and outputs
     print(f"Input: {x.data}")
@@ -1562,7 +1688,6 @@ def demo_acceleration():
     print(f"\nResults match: {match}")
 
     print("\n✨ Same math, optimized execution!")
-
 
 # %%
 if __name__ == "__main__":
@@ -1577,9 +1702,7 @@ if __name__ == "__main__":
         # coverage here. Skipping both keeps the actual
         # verification (every individual test above) while
         # cutting the redundant full re-run.
-        print(
-            "\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant)."
-        )
+        print("\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant).")
     else:
         test_module()
         print("\n")

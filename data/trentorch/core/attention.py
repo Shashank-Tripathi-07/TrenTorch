@@ -17,28 +17,32 @@
 # %% auto #0
 __all__ = ['rng', 'MASK_VALUE', 'scaled_dot_product_attention', 'MultiHeadAttention']
 
-# %% ../../solutions/12_attention/attention.ipynb #df18278b
+# %% ../../solutions/12_attention/attention.ipynb #2329884b
 #| default_exp core.attention
 #| export
 
-# %% ../../solutions/12_attention/attention.ipynb #a5ce52bc
+# %% ../../solutions/12_attention/attention.ipynb #3b2d077e
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 import math
 import time
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
+
+from .activations import Softmax
+from .layers import Linear
 
 # Import dependencies from previous modules - following TrenTorch dependency chain
 from .tensor import Tensor
-from .layers import Linear
-from .activations import Softmax
 
 # Constants for attention computation
 MASK_VALUE = -1e9  # Large negative value used for attention masking (becomes ~0 after softmax)
 
-# %% ../../solutions/12_attention/attention.ipynb #9813b16d
+# %% ../../solutions/12_attention/attention.ipynb #e3489034
 # Solution
+
 
 def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
     """Compute raw attention scores via Q @ K^T.
@@ -62,8 +66,9 @@ def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
     return Q.matmul(K_t)
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #64795c98
+# %% ../../solutions/12_attention/attention.ipynb #3e8ba53f
 # Solution
+
 
 def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
     """Scale attention scores by 1/sqrt(d_model).
@@ -86,8 +91,9 @@ def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
     return scores * scale_factor
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #80c60f60
+# %% ../../solutions/12_attention/attention.ipynb #4a5afb4a
 # Solution
+
 
 def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
     """Apply causal mask by setting masked positions to -infinity.
@@ -111,10 +117,13 @@ def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
     return scores + adder
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #7f70cb97
+# %% ../../solutions/12_attention/attention.ipynb #a556ad16
 # Solution
 
-def scaled_dot_product_attention(Q: Tensor, K: Tensor, V: Tensor, mask: Optional[Tensor] = None) -> Tuple[Tensor, Tensor]:
+
+def scaled_dot_product_attention(
+    Q: Tensor, K: Tensor, V: Tensor, mask: Tensor | None = None
+) -> tuple[Tensor, Tensor]:
     """Complete scaled dot-product attention.
 
     TODO: Compose the helpers into the full attention operation
@@ -162,8 +171,9 @@ def scaled_dot_product_attention(Q: Tensor, K: Tensor, V: Tensor, mask: Optional
     return output, attention_weights
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #6b2f2f72
+# %% ../../solutions/12_attention/attention.ipynb #e4e5436b
 # Solution
+
 
 class MultiHeadAttention:
     """
@@ -266,7 +276,7 @@ class MultiHeadAttention:
         return x.reshape(batch_size, seq_len, self.embed_dim)
         ### END SOLUTION
 
-    def forward(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
+    def forward(self, x: Tensor, mask: Tensor | None = None) -> Tensor:
         """
         Forward pass through multi-head attention.
 
@@ -338,11 +348,11 @@ class MultiHeadAttention:
         return output
         ### END SOLUTION
 
-    def __call__(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
+    def __call__(self, x: Tensor, mask: Tensor | None = None) -> Tensor:
         """Make MultiHeadAttention callable like attention(x)."""
         return self.forward(x, mask)
 
-    def parameters(self) -> List[Tensor]:
+    def parameters(self) -> list[Tensor]:
         """
         Return all trainable parameters.
 

@@ -18,18 +18,21 @@
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'KB_TO_BYTES', 'MB_TO_BYTES', 'EmbeddingBackward', 'Embedding', 'PositionalEncoding',
            'create_sinusoidal_embeddings', 'EmbeddingLayer', 'emblayer_forward']
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #99abe1c2
+# %% ../../solutions/11_embeddings/embeddings.ipynb #5feb0c6d
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 import math
 from typing import List, Optional, Tuple
 
+# Enable autograd for gradient tracking (required for learnable embeddings)
+from .autograd import Function, enable_autograd
+
 # Import from previous modules - following dependency chain
 from .tensor import Tensor
 
-# Enable autograd for gradient tracking (required for learnable embeddings)
-from .autograd import Function, enable_autograd
 enable_autograd()
 
 # Constants for memory calculations
@@ -37,8 +40,9 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #d313b301
+# %% ../../solutions/11_embeddings/embeddings.ipynb #44fce7a5
 # Solution
+
 
 class EmbeddingBackward(Function):
     """
@@ -101,7 +105,7 @@ class EmbeddingBackward(Function):
         - Return as single-element tuple: (grad_weight,)
         """
         ### BEGIN SOLUTION
-        weight, = self.saved_tensors
+        (weight,) = self.saved_tensors
         grad_weight = None
 
         if isinstance(weight, Tensor) and weight.requires_grad:
@@ -118,8 +122,9 @@ class EmbeddingBackward(Function):
         return (grad_weight,)
         ### END SOLUTION
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #7213a0e8
+# %% ../../solutions/11_embeddings/embeddings.ipynb #c8e7d21e
 # Solution
+
 
 class Embedding:
     """
@@ -155,9 +160,7 @@ class Embedding:
 
         # Xavier initialization for better gradient flow
         limit = math.sqrt(6.0 / (vocab_size + embed_dim))
-        self.weight = Tensor(
-            rng.uniform(-limit, limit, (vocab_size, embed_dim))
-        )
+        self.weight = Tensor(rng.uniform(-limit, limit, (vocab_size, embed_dim)))
         ### END SOLUTION
 
     def forward(self, indices: Tensor) -> Tensor:
@@ -212,15 +215,16 @@ class Embedding:
         """Allows the embedding to be called like a function."""
         return self.forward(indices)
 
-    def parameters(self) -> List[Tensor]:
+    def parameters(self) -> list[Tensor]:
         """Return trainable parameters."""
         return [self.weight]
 
     def __repr__(self):
         return f"Embedding(vocab_size={self.vocab_size}, embed_dim={self.embed_dim})"
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #b81a2120
+# %% ../../solutions/11_embeddings/embeddings.ipynb #71c2ae96
 # Solution
+
 
 class PositionalEncoding:
     """
@@ -257,9 +261,7 @@ class PositionalEncoding:
         # Initialize position embedding matrix
         # Smaller initialization than token embeddings since these are additive
         limit = math.sqrt(2.0 / embed_dim)
-        self.position_embeddings = Tensor(
-            rng.uniform(-limit, limit, (max_seq_len, embed_dim))
-        )
+        self.position_embeddings = Tensor(rng.uniform(-limit, limit, (max_seq_len, embed_dim)))
         ### END SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
@@ -334,15 +336,16 @@ class PositionalEncoding:
         """Allows the positional encoding to be called like a function."""
         return self.forward(x)
 
-    def parameters(self) -> List[Tensor]:
+    def parameters(self) -> list[Tensor]:
         """Return trainable parameters."""
         return [self.position_embeddings]
 
     def __repr__(self):
         return f"PositionalEncoding(max_seq_len={self.max_seq_len}, embed_dim={self.embed_dim})"
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #dcfc5878
+# %% ../../solutions/11_embeddings/embeddings.ipynb #361aa915
 # Solution
+
 
 def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
     """
@@ -381,8 +384,7 @@ def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
 
     # Create dimension indices for calculating frequencies
     div_term = np.exp(
-        np.arange(0, embed_dim, 2, dtype=np.float32) *
-        -(math.log(10000.0) / embed_dim)
+        np.arange(0, embed_dim, 2, dtype=np.float32) * -(math.log(10000.0) / embed_dim)
     )  # (embed_dim//2,)
 
     # Initialize the positional encoding matrix
@@ -401,8 +403,9 @@ def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
     return pe
     ### END SOLUTION
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #0b45a1d0
+# %% ../../solutions/11_embeddings/embeddings.ipynb #764a24ad
 # Solution
+
 
 def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
     """
@@ -434,8 +437,9 @@ def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
     return Tensor(pe)
     ### END SOLUTION
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #65e79fda
+# %% ../../solutions/11_embeddings/embeddings.ipynb #6aae0993
 # Solution
+
 
 class EmbeddingLayer:
     """
@@ -450,8 +454,8 @@ class EmbeddingLayer:
         vocab_size: int,
         embed_dim: int,
         max_seq_len: int = 512,
-        pos_encoding: str = 'learned',
-        scale_embeddings: bool = False
+        pos_encoding: str = "learned",
+        scale_embeddings: bool = False,
     ):
         """
         Initialize complete embedding system.
@@ -486,9 +490,9 @@ class EmbeddingLayer:
         self.token_embedding = Embedding(vocab_size, embed_dim)
 
         # Positional encoding
-        if pos_encoding == 'learned':
+        if pos_encoding == "learned":
             self.pos_encoding = PositionalEncoding(max_seq_len, embed_dim)
-        elif pos_encoding == 'sinusoidal':
+        elif pos_encoding == "sinusoidal":
             # Create fixed sinusoidal encodings (no parameters)
             self.pos_encoding = create_sinusoidal_embeddings(max_seq_len, embed_dim)
         elif pos_encoding is None:
@@ -508,20 +512,23 @@ class EmbeddingLayer:
         """Allows the embedding layer to be called like a function."""
         return self.forward(tokens)
 
-    def parameters(self) -> List[Tensor]:
+    def parameters(self) -> list[Tensor]:
         """Return all trainable parameters."""
         params = self.token_embedding.parameters()
-        if self.pos_encoding_type == 'learned':
+        if self.pos_encoding_type == "learned":
             params.extend(self.pos_encoding.parameters())
         return params
 
     def __repr__(self):
-        return (f"EmbeddingLayer(vocab_size={self.vocab_size}, "
-                f"embed_dim={self.embed_dim}, "
-                f"pos_encoding='{self.pos_encoding_type}')")
+        return (
+            f"EmbeddingLayer(vocab_size={self.vocab_size}, "
+            f"embed_dim={self.embed_dim}, "
+            f"pos_encoding='{self.pos_encoding_type}')"
+        )
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #ef6e3614
+# %% ../../solutions/11_embeddings/embeddings.ipynb #7c2ffb8b
 # Solution
+
 
 # Continue the EmbeddingLayer class with forward and utility methods
 def emblayer_forward(self, tokens: Tensor) -> Tensor:
@@ -567,10 +574,10 @@ def emblayer_forward(self, tokens: Tensor) -> Tensor:
         token_embeds = token_embeds * scale_factor  # Use Tensor multiplication to preserve gradients
 
     # Add positional encoding
-    if self.pos_encoding_type == 'learned':
+    if self.pos_encoding_type == "learned":
         # Use learnable positional encoding
         output = self.pos_encoding.forward(token_embeds)
-    elif self.pos_encoding_type == 'sinusoidal':
+    elif self.pos_encoding_type == "sinusoidal":
         # Use fixed sinusoidal encoding (not learnable)
         batch_size, seq_len, embed_dim = token_embeds.shape
         pos_embeddings = self.pos_encoding[:seq_len]  # Slice using Tensor slicing
@@ -591,6 +598,7 @@ def emblayer_forward(self, tokens: Tensor) -> Tensor:
 
     return output
     ### END SOLUTION
+
 
 # Attach forward to EmbeddingLayer class (other methods defined in class body above)
 EmbeddingLayer.forward = emblayer_forward

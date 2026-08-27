@@ -17,9 +17,11 @@
 # %% auto #0
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'KB_TO_BYTES', 'MB_TO_BYTES', 'Tensor']
 
-# %% ../../solutions/01_tensor/tensor.ipynb #8ae7b229
+# %% ../../solutions/01_tensor/tensor.ipynb #61497abd
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 # Constants for memory calculations
@@ -27,8 +29,9 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/01_tensor/tensor.ipynb #a196984a
+# %% ../../solutions/01_tensor/tensor.ipynb #a80e7241
 # Solution
+
 
 class Tensor:
     """Educational tensor - the foundation of machine learning computation.

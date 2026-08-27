@@ -61,12 +61,10 @@ from trentorch.perf.memoization import KVCache, enable_kv_cache
 #| export
 
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Tuple, Optional, Dict, List
 
 # Import TrenTorch components from previous modules
 from trentorch.core.tensor import Tensor
@@ -122,7 +120,6 @@ Memoization Pattern:
 **Key Insight**: For transformers, K and V matrices for previous tokens NEVER change, yet naive generation recomputes them every step. This is the inefficiency we'll eliminate.
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "motivation-profile", "locked": false}
 def profile_naive_generation():
     """
@@ -167,7 +164,10 @@ def profile_naive_generation():
     for seq_len in sequence_lengths:
         # Measure latency for this sequence length
         latency = profiler.measure_latency(
-            lambda: naive_attention_step(seq_len), None, warmup=5, iterations=20
+            lambda: naive_attention_step(seq_len),
+            None,
+            warmup=5,
+            iterations=20
         )
         latencies.append(latency)
 
@@ -193,7 +193,6 @@ def profile_naive_generation():
     print("   • Later steps: Reuse stored K,V")
     print("   • Complexity: O(n²) → O(n)")
     print("   • Speedup: 10-15× for typical generation\n")
-
 
 # Run profiling when module is executed directly
 # NOTE: Commented out to run tests. Profiling requires proper Profiler API usage.
@@ -394,10 +393,7 @@ Then: seq_pos += 1 (advance to position 3)
 This design enables **O(1) updates** - just write to the next position!
 """
 
-# %% tags=["solution"]
-#| export
-# Solution
-
+# %% nbgrader={"grade": false, "grade_id": "kvcache-class", "solution": true}
 
 class KVCache:
     """
@@ -436,7 +432,235 @@ class KVCache:
     - Memory: O(num_layers × batch × heads × max_seq × head_dim)
     """
 
-    def __init__(self, batch_size: int, max_seq_len: int, num_layers: int, num_heads: int, head_dim: int):
+    def __init__(self, batch_size: int, max_seq_len: int, num_layers: int,
+                 num_heads: int, head_dim: int):
+        """
+        Initialize KV cache for efficient generation.
+
+        TODO: Set up pre-allocated cache storage for all transformer layers
+
+        APPROACH:
+        1. Store configuration parameters (batch_size, max_seq_len, etc.)
+        2. Initialize sequence position counter to 0
+        3. Create empty list for cache storage
+        4. For each layer, pre-allocate zero-filled key and value caches
+        5. Store each layer's (key_cache, value_cache) tuple in the list
+
+        Args:
+            batch_size: Number of sequences to generate simultaneously
+            max_seq_len: Maximum sequence length to support
+            num_layers: Number of transformer layers
+            num_heads: Number of attention heads per layer
+            head_dim: Dimension of each attention head
+
+        EXAMPLE:
+        >>> cache = KVCache(batch_size=2, max_seq_len=128, num_layers=4,
+        ...                 num_heads=8, head_dim=64)
+        >>> cache.seq_pos  # 0 (no tokens cached yet)
+        >>> len(cache.caches)  # 4 (one per layer)
+        >>> cache.caches[0][0].shape  # (2, 8, 128, 64) - key cache for layer 0
+
+        HINTS:
+        - Cache shape: (batch_size, num_heads, max_seq_len, head_dim)
+        - Use Tensor(np.zeros(...)) to create cache tensors
+        - Store caches as list of tuples: [(key_0, val_0), (key_1, val_1), ...]
+        - Pre-allocation avoids dynamic resizing overhead during generation
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement KVCache.__init__")
+        ### END SOLUTION
+
+    def update(self, layer_idx: int, key: Tensor, value: Tensor) -> None:
+        """
+        Update cache with new key-value pairs for given layer.
+
+        TODO: Efficiently append new K,V to cache without data copying
+
+        APPROACH:
+        1. Validate layer_idx is in range [0, num_layers-1]
+        2. Validate seq_pos hasn't exceeded max_seq_len
+        3. Retrieve the (key_cache, value_cache) tuple for this layer
+        4. Write new key to position seq_pos in key_cache using indexed assignment
+        5. Write new value to position seq_pos in value_cache using indexed assignment
+        6. Note: seq_pos is advanced externally via advance() after all layers
+
+        This is the core caching operation - efficiently append new K,V
+        to the cache without recomputation. This operation is O(1) because
+        it's just an indexed assignment.
+
+        IMPORTANT: KV caching is designed for INFERENCE (generation) only,
+        not training. During generation, gradients are not computed. If you
+        need gradients, don't use caching (use standard forward pass instead).
+
+        Args:
+            layer_idx: Which transformer layer (0 to num_layers-1)
+            key: New key tensor, shape (batch_size, num_heads, 1, head_dim)
+            value: New value tensor, shape (batch_size, num_heads, 1, head_dim)
+
+        EXAMPLE:
+        >>> cache = KVCache(batch_size=1, max_seq_len=10, num_layers=2,
+        ...                 num_heads=4, head_dim=64)
+        >>> new_k = Tensor(rng.standard_normal((1, 4, 1, 64)))
+        >>> new_v = Tensor(rng.standard_normal((1, 4, 1, 64)))
+        >>> cache.update(layer_idx=0, key=new_k, value=new_v)
+        >>> cache.seq_pos  # Still 0 (update doesn't advance position)
+        >>> cache.advance()
+        >>> cache.seq_pos  # Now 1
+
+        HINTS:
+        - Use slicing: cache[:, :, seq_pos:seq_pos+1, :] to write to position
+        - Use .data for direct NumPy access (no gradient tracking needed)
+        - Raise ValueError with helpful messages for invalid inputs
+        - This is an in-place operation (modifies cache, returns None)
+
+        Raises:
+            ValueError: If layer_idx is out of range or sequence is full
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement KVCache.update")
+        ### END SOLUTION
+
+    def get(self, layer_idx: int) -> Tuple[Tensor, Tensor]:
+        """
+        Retrieve cached key-value pairs for attention computation.
+
+        TODO: Return only the valid cached portion for this layer
+
+        APPROACH:
+        1. Validate layer_idx is in range
+        2. Retrieve the (key_cache, value_cache) tuple for this layer
+        3. Calculate valid_len = seq_pos (number of tokens currently cached)
+        4. Slice key_cache to get [:, :, :valid_len, :] (only filled portion)
+        5. Slice value_cache to get [:, :, :valid_len, :] (only filled portion)
+        6. Wrap sliced data in new Tensor objects and return
+
+        Returns only the valid portion of the cache (up to current seq_pos).
+        This is O(1) because we're just slicing NumPy arrays (view, not copy).
+
+        IMPORTANT: Returns Tensors without gradient tracking since caching
+        is inference-only. The returned tensors can be used in attention
+        computation but won't propagate gradients backward.
+
+        Args:
+            layer_idx: Which transformer layer to get cache for
+
+        Returns:
+            (cached_keys, cached_values): Tensors shaped for attention
+            Keys: (batch_size, num_heads, seq_pos, head_dim)
+            Values: (batch_size, num_heads, seq_pos, head_dim)
+
+        EXAMPLE:
+        >>> cache = KVCache(batch_size=1, max_seq_len=100, num_layers=2,
+        ...                 num_heads=4, head_dim=64)
+        >>> # After processing 3 tokens
+        >>> cache.seq_pos = 3
+        >>> cached_k, cached_v = cache.get(layer_idx=0)
+        >>> cached_k.shape  # (1, 4, 3, 64) - only first 3 positions
+        >>> cached_v.shape  # (1, 4, 3, 64)
+
+        HINTS:
+        - valid_len = self.seq_pos (how many tokens have been cached so far)
+        - Use slicing: cache.data[:, :, :valid_len, :] to get valid portion
+        - Wrap result in Tensor() for consistency with TrenTorch API
+        - If seq_pos=0, returns empty cache (shape with 0 in sequence dimension)
+
+        Raises:
+            ValueError: If layer_idx is out of range
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement KVCache.get")
+        ### END SOLUTION
+
+    def advance(self) -> None:
+        """
+        Advance sequence position after processing current token.
+
+        Call this after all layers have processed the current token and
+        updated their caches. This moves the write pointer forward.
+        """
+        self.seq_pos += 1
+
+    def reset(self) -> None:
+        """
+        Reset cache for new generation sequence.
+
+        Call this when starting a new generation (new prompt).
+        Resets the sequence position counter and optionally zeros cache data.
+        """
+        self.seq_pos = 0
+
+        # Zero out caches for clean state (helps with debugging)
+        for layer_idx in range(self.num_layers):
+            key_cache, value_cache = self.caches[layer_idx]
+            key_cache.data.fill(0.0)
+            value_cache.data.fill(0.0)
+
+    def get_memory_usage(self) -> Dict[str, float]:
+        """
+        Calculate memory usage of the cache system.
+
+        Returns:
+            Dictionary with memory statistics in MB
+        """
+        # Calculate size of one cache tensor
+        cache_size = self.batch_size * self.num_heads * self.max_seq_len * self.head_dim
+
+        # Each layer has key_cache + value_cache
+        total_cache_tensors = self.num_layers * 2
+        total_elements = cache_size * total_cache_tensors
+        total_bytes = total_elements * _BYTES_PER_FLOAT32
+        total_mb = total_bytes / _MB_TO_BYTES
+
+        return {
+            'total_mb': total_mb,
+            'per_layer_mb': total_mb / self.num_layers,
+            'cache_tensors': total_cache_tensors,
+            'total_elements': total_elements
+        }
+
+# %% tags=["solution"]
+#| export
+# Solution
+
+class KVCache:
+    """
+    Efficient key-value cache for autoregressive generation.
+
+    Stores K,V matrices for each transformer layer to avoid recomputation
+    during sequential token generation. This is THE critical optimization
+    that makes production language model serving economically viable.
+
+    ⚠️  IMPORTANT: INFERENCE-ONLY (No Gradient Tracking)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    KV caching is designed ONLY for inference (generation), NOT training.
+    - During generation: No gradients computed (model.eval() mode)
+    - Cache operations use .data (no gradient tracking)
+    - This is correct and intentional for maximum speed
+    - DO NOT use caching during training (use standard forward pass)
+
+    Architecture:
+    - Pre-allocates cache tensors with maximum sequence length
+    - Tracks current sequence position for efficient O(1) updates
+    - Provides update() method to append new K,V pairs without copying
+    - Provides get() method to retrieve cached values for attention
+    - Handles multiple layers and attention heads properly
+
+    Memory Layout:
+    ```
+    Layer 0: [Key_cache, Value_cache]  # Shape: (batch, num_heads, max_seq, head_dim)
+    Layer 1: [Key_cache, Value_cache]
+    ...
+    Layer N: [Key_cache, Value_cache]
+    ```
+
+    Performance:
+    - Update: O(1) - just index assignment
+    - Get: O(1) - just slicing (no data copy)
+    - Memory: O(num_layers × batch × heads × max_seq × head_dim)
+    """
+
+    def __init__(self, batch_size: int, max_seq_len: int, num_layers: int,
+                 num_heads: int, head_dim: int):
         """
         Initialize KV cache for efficient generation.
 
@@ -560,13 +784,13 @@ class KVCache:
         # Update cache at current position (efficient O(1) write)
         # Note: We use .data here because caching is inference-only (no gradients needed)
         # This avoids gradient tracking overhead during generation
-        key_cache.data[:, :, self.seq_pos : self.seq_pos + 1, :] = key.data
-        value_cache.data[:, :, self.seq_pos : self.seq_pos + 1, :] = value.data
+        key_cache.data[:, :, self.seq_pos:self.seq_pos+1, :] = key.data
+        value_cache.data[:, :, self.seq_pos:self.seq_pos+1, :] = value.data
 
         # Note: seq_pos is advanced externally via advance() after all layers process
         ### END SOLUTION
 
-    def get(self, layer_idx: int) -> tuple[Tensor, Tensor]:
+    def get(self, layer_idx: int) -> Tuple[Tensor, Tensor]:
         """
         Retrieve cached key-value pairs for attention computation.
 
@@ -661,7 +885,7 @@ class KVCache:
             key_cache.data.fill(0.0)
             value_cache.data.fill(0.0)
 
-    def get_memory_usage(self) -> dict[str, float]:
+    def get_memory_usage(self) -> Dict[str, float]:
         """
         Calculate memory usage of the cache system.
 
@@ -678,12 +902,11 @@ class KVCache:
         total_mb = total_bytes / _MB_TO_BYTES
 
         return {
-            "total_mb": total_mb,
-            "per_layer_mb": total_mb / self.num_layers,
-            "cache_tensors": total_cache_tensors,
-            "total_elements": total_elements,
+            'total_mb': total_mb,
+            'per_layer_mb': total_mb / self.num_layers,
+            'cache_tensors': total_cache_tensors,
+            'total_elements': total_elements
         }
-
 
 # %% [markdown]
 """
@@ -695,7 +918,6 @@ This test validates that our cache correctly stores and retrieves key-value pair
 **Why it matters**: Cache must work correctly for generation to produce coherent output
 **Expected**: Cache stores and retrieves values correctly, tracks sequence position
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-kvcache", "locked": true, "points": 10}
 def test_unit_kvcache():
@@ -712,7 +934,7 @@ def test_unit_kvcache():
     # Test 1: Initial state
     assert cache.seq_pos == 0, "Cache should start at position 0"
     mem_usage = cache.get_memory_usage()
-    assert mem_usage["total_mb"] > 0, "Cache should have non-zero memory usage"
+    assert mem_usage['total_mb'] > 0, "Cache should have non-zero memory usage"
     print(f"   Cache initialized: {mem_usage['total_mb']:.2f} MB")
 
     # Test 2: Single token update and retrieval
@@ -731,12 +953,8 @@ def test_unit_kvcache():
 
     # Now cache should have 1 token
     cached_k, cached_v = cache.get(0)
-    assert cached_k.shape == (batch_size, num_heads, 1, head_dim), (
-        f"Expected shape (2,4,1,16), got {cached_k.shape}"
-    )
-    assert cached_v.shape == (batch_size, num_heads, 1, head_dim), (
-        f"Expected shape (2,4,1,16), got {cached_v.shape}"
-    )
+    assert cached_k.shape == (batch_size, num_heads, 1, head_dim), f"Expected shape (2,4,1,16), got {cached_k.shape}"
+    assert cached_v.shape == (batch_size, num_heads, 1, head_dim), f"Expected shape (2,4,1,16), got {cached_v.shape}"
 
     # Test 3: Multi-token sequence
     key2 = Tensor(rng.standard_normal((batch_size, num_heads, 1, head_dim)))
@@ -771,7 +989,6 @@ def test_unit_kvcache():
     assert cached_k.shape == (batch_size, num_heads, 0, head_dim), "Reset should clear cache"
 
     print("✅ KVCache implementation works correctly!")
-
 
 # Run test immediately when developing this module
 if __name__ == "__main__":
@@ -893,7 +1110,6 @@ Why? Longer sequences = more redundant computation without cache.
 4. Monitor cache memory usage in production
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "cached-generation-step", "solution": false}
 #| export
 def _cached_generation_step(x, attention, cache_obj, layer_idx):
@@ -935,9 +1151,15 @@ def _cached_generation_step(x, attention, cache_obj, layer_idx):
     V_new = attention.v_proj.forward(x)
 
     # Step 2: Reshape to multi-head format (batch, num_heads, 1, head_dim)
-    Q_heads = Tensor(np.transpose(Q_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)))
-    K_heads = Tensor(np.transpose(K_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)))
-    V_heads = Tensor(np.transpose(V_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)))
+    Q_heads = Tensor(np.transpose(
+        Q_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)
+    ))
+    K_heads = Tensor(np.transpose(
+        K_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)
+    ))
+    V_heads = Tensor(np.transpose(
+        V_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)
+    ))
 
     # Step 3: Update cache with new K, V
     cache_obj.update(layer_idx, K_heads, V_heads)
@@ -1003,7 +1225,6 @@ Model Architecture Inspection:
 
 # %% nbgrader={"grade": false, "grade_id": "kv-create-cache", "solution": true}
 
-
 def _create_cache_storage(model):
     """
     Validate model architecture and create a KVCache sized for it.
@@ -1033,11 +1254,9 @@ def _create_cache_storage(model):
     raise NotImplementedError("TODO: implement _create_cache_storage")
     ### END SOLUTION
 
-
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def _create_cache_storage(model):
     """
@@ -1067,7 +1286,7 @@ def _create_cache_storage(model):
     ### BEGIN SOLUTION
     # Validate model has required attributes
     # hasattr() is LEGITIMATE here: plugin system with user-defined models
-    required_attrs = ["embed_dim", "num_layers", "num_heads", "max_seq_len", "blocks"]
+    required_attrs = ['embed_dim', 'num_layers', 'num_heads', 'max_seq_len', 'blocks']
     for attr in required_attrs:
         if not hasattr(model, attr):
             raise AttributeError(
@@ -1084,7 +1303,7 @@ def _create_cache_storage(model):
             f"Invalid model architecture for multi-head attention\n"
             f"  ❌ embed_dim={model.embed_dim} is not divisible by num_heads={model.num_heads} (remainder: {model.embed_dim % model.num_heads})\n"
             f"  💡 Each attention head needs equal dimensions. embed_dim must be evenly divisible by num_heads.\n"
-            f"  🔧 Use embed_dim={model.num_heads * (model.embed_dim // model.num_heads + 1)} (next valid size) or num_heads={[h for h in [1, 2, 4, 8, 12, 16] if model.embed_dim % h == 0]}"
+            f"  🔧 Use embed_dim={model.num_heads * (model.embed_dim // model.num_heads + 1)} (next valid size) or num_heads={[h for h in [1,2,4,8,12,16] if model.embed_dim % h == 0]}"
         )
 
     # Create cache for this model
@@ -1093,7 +1312,7 @@ def _create_cache_storage(model):
         max_seq_len=model.max_seq_len,
         num_layers=model.num_layers,
         num_heads=model.num_heads,
-        head_dim=head_dim,
+        head_dim=head_dim
     )
 
     # Store cache on model for easy access
@@ -1103,7 +1322,6 @@ def _create_cache_storage(model):
     return cache, head_dim
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: _create_cache_storage
@@ -1112,7 +1330,6 @@ def _create_cache_storage(model):
 **Why it matters**: Cache must match the model's architecture exactly or attention will produce wrong results
 **Expected**: Valid models get caches; invalid models get clear error messages
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-create-cache", "locked": true, "points": 5}
 def test_unit_create_cache_storage():
@@ -1135,7 +1352,7 @@ def test_unit_create_cache_storage():
     assert cache.num_layers == 4, "Cache layers should match model"
     assert cache.num_heads == 4, "Cache heads should match model"
     assert cache.max_seq_len == 64, "Cache max_seq should match model"
-    assert model._cache_enabled, "Model should be flagged as cache-enabled"
+    assert model._cache_enabled == True, "Model should be flagged as cache-enabled"
     assert model._kv_cache is cache, "Cache should be attached to model"
 
     # Test 2: Missing attribute raises AttributeError
@@ -1166,7 +1383,6 @@ def test_unit_create_cache_storage():
         assert "divisible" in str(e).lower(), "Error should mention divisibility"
 
     print("✅ _create_cache_storage works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_create_cache_storage()
@@ -1200,7 +1416,6 @@ whether to use the cache or fall back to standard attention.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "kv-cached-attention", "solution": true}
-
 
 def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
     """
@@ -1242,11 +1457,9 @@ def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
     raise NotImplementedError("TODO: implement _cached_attention_forward")
     ### END SOLUTION
 
-
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
     """
@@ -1302,7 +1515,6 @@ def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
     return _cached_generation_step(x, block.attention, cache_obj, layer_idx)
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: _cached_attention_forward
@@ -1311,7 +1523,6 @@ def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
 **Why it matters**: Wrong path selection causes silent correctness bugs (training uses cache, or generation ignores cache)
 **Expected**: Training inputs use original forward; cached generation uses _cached_generation_step
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-cached-attention", "locked": true, "points": 10}
 def test_unit_cached_attention_forward():
@@ -1332,7 +1543,8 @@ def test_unit_cached_attention_forward():
         return x
 
     # Create a real cache for testing
-    cache = KVCache(batch_size=1, max_seq_len=64, num_layers=2, num_heads=4, head_dim=32)
+    cache = KVCache(batch_size=1, max_seq_len=64, num_layers=2,
+                    num_heads=4, head_dim=32)
 
     # Test PATH 1: Training (seq_len > 1)
     path_taken.clear()
@@ -1359,7 +1571,6 @@ def test_unit_cached_attention_forward():
     print("   PATH 3 (cached): would dispatch to _cached_generation_step")
 
     print("✅ _cached_attention_forward path dispatch works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_cached_attention_forward()
@@ -1398,7 +1609,6 @@ Step 2: Generate token_5
 """
 
 # %% nbgrader={"grade": false, "grade_id": "kv-cached-generate", "solution": true}
-
 
 def _cached_generate(model, prompt_tokens, max_new_tokens, temperature, cache):
     """
@@ -1445,10 +1655,8 @@ def _cached_generate(model, prompt_tokens, max_new_tokens, temperature, cache):
     raise NotImplementedError("TODO: implement _cached_generate")
     ### END SOLUTION
 
-
 # %% tags=["solution"]
 # Solution
-
 
 def _cached_generate(model, prompt_tokens, max_new_tokens, temperature, cache):
     """
@@ -1531,7 +1739,6 @@ def _cached_generate(model, prompt_tokens, max_new_tokens, temperature, cache):
     return generated
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: _cached_generate
@@ -1540,7 +1747,6 @@ def _cached_generate(model, prompt_tokens, max_new_tokens, temperature, cache):
 **Why it matters**: The generation loop must correctly advance the cache and produce valid token IDs
 **Expected**: Generates the requested number of tokens, all valid indices into the vocabulary
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-cached-generate", "locked": true, "points": 10}
 def test_unit_cached_generate():
@@ -1567,7 +1773,8 @@ def test_unit_cached_generate():
     model = MockModel()
 
     # Create cache (not attached to blocks since mock has none)
-    cache = KVCache(batch_size=1, max_seq_len=128, num_layers=1, num_heads=2, head_dim=32)
+    cache = KVCache(batch_size=1, max_seq_len=128, num_layers=1,
+                    num_heads=2, head_dim=32)
 
     # Test 1: Generate correct number of tokens
     prompt = [0, 1, 2]
@@ -1590,7 +1797,6 @@ def test_unit_cached_generate():
     assert len(generated_low_temp) == 3, "Should generate 3 tokens with low temperature"
 
     print("✅ _cached_generate works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_cached_generate()
@@ -1619,10 +1825,95 @@ enable_kv_cache(model)
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "kv-enable-cache", "solution": true}
+
+def enable_kv_cache(model):
+    """
+    Enable KV caching for a transformer model WITHOUT modifying Module 12/13 code.
+
+    TODO: Compose helpers to create cache and patch attention layers
+
+    APPROACH:
+    1. Call _create_cache_storage(model) to validate and create cache
+    2. For each block, save original forward and patch with _cached_attention_forward
+    3. Print confirmation with cache statistics
+    4. Return cache object
+
+    This function demonstrates **non-invasive optimization** - adding capabilities
+    to existing systems without breaking them. Similar to how Module 06 (Autograd)
+    uses enable_autograd() to add gradient tracking to Tensors.
+
+    Args:
+        model: A GPT-style transformer model with:
+               - model.embed_dim (int)
+               - model.num_layers (int)
+               - model.num_heads (int)
+               - model.max_seq_len (int)
+               - model.blocks (list of TransformerBlock objects)
+
+    Returns:
+        cache: KVCache object for this model
+
+    EXAMPLE:
+    >>> from trentorch.core.transformers import GPT
+    >>> model = GPT(vocab_size=100, embed_dim=128, num_layers=4, num_heads=4)
+    >>> cache = enable_kv_cache(model)
+    >>> hasattr(model, '_kv_cache')  # True
+    >>> model._cache_enabled  # True
+    >>> cache.num_layers  # 4 (matches model)
+
+    HINTS:
+    - _create_cache_storage handles validation, KVCache creation, and model attachment
+    - Use a factory function (make_cached_forward) to capture layer_idx in closure
+    - Save original forward as block._original_attention_forward before patching
+    - _cached_attention_forward handles the three-path dispatch logic
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement enable_kv_cache")
+    ### END SOLUTION
+
+
+#| export
+def disable_kv_cache(model):
+    """
+    Disable KV caching and restore original attention behavior.
+
+    Args:
+        model: Model with caching enabled
+
+    EXAMPLE:
+        ```python
+        cache = enable_kv_cache(model)
+        # ... do cached generation ...
+        disable_kv_cache(model)  # Back to normal
+        ```
+    """
+    # Educational Note: hasattr() is LEGITIMATE here because:
+    # Checking if monkey-patch markers exist before restoration
+    if not hasattr(model, '_cache_enabled') or not model._cache_enabled:
+        print("⚠️  KV cache not enabled on this model")
+        return
+
+    # Restore original attention forwards
+    for block in model.blocks:
+        # Educational Note: hasattr() is LEGITIMATE here because:
+        # Checking for monkey-patch backup before restoration
+        if hasattr(block, '_original_attention_forward'):
+            block.attention.forward = block._original_attention_forward
+
+    # Clean up
+    model._cache_enabled = False
+    # Educational Note: hasattr() is LEGITIMATE here because:
+    # Safe cleanup check before deleting dynamically added attribute
+    if hasattr(model, '_kv_cache'):
+        delattr(model, '_kv_cache')
+
+    print("✓ KV cache disabled, original attention restored")
+
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def enable_kv_cache(model):
     """
@@ -1673,27 +1964,29 @@ def enable_kv_cache(model):
     for layer_idx, block in enumerate(model.blocks):
         # Save original forward (avoid double-patching)
         # hasattr() is LEGITIMATE: monkey-patching safety check
-        if not hasattr(block, "_original_attention_forward"):
+        if not hasattr(block, '_original_attention_forward'):
             block._original_attention_forward = block.attention.forward
 
         # Create cached version using factory for correct closure binding
         def make_cached_forward(layer_idx, original_forward, cache_obj):
             """Factory to create cached forward with correct layer_idx closure."""
-
             def cached_forward(x, mask=None):
-                return _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward)
-
+                return _cached_attention_forward(
+                    block, x, cache_obj, layer_idx, original_forward
+                )
             return cached_forward
 
-        block.attention.forward = make_cached_forward(layer_idx, block._original_attention_forward, cache)
+        block.attention.forward = make_cached_forward(
+            layer_idx, block._original_attention_forward, cache
+        )
 
     # Step 3: Print confirmation
-    print("⚡ KV Cache enabled for model!")
+    print(f"⚡ KV Cache enabled for model!")
     print(f"   Architecture: {model.num_layers} layers × {model.num_heads} heads × {head_dim}D")
     print(f"   Memory: {cache.get_memory_usage()['total_mb']:.2f} MB")
-    print("   Cache stored in: model._kv_cache")
+    print(f"   Cache stored in: model._kv_cache")
     print()
-    print("💡 To disable: call disable_kv_cache(model)")
+    print(f"💡 To disable: call disable_kv_cache(model)")
     print()
 
     return cache
@@ -1717,7 +2010,7 @@ def disable_kv_cache(model):
     """
     # Educational Note: hasattr() is LEGITIMATE here because:
     # Checking if monkey-patch markers exist before restoration
-    if not hasattr(model, "_cache_enabled") or not model._cache_enabled:
+    if not hasattr(model, '_cache_enabled') or not model._cache_enabled:
         print("⚠️  KV cache not enabled on this model")
         return
 
@@ -1725,15 +2018,15 @@ def disable_kv_cache(model):
     for block in model.blocks:
         # Educational Note: hasattr() is LEGITIMATE here because:
         # Checking for monkey-patch backup before restoration
-        if hasattr(block, "_original_attention_forward"):
+        if hasattr(block, '_original_attention_forward'):
             block.attention.forward = block._original_attention_forward
 
     # Clean up
     model._cache_enabled = False
     # Educational Note: hasattr() is LEGITIMATE here because:
     # Safe cleanup check before deleting dynamically added attribute
-    if hasattr(model, "_kv_cache"):
-        delattr(model, "_kv_cache")
+    if hasattr(model, '_kv_cache'):
+        delattr(model, '_kv_cache')
 
     print("✓ KV cache disabled, original attention restored")
 
@@ -1748,7 +2041,6 @@ This test validates that `enable_kv_cache()` works without breaking the model.
 **Why it matters**: Must add caching without modifying existing modules (forward-only learning)
 **Expected**: Cache enables/disables cleanly, model forward pass still works
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-noninvasive", "locked": true, "points": 10}
 def test_unit_noninvasive_integration():
@@ -1777,9 +2069,9 @@ def test_unit_noninvasive_integration():
     model = MockGPT()
     print("   Test 1: Enable caching on model")
     cache = enable_kv_cache(model)
-    assert hasattr(model, "_kv_cache"), "Model should have _kv_cache attribute"
-    assert hasattr(model, "_cache_enabled"), "Model should have _cache_enabled flag"
-    assert model._cache_enabled, "Cache should be enabled"
+    assert hasattr(model, '_kv_cache'), "Model should have _kv_cache attribute"
+    assert hasattr(model, '_cache_enabled'), "Model should have _cache_enabled flag"
+    assert model._cache_enabled == True, "Cache should be enabled"
     assert cache is model._kv_cache, "Returned cache should match model._kv_cache"
 
     # Test 2: Attention forward still works
@@ -1792,16 +2084,15 @@ def test_unit_noninvasive_integration():
     # Test 3: Disable caching
     print("   Test 3: Disable caching")
     disable_kv_cache(model)
-    assert not model._cache_enabled, "Cache should be disabled"
-    assert not hasattr(model, "_kv_cache"), "Cache object should be removed"
+    assert model._cache_enabled == False, "Cache should be disabled"
+    assert not hasattr(model, '_kv_cache'), "Cache object should be removed"
 
     # Test 4: Can re-enable
     print("   Test 4: Re-enable caching")
     _ = enable_kv_cache(model)
-    assert model._cache_enabled, "Cache should be re-enabled"
+    assert model._cache_enabled == True, "Cache should be re-enabled"
 
     print("✅ Non-invasive cache integration works correctly!")
-
 
 # Run test immediately when developing this module
 if __name__ == "__main__":
@@ -1814,7 +2105,6 @@ if __name__ == "__main__":
 
 Let's analyze the performance characteristics and trade-offs of KV caching. Understanding these trade-offs is essential for making informed decisions about when and how to use caching in production systems.
 """
-
 
 # %% nbgrader={"grade": false, "grade_id": "analyze-memory", "locked": false}
 def analyze_kvcache_memory():
@@ -1881,7 +2171,6 @@ def analyze_kvcache_memory():
     print("   • Trade-off: 2× memory enables 10-15× speedup")
     print("   • Worth it for inference-heavy workloads!")
 
-
 # %% nbgrader={"grade": false, "grade_id": "analyze-speedup", "locked": false}
 def analyze_kvcache_speedup():
     """
@@ -1909,11 +2198,13 @@ def analyze_kvcache_speedup():
     print("\n📊 Analyzing KV Cache Speedup...")
     print()
 
+    import time
+
     # Create test configuration
-    1
+    batch_size = 1
     embed_dim = 256
     num_heads = 8
-    embed_dim // num_heads
+    head_dim = embed_dim // num_heads
 
     print("Generation Length | Without Cache | With Cache | Speedup")
     print("-" * 55)
@@ -1946,7 +2237,6 @@ def analyze_kvcache_speedup():
     print("   • With caching: 100-token response takes ~0.1 seconds")
     print("   • This optimization makes conversational AI possible!")
 
-
 # Run analysis when developing this module
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -1963,7 +2253,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
 
 Final validation that everything works together correctly before module completion.
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "module-integration", "locked": true, "points": 20}
 def test_module():
@@ -2031,15 +2320,14 @@ def test_module():
     # Integration Test: Memory Tracking
     print("🔬 Integration Test: Memory Tracking...")
     mem_info = cache.get_memory_usage()
-    assert mem_info["total_mb"] > 0
-    assert mem_info["cache_tensors"] == num_layers * 2
+    assert mem_info['total_mb'] > 0
+    assert mem_info['cache_tensors'] == num_layers * 2
     print(f"✅ Memory tracking: {mem_info['total_mb']:.2f} MB for {mem_info['cache_tensors']} tensors")
     print()
 
     print("=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 18")
-
 
 # Run comprehensive module test
 
@@ -2132,7 +2420,6 @@ This is why ChatGPT responds so fast—it's not recomputing everything every tok
 This optimization turns O(n²) generation into O(n), enabling practical LLM deployment.
 """
 
-
 # %%
 def demo_memoization():
     """🎯 See KV cache store and reuse values."""
@@ -2141,7 +2428,8 @@ def demo_memoization():
 
     # Create a cache for 2-layer transformer
     # (batch=1, max_seq=100, layers=2, heads=4, head_dim=64)
-    cache = KVCache(batch_size=1, max_seq_len=100, num_layers=2, num_heads=4, head_dim=64)
+    cache = KVCache(batch_size=1, max_seq_len=100, num_layers=2,
+                    num_heads=4, head_dim=64)
 
     # Simulate generating 5 tokens one at a time
     print("Generating tokens and caching K,V pairs...")
@@ -2162,7 +2450,6 @@ def demo_memoization():
 
     print("\n✨ Compute once, reuse forever—10× faster generation!")
 
-
 # %%
 if __name__ == "__main__":
     if os.environ.get("CI") == "true":
@@ -2176,9 +2463,7 @@ if __name__ == "__main__":
         # coverage here. Skipping both keeps the actual
         # verification (every individual test above) while
         # cutting the redundant full re-run.
-        print(
-            "\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant)."
-        )
+        print("\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant).")
     else:
         test_module()
         print("\n")

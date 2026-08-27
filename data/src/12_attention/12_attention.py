@@ -63,19 +63,16 @@ from trentorch.core.attention import scaled_dot_product_attention, MultiHeadAtte
 #| export
 
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 import math
 import time
-from typing import List, Optional, Tuple
-
-from trentorch.core.activations import Softmax
-from trentorch.core.layers import Linear
+from typing import Optional, Tuple, List
 
 # Import dependencies from previous modules - following TrenTorch dependency chain
 from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.activations import Softmax
 
 # Constants for attention computation
 MASK_VALUE = -1e9  # Large negative value used for attention masking (becomes ~0 after softmax)
@@ -307,7 +304,6 @@ scores[i][j] = "how relevant is key j to query i?"
 
 # %% nbgrader={"grade": false, "grade_id": "attn-compute-scores", "solution": true}
 
-
 def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
     """Compute raw attention scores via Q @ K^T.
 
@@ -329,11 +325,9 @@ def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
     raise NotImplementedError("TODO: implement _compute_attention_scores")
     ### END SOLUTION
 
-
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
     """Compute raw attention scores via Q @ K^T.
@@ -357,7 +351,6 @@ def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
     return Q.matmul(K_t)
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Attention Scores
@@ -366,7 +359,6 @@ def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
 **Why it matters**: Wrong score shapes cascade into every downstream step
 **Expected**: (batch, seq, seq) shape, all-ones input gives d_model as score
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-attn-scores", "locked": true, "points": 5}
 def test_unit_attention_scores():
@@ -378,7 +370,6 @@ def test_unit_attention_scores():
     assert scores.shape == (1, 3, 3), f"Expected (1,3,3), got {scores.shape}"
     assert np.allclose(scores.data, 4.0), "All-ones Q@K^T should give d_model=4"
     print("✅ Attention scores: correct shapes and values!")
-
 
 if __name__ == "__main__":
     test_unit_attention_scores()
@@ -394,7 +385,6 @@ scores in a stable range regardless of dimension.
 """
 
 # %% nbgrader={"grade": false, "grade_id": "attn-scale-scores", "solution": true}
-
 
 def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
     """Scale attention scores by 1/sqrt(d_model).
@@ -416,11 +406,9 @@ def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
     raise NotImplementedError("TODO: implement _scale_scores")
     ### END SOLUTION
 
-
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
     """Scale attention scores by 1/sqrt(d_model).
@@ -443,7 +431,6 @@ def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
     return scores * scale_factor
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Score Scaling
@@ -453,7 +440,6 @@ def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
 **Expected**: Scores reduced by factor of sqrt(d_model)
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-attn-scale", "locked": true, "points": 5}
 def test_unit_scale_scores():
     """🧪 Test attention score scaling."""
@@ -462,7 +448,6 @@ def test_unit_scale_scores():
     scaled = _scale_scores(scores, d_model=4)
     assert np.allclose(scaled.data, [[[2.0, 4.0]]]), f"Expected /sqrt(4)=2, got {scaled.data}"
     print("✅ Score scaling works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_scale_scores()
@@ -489,7 +474,6 @@ Causal Mask (4 tokens):       After masking:
 
 # %% nbgrader={"grade": false, "grade_id": "attn-apply-mask", "solution": true}
 
-
 def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
     """Apply causal mask by setting masked positions to -infinity.
 
@@ -511,11 +495,9 @@ def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
     raise NotImplementedError("TODO: implement _apply_mask")
     ### END SOLUTION
 
-
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
     """Apply causal mask by setting masked positions to -infinity.
@@ -539,7 +521,6 @@ def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
     return scores + adder
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Causal Masking
@@ -548,7 +529,6 @@ def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
 **Why it matters**: Without masking, GPT could "cheat" by looking at future tokens
 **Expected**: Masked positions ~ -1e9, unmasked positions unchanged
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-attn-mask", "locked": true, "points": 5}
 def test_unit_apply_mask():
@@ -562,7 +542,6 @@ def test_unit_apply_mask():
     # Past positions should be unchanged
     assert np.allclose(masked.data[0, 0, 0], 1.0), "Past position was modified"
     print("✅ Causal masking works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_apply_mask()
@@ -602,14 +581,54 @@ for b in range(batch_size):
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "attn-scaled-dot-product", "solution": true}
+
+def scaled_dot_product_attention(Q: Tensor, K: Tensor, V: Tensor, mask: Optional[Tensor] = None) -> Tuple[Tensor, Tensor]:
+    """Complete scaled dot-product attention.
+
+    TODO: Compose the helpers into the full attention operation
+
+    APPROACH:
+    1. Call _compute_attention_scores(Q, K) for raw similarity
+    2. Call _scale_scores(scores, Q.shape[-1]) for numerical stability
+    3. If mask provided, call _apply_mask(scores, mask)
+    4. Apply Softmax to get probability weights
+    5. Multiply weights @ V for attended values
+
+    SUB-PROBLEMS (you already implemented these):
+    - _compute_attention_scores: Q @ K^T similarity matrix
+    - _scale_scores: divide by sqrt(d) for stable softmax
+    - _apply_mask: block future positions with -inf
+
+    Args:
+        Q: Query tensor of shape (batch_size, seq_len, d_model)
+        K: Key tensor of shape (batch_size, seq_len, d_model)
+        V: Value tensor of shape (batch_size, seq_len, d_model)
+        mask: Optional causal mask, 1=allow, 0=mask (batch_size, seq_len, seq_len)
+
+    Returns:
+        output: Attended values (batch_size, seq_len, d_model)
+        attention_weights: Attention matrix (batch_size, seq_len, seq_len)
+
+    EXAMPLE:
+    >>> Q = Tensor(rng.standard_normal((2, 4, 64)))
+    >>> K = Tensor(rng.standard_normal((2, 4, 64)))
+    >>> V = Tensor(rng.standard_normal((2, 4, 64)))
+    >>> output, weights = scaled_dot_product_attention(Q, K, V)
+    >>> print(output.shape)   # (2, 4, 64)
+    >>> print(weights.shape)  # (2, 4, 4)
+
+    HINT: Softmax is already imported -- use Softmax()(scores, dim=-1)
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement scaled_dot_product_attention")
+    ### END SOLUTION
+
 # %% tags=["solution"]
 #| export
 # Solution
 
-
-def scaled_dot_product_attention(
-    Q: Tensor, K: Tensor, V: Tensor, mask: Tensor | None = None
-) -> tuple[Tensor, Tensor]:
+def scaled_dot_product_attention(Q: Tensor, K: Tensor, V: Tensor, mask: Optional[Tensor] = None) -> Tuple[Tensor, Tensor]:
     """Complete scaled dot-product attention.
 
     TODO: Compose the helpers into the full attention operation
@@ -657,7 +676,6 @@ def scaled_dot_product_attention(
     return output, attention_weights
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Scaled Dot-Product Attention
@@ -668,7 +686,6 @@ This test validates our complete attention mechanism works correctly with proper
 **Why it matters**: This is the core operation powering all transformer models
 **Expected**: Correct shapes, weights summing to 1, future positions masked to zero
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-attention-basic", "locked": true, "points": 15}
 def test_unit_scaled_dot_product_attention():
@@ -703,7 +720,6 @@ def test_unit_scaled_dot_product_attention():
                 assert abs(weights_masked.data[b, i, j]) < 1e-6, f"Future attention not masked at ({i},{j})"
 
     print("✅ scaled_dot_product_attention works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_scaled_dot_product_attention()
@@ -791,10 +807,162 @@ Each head can specialize in different patterns:
 This parallelization allows the model to attend to different representation subspaces simultaneously.
 """
 
+# %% nbgrader={"grade": false, "grade_id": "multihead-attention", "solution": true}
+
+class MultiHeadAttention:
+    """
+    Multi-head attention mechanism.
+
+    Runs multiple attention heads in parallel, each learning different relationships.
+    This is the core component of transformer architectures.
+    """
+
+    def __init__(self, embed_dim: int, num_heads: int):
+        """
+        Initialize multi-head attention.
+
+        TODO: Set up linear projections and validate configuration
+
+        APPROACH:
+        1. Validate that embed_dim is divisible by num_heads
+        2. Calculate head_dim (embed_dim // num_heads)
+        3. Create linear layers for Q, K, V projections
+        4. Create output projection layer
+        5. Store configuration parameters
+
+        Args:
+            embed_dim: Embedding dimension (d_model)
+            num_heads: Number of parallel attention heads
+
+        EXAMPLE:
+        >>> mha = MultiHeadAttention(embed_dim=512, num_heads=8)
+        >>> mha.head_dim  # 64 (512 / 8)
+        >>> len(mha.parameters())  # 4 linear layers * 2 params each = 8 tensors
+
+        HINTS:
+        - head_dim = embed_dim // num_heads must be integer
+        - Need 4 Linear layers: q_proj, k_proj, v_proj, out_proj
+        - Each projection maps embed_dim → embed_dim
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MultiHeadAttention.__init__")
+        ### END SOLUTION
+
+    def _split_heads(self, x: Tensor, batch_size: int, seq_len: int) -> Tensor:
+        """Reshape to separate attention heads for parallel processing.
+
+        TODO: Reshape (batch, seq, embed_dim) to (batch, heads, seq, head_dim)
+
+        APPROACH:
+        1. Reshape: (batch, seq, embed) -> (batch, seq, num_heads, head_dim)
+        2. Transpose: swap seq and heads dims -> (batch, heads, seq, head_dim)
+
+        EXAMPLE:
+        >>> mha = MultiHeadAttention(embed_dim=64, num_heads=8)
+        >>> x = Tensor(rng.standard_normal((2, 10, 64)))  # batch=2, seq=10
+        >>> split = mha._split_heads(x, 2, 10)
+        >>> print(split.shape)  # (2, 8, 10, 8) -- 8 heads of dim 8
+
+        HINT: reshape(batch, seq, heads, head_dim) then transpose(1, 2)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MultiHeadAttention._split_heads")
+        ### END SOLUTION
+
+    def _merge_heads(self, x: Tensor, batch_size: int, seq_len: int) -> Tensor:
+        """Merge attention heads back into single embedding dimension.
+
+        TODO: Reshape (batch, heads, seq, head_dim) to (batch, seq, embed_dim)
+
+        APPROACH:
+        1. Transpose: swap heads and seq -> (batch, seq, heads, head_dim)
+        2. Reshape: merge last two dims -> (batch, seq, embed_dim)
+
+        EXAMPLE:
+        >>> # After attention with 8 heads of dim 8:
+        >>> attended = Tensor(rng.standard_normal((2, 8, 10, 8)))
+        >>> merged = mha._merge_heads(attended, 2, 10)
+        >>> print(merged.shape)  # (2, 10, 64) -- back to embed_dim
+
+        HINT: transpose(1, 2) then reshape(batch, seq, embed_dim)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MultiHeadAttention._merge_heads")
+        ### END SOLUTION
+
+    def forward(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
+        """
+        Forward pass through multi-head attention.
+
+        TODO: Compose the helpers into the complete multi-head attention forward pass
+
+        APPROACH:
+        1. Extract input dimensions and validate embed_dim
+        2. Project input to Q, K, V using linear layers
+        3. Call _split_heads() to separate into parallel heads
+        4. Apply scaled_dot_product_attention to all heads at once
+        5. Call _merge_heads() to recombine heads
+        6. Apply output projection
+
+        SUB-PROBLEMS (you already implemented these):
+        - _split_heads: reshape 3D -> 4D for parallel head processing
+        - _merge_heads: reshape 4D -> 3D to recombine head outputs
+
+        Args:
+            x: Input tensor (batch_size, seq_len, embed_dim)
+            mask: Optional attention mask (batch_size, seq_len, seq_len)
+
+        Returns:
+            output: Attended representation (batch_size, seq_len, embed_dim)
+
+        EXAMPLE:
+        >>> mha = MultiHeadAttention(embed_dim=64, num_heads=8)
+        >>> x = Tensor(rng.standard_normal((2, 10, 64)))  # batch=2, seq=10, dim=64
+        >>> output = mha.forward(x)
+        >>> print(output.shape)  # (2, 10, 64) - same as input
+
+        HINT: Use scaled_dot_product_attention for the attention computation
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MultiHeadAttention.forward")
+        ### END SOLUTION
+
+    def __call__(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
+        """Make MultiHeadAttention callable like attention(x)."""
+        return self.forward(x, mask)
+
+    def parameters(self) -> List[Tensor]:
+        """
+        Return all trainable parameters.
+
+        TODO: Collect parameters from all linear layers
+
+        APPROACH:
+        1. Get parameters from q_proj, k_proj, v_proj, out_proj
+        2. Combine into single list
+
+        Returns:
+            List of all parameter tensors
+
+        EXAMPLE:
+        >>> mha = MultiHeadAttention(embed_dim=64, num_heads=8)
+        >>> params = mha.parameters()
+        >>> print(len(params))  # 8 (4 layers × 2 params each: weight + bias)
+        >>> print(params[0].shape)  # (64, 64) - q_proj weight
+        >>> print(params[1].shape)  # (64,) - q_proj bias
+
+        HINTS:
+        - Each Linear layer has .parameters() method that returns [weight, bias]
+        - Use extend() to add all parameters from each layer to the list
+        - Total should be 8 tensors: 4 layers × 2 parameters each
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MultiHeadAttention.parameters")
+        ### END SOLUTION
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class MultiHeadAttention:
     """
@@ -897,7 +1065,7 @@ class MultiHeadAttention:
         return x.reshape(batch_size, seq_len, self.embed_dim)
         ### END SOLUTION
 
-    def forward(self, x: Tensor, mask: Tensor | None = None) -> Tensor:
+    def forward(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
         """
         Forward pass through multi-head attention.
 
@@ -969,11 +1137,11 @@ class MultiHeadAttention:
         return output
         ### END SOLUTION
 
-    def __call__(self, x: Tensor, mask: Tensor | None = None) -> Tensor:
+    def __call__(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
         """Make MultiHeadAttention callable like attention(x)."""
         return self.forward(x, mask)
 
-    def parameters(self) -> list[Tensor]:
+    def parameters(self) -> List[Tensor]:
         """
         Return all trainable parameters.
 
@@ -1007,7 +1175,6 @@ class MultiHeadAttention:
         return params
         ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### Helper: Splitting Heads
@@ -1035,7 +1202,6 @@ Example with embed_dim=64, num_heads=8, head_dim=8:
 **Expected**: (batch, heads, seq, head_dim) shape with correct values
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-split-heads", "locked": true, "points": 5}
 def test_unit_split_heads():
     """🧪 Test head splitting reshape."""
@@ -1045,7 +1211,6 @@ def test_unit_split_heads():
     split = mha._split_heads(x, 2, 10)
     assert split.shape == (2, 8, 10, 8), f"Expected (2,8,10,8), got {split.shape}"
     print("✅ Split heads: correct 4D shape!")
-
 
 if __name__ == "__main__":
     test_unit_split_heads()
@@ -1077,7 +1242,6 @@ Example with embed_dim=64, num_heads=8, head_dim=8:
 **Expected**: (batch, seq, embed_dim) shape matching original input
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-merge-heads", "locked": true, "points": 5}
 def test_unit_merge_heads():
     """🧪 Test head merging reshape."""
@@ -1095,7 +1259,6 @@ def test_unit_merge_heads():
     assert np.allclose(original.data, recovered.data), "Split->merge should recover original data"
     print("✅ Merge heads: correct 3D shape and round-trip!")
 
-
 if __name__ == "__main__":
     test_unit_merge_heads()
 
@@ -1107,7 +1270,6 @@ if __name__ == "__main__":
 **Why it matters**: Multi-head attention must correctly split dimensions across heads and recombine them
 **Expected**: Proper head dimension calculation, 8 parameters (4 layers x 2), preserved output shapes
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-multihead", "locked": true, "points": 15}
 def test_unit_multihead_attention():
@@ -1149,7 +1311,6 @@ def test_unit_multihead_attention():
 
     print("✅ MultiHeadAttention works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_multihead_attention()
 
@@ -1190,7 +1351,6 @@ Just for attention matrices!
 ```
 """
 
-
 # %%
 def analyze_attention_complexity():
     """📊 Analyze attention computational complexity and memory scaling."""
@@ -1214,13 +1374,10 @@ def analyze_attention_complexity():
         # Total complexity (Q@K + softmax + weights@V)
         complexity = 2 * seq_len * seq_len * embed_dim + seq_len * seq_len
 
-        print(
-            f"{seq_len:7d} | {attention_matrix_size:14d} | {attention_memory_kb:10.2f} | {complexity:10.0f}"
-        )
+        print(f"{seq_len:7d} | {attention_matrix_size:14d} | {attention_memory_kb:10.2f} | {complexity:10.0f}")
 
-    print("\n💡 KEY INSIGHT: Attention memory scales as O(n^2) with sequence length")
-    print(f"🚀 For seq_len=1024, attention matrix alone needs {(1024 * 1024 * 4) / 1024 / 1024:.1f} MB")
-
+    print(f"\n💡 KEY INSIGHT: Attention memory scales as O(n^2) with sequence length")
+    print(f"🚀 For seq_len=1024, attention matrix alone needs {(1024*1024*4)/1024/1024:.1f} MB")
 
 # Run the analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1229,7 +1386,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
     # benchmarks) take multiple minutes of real computation. Run this
     # file directly (not through CI) to see the full analysis.
     analyze_attention_complexity()
-
 
 # %%
 def analyze_attention_timing():
@@ -1266,9 +1422,8 @@ def analyze_attention_timing():
         print(f"{seq_len:7d} | {avg_time:8.2f} | {ops_per_sec:7.0f} | {scaling:6.2f}x")
         prev_time = avg_time
 
-    print("\n💡 KEY INSIGHT: Attention time scales roughly as O(n^2) with sequence length")
-    print("🚀 This is why attention efficiency techniques are an active area of research")
-
+    print(f"\n💡 KEY INSIGHT: Attention time scales roughly as O(n^2) with sequence length")
+    print(f"🚀 This is why attention efficiency techniques are an active area of research")
 
 # Run the analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1278,12 +1433,12 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
     # file directly (not through CI) to see the full analysis.
     analyze_attention_timing()
 
-
 # %%
 def analyze_attention_memory_overhead():
     """📊 Analyze memory overhead during training (forward + backward passes)."""
     print("\n📊 Analyzing Attention Memory Overhead During Training...")
 
+    embed_dim, num_heads = 128, 8
     sequence_lengths = [128, 256, 512, 1024]
 
     print("\nMemory Overhead Analysis (Training vs Inference):")
@@ -1303,15 +1458,10 @@ def analyze_attention_memory_overhead():
         # Total = forward + gradients + optimizer state
         total_memory_mb = attention_matrix_mb + backward_memory_mb + optimizer_memory_mb
 
-        print(
-            f"{seq_len:7d} | {attention_matrix_mb:6.2f}MB | {backward_memory_mb:10.2f}MB | {optimizer_memory_mb:10.2f}MB | {total_memory_mb:11.2f}MB"
-        )
+        print(f"{seq_len:7d} | {attention_matrix_mb:6.2f}MB | {backward_memory_mb:10.2f}MB | {optimizer_memory_mb:10.2f}MB | {total_memory_mb:11.2f}MB")
 
-    print(
-        "\n💡 KEY INSIGHT: Training requires ~4x memory of inference (1x forward + 1x gradients + 2x optimizer state)"
-    )
-    print("🚀 For GPT-3 (96 layers, 2048 context): ~6GB just for attention gradients!")
-
+    print(f"\n💡 KEY INSIGHT: Training requires ~4x memory of inference (1x forward + 1x gradients + 2x optimizer state)")
+    print(f"🚀 For GPT-3 (96 layers, 2048 context): ~6GB just for attention gradients!")
 
 # Run the analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1394,7 +1544,6 @@ Example Attention Patterns in Language:
 Let's see these patterns emerge in our implementation.
 """
 
-
 # %%
 def run_attention_scenarios():
     """Test attention mechanisms in realistic scenarios."""
@@ -1448,13 +1597,13 @@ def run_attention_scenarios():
     _, weights = scaled_dot_product_attention(Q_head, K_head, V_head)
 
     print(f"   Attention weights shape: {weights.shape}")
-    print("   Attention weights (first batch, 4x4 matrix):")
+    print(f"   Attention weights (first batch, 4x4 matrix):")
     weight_matrix = weights.data[0, :, :].round(3)
 
     # Format the attention matrix nicely
     print("     Pos→  0     1     2     3")
     for i in range(4):
-        row_str = f"   {i}: " + " ".join(f"{weight_matrix[i, j]:5.3f}" for j in range(4))
+        row_str = f"   {i}: " + " ".join(f"{weight_matrix[i,j]:5.3f}" for j in range(4))
         print(row_str)
 
     print(f"   Row sums: {weights.data[0].sum(axis=1).round(3)} (should be ~1.0)")
@@ -1470,13 +1619,12 @@ def run_attention_scenarios():
     masked_matrix = masked_weights.data[0, :, :].round(3)
     print("     Pos→  0     1     2     3")
     for i in range(4):
-        row_str = f"   {i}: " + " ".join(f"{masked_matrix[i, j]:5.3f}" for j in range(4))
+        row_str = f"   {i}: " + " ".join(f"{masked_matrix[i,j]:5.3f}" for j in range(4))
         print(row_str)
 
     print("   Notice: Upper triangle is zero (can't attend to future)")
 
     print("\n✅ All attention scenarios work correctly!")
-
 
 # %% [markdown]
 """
@@ -1484,7 +1632,6 @@ def run_attention_scenarios():
 
 Final validation that everything works together correctly.
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "module-test", "locked": true, "points": 20}
 def test_module():
@@ -1521,7 +1668,6 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 12")
-
 
 # %% [markdown]
 """
@@ -1634,7 +1780,6 @@ understand that "it" refers to "the cat" in a sentence!
 In the next module, you'll combine attention with MLPs to build full transformer blocks.
 """
 
-
 # %%
 def demo_attention():
     """🎯 See attention compute relationships."""
@@ -1649,16 +1794,15 @@ def demo_attention():
     # Compute attention
     output, weights = scaled_dot_product_attention(Q, K, V)
 
-    print("Sequence length: 4 tokens")
-    print("Embedding dim:   8")
+    print(f"Sequence length: 4 tokens")
+    print(f"Embedding dim:   8")
     print(f"\nAttention weights shape: {weights.shape}")
-    print("Each token attends to all 4 positions!")
+    print(f"Each token attends to all 4 positions!")
 
     print(f"\nToken 0 attention: {weights.data[0, 0, :].round(2)}")
     print("(sums to 1.0 - it's a probability distribution)")
 
     print("\n✨ Attention lets tokens communicate!")
-
 
 # %%
 if __name__ == "__main__":

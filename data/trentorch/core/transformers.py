@@ -18,13 +18,15 @@
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'MB_TO_BYTES', 'TinyGPT', 'create_causal_mask', 'LayerNorm', 'MLP', 'TransformerBlock',
            'GPT']
 
-# %% ../../solutions/13_transformers/transformers.ipynb #ac1e8f57
+# %% ../../solutions/13_transformers/transformers.ipynb #4771dfb9
 #| default_exp core.transformers
 #| export
 
-# %% ../../solutions/13_transformers/transformers.ipynb #23311b45
+# %% ../../solutions/13_transformers/transformers.ipynb #f90d6420
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 
 from .activations import GELU
@@ -72,7 +74,7 @@ def create_causal_mask(seq_len: int) -> Tensor:
     mask = np.tril(np.ones((seq_len, seq_len), dtype=np.float32))
     return Tensor(mask[np.newaxis, :, :])  # Add batch dimension
 
-# %% ../../solutions/13_transformers/transformers.ipynb #7c5b555e
+# %% ../../solutions/13_transformers/transformers.ipynb #6f4b9a46
 # Solution
 
 
@@ -202,9 +204,7 @@ class LayerNorm:
         # Attach gradient function for full LayerNorm backward
         if x.requires_grad or self.gamma.requires_grad or self.beta.requires_grad:
             output.requires_grad = True
-            output._grad_fn = _LayerNormBackward(
-                x, self.gamma, self.beta, normalized_data, std_data
-            )
+            output._grad_fn = _LayerNormBackward(x, self.gamma, self.beta, normalized_data, std_data)
 
         return output
         ### END SOLUTION
@@ -217,8 +217,9 @@ class LayerNorm:
         """Return learnable parameters."""
         return [self.gamma, self.beta]
 
-# %% ../../solutions/13_transformers/transformers.ipynb #0e982d82
+# %% ../../solutions/13_transformers/transformers.ipynb #c2a9f518
 # Solution
+
 
 class MLP:
     """
@@ -300,8 +301,9 @@ class MLP:
         params.extend(self.linear2.parameters())
         return params
 
-# %% ../../solutions/13_transformers/transformers.ipynb #82dab7a0
+# %% ../../solutions/13_transformers/transformers.ipynb #a49fe2b2
 # Solution
+
 
 class TransformerBlock:
     """
@@ -409,8 +411,9 @@ class TransformerBlock:
         params.extend(self.mlp.parameters())
         return params
 
-# %% ../../solutions/13_transformers/transformers.ipynb #aac758e9
+# %% ../../solutions/13_transformers/transformers.ipynb #66444907
 # Solution
+
 
 class GPT:
     """
@@ -614,6 +617,6 @@ class GPT:
 
         return params
 
-# %% ../../solutions/13_transformers/transformers.ipynb #f32f6ab1
+# %% ../../solutions/13_transformers/transformers.ipynb #c6076d8a
 # Alias for backward compatibility with tests
 TinyGPT = GPT

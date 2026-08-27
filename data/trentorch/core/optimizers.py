@@ -18,17 +18,19 @@
 __all__ = ['rng', 'DEFAULT_LEARNING_RATE_SGD', 'DEFAULT_LEARNING_RATE_ADAM', 'DEFAULT_MOMENTUM', 'DEFAULT_BETA1', 'DEFAULT_BETA2',
            'DEFAULT_EPS', 'DEFAULT_WEIGHT_DECAY_ADAMW', 'Optimizer', 'SGD', 'Adam', 'AdamW']
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #ffe47b7c
+# %% ../../solutions/07_optimizers/optimizers.ipynb #f3358515
 import numpy as np
-rng = np.random.default_rng(7)
-from typing import List, Union, Optional, Dict, Any
 
-# Import Tensor from Module 01 (now with gradient support from Module 06)
-from .tensor import Tensor
+rng = np.random.default_rng(7)
+from typing import Any, Dict, List, Optional, Union
 
 # Enable autograd to add gradient tracking to Tensor
 # This module depends on Module 06 (Autograd) being available
 from .autograd import enable_autograd
+
+# Import Tensor from Module 01 (now with gradient support from Module 06)
+from .tensor import Tensor
+
 enable_autograd()
 
 # Constants for optimizer defaults
@@ -40,8 +42,9 @@ DEFAULT_BETA2 = 0.999  # Second moment decay rate for Adam
 DEFAULT_EPS = 1e-8  # Small epsilon for numerical stability in Adam
 DEFAULT_WEIGHT_DECAY_ADAMW = 0.01  # Default weight decay for AdamW
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #8eabadea
+# %% ../../solutions/07_optimizers/optimizers.ipynb #5c85294d
 # Solution
+
 
 class Optimizer:
     """
@@ -52,7 +55,7 @@ class Optimizer:
     - step(): Update parameters based on gradients
     """
 
-    def __init__(self, params: List[Tensor]):
+    def __init__(self, params: list[Tensor]):
         """
         Initialize optimizer with parameters to optimize.
 
@@ -123,11 +126,13 @@ class Optimizer:
             f"                  param.data -= self.lr * param.grad.data"
         )
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #37344988
+# %% ../../solutions/07_optimizers/optimizers.ipynb #fd19d921
 # Solution
+
 
 class _ExtractGradientMixin:
     """Mixin added to Optimizer for gradient extraction."""
+
     def _extract_gradient(self, param: Tensor) -> np.ndarray:
         """
         Extract gradient data as a NumPy array from a parameter.
@@ -159,11 +164,13 @@ class _ExtractGradientMixin:
             return grad
         ### END SOLUTION
 
+
 # Attach _extract_gradient to Optimizer so all subclasses inherit it
 Optimizer._extract_gradient = _ExtractGradientMixin._extract_gradient
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #faa69c51
+# %% ../../solutions/07_optimizers/optimizers.ipynb #053fbab5
 # Solution
+
 
 class SGD(Optimizer):
     """
@@ -174,7 +181,13 @@ class SGD(Optimizer):
     previous updates to reduce oscillations and accelerate convergence.
     """
 
-    def __init__(self, params: List[Tensor], lr: float = DEFAULT_LEARNING_RATE_SGD, momentum: float = 0.0, weight_decay: float = 0.0):
+    def __init__(
+        self,
+        params: list[Tensor],
+        lr: float = DEFAULT_LEARNING_RATE_SGD,
+        momentum: float = 0.0,
+        weight_decay: float = 0.0,
+    ):
         """
         Initialize SGD optimizer.
 
@@ -220,7 +233,7 @@ class SGD(Optimizer):
         """
         return self.momentum > 0
 
-    def get_momentum_state(self) -> Optional[List]:
+    def get_momentum_state(self) -> list | None:
         """
         Get momentum buffers for checkpointing.
 
@@ -239,10 +252,9 @@ class SGD(Optimizer):
         """
         if not self.has_momentum():
             return None
-        return [buf.copy() if buf is not None else None
-                for buf in self.momentum_buffers]
+        return [buf.copy() if buf is not None else None for buf in self.momentum_buffers]
 
-    def set_momentum_state(self, state: Optional[List]) -> None:
+    def set_momentum_state(self, state: list | None) -> None:
         """
         Restore momentum buffers from checkpointing.
 
@@ -328,8 +340,9 @@ class SGD(Optimizer):
         self.step_count += 1
         ### END SOLUTION
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #8315020a
+# %% ../../solutions/07_optimizers/optimizers.ipynb #b54c5d6f
 # Solution
+
 
 class Adam(Optimizer):
     """
@@ -340,7 +353,14 @@ class Adam(Optimizer):
     This makes it effective for problems with sparse gradients or noisy data.
     """
 
-    def __init__(self, params: List[Tensor], lr: float = DEFAULT_LEARNING_RATE_ADAM, betas: tuple = (DEFAULT_BETA1, DEFAULT_BETA2), eps: float = DEFAULT_EPS, weight_decay: float = 0.0):
+    def __init__(
+        self,
+        params: list[Tensor],
+        lr: float = DEFAULT_LEARNING_RATE_ADAM,
+        betas: tuple = (DEFAULT_BETA1, DEFAULT_BETA2),
+        eps: float = DEFAULT_EPS,
+        weight_decay: float = 0.0,
+    ):
         """
         Initialize Adam optimizer.
 
@@ -373,11 +393,13 @@ class Adam(Optimizer):
         self.v_buffers = [None for _ in self.params]  # Second moment (variance)
         ### END SOLUTION
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #829f06bc
+# %% ../../solutions/07_optimizers/optimizers.ipynb #58ef8fdd
 # Solution
+
 
 class _AdamUpdateMomentsMixin:
     """Mixin added to Adam for moment updates."""
+
     def _update_moments(self, i: int, grad_data: np.ndarray) -> tuple:
         """
         Update first and second moment estimates with bias correction.
@@ -414,11 +436,11 @@ class _AdamUpdateMomentsMixin:
         self.m_buffers[i] = self.beta1 * self.m_buffers[i] + (1 - self.beta1) * grad_data
 
         # Update biased second moment estimate
-        self.v_buffers[i] = self.beta2 * self.v_buffers[i] + (1 - self.beta2) * (grad_data ** 2)
+        self.v_buffers[i] = self.beta2 * self.v_buffers[i] + (1 - self.beta2) * (grad_data**2)
 
         # Compute bias correction
-        bias_correction1 = 1 - self.beta1 ** self.step_count
-        bias_correction2 = 1 - self.beta2 ** self.step_count
+        bias_correction1 = 1 - self.beta1**self.step_count
+        bias_correction2 = 1 - self.beta2**self.step_count
 
         # Compute bias-corrected moments
         m_hat = self.m_buffers[i] / bias_correction1
@@ -427,14 +449,17 @@ class _AdamUpdateMomentsMixin:
         return m_hat, v_hat
         ### END SOLUTION
 
+
 # Attach _update_moments to Adam
 Adam._update_moments = _AdamUpdateMomentsMixin._update_moments
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #7d58632a
+# %% ../../solutions/07_optimizers/optimizers.ipynb #2e029085
 # Solution
+
 
 class _AdamStepMixin:
     """Mixin added to Adam for step method."""
+
     def step(self):
         """
         Perform Adam update step by composing helpers.
@@ -479,11 +504,13 @@ class _AdamStepMixin:
             param.data = param.data - self.lr * m_hat / (np.sqrt(v_hat) + self.eps)
         ### END SOLUTION
 
+
 # Attach step to Adam
 Adam.step = _AdamStepMixin.step
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #4e503538
+# %% ../../solutions/07_optimizers/optimizers.ipynb #48d8030f
 # Solution
+
 
 class AdamW(Optimizer):
     """
@@ -494,7 +521,14 @@ class AdamW(Optimizer):
     regularization and is the preferred version for most applications.
     """
 
-    def __init__(self, params: List[Tensor], lr: float = DEFAULT_LEARNING_RATE_ADAM, betas: tuple = (DEFAULT_BETA1, DEFAULT_BETA2), eps: float = DEFAULT_EPS, weight_decay: float = DEFAULT_WEIGHT_DECAY_ADAMW):
+    def __init__(
+        self,
+        params: list[Tensor],
+        lr: float = DEFAULT_LEARNING_RATE_ADAM,
+        betas: tuple = (DEFAULT_BETA1, DEFAULT_BETA2),
+        eps: float = DEFAULT_EPS,
+        weight_decay: float = DEFAULT_WEIGHT_DECAY_ADAMW,
+    ):
         """
         Initialize AdamW optimizer.
 
@@ -525,11 +559,13 @@ class AdamW(Optimizer):
         self.v_buffers = [None for _ in self.params]
         ### END SOLUTION
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #851b8c34
+# %% ../../solutions/07_optimizers/optimizers.ipynb #531a70a4
 # Solution
+
 
 class _AdamWUpdateMomentsMixin:
     """Mixin added to AdamW for moment updates."""
+
     def _update_moments(self, i: int, grad_data: np.ndarray) -> tuple:
         """
         Update first and second moment estimates with bias correction for AdamW.
@@ -562,11 +598,11 @@ class _AdamWUpdateMomentsMixin:
         self.m_buffers[i] = self.beta1 * self.m_buffers[i] + (1 - self.beta1) * grad_data
 
         # Update biased second moment estimate
-        self.v_buffers[i] = self.beta2 * self.v_buffers[i] + (1 - self.beta2) * (grad_data ** 2)
+        self.v_buffers[i] = self.beta2 * self.v_buffers[i] + (1 - self.beta2) * (grad_data**2)
 
         # Compute bias correction
-        bias_correction1 = 1 - self.beta1 ** self.step_count
-        bias_correction2 = 1 - self.beta2 ** self.step_count
+        bias_correction1 = 1 - self.beta1**self.step_count
+        bias_correction2 = 1 - self.beta2**self.step_count
 
         # Compute bias-corrected moments
         m_hat = self.m_buffers[i] / bias_correction1
@@ -575,14 +611,17 @@ class _AdamWUpdateMomentsMixin:
         return m_hat, v_hat
         ### END SOLUTION
 
+
 # Attach _update_moments to AdamW
 AdamW._update_moments = _AdamWUpdateMomentsMixin._update_moments
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #05ac31db
+# %% ../../solutions/07_optimizers/optimizers.ipynb #fc37918a
 # Solution
+
 
 class _AdamWStepMixin:
     """Mixin added to AdamW for step method."""
+
     def step(self):
         """
         Perform AdamW update step by composing helpers with decoupled weight decay.
@@ -626,6 +665,7 @@ class _AdamWStepMixin:
             if self.weight_decay != 0:
                 param.data = param.data * (1 - self.lr * self.weight_decay)
         ### END SOLUTION
+
 
 # Attach step to AdamW
 AdamW.step = _AdamWStepMixin.step

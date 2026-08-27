@@ -19,18 +19,21 @@ __all__ = ['rng', 'INT8_MIN_VALUE', 'INT8_MAX_VALUE', 'INT8_RANGE', 'EPSILON', '
            'MB_TO_BYTES', 'quantize_int8', 'dequantize_int8', 'QuantizedLinear', 'quantize_model', 'Quantizer',
            'verify_quantization_works']
 
-# %% ../../solutions/15_quantization/quantization.ipynb #a26d011c
+# %% ../../solutions/15_quantization/quantization.ipynb #789e0b68
 import os
+
 import numpy as np
+
 rng = np.random.default_rng(7)
 import time
-from typing import Tuple, Dict, List, Optional
 import warnings
+from typing import Dict, List, Optional, Tuple
+
+from ..core.activations import ReLU
+from ..core.layers import Linear, Sequential
 
 # Import dependencies from other modules
 from ..core.tensor import Tensor
-from ..core.layers import Linear, Sequential
-from ..core.activations import ReLU
 
 # Constants for INT8 quantization
 INT8_MIN_VALUE = -128
@@ -46,10 +49,11 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 if __name__ == "__main__":
     print("Quantization module imports complete")
 
-# %% ../../solutions/15_quantization/quantization.ipynb #c0f7e921
+# %% ../../solutions/15_quantization/quantization.ipynb #33b32f21
 # Solution
 
-def quantize_int8(tensor: Tensor) -> Tuple[Tensor, float, int]:
+
+def quantize_int8(tensor: Tensor) -> tuple[Tensor, float, int]:
     """
     Quantize FP32 tensor to INT8 using asymmetric (min-max) quantization.
 
@@ -126,8 +130,9 @@ def quantize_int8(tensor: Tensor) -> Tuple[Tensor, float, int]:
     return Tensor(quantized_data), scale, zero_point
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #4b997f86
+# %% ../../solutions/15_quantization/quantization.ipynb #d99d845f
 # Solution
+
 
 def dequantize_int8(q_tensor: Tensor, scale: float, zero_point: int) -> Tensor:
     """
@@ -165,8 +170,9 @@ def dequantize_int8(q_tensor: Tensor, scale: float, zero_point: int) -> Tensor:
     return Tensor(dequantized_data)
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #c51c1519
+# %% ../../solutions/15_quantization/quantization.ipynb #0a5d51f9
 # Solution
+
 
 class QuantizedLinear:
     """Quantized version of Linear layer using INT8 arithmetic."""
@@ -215,7 +221,7 @@ class QuantizedLinear:
         self.input_zero_point = None
         ### END SOLUTION
 
-    def calibrate(self, sample_inputs: List[Tensor]):
+    def calibrate(self, sample_inputs: list[Tensor]):
         """
         Calibrate input quantization parameters using sample data.
 
@@ -307,14 +313,14 @@ class QuantizedLinear:
         """Allows the quantized linear layer to be called like a function."""
         return self.forward(x)
 
-    def parameters(self) -> List[Tensor]:
+    def parameters(self) -> list[Tensor]:
         """Return quantized parameters."""
         params = [self.q_weight]
         if self.q_bias is not None:
             params.append(self.q_bias)
         return params
 
-    def memory_usage(self) -> Dict[str, float]:
+    def memory_usage(self) -> dict[str, float]:
         """Calculate memory usage in bytes."""
         ### BEGIN SOLUTION
         # Original FP32 usage
@@ -337,16 +343,19 @@ class QuantizedLinear:
         original_total = original_weight_bytes + original_bias_bytes
 
         return {
-            'original_bytes': original_total,
-            'quantized_bytes': quantized_total,
-            'compression_ratio': original_total / quantized_total if quantized_total > 0 else 1.0
+            "original_bytes": original_total,
+            "quantized_bytes": quantized_total,
+            "compression_ratio": original_total / quantized_total if quantized_total > 0 else 1.0,
         }
         ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #6bdda438
+# %% ../../solutions/15_quantization/quantization.ipynb #375e8524
 # Solution
 
-def _collect_layer_inputs(model, layer_index: int, calibration_data: List[Tensor], max_samples: int = 10) -> List[Tensor]:
+
+def _collect_layer_inputs(
+    model, layer_index: int, calibration_data: list[Tensor], max_samples: int = 10
+) -> list[Tensor]:
     """
     Forward calibration data through preceding layers to collect inputs for a specific layer.
 
@@ -386,10 +395,11 @@ def _collect_layer_inputs(model, layer_index: int, calibration_data: List[Tensor
     return sample_inputs
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #f92dceca
+# %% ../../solutions/15_quantization/quantization.ipynb #1c2f65ed
 # Solution
 
-def _quantize_single_layer(layer: Linear, calibration_inputs: Optional[List[Tensor]] = None) -> QuantizedLinear:
+
+def _quantize_single_layer(layer: Linear, calibration_inputs: list[Tensor] | None = None) -> QuantizedLinear:
     """
     Quantize a single Linear layer and optionally calibrate it.
 
@@ -426,10 +436,11 @@ def _quantize_single_layer(layer: Linear, calibration_inputs: Optional[List[Tens
     return quantized_layer
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #3af08797
+# %% ../../solutions/15_quantization/quantization.ipynb #f97a61f9
 # Solution
 
-def quantize_model(model, calibration_data: Optional[List[Tensor]] = None) -> None:
+
+def quantize_model(model, calibration_data: list[Tensor] | None = None) -> None:
     """
     Quantize all Linear layers in a model in-place.
 
@@ -461,7 +472,7 @@ def quantize_model(model, calibration_data: Optional[List[Tensor]] = None) -> No
     - Use _quantize_single_layer() to create the replacement
     """
     ### BEGIN SOLUTION
-    if hasattr(model, 'layers'):
+    if hasattr(model, "layers"):
         for i, layer in enumerate(model.layers):
             if isinstance(layer, Linear):
                 # Collect calibration inputs if data provided
@@ -474,10 +485,10 @@ def quantize_model(model, calibration_data: Optional[List[Tensor]] = None) -> No
 
     elif isinstance(model, Linear):
         raise ValueError(
-            f"Cannot quantize single Linear layer in-place\n"
-            f"  ❌ quantize_model() modifies models in-place, but a single layer has no container to modify\n"
-            f"  💡 In-place modification requires a container (like Sequential) that holds layer references\n"
-            f"  🔧 Use QuantizedLinear directly: quantized_layer = QuantizedLinear(your_linear_layer)"
+            "Cannot quantize single Linear layer in-place\n"
+            "  ❌ quantize_model() modifies models in-place, but a single layer has no container to modify\n"
+            "  💡 In-place modification requires a container (like Sequential) that holds layer references\n"
+            "  🔧 Use QuantizedLinear directly: quantized_layer = QuantizedLinear(your_linear_layer)"
         )
 
     else:
@@ -489,7 +500,7 @@ def quantize_model(model, calibration_data: Optional[List[Tensor]] = None) -> No
         )
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #38d47475
+# %% ../../solutions/15_quantization/quantization.ipynb #cc3d144d
 class Quantizer:
     """
     Complete quantization system for milestone use.
@@ -505,7 +516,7 @@ class Quantizer:
     """
 
     @staticmethod
-    def quantize_tensor(tensor: Tensor) -> Tuple[Tensor, float, int]:
+    def quantize_tensor(tensor: Tensor) -> tuple[Tensor, float, int]:
         """Quantize FP32 tensor to INT8. Delegates to quantize_int8()."""
         return quantize_int8(tensor)
 
@@ -515,7 +526,7 @@ class Quantizer:
         return dequantize_int8(q_tensor, scale, zero_point)
 
     @staticmethod
-    def quantize_model(model, calibration_data: Optional[List[Tensor]] = None) -> Dict[str, any]:
+    def quantize_model(model, calibration_data: list[Tensor] | None = None) -> dict[str, any]:
         """
         Quantize all Linear layers in a model and return stats.
 
@@ -540,11 +551,11 @@ class Quantizer:
                 # Quantize parameter using the standalone function
                 q_param, scale, zp = quantize_int8(param)
 
-                quantized_layers[f'param_{param_idx}'] = {
-                    'quantized': q_param,
-                    'scale': scale,
-                    'zero_point': zp,
-                    'original_shape': param.data.shape
+                quantized_layers[f"param_{param_idx}"] = {
+                    "quantized": q_param,
+                    "scale": scale,
+                    "zero_point": zp,
+                    "original_shape": param.data.shape,
                 }
                 param_idx += 1
 
@@ -552,26 +563,27 @@ class Quantizer:
         quantized_size = total_elements
 
         return {
-            'quantized_layers': quantized_layers,
-            'original_size_mb': original_size / MB_TO_BYTES,
-            'quantized_size_mb': quantized_size / MB_TO_BYTES,
-            'compression_ratio': original_size / quantized_size if quantized_size > 0 else 1.0
+            "quantized_layers": quantized_layers,
+            "original_size_mb": original_size / MB_TO_BYTES,
+            "quantized_size_mb": quantized_size / MB_TO_BYTES,
+            "compression_ratio": original_size / quantized_size if quantized_size > 0 else 1.0,
         }
 
     @staticmethod
-    def compare_models(original_model, quantized_info: Dict) -> Dict[str, float]:
+    def compare_models(original_model, quantized_info: dict) -> dict[str, float]:
         """Compare memory usage between original and quantized models."""
         return {
-            'original_mb': quantized_info['original_size_mb'],
-            'quantized_mb': quantized_info['quantized_size_mb'],
-            'compression_ratio': quantized_info['compression_ratio'],
-            'memory_saved_mb': quantized_info['original_size_mb'] - quantized_info['quantized_size_mb']
+            "original_mb": quantized_info["original_size_mb"],
+            "quantized_mb": quantized_info["quantized_size_mb"],
+            "compression_ratio": quantized_info["compression_ratio"],
+            "memory_saved_mb": quantized_info["original_size_mb"] - quantized_info["quantized_size_mb"],
         }
+
 
 # Note: quantize_int8, dequantize_int8, and quantize_model are defined earlier in this module.
 # The Quantizer class above delegates to those functions, providing an OOP interface for milestones.
 
-# %% ../../solutions/15_quantization/quantization.ipynb #1052211e
+# %% ../../solutions/15_quantization/quantization.ipynb #247d458e
 def verify_quantization_works(original_model, quantized_model):
     """
     Verify quantization actually reduces memory using real .nbytes measurements.
@@ -597,8 +609,9 @@ def verify_quantization_works(original_model, quantized_model):
 
     # Collect actual bytes from original FP32 model
     original_bytes = sum(
-        param.data.nbytes for param in original_model.parameters()
-        if hasattr(param, 'data') and hasattr(param.data, 'nbytes')
+        param.data.nbytes
+        for param in original_model.parameters()
+        if hasattr(param, "data") and hasattr(param.data, "nbytes")
     )
 
     # Collect actual bytes from quantized INT8 model
@@ -623,8 +636,8 @@ def verify_quantization_works(original_model, quantized_model):
     print(f"\nVERIFIED: Quantization achieves real {actual_reduction:.1f}x memory reduction!")
 
     return {
-        'actual_reduction': actual_reduction,
-        'original_mb': original_bytes / MB_TO_BYTES,
-        'quantized_mb': quantized_bytes / MB_TO_BYTES,
-        'verified': actual_reduction >= 3.5
+        "actual_reduction": actual_reduction,
+        "original_mb": original_bytes / MB_TO_BYTES,
+        "quantized_mb": quantized_bytes / MB_TO_BYTES,
+        "verified": actual_reduction >= 3.5,
     }

@@ -18,18 +18,19 @@
 __all__ = ['KB_TO_BYTES', 'Tokenizer', 'CharTokenizer', 'BPETokenizer', 'create_tokenizer', 'tokenize_dataset',
            'analyze_tokenization']
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #560ebbd1
+# %% ../../solutions/10_tokenization/tokenization.ipynb #75ff765d
+import os
 from collections import Counter
 from typing import Dict, List, Optional, Set, Tuple
 
-import os
 import numpy as np
 
 # Constants for memory calculations
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #373a657d
+# %% ../../solutions/10_tokenization/tokenization.ipynb #c69d9c09
 # Solution
+
 
 class Tokenizer:
     """
@@ -41,10 +42,10 @@ class Tokenizer:
     """
 
     # Predefined symbolic tokens for common use cases
-    TOK_UNKNOWN = '<UNK>'   # UNKNOWN
-    TOK_EOW = '</w>'        # END OF WORD
+    TOK_UNKNOWN = "<UNK>"  # UNKNOWN
+    TOK_EOW = "</w>"  # END OF WORD
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str) -> list[int]:
         """
         Convert text to a list of token IDs.
 
@@ -68,7 +69,7 @@ class Tokenizer:
         )
         ### END SOLUTION
 
-    def decode(self, tokens: List[int]) -> str:
+    def decode(self, tokens: list[int]) -> str:
         """
         Convert list of token IDs back to text.
 
@@ -92,8 +93,9 @@ class Tokenizer:
         )
         ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #b55de88c
+# %% ../../solutions/10_tokenization/tokenization.ipynb #ea60b530
 # Solution
+
 
 class CharTokenizer(Tokenizer):
     """
@@ -103,7 +105,7 @@ class CharTokenizer(Tokenizer):
     vocabulary gets its own unique ID.
     """
 
-    def __init__(self, vocab: Optional[List[str]] = None):
+    def __init__(self, vocab: list[str] | None = None):
         """
         Initialize character tokenizer.
 
@@ -135,7 +137,7 @@ class CharTokenizer(Tokenizer):
         self.unk_id = 0
         ### END SOLUTION
 
-    def build_vocab(self, corpus: List[str]) -> None:
+    def build_vocab(self, corpus: list[str]) -> None:
         """
         Build vocabulary from a corpus of text.
 
@@ -169,7 +171,7 @@ class CharTokenizer(Tokenizer):
         self.id_to_char = {idx: char for idx, char in enumerate(self.vocab)}
         ### END SOLUTION
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str) -> list[int]:
         """
         Encode text to list of character IDs.
 
@@ -192,7 +194,7 @@ class CharTokenizer(Tokenizer):
         return tokens
         ### END SOLUTION
 
-    def decode(self, tokens: List[int]) -> str:
+    def decode(self, tokens: list[int]) -> str:
         """
         Decode list of token IDs back to text.
 
@@ -214,13 +216,14 @@ class CharTokenizer(Tokenizer):
             # Use unknown token for invalid IDs
             char = self.id_to_char.get(token_id, Tokenizer.TOK_UNKNOWN)
             chars.append(char)
-        return ''.join(chars)
+        return "".join(chars)
         ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #9dcb2cc4
+# %% ../../solutions/10_tokenization/tokenization.ipynb #a44b8d70
 # Solution
 
-def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> Counter:
+
+def _count_byte_pairs(word_tokens: dict[str, list[str]], word_freq: Counter) -> Counter:
     """
     Count frequency of all adjacent token pairs across all words.
 
@@ -257,10 +260,11 @@ def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> 
     return pair_counts
     ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #7afd3fae
+# %% ../../solutions/10_tokenization/tokenization.ipynb #0a2c207e
 # Solution
 
-def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str:
+
+def _merge_pair(word_tokens: dict[str, list[str]], pair: tuple[str, str]) -> str:
     """
     Merge the most frequent pair in all word token lists.
 
@@ -297,9 +301,7 @@ def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str
         new_tokens = []
         i = 0
         while i < len(tokens):
-            if (i < len(tokens) - 1 and
-                tokens[i] == pair[0] and
-                tokens[i + 1] == pair[1]):
+            if i < len(tokens) - 1 and tokens[i] == pair[0] and tokens[i + 1] == pair[1]:
                 # Merge pair
                 new_tokens.append(merged_token)
                 i += 2
@@ -311,8 +313,9 @@ def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str
     return merged_token
     ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #b3c2420e
+# %% ../../solutions/10_tokenization/tokenization.ipynb #55be817e
 # Solution
+
 
 class BPETokenizer(Tokenizer):
     """
@@ -351,7 +354,7 @@ class BPETokenizer(Tokenizer):
         self.id_to_token = {}
         ### END SOLUTION
 
-    def _get_word_tokens(self, word: str) -> List[str]:
+    def _get_word_tokens(self, word: str) -> list[str]:
         """
         Convert word to list of characters with end-of-word marker.
 
@@ -377,7 +380,7 @@ class BPETokenizer(Tokenizer):
         return tokens
         ### END SOLUTION
 
-    def _get_pairs(self, word_tokens: List[str]) -> Set[Tuple[str, str]]:
+    def _get_pairs(self, word_tokens: list[str]) -> set[tuple[str, str]]:
         """
         Get all adjacent pairs from word tokens.
 
@@ -401,7 +404,7 @@ class BPETokenizer(Tokenizer):
         return pairs
         ### END SOLUTION
 
-    def train(self, corpus: List[str], vocab_size: int = None) -> None:
+    def train(self, corpus: list[str], vocab_size: int = None) -> None:
         """
         Train BPE on corpus to learn merge rules.
 
@@ -471,7 +474,7 @@ class BPETokenizer(Tokenizer):
         self.id_to_token = {idx: token for idx, token in enumerate(self.vocab)}
         ### END SOLUTION
 
-    def _apply_merges(self, tokens: List[str]) -> List[str]:
+    def _apply_merges(self, tokens: list[str]) -> list[str]:
         """
         Apply learned merge rules to token sequence.
 
@@ -497,9 +500,7 @@ class BPETokenizer(Tokenizer):
             new_tokens = []
             i = 0
             while i < len(tokens):
-                if (i < len(tokens) - 1 and
-                    tokens[i] == merge_pair[0] and
-                    tokens[i + 1] == merge_pair[1]):
+                if i < len(tokens) - 1 and tokens[i] == merge_pair[0] and tokens[i + 1] == merge_pair[1]:
                     # Apply merge
                     new_tokens.append(merge_pair[0] + merge_pair[1])
                     i += 2
@@ -511,7 +512,7 @@ class BPETokenizer(Tokenizer):
         return tokens
         ### END SOLUTION
 
-    def encode(self, text: str) -> List[int]:
+    def encode(self, text: str) -> list[int]:
         """
         Encode text using BPE.
 
@@ -558,7 +559,7 @@ class BPETokenizer(Tokenizer):
         return token_ids
         ### END SOLUTION
 
-    def decode(self, tokens: List[int]) -> str:
+    def decode(self, tokens: list[int]) -> str:
         """
         Decode token IDs back to text.
 
@@ -589,21 +590,22 @@ class BPETokenizer(Tokenizer):
             token_strings.append(token)
 
         # Join and clean up
-        text = ''.join(token_strings)
+        text = "".join(token_strings)
 
         # Replace end-of-word markers with spaces
-        text = text.replace(Tokenizer.TOK_EOW, ' ')
+        text = text.replace(Tokenizer.TOK_EOW, " ")
 
         # Clean up extra spaces
-        text = ' '.join(text.split())
+        text = " ".join(text.split())
 
         return text
         ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #e466df03
+# %% ../../solutions/10_tokenization/tokenization.ipynb #6b4fbb2a
 # Solution
 
-def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: List[str] = None) -> Tokenizer:
+
+def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: list[str] = None) -> Tokenizer:
     """
     Factory function to create and train tokenizers.
 
@@ -640,8 +642,9 @@ def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: Lis
     return tokenizer
     ### END SOLUTION
 
+
 #| export
-def tokenize_dataset(texts: List[str], tokenizer: Tokenizer, max_length: int = None) -> List[List[int]]:
+def tokenize_dataset(texts: list[str], tokenizer: Tokenizer, max_length: int = None) -> list[list[int]]:
     """
     Tokenize a dataset with optional length limits.
 
@@ -677,8 +680,9 @@ def tokenize_dataset(texts: List[str], tokenizer: Tokenizer, max_length: int = N
     return tokenized
     ### END SOLUTION
 
+
 #| export
-def analyze_tokenization(texts: List[str], tokenizer: Tokenizer) -> Dict[str, float]:
+def analyze_tokenization(texts: list[str], tokenizer: Tokenizer) -> dict[str, float]:
     """
     Analyze tokenization statistics.
 
@@ -715,12 +719,12 @@ def analyze_tokenization(texts: List[str], tokenizer: Tokenizer) -> Dict[str, fl
     tokenized_lengths = [len(tokenizer.encode(text)) for text in texts]
 
     stats = {
-        'vocab_size': tokenizer.vocab_size,
-        'avg_sequence_length': np.mean(tokenized_lengths),
-        'max_sequence_length': max(tokenized_lengths) if tokenized_lengths else 0,
-        'total_tokens': len(all_tokens),
-        'compression_ratio': total_chars / len(all_tokens) if all_tokens else 0,
-        'unique_tokens': len(set(all_tokens))
+        "vocab_size": tokenizer.vocab_size,
+        "avg_sequence_length": np.mean(tokenized_lengths),
+        "max_sequence_length": max(tokenized_lengths) if tokenized_lengths else 0,
+        "total_tokens": len(all_tokens),
+        "compression_ratio": total_chars / len(all_tokens) if all_tokens else 0,
+        "unique_tokens": len(set(all_tokens)),
     }
 
     return stats

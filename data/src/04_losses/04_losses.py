@@ -97,17 +97,14 @@ If you see import errors, make sure you've run `tren module complete` for each p
 #| export
 
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 from typing import Optional
 
-from trentorch.core.activations import ReLU
-from trentorch.core.layers import Linear
-
 # Import from TrenTorch package (previous modules must be completed and exported)
 from trentorch.core.tensor import Tensor
+from trentorch.core.activations import ReLU
+from trentorch.core.layers import Linear
 
 # Constants for numerical stability
 EPSILON = 1e-7  # Small value to prevent log(0) and numerical instability
@@ -133,9 +130,9 @@ Loss Landscape for MSE:
       ^
       |
    4  |  |       |
-      |   \\     /
+      |   \     /
    2  |    |   |
-      |     \\ /
+      |     \ /
    0  |______*______> Prediction Error
       0  -2  0  +2
 
@@ -271,10 +268,35 @@ logits - log(sum)              sum(exp(shifted))
 Both give the same result, but the stable version never overflows!
 """
 
+# %% nbgrader={"grade": false, "grade_id": "log-softmax", "solution": true}
+
+def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
+    """
+    Compute log-softmax with numerical stability.
+
+    TODO: Implement numerically stable log-softmax using the log-sum-exp trick
+
+    APPROACH:
+    1. Find maximum along dimension (for stability)
+    2. Subtract max from input (prevents overflow)
+    3. Compute log(sum(exp(shifted_input)))
+    4. Return input - max - log_sum_exp
+
+    EXAMPLE:
+    >>> logits = Tensor([[1.0, 2.0, 3.0], [0.1, 0.2, 0.9]])
+    >>> result = log_softmax(logits, dim=-1)
+    >>> print(result.shape)
+    (2, 3)
+
+    HINT: Use np.max(x.data, axis=dim, keepdims=True) to preserve dimensions
+    """
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement log_softmax")
+    ### END SOLUTION
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
     """
@@ -312,7 +334,6 @@ def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
     return Tensor(result)
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Log-Softmax
@@ -323,7 +344,6 @@ This test validates our log_softmax function works correctly with numerical stab
 **Why it matters**: Foundation for cross-entropy loss - must handle large values without overflow
 **Expected**: Stable results even with extreme inputs, softmax sums to 1
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-log-softmax", "locked": true, "points": 10}
 def test_unit_log_softmax():
@@ -349,7 +369,6 @@ def test_unit_log_softmax():
     assert not np.any(np.isinf(large_result.data)), "Inf values in result with large inputs"
 
     print("✅ log_softmax works correctly with numerical stability!")
-
 
 if __name__ == "__main__":
     test_unit_log_softmax()
@@ -417,10 +436,58 @@ Error Sensitivity Comparison:
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "mse-loss", "solution": true}
+
+class MSELoss:
+    """Mean Squared Error loss for regression tasks."""
+
+    def __init__(self):
+        """Initialize MSE loss function."""
+        pass
+
+    def forward(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        """
+        Compute mean squared error between predictions and targets.
+
+        TODO: Implement MSE loss calculation
+
+        APPROACH:
+        1. Compute difference: predictions - targets
+        2. Square the differences: diff²
+        3. Take mean across all elements
+
+        EXAMPLE:
+        >>> loss_fn = MSELoss()
+        >>> predictions = Tensor([1.0, 2.0, 3.0])
+        >>> targets = Tensor([1.5, 2.5, 2.8])
+        >>> loss = loss_fn(predictions, targets)
+        >>> print(f"MSE Loss: {loss.data:.4f}")
+        MSE Loss: 0.1800
+
+        HINTS:
+        - Use (predictions.data - targets.data) for element-wise difference
+        - Square with **2 or np.power(diff, 2)
+        - Use np.mean() to average over all elements
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement MSELoss.forward")
+        ### END SOLUTION
+
+    def __call__(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        """Allows the loss function to be called like a function."""
+        return self.forward(predictions, targets)
+
+    def backward(self) -> Tensor:
+        """
+        Compute gradients (placeholder — gradient computation is separate).
+
+        For now, this is a stub that students can ignore.
+        """
+        pass
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class MSELoss:
     """Mean Squared Error loss for regression tasks."""
@@ -458,7 +525,7 @@ class MSELoss:
         diff = predictions.data - targets.data
 
         # Step 2: Square the differences
-        squared_diff = diff**2
+        squared_diff = diff ** 2
 
         # Step 3: Take mean across all elements
         mse = np.mean(squared_diff)
@@ -478,7 +545,6 @@ class MSELoss:
         """
         pass
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: MSE Loss
@@ -489,7 +555,6 @@ This test validates our MSELoss implementation with various prediction scenarios
 **Why it matters**: MSE is the foundation for regression - must be mathematically correct
 **Expected**: Zero loss for perfect predictions, positive loss for errors, non-negative always
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-mse-loss", "locked": true, "points": 10}
 def test_unit_mse_loss():
@@ -502,9 +567,7 @@ def test_unit_mse_loss():
     predictions = Tensor([1.0, 2.0, 3.0])
     targets = Tensor([1.0, 2.0, 3.0])
     perfect_loss = loss_fn.forward(predictions, targets)
-    assert np.allclose(perfect_loss.data, 0.0, atol=EPSILON), (
-        f"Perfect predictions should have 0 loss, got {perfect_loss.data}"
-    )
+    assert np.allclose(perfect_loss.data, 0.0, atol=EPSILON), f"Perfect predictions should have 0 loss, got {perfect_loss.data}"
 
     # Test known case
     predictions = Tensor([1.0, 2.0, 3.0])
@@ -522,7 +585,6 @@ def test_unit_mse_loss():
     assert random_loss.data >= 0, f"MSE loss should be non-negative, got {random_loss.data}"
 
     print("✅ MSELoss works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_mse_loss()
@@ -613,10 +675,58 @@ Uses: CrossEntropyLoss            Uses: BinaryCrossEntropyLoss
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "cross-entropy-loss", "solution": true}
+
+class CrossEntropyLoss:
+    """Cross-entropy loss for multi-class classification."""
+
+    def __init__(self):
+        """Initialize cross-entropy loss function."""
+        pass
+
+    def forward(self, logits: Tensor, targets: Tensor) -> Tensor:
+        """
+        Compute cross-entropy loss between logits and target class indices.
+
+        TODO: Implement cross-entropy loss with numerical stability
+
+        APPROACH:
+        1. Compute log-softmax of logits (numerically stable)
+        2. Select log-probabilities for correct classes
+        3. Return negative mean of selected log-probabilities
+
+        EXAMPLE:
+        >>> loss_fn = CrossEntropyLoss()
+        >>> logits = Tensor([[2.0, 1.0, 0.1], [0.5, 1.5, 0.8]])  # 2 samples, 3 classes
+        >>> targets = Tensor([0, 1])  # First sample is class 0, second is class 1
+        >>> loss = loss_fn(logits, targets)
+        >>> print(f"Cross-Entropy Loss: {loss.data:.4f}")
+
+        HINTS:
+        - Use log_softmax() for numerical stability
+        - targets.data.astype(int) ensures integer indices
+        - Use np.arange(batch_size) for row indexing: log_probs[np.arange(batch_size), targets]
+        - Return negative mean: -np.mean(selected_log_probs)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement CrossEntropyLoss.forward")
+        ### END SOLUTION
+
+    def __call__(self, logits: Tensor, targets: Tensor) -> Tensor:
+        """Allows the loss function to be called like a function."""
+        return self.forward(logits, targets)
+
+    def backward(self) -> Tensor:
+        """
+        Compute gradients (placeholder — gradient computation is separate).
+
+        For now, this is a stub that students can ignore.
+        """
+        pass
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class CrossEntropyLoss:
     """Cross-entropy loss for multi-class classification."""
@@ -678,7 +788,6 @@ class CrossEntropyLoss:
         """
         pass
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Cross-Entropy Loss
@@ -689,7 +798,6 @@ This test validates our CrossEntropyLoss implementation with various confidence 
 **Why it matters**: CrossEntropy is the gold standard for classification - must handle all confidence levels
 **Expected**: Low loss for confident correct, high loss for confident wrong, numerical stability
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-cross-entropy-loss", "locked": true, "points": 10}
 def test_unit_cross_entropy_loss():
@@ -709,9 +817,7 @@ def test_unit_cross_entropy_loss():
     uniform_targets = Tensor([0, 1])
     uniform_loss = loss_fn.forward(uniform_logits, uniform_targets)
     expected_uniform_loss = np.log(3)  # log(3) ≈ 1.099 for 3 classes
-    assert np.allclose(uniform_loss.data, expected_uniform_loss, atol=0.1), (
-        f"Uniform predictions should have loss ≈ log(3) = {expected_uniform_loss:.3f}, got {uniform_loss.data:.3f}"
-    )
+    assert np.allclose(uniform_loss.data, expected_uniform_loss, atol=0.1), f"Uniform predictions should have loss ≈ log(3) = {expected_uniform_loss:.3f}, got {uniform_loss.data:.3f}"
 
     # Test that wrong confident predictions have high loss
     wrong_logits = Tensor([[10.0, -10.0, -10.0], [-10.0, -10.0, 10.0]])  # Confident but wrong
@@ -727,7 +833,6 @@ def test_unit_cross_entropy_loss():
     assert not np.isinf(large_loss.data), "Loss should not be infinite with large logits"
 
     print("✅ CrossEntropyLoss works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_cross_entropy_loss()
@@ -834,10 +939,57 @@ Message: "Be confident about positive class, uncertain is okay,
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "binary-cross-entropy-loss", "solution": true}
+
+class BinaryCrossEntropyLoss:
+    """Binary cross-entropy loss for binary classification."""
+
+    def __init__(self):
+        """Initialize binary cross-entropy loss function."""
+        pass
+
+    def forward(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        """
+        Compute binary cross-entropy loss.
+
+        TODO: Implement binary cross-entropy with numerical stability
+
+        APPROACH:
+        1. Clamp predictions to avoid log(0) and log(1)
+        2. Compute: -(targets * log(predictions) + (1-targets) * log(1-predictions))
+        3. Return mean across all samples
+
+        EXAMPLE:
+        >>> loss_fn = BinaryCrossEntropyLoss()
+        >>> predictions = Tensor([0.9, 0.1, 0.7, 0.3])  # Probabilities between 0 and 1
+        >>> targets = Tensor([1.0, 0.0, 1.0, 0.0])      # Binary labels
+        >>> loss = loss_fn(predictions, targets)
+        >>> print(f"Binary Cross-Entropy Loss: {loss.data:.4f}")
+
+        HINTS:
+        - Use np.clip(predictions.data, 1e-7, 1-1e-7) to prevent log(0)
+        - Binary cross-entropy: -(targets * log(preds) + (1-targets) * log(1-preds))
+        - Use np.mean() to average over all samples
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement BinaryCrossEntropyLoss.forward")
+        ### END SOLUTION
+
+    def __call__(self, predictions: Tensor, targets: Tensor) -> Tensor:
+        """Allows the loss function to be called like a function."""
+        return self.forward(predictions, targets)
+
+    def backward(self) -> Tensor:
+        """
+        Compute gradients (placeholder — gradient computation is separate).
+
+        For now, this is a stub that students can ignore.
+        """
+        pass
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class BinaryCrossEntropyLoss:
     """Binary cross-entropy loss for binary classification."""
@@ -899,7 +1051,6 @@ class BinaryCrossEntropyLoss:
         """
         pass
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Binary Cross-Entropy Loss
@@ -910,7 +1061,6 @@ This test validates our BinaryCrossEntropyLoss implementation with binary classi
 **Why it matters**: BCE is essential for binary classification - must handle edge cases
 **Expected**: Low loss for correct predictions, high loss for wrong predictions, numerical stability at boundaries
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-binary-cross-entropy-loss", "locked": true, "points": 10}
 def test_unit_binary_cross_entropy_loss():
@@ -936,9 +1086,7 @@ def test_unit_binary_cross_entropy_loss():
     uniform_targets = Tensor([1.0, 0.0, 1.0, 0.0])
     uniform_loss = loss_fn.forward(uniform_predictions, uniform_targets)
     expected_uniform = -np.log(0.5)  # Should be about 0.693
-    assert np.allclose(uniform_loss.data, expected_uniform, atol=0.01), (
-        f"Uniform predictions should have loss ≈ {expected_uniform:.3f}, got {uniform_loss.data:.3f}"
-    )
+    assert np.allclose(uniform_loss.data, expected_uniform, atol=0.01), f"Uniform predictions should have loss ≈ {expected_uniform:.3f}, got {uniform_loss.data:.3f}"
 
     # Test numerical stability at boundaries
     boundary_predictions = Tensor([0.0, 1.0, 0.0, 1.0])
@@ -948,7 +1096,6 @@ def test_unit_binary_cross_entropy_loss():
     assert not np.isinf(boundary_loss.data), "Loss should not be infinite at boundaries"
 
     print("✅ BinaryCrossEntropyLoss works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_binary_cross_entropy_loss()
@@ -1002,7 +1149,6 @@ MSE: Quadratic growth, manageable with outliers
 BCE/CE: Logarithmic growth, explodes with confident wrong predictions
 ```
 """
-
 
 # %% nbgrader={"grade": false, "grade_id": "loss-comparison", "solution": true}
 def analyze_loss_behaviors():
@@ -1088,21 +1234,20 @@ def analyze_loss_sensitivity():
 
     idx_05 = np.argmin(np.abs(predictions - 0.5))
 
-    print("MSE Loss:")
+    print(f"MSE Loss:")
     print(f"  Minimum at prediction = {predictions[min_mse_idx]:.2f}, loss = {mse_losses[min_mse_idx]:.4f}")
     print(f"  At prediction = 0.5: loss = {mse_losses[idx_05]:.4f}")
     print(f"  At prediction = 0.1: loss = {mse_losses[0]:.4f}")
 
-    print("\nBinary Cross-Entropy Loss:")
+    print(f"\nBinary Cross-Entropy Loss:")
     print(f"  Minimum at prediction = {predictions[min_bce_idx]:.2f}, loss = {bce_losses[min_bce_idx]:.4f}")
     print(f"  At prediction = 0.5: loss = {bce_losses[idx_05]:.4f}")
     print(f"  At prediction = 0.1: loss = {bce_losses[0]:.4f}")
 
-    print("\n💡 Sensitivity Insights:")
+    print(f"\n💡 Sensitivity Insights:")
     print("   - MSE grows quadratically with error distance")
     print("   - BCE grows logarithmically, heavily penalizing wrong confident predictions")
     print("   - Both encourage correct predictions but with different curvatures")
-
 
 # Run integration analysis when developing
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1181,7 +1326,6 @@ Memory: 3*B*sizeof(float)            │ log + index
 ```
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "analyze-numerical-stability", "solution": true}
 def analyze_numerical_stability():
     """
@@ -1196,7 +1340,7 @@ def analyze_numerical_stability():
         ("Small logits", [1.0, 2.0, 3.0]),
         ("Medium logits", [10.0, 20.0, 30.0]),
         ("Large logits", [100.0, 200.0, 300.0]),
-        ("Very large logits", [500.0, 600.0, 700.0]),
+        ("Very large logits", [500.0, 600.0, 700.0])
     ]
 
     print("\nLog-Softmax Stability Test:")
@@ -1213,11 +1357,9 @@ def analyze_numerical_stability():
         min_output = np.min(stable_result.data)
         is_stable = not (np.any(np.isnan(stable_result.data)) or np.any(np.isinf(stable_result.data)))
 
-        print(
-            f"{case_name:20} | {max_input:8.0f} | {min_output:15.3f} | {'✅ Yes' if is_stable else '❌ No'}"
-        )
+        print(f"{case_name:20} | {max_input:8.0f} | {min_output:15.3f} | {'✅ Yes' if is_stable else '❌ No'}")
 
-    print("\n💡 Key Insight: Log-sum-exp trick prevents overflow")
+    print(f"\n💡 Key Insight: Log-sum-exp trick prevents overflow")
     print("   Without it: exp(700) would cause overflow in standard softmax")
     print("   With it: We can handle arbitrarily large logits safely")
 
@@ -1257,16 +1399,15 @@ def analyze_loss_memory():
         bce_elements = batch_size * 1
         bce_memory = bce_elements * bytes_per_float * 2 / 1e6
 
-        notes = "Linear scaling" if batch_size == 32 else f"{batch_size // 32}× first"
+        notes = "Linear scaling" if batch_size == 32 else f"{batch_size//32}× first"
 
         print(f"{batch_size:10} | {mse_memory:8.2f} | {ce_memory:13.2f} | {bce_memory:7.2f} | {notes}")
 
-    print("\n💡 Memory Insights:")
+    print(f"\n💡 Memory Insights:")
     print("   - CrossEntropy dominates due to large vocabulary (num_classes)")
     print("   - Memory scales linearly with batch size")
     print("   - Intermediate activations (softmax) double CE memory")
     print(f"   - For batch=1024, CE needs {ce_memory:.1f}MB just for loss computation")
-
 
 # Run systems analysis when developing
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1332,7 +1473,6 @@ Common Production Optimizations:
 ```
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "analyze-production-patterns", "solution": true}
 def analyze_production_patterns():
     """
@@ -1349,7 +1489,7 @@ def analyze_production_patterns():
         ("Computer Vision", "CrossEntropy", "Image classification", "1000+ classes, large batches"),
         ("NLP Translation", "CrossEntropy", "Next token prediction", "50k+ vocabulary"),
         ("Medical Diagnosis", "BCE", "Disease probability", "Class imbalance critical"),
-        ("Financial Trading", "MSE/Huber", "Price prediction", "Outlier robustness needed"),
+        ("Financial Trading", "MSE/Huber", "Price prediction", "Outlier robustness needed")
     ]
 
     print("System Type          | Loss Type    | Use Case              | Scale Challenge")
@@ -1360,14 +1500,10 @@ def analyze_production_patterns():
     print("\n2. Engineering Trade-offs:")
 
     trade_offs = [
-        (
-            "CrossEntropy vs Label Smoothing",
-            "Stability vs Confidence",
-            "Label smoothing prevents overconfident predictions",
-        ),
+        ("CrossEntropy vs Label Smoothing", "Stability vs Confidence", "Label smoothing prevents overconfident predictions"),
         ("MSE vs Huber Loss", "Sensitivity vs Robustness", "Huber is less sensitive to outliers"),
         ("Full Softmax vs Sampled", "Accuracy vs Speed", "Hierarchical softmax for large vocabularies"),
-        ("Per-Sample vs Batch Loss", "Accuracy vs Memory", "Batch computation is more memory efficient"),
+        ("Per-Sample vs Batch Loss", "Accuracy vs Memory", "Batch computation is more memory efficient")
     ]
 
     print("\nTrade-off                    | Spectrum              | Production Decision")
@@ -1380,7 +1516,6 @@ def analyze_production_patterns():
     print("   - Batch computation is 10-100× more efficient than per-sample")
     print("   - Numerical stability becomes critical at scale (FP16 training)")
     print("   - Loss computation is often <5% of total training time")
-
 
 # Run production analysis when developing
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1428,7 +1563,7 @@ def test_module():
 
     # 1. MSE for regression (house price prediction)
     house_predictions = Tensor([250.0, 180.0, 320.0, 400.0])  # Predicted prices in thousands
-    house_actual = Tensor([245.0, 190.0, 310.0, 420.0])  # Actual prices
+    house_actual = Tensor([245.0, 190.0, 310.0, 420.0])       # Actual prices
     mse_loss = MSELoss()
     house_loss = mse_loss.forward(house_predictions, house_actual)
     assert house_loss.data > 0, "House price loss should be positive"
@@ -1726,7 +1861,6 @@ Autograd computes gradients of this loss—the direction to adjust weights
 to make predictions better!
 """
 
-
 # %%
 def demo_losses():
     """🎯 See how loss responds to prediction quality."""
@@ -1754,7 +1888,6 @@ def demo_losses():
 
     print("\n✨ Lower loss = better predictions! Training minimizes this.")
 
-
 # %%
 if __name__ == "__main__":
     if os.environ.get("CI") == "true":
@@ -1768,9 +1901,7 @@ if __name__ == "__main__":
         # coverage here. Skipping both keeps the actual
         # verification (every individual test above) while
         # cutting the redundant full re-run.
-        print(
-            "\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant)."
-        )
+        print("\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant).")
     else:
         test_module()
         print("\n")

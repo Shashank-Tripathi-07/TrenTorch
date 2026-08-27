@@ -62,9 +62,7 @@ from trentorch.core.activations import ReLU, Sigmoid  # Module 02 - intelligence
 #| export
 
 import os
-
 import numpy as np
-
 # Module-level RNG is seeded so Linear weight init is deterministic by default.
 # This is what the integration test suite (and any cross-run reproducibility)
 # relies on. Demo scripts that want fresh weights every run rebind this name
@@ -73,8 +71,8 @@ import numpy as np
 rng = np.random.default_rng(7)
 
 # Import from TrenTorch package (previous modules must be completed and exported)
-from trentorch.core.activations import ReLU, Sigmoid
 from trentorch.core.tensor import Tensor
+from trentorch.core.activations import ReLU, Sigmoid
 
 # Constants for weight initialization
 # Note: True Xavier/Glorot uses sqrt(2/(fan_in+fan_out)), but we use the simpler
@@ -192,7 +190,6 @@ Let's build our layer system step by step. We'll implement two essential layer t
 All neural network layers share common functionality: forward pass, parameter management, and callable interface. The base Layer class provides this consistent interface.
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "layer-base", "solution": true}
 #| export
 class Layer:
@@ -243,7 +240,6 @@ class Layer:
         """String representation of the layer."""
         return f"{self.__class__.__name__}()"
 
-
 # %% [markdown]
 """
 ### 🏗️ Linear Layer - The Foundation of Neural Networks
@@ -288,10 +284,107 @@ Linear(784, 256) Parameters:
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "linear-layer", "solution": true}
+
+class Linear(Layer):
+    """
+    Linear (fully connected) layer: y = xW + b
+
+    This is the fundamental building block of neural networks.
+    Applies a linear transformation to incoming data.
+    """
+
+    def __init__(self, in_features, out_features, bias=True):
+        """
+        Initialize linear layer with proper weight initialization.
+
+        TODO: Initialize weights and bias with proper scaling
+
+        APPROACH:
+        1. Create weight matrix (in_features, out_features) with LeCun scaling
+        2. Create bias vector (out_features,) initialized to zeros if bias=True
+        3. Store as Tensor objects for use in forward pass
+
+        EXAMPLE:
+        >>> layer = Linear(784, 10)  # MNIST classifier final layer
+        >>> print(layer.weight.shape)
+        (784, 10)
+        >>> print(layer.bias.shape)
+        (10,)
+
+        HINTS:
+        - LeCun-style init: scale = sqrt(1/in_features)
+        - Use rng.standard_normal() for normal distribution
+        - bias=None when bias=False
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Linear.__init__")
+        ### END SOLUTION
+
+    def forward(self, x):
+        """
+        Forward pass through linear layer.
+
+        TODO: Implement y = xW + b
+
+        APPROACH:
+        1. Matrix multiply input with weights: xW
+        2. Add bias if it exists
+        3. Return result as new Tensor
+
+        EXAMPLE:
+        >>> layer = Linear(3, 2)
+        >>> x = Tensor([[1, 2, 3], [4, 5, 6]])  # 2 samples, 3 features
+        >>> y = layer.forward(x)
+        >>> print(y.shape)
+        (2, 2)  # 2 samples, 2 outputs
+
+        HINTS:
+        - Use tensor.matmul() for matrix multiplication
+        - Handle bias=None case
+        - Broadcasting automatically handles bias addition
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Linear.forward")
+        ### END SOLUTION
+
+    def parameters(self):
+        """
+        Return list of trainable parameters.
+
+        TODO: Return all tensors that need gradients
+
+        APPROACH:
+        1. Start with weight (always present)
+        2. Add bias if it exists
+        3. Return as list for optimizer
+
+        EXAMPLE:
+        >>> layer = Linear(10, 5)
+        >>> params = layer.parameters()
+        >>> len(params)
+        2  # [weight, bias]
+        >>> layer_no_bias = Linear(10, 5, bias=False)
+        >>> len(layer_no_bias.parameters())
+        1  # [weight only]
+
+        HINTS:
+        - Create list starting with self.weight
+        - Check if self.bias is not None before appending
+        - Return the complete list
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Linear.parameters")
+        ### END SOLUTION
+
+    def __repr__(self):
+        """String representation for debugging."""
+        bias_str = f", bias={self.bias is not None}"
+        return f"Linear(in_features={self.in_features}, out_features={self.out_features}{bias_str})"
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class Linear(Layer):
     """
@@ -412,7 +505,6 @@ class Linear(Layer):
         bias_str = f", bias={self.bias is not None}"
         return f"Linear(in_features={self.in_features}, out_features={self.out_features}{bias_str})"
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Linear Layer
@@ -423,7 +515,6 @@ This test validates our Linear layer implementation works correctly.
 **Why it matters**: Foundation for all neural network architectures
 **Expected**: Proper shapes, LeCun-style scaling, parameter counting
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-linear", "locked": true, "points": 15}
 def test_unit_linear_layer():
@@ -440,9 +531,7 @@ def test_unit_linear_layer():
     # Test LeCun-style initialization (weights should be reasonably scaled)
     weight_std = np.std(layer.weight.data)
     expected_std = np.sqrt(INIT_SCALE_FACTOR / 784)
-    assert 0.5 * expected_std < weight_std < 2.0 * expected_std, (
-        f"Weight std {weight_std} not close to expected {expected_std}"
-    )
+    assert 0.5 * expected_std < weight_std < 2.0 * expected_std, f"Weight std {weight_std} not close to expected {expected_std}"
 
     # Test bias initialization (should be zeros)
     assert np.allclose(layer.bias.data, 0), "Bias should be initialized to zeros"
@@ -466,7 +555,6 @@ def test_unit_linear_layer():
 
     print("✅ Linear layer works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_linear_layer()
 
@@ -476,7 +564,6 @@ if __name__ == "__main__":
 
 Additional tests for edge cases and error handling.
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-linear-edge-cases", "locked": true, "points": 5}
 def test_unit_edge_cases_linear():
@@ -511,7 +598,6 @@ def test_unit_edge_cases_linear():
 
     print("✅ Edge cases handled correctly!")
 
-
 if __name__ == "__main__":
     test_unit_edge_cases_linear()
 
@@ -521,7 +607,6 @@ if __name__ == "__main__":
 
 Tests to ensure Linear layer parameters can be collected for optimization.
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-linear-params", "locked": true, "points": 5}
 def test_unit_parameter_collection_linear():
@@ -542,7 +627,6 @@ def test_unit_parameter_collection_linear():
     assert len(params_no_bias) == 1, "Should return 1 parameter (weight only)"
 
     print("✅ Parameter collection works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_parameter_collection_linear()
@@ -603,10 +687,157 @@ Computational Overhead: Minimal (element-wise operations)
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "dropout-layer", "solution": true}
+
+class Dropout(Layer):
+    """
+    Dropout layer for regularization.
+
+    During training: randomly zeros elements with probability p, scales survivors by 1/(1-p)
+    During inference: passes input through unchanged
+
+    This prevents overfitting by forcing the network to not rely on specific neurons.
+    """
+
+    def __init__(self, p=0.5):
+        """
+        Initialize dropout layer.
+
+        TODO: Store dropout probability and validate range
+
+        APPROACH:
+        1. Validate p is between 0.0 and 1.0 (inclusive)
+        2. Raise ValueError if out of range
+        3. Store p as instance attribute
+
+        Args:
+            p: Probability of zeroing each element (0.0 = no dropout, 1.0 = zero everything)
+
+        EXAMPLE:
+        >>> dropout = Dropout(0.5)  # Zero 50% of elements during training
+        >>> dropout.p
+        0.5
+
+        HINTS:
+        - Use DROPOUT_MIN_PROB and DROPOUT_MAX_PROB constants for validation
+        - Check: DROPOUT_MIN_PROB <= p <= DROPOUT_MAX_PROB
+        - Raise descriptive ValueError if invalid
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Dropout.__init__")
+        ### END SOLUTION
+
+    def _should_apply_dropout(self, training):
+        """
+        Determine whether dropout should be applied.
+
+        Dropout is a training-time technique. During inference the full
+        network is used, so dropout is skipped. It is also skipped when p=0
+        (no neurons are dropped) since the result would be the identity.
+
+        TODO: Return True only when dropout should actually modify the input
+
+        APPROACH:
+        1. Check if we are in training mode
+        2. Check if dropout probability is greater than zero
+
+        EXAMPLE:
+        >>> d = Dropout(0.5)
+        >>> d._should_apply_dropout(training=True)
+        True
+        >>> d._should_apply_dropout(training=False)
+        False
+
+        HINT: Both conditions must be true for dropout to apply
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Dropout._should_apply_dropout")
+        ### END SOLUTION
+
+    def _generate_dropout_mask(self, shape):
+        """
+        Generate a random dropout mask with inverted scaling.
+
+        The mask has the same shape as the input. Each element is either
+        0 (dropped) or 1/(1-p) (kept and scaled). Scaling at training time
+        keeps the expected value of each element unchanged, so no adjustment
+        is needed at inference. This trick is called "inverted dropout."
+
+        ```
+        Example with p=0.5 (keep_prob=0.5, scale=2.0):
+        random draw:  [0.3,  0.8,  0.1,  0.6]
+                        ↓     ↓     ↓     ↓
+        keep?         [yes,  no,  yes,  no ]   (< 0.5?)
+                        ↓     ↓     ↓     ↓
+        mask:         [2.0,  0.0,  2.0,  0.0]  (kept × scale, dropped × 0)
+        ```
+
+        TODO: Build the scaled binary mask
+
+        APPROACH:
+        1. Compute keep_prob = 1 - p
+        2. Draw uniform random values and threshold at keep_prob
+        3. Convert the boolean mask to float and scale by 1/keep_prob
+
+        EXAMPLE:
+        >>> d = Dropout(0.5)
+        >>> mask = d._generate_dropout_mask((4,))
+        >>> mask.shape
+        (4,)
+
+        HINTS:
+        - np.random.random(shape) gives uniform [0, 1) values
+        - Threshold with < keep_prob to get a boolean mask
+        - Scale factor is 1.0 / keep_prob
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Dropout._generate_dropout_mask")
+        ### END SOLUTION
+
+    def forward(self, x, training=True):
+        """
+        Forward pass through dropout layer.
+
+        Composes the two helpers: first decide whether dropout applies,
+        then generate and apply the mask if it does.
+
+        TODO: Implement dropout forward pass
+
+        APPROACH:
+        1. Use _should_apply_dropout to check if dropout is needed
+        2. Handle the special case p=1 (drop everything)
+        3. Use _generate_dropout_mask to create the scaled mask
+        4. Element-wise multiply input by the mask
+
+        EXAMPLE:
+        >>> dropout = Dropout(0.5)
+        >>> x = Tensor([1, 2, 3, 4])
+        >>> y_train = dropout.forward(x, training=True)   # Some elements zeroed
+        >>> y_eval = dropout.forward(x, training=False)   # All elements preserved
+
+        HINTS:
+        - _should_apply_dropout returns False for inference or p=0
+        - When p=1.0 every element is dropped (return zeros)
+        - Multiply x by the mask tensor for the final output
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Dropout.forward")
+        ### END SOLUTION
+
+    def __call__(self, x, training=True):
+        """Allows the layer to be called like a function."""
+        return self.forward(x, training)
+
+    def parameters(self):
+        """Dropout has no parameters."""
+        return []
+
+    def __repr__(self):
+        return f"Dropout(p={self.p})"
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class Dropout(Layer):
     """
@@ -774,7 +1005,6 @@ class Dropout(Layer):
     def __repr__(self):
         return f"Dropout(p={self.p})"
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Dropout Decision Logic
@@ -790,7 +1020,6 @@ training-vs-inference distinction without interference from randomness.
 **Expected**: True only when training=True AND p > 0
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-should-apply-dropout", "locked": true, "points": 3}
 def test_unit_should_apply_dropout():
     """🧪 Test _should_apply_dropout decision logic."""
@@ -798,28 +1027,28 @@ def test_unit_should_apply_dropout():
 
     # Standard dropout (p=0.5) in training mode should apply
     d = Dropout(0.5)
-    assert d._should_apply_dropout(training=True) is True, "Dropout(0.5) should apply during training"
+    assert d._should_apply_dropout(training=True) is True, \
+        "Dropout(0.5) should apply during training"
 
     # Same dropout in inference mode should NOT apply
-    assert d._should_apply_dropout(training=False) is False, "Dropout should not apply during inference"
+    assert d._should_apply_dropout(training=False) is False, \
+        "Dropout should not apply during inference"
 
     # Zero dropout (p=0) should never apply, even in training
     d_zero = Dropout(0.0)
-    assert d_zero._should_apply_dropout(training=True) is False, (
+    assert d_zero._should_apply_dropout(training=True) is False, \
         "Dropout(0.0) should never apply (no neurons to drop)"
-    )
 
     # Full dropout (p=1.0) in training mode should apply
     d_full = Dropout(1.0)
-    assert d_full._should_apply_dropout(training=True) is True, "Dropout(1.0) should apply during training"
+    assert d_full._should_apply_dropout(training=True) is True, \
+        "Dropout(1.0) should apply during training"
 
     # Full dropout in inference mode should NOT apply
-    assert d_full._should_apply_dropout(training=False) is False, (
+    assert d_full._should_apply_dropout(training=False) is False, \
         "Even Dropout(1.0) should not apply during inference"
-    )
 
     print("✅ Dropout decision logic works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_should_apply_dropout()
@@ -847,13 +1076,13 @@ mask:     [2.0,  0.0,  2.0,  0.0 ]   ← kept values are 2.0, not 1.0
 **Expected**: Correct shape, values in {0, 1/(1-p)}, ~50% survival for p=0.5
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-generate-dropout-mask", "locked": true, "points": 3}
 def test_unit_generate_dropout_mask():
     """🧪 Test _generate_dropout_mask output properties."""
     print("🧪 Unit Test: Dropout Mask Generation...")
 
     d = Dropout(0.5)
+    rng = np.random.default_rng(7)
     mask = d._generate_dropout_mask((1000,))
 
     # Shape must match the requested shape
@@ -861,30 +1090,32 @@ def test_unit_generate_dropout_mask():
 
     # Every element must be either 0.0 or 2.0 (= 1/(1-0.5))
     unique_vals = set(np.unique(mask.data))
-    assert unique_vals <= {0.0, 2.0}, f"Mask values should be {{0.0, 2.0}}, got {unique_vals}"
+    assert unique_vals <= {0.0, 2.0}, \
+        f"Mask values should be {{0.0, 2.0}}, got {unique_vals}"
 
     # Statistically, about 50% should survive (3-sigma tolerance)
     non_zero = np.count_nonzero(mask.data)
     std_err = np.sqrt(1000 * 0.5 * 0.5)
-    assert 500 - 3 * std_err < non_zero < 500 + 3 * std_err, f"Expected ~500 survivors, got {non_zero}"
+    assert 500 - 3 * std_err < non_zero < 500 + 3 * std_err, \
+        f"Expected ~500 survivors, got {non_zero}"
 
     # Test with different dropout probability
     d2 = Dropout(0.3)
+    rng = np.random.default_rng(7)
     mask2 = d2._generate_dropout_mask((2000,))
 
     # Values should be 0.0 or 1/(1-0.3) ≈ 1.4286
     expected_scale = 1.0 / 0.7
     non_zero_vals = mask2.data[mask2.data != 0.0]
-    assert np.allclose(non_zero_vals, expected_scale), (
+    assert np.allclose(non_zero_vals, expected_scale), \
         f"Surviving values should be {expected_scale:.4f}, got {np.unique(non_zero_vals)}"
-    )
 
     # About 70% should survive for p=0.3
     survival_rate = np.count_nonzero(mask2.data) / 2000
-    assert 0.60 < survival_rate < 0.80, f"Expected ~70% survival for p=0.3, got {survival_rate:.1%}"
+    assert 0.60 < survival_rate < 0.80, \
+        f"Expected ~70% survival for p=0.3, got {survival_rate:.1%}"
 
     print("✅ Dropout mask generation works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_generate_dropout_mask()
@@ -905,7 +1136,6 @@ out = model(x)  # Chains all layers automatically
 
 This is TrenTorch's equivalent of PyTorch's nn.Sequential - simpler but same idea.
 """
-
 
 # %% nbgrader={"grade": false, "grade_id": "sequential", "solution": false}
 #| export
@@ -978,7 +1208,6 @@ This test validates our Dropout layer implementation works correctly.
 **Expected**: Correct masking during training, passthrough during inference
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-dropout", "locked": true, "points": 10}
 def test_unit_dropout_layer():
     """🧪 Test Dropout layer implementation."""
@@ -1005,7 +1234,7 @@ def test_unit_dropout_layer():
 
     # Test training mode with partial dropout
     # Note: This is probabilistic, so we test statistical properties
-    np.random.default_rng(7)  # For reproducible test
+    rng = np.random.default_rng(7)  # For reproducible test
     x_large = Tensor(np.ones((1000,)))  # Large tensor for statistical significance
     y_train = dropout.forward(x_large, training=True)
 
@@ -1016,9 +1245,8 @@ def test_unit_dropout_layer():
     std_error = np.sqrt(1000 * 0.5 * 0.5)
     lower_bound = expected - 3 * std_error  # ≈ 453
     upper_bound = expected + 3 * std_error  # ≈ 547
-    assert lower_bound < non_zero_count < upper_bound, (
-        f"Expected {expected}±{3 * std_error:.0f} survivors, got {non_zero_count}"
-    )
+    assert lower_bound < non_zero_count < upper_bound, \
+        f"Expected {expected}±{3*std_error:.0f} survivors, got {non_zero_count}"
 
     # Test scaling (surviving elements should be scaled by 1/(1-p) = 2.0)
     surviving_values = y_train.data[y_train.data != 0]
@@ -1043,7 +1271,6 @@ def test_unit_dropout_layer():
         pass
 
     print("✅ Dropout layer works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_dropout_layer()
@@ -1155,7 +1382,6 @@ Layer Operation Complexity:
 ```
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "analyze-layer-memory", "solution": true}
 def analyze_layer_memory():
     """📊 Analyze memory usage patterns in layer operations."""
@@ -1163,10 +1389,10 @@ def analyze_layer_memory():
 
     # Test different layer sizes
     layer_configs = [
-        (784, 256),  # MNIST → hidden
-        (256, 256),  # Hidden → hidden
-        (256, 10),  # Hidden → output
-        (2048, 2048),  # Large hidden
+        (784, 256),   # MNIST → hidden
+        (256, 256),   # Hidden → hidden
+        (256, 10),    # Hidden → output
+        (2048, 2048), # Large hidden
     ]
 
     print("\nLinear Layer Memory Analysis:")
@@ -1178,9 +1404,7 @@ def analyze_layer_memory():
         bias_memory = out_feat * 4
         total_memory = weight_memory + bias_memory
 
-        print(
-            f"({in_feat:4d}, {out_feat:4d}) → {weight_memory / 1024:7.1f} KB → {bias_memory / 1024:6.1f} KB → {total_memory / 1024:7.1f} KB"
-        )
+        print(f"({in_feat:4d}, {out_feat:4d}) → {weight_memory/1024:7.1f} KB → {bias_memory/1024:6.1f} KB → {total_memory/1024:7.1f} KB")
 
     # Analyze multi-layer memory scaling
     print("\n💡 Multi-layer Model Memory Scaling:")
@@ -1197,7 +1421,6 @@ def analyze_layer_memory():
 
         print(f"Hidden={hidden_size:4d}: {total_params:7,} params = {memory_mb:5.1f} MB")
 
-
 # Run the analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -1205,7 +1428,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
     # benchmarks) take multiple minutes of real computation. Run this
     # file directly (not through CI) to see the full analysis.
     analyze_layer_memory()
-
 
 # %% nbgrader={"grade": false, "grade_id": "analyze-layer-performance", "solution": true}
 def analyze_layer_performance():
@@ -1259,7 +1481,6 @@ def analyze_layer_performance():
     print("🚀 Memory grows linearly with batch size, quadratically with layer width")
     print("🚀 Dropout adds minimal computational overhead (element-wise operations)")
     print("🚀 Larger batches amortize overhead, improving throughput efficiency")
-
 
 # Run the analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1341,7 +1562,7 @@ def test_module():
     test_x = Tensor(rng.standard_normal((4, 784)))
     # Test dropout in training vs inference
     dropout_test = Dropout(0.5)
-    dropout_test.forward(test_x, training=True)
+    train_output = dropout_test.forward(test_x, training=True)
     infer_output = dropout_test.forward(test_x, training=False)
     assert np.array_equal(test_x.data, infer_output.data), "Inference mode should pass through unchanged"
 
@@ -1350,7 +1571,6 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 03")
-
 
 # %% [markdown]
 """
@@ -1457,7 +1677,6 @@ In the next module, you'll add loss functions that measure how wrong predictions
 Combined with your layers, this creates the foundation for learning.
 """
 
-
 # %%
 def demo_layers():
     """🎯 See how layers transform shapes."""
@@ -1478,7 +1697,6 @@ def demo_layers():
     print(f"Parameters:   {784 * 10 + 10:,} (weights + biases)")
 
     print("\n✨ Your layer transforms images to class predictions!")
-
 
 # %%
 if __name__ == "__main__":

@@ -60,19 +60,16 @@ from trentorch.core.embeddings import Embedding, PositionalEncoding, create_sinu
 #| export
 
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 import math
 from typing import List, Optional, Tuple
 
-# Enable autograd for gradient tracking (required for learnable embeddings)
-from trentorch.core.autograd import Function, enable_autograd
-
 # Import from previous modules - following dependency chain
 from trentorch.core.tensor import Tensor
 
+# Enable autograd for gradient tracking (required for learnable embeddings)
+from trentorch.core.autograd import Function, enable_autograd
 enable_autograd()
 
 # Constants for memory calculations
@@ -292,10 +289,7 @@ its embedding row accumulates gradients from every position. This is why `np.add
 essential — standard indexing would overwrite instead of accumulating.
 """
 
-# %% tags=["solution"]
-#| export
-# Solution
-
+# %% nbgrader={"grade": false, "grade_id": "embedding-backward", "solution": true}
 
 class EmbeddingBackward(Function):
     """
@@ -358,7 +352,75 @@ class EmbeddingBackward(Function):
         - Return as single-element tuple: (grad_weight,)
         """
         ### BEGIN SOLUTION
-        (weight,) = self.saved_tensors
+        raise NotImplementedError("TODO: implement EmbeddingBackward.apply")
+        ### END SOLUTION
+
+# %% tags=["solution"]
+#| export
+# Solution
+
+class EmbeddingBackward(Function):
+    """
+    Gradient computation for embedding lookup operation.
+
+    **Mathematical Rule:** If Y = Embedding[indices], then:
+    - ∂Loss/∂Embedding[i] = sum of all gradients where index==i
+
+    Embedding lookup is a gather operation. The backward
+    is a scatter operation that accumulates gradients to the embedding weights.
+    """
+
+    def __init__(self, weight, indices):
+        """
+        Args:
+            weight: Embedding weight matrix
+            indices: Indices used for lookup
+        """
+        super().__init__(weight)
+        self.indices = indices
+
+    def apply(self, grad_output):
+        """
+        Compute gradient for embedding lookup.
+
+        Args:
+            grad_output: Gradient flowing backward from output
+
+        Returns:
+            Tuple with single gradient for weight tensor
+
+        **Mathematical Foundation:**
+        - ∂(Embedding[indices])/∂Embedding = scatter gradients to selected rows
+        - Multiple indices can point to same embedding → gradients accumulate
+
+        TODO: Implement gradient computation for embedding lookup.
+
+        APPROACH:
+        1. Extract weight tensor from self.saved_tensors
+        2. Initialize grad_weight to None
+        3. If weight requires gradients:
+           - Create zeros array: grad_weight = np.zeros_like(weight.data)
+           - Flatten indices: indices_flat = self.indices.data.astype(int).flatten()
+           - Reshape grad_output: match flattened indices with embedding dimension
+           - Use np.add.at to accumulate gradients: np.add.at(grad_weight, indices_flat, grad_output_reshaped)
+        4. Return tuple (grad_weight,)
+
+        EXAMPLE:
+        >>> vocab = Tensor([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], requires_grad=True)  # 3 words, 2D
+        >>> indices = Tensor([0, 2, 0])  # Select words 0, 2, 0
+        >>> output = vocab[indices]  # [[0.1, 0.2], [0.5, 0.6], [0.1, 0.2]]
+        >>> # During backward: grad_output = [[1, 1], [1, 1], [1, 1]]
+        >>> # grad_vocab[0] accumulates twice: [1, 1] + [1, 1] = [2, 2]
+        >>> # grad_vocab[2] once: [1, 1]
+
+        HINTS:
+        - Embedding lookup is a gather operation; backward is scatter
+        - np.add.at accumulates gradients for repeated indices
+        - Reshape grad_output to match: (num_indices, embedding_dim)
+        - Return as single-element tuple: (grad_weight,)
+        """
+        ### BEGIN SOLUTION
+        weight, = self.saved_tensors
         grad_weight = None
 
         if isinstance(weight, Tensor) and weight.requires_grad:
@@ -375,11 +437,79 @@ class EmbeddingBackward(Function):
         return (grad_weight,)
         ### END SOLUTION
 
+# %% nbgrader={"grade": false, "grade_id": "embedding-init", "solution": true}
+
+class Embedding:
+    """
+    Learnable embedding layer that maps token indices to dense vectors.
+
+    This is the fundamental building block for converting discrete tokens
+    into continuous representations that neural networks can process.
+
+    We'll build this in two steps: first initialize the weight matrix,
+    then implement the forward lookup.
+    """
+
+    def __init__(self, vocab_size: int, embed_dim: int):
+        """
+        Initialize embedding layer with Xavier-uniform weights.
+
+        Args:
+            vocab_size: Size of vocabulary (number of unique tokens)
+            embed_dim: Dimension of embedding vectors
+
+        TODO: Initialize the embedding weight matrix
+
+        APPROACH:
+        1. Store vocab_size and embed_dim
+        2. Create weight matrix of shape (vocab_size, embed_dim)
+        3. Use Xavier/Glorot uniform initialization: limit = sqrt(6 / (V + D))
+
+        HINT: rng.uniform(-limit, limit, (vocab_size, embed_dim))
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Embedding.__init__")
+        ### END SOLUTION
+
+    def forward(self, indices: Tensor) -> Tensor:
+        """
+        Forward pass: lookup embeddings for given indices.
+
+        Args:
+            indices: Token indices of shape (batch_size, seq_len) or (seq_len,)
+
+        Returns:
+            Embedded vectors of shape (*indices.shape, embed_dim)
+
+        TODO: Implement embedding lookup with validation and gradient tracking
+
+        APPROACH:
+        1. Validate indices are within [0, vocab_size)
+        2. Perform lookup using numpy advanced indexing: weight[indices]
+        3. Attach EmbeddingBackward gradient function if weight requires grad
+
+        HINTS:
+        - Use self.weight.data[indices.data.astype(int)] for the lookup
+        - Attach result._grad_fn = EmbeddingBackward(self.weight, indices)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Embedding.forward")
+        ### END SOLUTION
+
+    def __call__(self, indices: Tensor) -> Tensor:
+        """Allows the embedding to be called like a function."""
+        return self.forward(indices)
+
+    def parameters(self) -> List[Tensor]:
+        """Return trainable parameters."""
+        return [self.weight]
+
+    def __repr__(self):
+        return f"Embedding(vocab_size={self.vocab_size}, embed_dim={self.embed_dim})"
 
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class Embedding:
     """
@@ -415,7 +545,9 @@ class Embedding:
 
         # Xavier initialization for better gradient flow
         limit = math.sqrt(6.0 / (vocab_size + embed_dim))
-        self.weight = Tensor(rng.uniform(-limit, limit, (vocab_size, embed_dim)))
+        self.weight = Tensor(
+            rng.uniform(-limit, limit, (vocab_size, embed_dim))
+        )
         ### END SOLUTION
 
     def forward(self, indices: Tensor) -> Tensor:
@@ -470,13 +602,12 @@ class Embedding:
         """Allows the embedding to be called like a function."""
         return self.forward(indices)
 
-    def parameters(self) -> list[Tensor]:
+    def parameters(self) -> List[Tensor]:
         """Return trainable parameters."""
         return [self.weight]
 
     def __repr__(self):
         return f"Embedding(vocab_size={self.vocab_size}, embed_dim={self.embed_dim})"
-
 
 # %% [markdown]
 """
@@ -486,7 +617,6 @@ class Embedding:
 **Why it matters**: Bad initialization causes vanishing/exploding gradients from the start
 **Expected**: Weight shape is (vocab_size, embed_dim), values are within Xavier bounds
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-embedding-init", "locked": true, "points": 5}
 def test_unit_embedding_init():
@@ -509,7 +639,6 @@ def test_unit_embedding_init():
 
     print("✅ Embedding.__init__ works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_embedding_init()
 
@@ -523,7 +652,6 @@ This test validates our Embedding class works correctly with various token indic
 **Why it matters**: Foundation for all NLP models - if embedding fails, nothing works
 **Expected**: Correct shape output, consistent lookups, proper parameter access
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-embedding", "locked": true, "points": 10}
 def test_unit_embedding():
@@ -559,7 +687,6 @@ def test_unit_embedding():
     assert len(params) == 1, "Should have 1 parameter"
 
     print("✅ Embedding layer works correctly!")
-
 
 # Run test immediately when developing this module
 if __name__ == "__main__":
@@ -606,10 +733,80 @@ Result: Position-aware embeddings that can learn task-specific patterns!
 Let's build trainable positional embeddings that can learn position-specific patterns for our specific task.
 """
 
+# %% nbgrader={"grade": false, "grade_id": "positional-encoding-init", "solution": true}
+
+class PositionalEncoding:
+    """
+    Learnable positional encoding layer.
+
+    Adds trainable position-specific vectors to token embeddings,
+    allowing the model to learn positional patterns specific to the task.
+
+    We'll build this in two steps: initialize the position matrix,
+    then implement the forward pass that adds positions to embeddings.
+    """
+
+    def __init__(self, max_seq_len: int, embed_dim: int):
+        """
+        Initialize learnable positional encoding.
+
+        Args:
+            max_seq_len: Maximum sequence length to support
+            embed_dim: Embedding dimension (must match token embeddings)
+
+        TODO: Create the position embedding matrix
+
+        APPROACH:
+        1. Store max_seq_len and embed_dim
+        2. Create position_embeddings matrix of shape (max_seq_len, embed_dim)
+        3. Use smaller initialization than token embeddings (they're additive)
+
+        HINT: limit = sqrt(2.0 / embed_dim), then uniform(-limit, limit)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement PositionalEncoding.__init__")
+        ### END SOLUTION
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Add positional encodings to input embeddings.
+
+        Args:
+            x: Input embeddings of shape (batch_size, seq_len, embed_dim)
+
+        Returns:
+            Position-encoded embeddings of same shape
+
+        TODO: Validate input and add position embeddings
+
+        APPROACH:
+        1. Validate input is 3D with correct embed_dim and seq_len <= max
+        2. Slice position_embeddings[:seq_len] for variable-length support
+        3. Reshape to (1, seq_len, embed_dim) for batch broadcasting
+        4. Add to input embeddings
+
+        HINTS:
+        - pos_embeddings.data[np.newaxis, :, :] adds the batch dimension
+        - Use x + pos_embeddings_batched for element-wise addition
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement PositionalEncoding.forward")
+        ### END SOLUTION
+
+    def __call__(self, x: Tensor) -> Tensor:
+        """Allows the positional encoding to be called like a function."""
+        return self.forward(x)
+
+    def parameters(self) -> List[Tensor]:
+        """Return trainable parameters."""
+        return [self.position_embeddings]
+
+    def __repr__(self):
+        return f"PositionalEncoding(max_seq_len={self.max_seq_len}, embed_dim={self.embed_dim})"
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class PositionalEncoding:
     """
@@ -646,7 +843,9 @@ class PositionalEncoding:
         # Initialize position embedding matrix
         # Smaller initialization than token embeddings since these are additive
         limit = math.sqrt(2.0 / embed_dim)
-        self.position_embeddings = Tensor(rng.uniform(-limit, limit, (max_seq_len, embed_dim)))
+        self.position_embeddings = Tensor(
+            rng.uniform(-limit, limit, (max_seq_len, embed_dim))
+        )
         ### END SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
@@ -721,13 +920,12 @@ class PositionalEncoding:
         """Allows the positional encoding to be called like a function."""
         return self.forward(x)
 
-    def parameters(self) -> list[Tensor]:
+    def parameters(self) -> List[Tensor]:
         """Return trainable parameters."""
         return [self.position_embeddings]
 
     def __repr__(self):
         return f"PositionalEncoding(max_seq_len={self.max_seq_len}, embed_dim={self.embed_dim})"
-
 
 # %% [markdown]
 """
@@ -737,7 +935,6 @@ class PositionalEncoding:
 **Why it matters**: Wrong shape or scale breaks the additive position signal
 **Expected**: Matrix shape is (max_seq_len, embed_dim), values are small (additive)
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-positional-init", "locked": true, "points": 5}
 def test_unit_positional_encoding_init():
@@ -751,9 +948,8 @@ def test_unit_positional_encoding_init():
     assert pos_enc.embed_dim == 64, f"Expected embed_dim=64, got {pos_enc.embed_dim}"
 
     # Check position embeddings shape
-    assert pos_enc.position_embeddings.shape == (512, 64), (
+    assert pos_enc.position_embeddings.shape == (512, 64), \
         f"Expected shape (512, 64), got {pos_enc.position_embeddings.shape}"
-    )
 
     # Check values are reasonably small (additive initialization)
     limit = math.sqrt(2.0 / 64)
@@ -765,7 +961,6 @@ def test_unit_positional_encoding_init():
     assert len(params) == 1, f"Expected 1 parameter, got {len(params)}"
 
     print("✅ PositionalEncoding.__init__ works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_positional_encoding_init()
@@ -780,7 +975,6 @@ This test validates our PositionalEncoding class works correctly with various se
 **Why it matters**: Position awareness is critical for sequence understanding
 **Expected**: Consistent encodings, correct shapes, proper parameter management
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-positional", "locked": true, "points": 10}
 def test_unit_positional_encoding():
@@ -822,7 +1016,6 @@ def test_unit_positional_encoding():
     assert params[0].shape == (512, 64), "Position embedding matrix has wrong shape"
 
     print("✅ Positional encoding works correctly!")
-
 
 # Run test immediately when developing this module
 if __name__ == "__main__":
@@ -918,7 +1111,6 @@ Step 3: Outer product → angles     Step 4: Interleave sin/cos
 
 # %% nbgrader={"grade": false, "grade_id": "posenc-sinusoidal-table", "solution": true}
 
-
 def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
     """
     Compute the raw sinusoidal positional encoding table as a numpy array.
@@ -954,11 +1146,9 @@ def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
     raise NotImplementedError("TODO: implement _compute_sinusoidal_table")
     ### END SOLUTION
 
-
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
     """
@@ -997,7 +1187,8 @@ def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
 
     # Create dimension indices for calculating frequencies
     div_term = np.exp(
-        np.arange(0, embed_dim, 2, dtype=np.float32) * -(math.log(10000.0) / embed_dim)
+        np.arange(0, embed_dim, 2, dtype=np.float32) *
+        -(math.log(10000.0) / embed_dim)
     )  # (embed_dim//2,)
 
     # Initialize the positional encoding matrix
@@ -1016,7 +1207,6 @@ def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
     return pe
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Sinusoidal Table Computation
@@ -1028,7 +1218,6 @@ wrapped in a Tensor.
 **Why it matters**: The table is the mathematical core of sinusoidal positional encoding
 **Expected**: sin(0)=0 at even dims, cos(0)=1 at odd dims, higher dims change slower
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-sinusoidal-table", "locked": true, "points": 5}
 def test_unit_sinusoidal_table():
@@ -1059,7 +1248,6 @@ def test_unit_sinusoidal_table():
 
     print("✅ Sinusoidal table computation works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_sinusoidal_table()
 
@@ -1071,10 +1259,40 @@ Now we compose the table computation into the public API that returns a Tensor
 ready for use in embedding pipelines.
 """
 
+# %% nbgrader={"grade": false, "grade_id": "sinusoidal-function", "solution": true}
+
+def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
+    """
+    Create sinusoidal positional encodings as used in "Attention Is All You Need".
+
+    These fixed encodings use sine and cosine functions to create unique
+    positional patterns that don't require training and can extrapolate
+    to longer sequences than seen during training.
+
+    TODO: Use _compute_sinusoidal_table to build the encoding and wrap in Tensor
+
+    APPROACH:
+    1. Call _compute_sinusoidal_table(max_seq_len, embed_dim) for the raw table
+    2. Wrap the result in a Tensor and return
+
+    EXAMPLE:
+    >>> pe = create_sinusoidal_embeddings(512, 64)
+    >>> print(pe.shape)
+    (512, 64)
+    >>> # Position 0: [0, 1, 0, 1, 0, 1, ...] (sin(0)=0, cos(0)=1)
+    >>> # Each position gets unique trigonometric signature
+
+    HINT: The heavy lifting is done by _compute_sinusoidal_table. This function
+    just wraps the result as a Tensor for use in the embedding pipeline.
+    """
+
+    ### BEGIN SOLUTION
+    raise NotImplementedError("TODO: implement create_sinusoidal_embeddings")
+    ### END SOLUTION
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
     """
@@ -1106,7 +1324,6 @@ def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
     return Tensor(pe)
     ### END SOLUTION
 
-
 # %% [markdown]
 """
 ### 🧪 Unit Test: Sinusoidal Embeddings
@@ -1117,7 +1334,6 @@ This test validates our sinusoidal positional encoding function creates correct 
 **Why it matters**: Enables position awareness without trainable parameters
 **Expected**: Correct sin/cos patterns, unique positions, frequency decay
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-sinusoidal", "locked": true, "points": 10}
 def test_unit_sinusoidal_embeddings():
@@ -1143,9 +1359,7 @@ def test_unit_sinusoidal_embeddings():
 
     # Check that consecutive positions are different
     for i in range(9):
-        assert not np.allclose(pe_small.data[i], pe_small.data[i + 1]), (
-            f"Positions {i} and {i + 1} are too similar"
-        )
+        assert not np.allclose(pe_small.data[i], pe_small.data[i+1]), f"Positions {i} and {i+1} are too similar"
 
     # Test 4: Frequency properties
     # Higher dimensions should have lower frequencies (change more slowly)
@@ -1155,9 +1369,7 @@ def test_unit_sinusoidal_embeddings():
     first_dim_changes = np.sum(np.abs(np.diff(pe_test.data[:10, 0])))
     last_dim_changes = np.sum(np.abs(np.diff(pe_test.data[:10, -1])))
 
-    assert first_dim_changes > last_dim_changes, (
-        "Lower dimensions should change faster than higher dimensions"
-    )
+    assert first_dim_changes > last_dim_changes, "Lower dimensions should change faster than higher dimensions"
 
     # Test 5: Odd embed_dim handling
     pe_odd = create_sinusoidal_embeddings(10, 7)
@@ -1167,7 +1379,6 @@ def test_unit_sinusoidal_embeddings():
     assert isinstance(pe, Tensor), "Should return a Tensor wrapping the sinusoidal table"
 
     print("✅ Sinusoidal embeddings work correctly!")
-
 
 # Run test immediately when developing this module
 if __name__ == "__main__":
@@ -1279,10 +1490,7 @@ EmbeddingLayer.__init__ assembles sub-components:
 ```
 """
 
-# %% tags=["solution"]
-#| export
-# Solution
-
+# %% nbgrader={"grade": false, "grade_id": "emblayer-init", "solution": true}
 
 class EmbeddingLayer:
     """
@@ -1297,8 +1505,70 @@ class EmbeddingLayer:
         vocab_size: int,
         embed_dim: int,
         max_seq_len: int = 512,
-        pos_encoding: str = "learned",
-        scale_embeddings: bool = False,
+        pos_encoding: str = 'learned',
+        scale_embeddings: bool = False
+    ):
+        """
+        Initialize complete embedding system.
+
+        TODO: Create sub-components for token embedding and positional encoding
+
+        APPROACH:
+        1. Store configuration (vocab_size, embed_dim, max_seq_len, etc.)
+        2. Create token Embedding(vocab_size, embed_dim)
+        3. Based on pos_encoding argument, create the appropriate positional encoder:
+           - 'learned' -> PositionalEncoding(max_seq_len, embed_dim)
+           - 'sinusoidal' -> create_sinusoidal_embeddings(max_seq_len, embed_dim)
+           - None -> no positional encoding
+        4. Raise ValueError for unknown pos_encoding types
+
+        EXAMPLE:
+        >>> layer = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding='learned')
+        >>> layer.token_embedding  # Embedding(vocab_size=100, embed_dim=64)
+        >>> layer.pos_encoding     # PositionalEncoding(max_seq_len=512, embed_dim=64)
+
+        HINT: The pos_encoding parameter selects the strategy; each strategy
+        produces a different type of object stored in self.pos_encoding.
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement EmbeddingLayer.__init__")
+        ### END SOLUTION
+
+    def __call__(self, tokens: Tensor) -> Tensor:
+        """Allows the embedding layer to be called like a function."""
+        return self.forward(tokens)
+
+    def parameters(self) -> List[Tensor]:
+        """Return all trainable parameters."""
+        params = self.token_embedding.parameters()
+        if self.pos_encoding_type == 'learned':
+            params.extend(self.pos_encoding.parameters())
+        return params
+
+    def __repr__(self):
+        return (f"EmbeddingLayer(vocab_size={self.vocab_size}, "
+                f"embed_dim={self.embed_dim}, "
+                f"pos_encoding='{self.pos_encoding_type}')")
+
+# %% tags=["solution"]
+#| export
+# Solution
+
+class EmbeddingLayer:
+    """
+    Complete embedding system combining token and positional embeddings.
+
+    This is the production-ready component that handles the full embedding
+    pipeline used in transformers and other sequence models.
+    """
+
+    def __init__(
+        self,
+        vocab_size: int,
+        embed_dim: int,
+        max_seq_len: int = 512,
+        pos_encoding: str = 'learned',
+        scale_embeddings: bool = False
     ):
         """
         Initialize complete embedding system.
@@ -1333,9 +1603,9 @@ class EmbeddingLayer:
         self.token_embedding = Embedding(vocab_size, embed_dim)
 
         # Positional encoding
-        if pos_encoding == "learned":
+        if pos_encoding == 'learned':
             self.pos_encoding = PositionalEncoding(max_seq_len, embed_dim)
-        elif pos_encoding == "sinusoidal":
+        elif pos_encoding == 'sinusoidal':
             # Create fixed sinusoidal encodings (no parameters)
             self.pos_encoding = create_sinusoidal_embeddings(max_seq_len, embed_dim)
         elif pos_encoding is None:
@@ -1355,20 +1625,17 @@ class EmbeddingLayer:
         """Allows the embedding layer to be called like a function."""
         return self.forward(tokens)
 
-    def parameters(self) -> list[Tensor]:
+    def parameters(self) -> List[Tensor]:
         """Return all trainable parameters."""
         params = self.token_embedding.parameters()
-        if self.pos_encoding_type == "learned":
+        if self.pos_encoding_type == 'learned':
             params.extend(self.pos_encoding.parameters())
         return params
 
     def __repr__(self):
-        return (
-            f"EmbeddingLayer(vocab_size={self.vocab_size}, "
-            f"embed_dim={self.embed_dim}, "
-            f"pos_encoding='{self.pos_encoding_type}')"
-        )
-
+        return (f"EmbeddingLayer(vocab_size={self.vocab_size}, "
+                f"embed_dim={self.embed_dim}, "
+                f"pos_encoding='{self.pos_encoding_type}')")
 
 # %% [markdown]
 """
@@ -1382,20 +1649,19 @@ positional encoding strategy.
 **Expected**: Correct component types, parameter counts, and error on invalid strategy
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-emblayer-init", "locked": true, "points": 5}
 def test_unit_emblayer_init():
     """🧪 Test EmbeddingLayer.__init__ component assembly."""
     print("🧪 Unit Test: EmbeddingLayer Initialization...")
 
     # Test 1: Learned PE creates PositionalEncoding
-    layer_learned = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding="learned")
+    layer_learned = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding='learned')
     assert isinstance(layer_learned.token_embedding, Embedding), "Should create Embedding"
     assert isinstance(layer_learned.pos_encoding, PositionalEncoding), "Should create PositionalEncoding"
     assert len(layer_learned.parameters()) == 2, "Learned PE: 2 param tensors (token + position)"
 
     # Test 2: Sinusoidal PE creates fixed Tensor
-    layer_sin = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding="sinusoidal")
+    layer_sin = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding='sinusoidal')
     assert isinstance(layer_sin.pos_encoding, Tensor), "Sinusoidal PE should be a Tensor"
     assert len(layer_sin.parameters()) == 1, "Sinusoidal PE: 1 param tensor (token only)"
 
@@ -1406,7 +1672,7 @@ def test_unit_emblayer_init():
 
     # Test 4: Invalid PE raises ValueError
     try:
-        EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding="invalid")
+        EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding='invalid')
         assert False, "Should raise ValueError for invalid pos_encoding"
     except ValueError:
         pass  # Expected
@@ -1414,10 +1680,9 @@ def test_unit_emblayer_init():
     # Test 5: Configuration stored correctly
     assert layer_learned.vocab_size == 100
     assert layer_learned.embed_dim == 64
-    assert not layer_learned.scale_embeddings
+    assert layer_learned.scale_embeddings == False
 
     print("✅ EmbeddingLayer initialization works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_emblayer_init()
@@ -1451,7 +1716,6 @@ EmbeddingLayer.forward pipeline:
 
 # %% nbgrader={"grade": false, "grade_id": "emblayer-forward", "solution": true}
 
-
 # Continue the EmbeddingLayer class with forward and utility methods
 def emblayer_forward(self, tokens: Tensor) -> Tensor:
     """
@@ -1482,14 +1746,12 @@ def emblayer_forward(self, tokens: Tensor) -> Tensor:
     raise NotImplementedError("TODO: implement emblayer_forward")
     ### END SOLUTION
 
-
 # Attach forward to EmbeddingLayer class (other methods defined in class body above)
 EmbeddingLayer.forward = emblayer_forward
 
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 # Continue the EmbeddingLayer class with forward and utility methods
 def emblayer_forward(self, tokens: Tensor) -> Tensor:
@@ -1535,10 +1797,10 @@ def emblayer_forward(self, tokens: Tensor) -> Tensor:
         token_embeds = token_embeds * scale_factor  # Use Tensor multiplication to preserve gradients
 
     # Add positional encoding
-    if self.pos_encoding_type == "learned":
+    if self.pos_encoding_type == 'learned':
         # Use learnable positional encoding
         output = self.pos_encoding.forward(token_embeds)
-    elif self.pos_encoding_type == "sinusoidal":
+    elif self.pos_encoding_type == 'sinusoidal':
         # Use fixed sinusoidal encoding (not learnable)
         batch_size, seq_len, embed_dim = token_embeds.shape
         pos_embeddings = self.pos_encoding[:seq_len]  # Slice using Tensor slicing
@@ -1560,7 +1822,6 @@ def emblayer_forward(self, tokens: Tensor) -> Tensor:
     return output
     ### END SOLUTION
 
-
 # Attach forward to EmbeddingLayer class (other methods defined in class body above)
 EmbeddingLayer.forward = emblayer_forward
 
@@ -1576,7 +1837,6 @@ encoding addition across all three PE strategies.
 **Expected**: Correct shapes, proper scaling, flexible position encoding support
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-emblayer-forward", "locked": true, "points": 10}
 def test_unit_emblayer_forward():
     """🧪 Test EmbeddingLayer.forward composition."""
@@ -1585,12 +1845,12 @@ def test_unit_emblayer_forward():
     tokens = Tensor([[1, 2, 3], [4, 5, 6]])
 
     # Test 1: Learned PE forward
-    embed_learned = EmbeddingLayer(vocab_size=100, embed_dim=64, max_seq_len=128, pos_encoding="learned")
+    embed_learned = EmbeddingLayer(vocab_size=100, embed_dim=64, max_seq_len=128, pos_encoding='learned')
     output_learned = embed_learned.forward(tokens)
     assert output_learned.shape == (2, 3, 64), f"Expected (2, 3, 64), got {output_learned.shape}"
 
     # Test 2: Sinusoidal PE forward
-    embed_sin = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding="sinusoidal")
+    embed_sin = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding='sinusoidal')
     output_sin = embed_sin.forward(tokens)
     assert output_sin.shape == (2, 3, 64), "Sinusoidal should produce same shape"
 
@@ -1614,7 +1874,6 @@ def test_unit_emblayer_forward():
 
     print("✅ EmbeddingLayer forward pass works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_emblayer_forward()
 
@@ -1629,14 +1888,18 @@ This test validates our EmbeddingLayer combines all components correctly for pro
 **Expected**: Correct shapes, proper scaling, flexible position encoding support
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-complete-system", "locked": true, "points": 15}
 def test_unit_complete_embedding_system():
     """🧪 Test complete embedding system."""
     print("🧪 Unit Test: Complete Embedding System...")
 
     # Test 1: Learned positional encoding
-    embed_learned = EmbeddingLayer(vocab_size=100, embed_dim=64, max_seq_len=128, pos_encoding="learned")
+    embed_learned = EmbeddingLayer(
+        vocab_size=100,
+        embed_dim=64,
+        max_seq_len=128,
+        pos_encoding='learned'
+    )
 
     tokens = Tensor([[1, 2, 3], [4, 5, 6]])
     output_learned = embed_learned.forward(tokens)
@@ -1644,13 +1907,21 @@ def test_unit_complete_embedding_system():
     assert output_learned.shape == (2, 3, 64), f"Expected shape (2, 3, 64), got {output_learned.shape}"
 
     # Test 2: Sinusoidal positional encoding
-    embed_sin = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding="sinusoidal")
+    embed_sin = EmbeddingLayer(
+        vocab_size=100,
+        embed_dim=64,
+        pos_encoding='sinusoidal'
+    )
 
     output_sin = embed_sin.forward(tokens)
     assert output_sin.shape == (2, 3, 64), "Sinusoidal embedding should have same shape"
 
     # Test 3: No positional encoding
-    embed_none = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding=None)
+    embed_none = EmbeddingLayer(
+        vocab_size=100,
+        embed_dim=64,
+        pos_encoding=None
+    )
 
     output_none = embed_none.forward(tokens)
     assert output_none.shape == (2, 3, 64), "No pos encoding should have same shape"
@@ -1662,7 +1933,12 @@ def test_unit_complete_embedding_system():
     assert output_1d.shape == (3, 64), f"Expected shape (3, 64) for 1D input, got {output_1d.shape}"
 
     # Test 5: Embedding scaling
-    embed_scaled = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding=None, scale_embeddings=True)
+    embed_scaled = EmbeddingLayer(
+        vocab_size=100,
+        embed_dim=64,
+        pos_encoding=None,
+        scale_embeddings=True
+    )
 
     # Use same weights to ensure fair comparison
     embed_scaled.token_embedding.weight = embed_none.token_embedding.weight
@@ -1673,9 +1949,7 @@ def test_unit_complete_embedding_system():
     # Scaled version should be sqrt(64) times larger
     scale_factor = math.sqrt(64)
     expected_scaled = output_unscaled.data * scale_factor
-    assert np.allclose(output_scaled.data, expected_scaled, rtol=1e-5), (
-        "Embedding scaling not working correctly"
-    )
+    assert np.allclose(output_scaled.data, expected_scaled, rtol=1e-5), "Embedding scaling not working correctly"
 
     # Test 6: Parameter counting
     params_learned = embed_learned.parameters()
@@ -1688,7 +1962,6 @@ def test_unit_complete_embedding_system():
 
     print("✅ Complete embedding system works correctly!")
 
-
 # Run test immediately when developing this module
 if __name__ == "__main__":
     test_unit_complete_embedding_system()
@@ -1699,7 +1972,6 @@ if __name__ == "__main__":
 
 Understanding the performance implications of different embedding strategies is crucial for building efficient NLP systems that scale to production workloads.
 """
-
 
 # %%
 def analyze_embedding_memory_scaling():
@@ -1732,20 +2004,19 @@ def analyze_embedding_memory_scaling():
     print("• Consider vocabulary pruning for memory-constrained environments")
 
     # Positional encoding memory comparison
-    print("\n📊 Positional Encoding Memory Comparison (embed_dim=512, max_seq_len=2048):")
+    print(f"\n📊 Positional Encoding Memory Comparison (embed_dim=512, max_seq_len=2048):")
 
     learned_params = 2048 * 512
     learned_memory = learned_params * 4 / (1024 * 1024)
 
     print(f"Learned PE:     {learned_memory:.1f} MB ({learned_params:,} parameters)")
-    print("Sinusoidal PE:  0.0 MB (0 parameters - computed on-the-fly)")
-    print("No PE:          0.0 MB (0 parameters)")
+    print(f"Sinusoidal PE:  0.0 MB (0 parameters - computed on-the-fly)")
+    print(f"No PE:          0.0 MB (0 parameters)")
 
     print("\n🚀 Production Implications:")
     print("• GPT-3's embedding table: ~2.4GB (50K vocab × 12K dims)")
     print("• Learned PE adds memory but may improve task-specific performance")
     print("• Sinusoidal PE saves memory and allows longer sequences")
-
 
 # Run analysis when developing/testing this module
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1754,7 +2025,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
     # benchmarks) take multiple minutes of real computation. Run this
     # file directly (not through CI) to see the full analysis.
     analyze_embedding_memory_scaling()
-
 
 # %%
 def analyze_embedding_performance():
@@ -1790,7 +2060,7 @@ def analyze_embedding_performance():
             iterations = 100
 
             for _ in range(iterations):
-                embed.forward(tokens)
+                output = embed.forward(tokens)
 
             end_time = time.time()
 
@@ -1808,7 +2078,6 @@ def analyze_embedding_performance():
     print("• Memory bandwidth becomes bottleneck for large embedding dimensions")
     print("• Cache locality important for repeated token patterns")
 
-
 # Run analysis when developing/testing this module
 if __name__ == "__main__" and os.environ.get("CI") != "true":
     # Skipped under CI: this is a performance demo/analysis, not a
@@ -1816,7 +2085,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
     # benchmarks) take multiple minutes of real computation. Run this
     # file directly (not through CI) to see the full analysis.
     analyze_embedding_performance()
-
 
 # %%
 def analyze_positional_encoding_strategies():
@@ -1835,12 +2103,12 @@ def analyze_positional_encoding_strategies():
     learned_params = max_seq_len * embed_dim
     learned_memory = learned_params * 4 / (1024 * 1024)  # MB
 
-    print("📈 Memory Comparison:")
+    print(f"📈 Memory Comparison:")
     print(f"Learned PE:     {learned_memory:.2f} MB ({learned_params:,} parameters)")
-    print("Sinusoidal PE:  0.00 MB (0 parameters)")
+    print(f"Sinusoidal PE:  0.00 MB (0 parameters)")
 
     # Analyze encoding patterns
-    print("\n📈 Encoding Pattern Analysis:")
+    print(f"\n📈 Encoding Pattern Analysis:")
 
     # Test sample sequences
     test_input = Tensor(rng.standard_normal((1, 10, embed_dim)))
@@ -1859,35 +2127,34 @@ def analyze_positional_encoding_strategies():
     print(f"Position variance (sinusoidal): {sin_var:.4f}")
 
     # Check extrapolation capability
-    print("\n📈 Extrapolation Analysis:")
+    print(f"\n📈 Extrapolation Analysis:")
     extended_length = max_seq_len + 100
 
     try:
         # Learned PE cannot handle longer sequences
-        PositionalEncoding(extended_length, embed_dim)
+        extended_learned = PositionalEncoding(extended_length, embed_dim)
         print(f"Learned PE: Requires retraining for sequences > {max_seq_len}")
-    except Exception:
+    except:
         print(f"Learned PE: Cannot handle sequences > {max_seq_len}")
 
     # Sinusoidal can extrapolate
-    create_sinusoidal_embeddings(extended_length, embed_dim)
+    extended_sin = create_sinusoidal_embeddings(extended_length, embed_dim)
     print(f"Sinusoidal PE: Can extrapolate to length {extended_length} (smooth continuation)")
 
-    print("\n🚀 Production Trade-offs:")
-    print("Learned PE:")
-    print("  + Can learn task-specific positional patterns")
-    print("  + May perform better for tasks with specific position dependencies")
-    print("  - Requires additional memory and parameters")
-    print("  - Fixed maximum sequence length")
-    print("  - Needs training data for longer sequences")
+    print(f"\n🚀 Production Trade-offs:")
+    print(f"Learned PE:")
+    print(f"  + Can learn task-specific positional patterns")
+    print(f"  + May perform better for tasks with specific position dependencies")
+    print(f"  - Requires additional memory and parameters")
+    print(f"  - Fixed maximum sequence length")
+    print(f"  - Needs training data for longer sequences")
 
-    print("\nSinusoidal PE:")
-    print("  + Zero additional parameters")
-    print("  + Can extrapolate to any sequence length")
-    print("  + Provides rich, mathematically grounded position signals")
-    print("  - Cannot adapt to task-specific position patterns")
-    print("  - May be suboptimal for highly position-dependent tasks")
-
+    print(f"\nSinusoidal PE:")
+    print(f"  + Zero additional parameters")
+    print(f"  + Can extrapolate to any sequence length")
+    print(f"  + Provides rich, mathematically grounded position signals")
+    print(f"  - Cannot adapt to task-specific position patterns")
+    print(f"  - May be suboptimal for highly position-dependent tasks")
 
 # Run analysis when developing/testing this module
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -1903,7 +2170,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
 
 Final validation that everything works together correctly before module completion.
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "module-integration", "locked": true, "points": 20}
 def test_module():
@@ -1946,15 +2212,15 @@ def test_module():
         vocab_size=vocab_size,
         embed_dim=embed_dim,
         max_seq_len=max_seq_len,
-        pos_encoding="learned",
-        scale_embeddings=True,
+        pos_encoding='learned',
+        scale_embeddings=True
     )
 
     # Simulate tokenized sentences
     sentences = [
-        [1, 15, 42, 7, 99],  # "the cat sat on mat"
-        [23, 7, 15, 88],  # "dog chased the ball"
-        [1, 67, 15, 42, 7, 99, 34],  # "the big cat sat on mat here"
+        [1, 15, 42, 7, 99],        # "the cat sat on mat"
+        [23, 7, 15, 88],           # "dog chased the ball"
+        [1, 67, 15, 42, 7, 99, 34] # "the big cat sat on mat here"
     ]
 
     # Process each sentence
@@ -1966,9 +2232,7 @@ def test_module():
 
         # Verify output shape
         expected_shape = (len(sentence), embed_dim)
-        assert embedded.shape == expected_shape, (
-            f"Wrong shape for sentence: {embedded.shape} != {expected_shape}"
-        )
+        assert embedded.shape == expected_shape, f"Wrong shape for sentence: {embedded.shape} != {expected_shape}"
 
     print("✅ Variable length sentence processing works!")
 
@@ -1987,9 +2251,7 @@ def test_module():
     batch_tensor = Tensor(batch_tokens)  # (3, 7)
     batch_output = embed_layer.forward(batch_tensor)
 
-    assert batch_output.shape == (3, max_len, embed_dim), (
-        f"Batch output shape incorrect: {batch_output.shape}"
-    )
+    assert batch_output.shape == (3, max_len, embed_dim), f"Batch output shape incorrect: {batch_output.shape}"
 
     print("✅ Batch processing with padding works!")
 
@@ -1999,15 +2261,19 @@ def test_module():
     test_tokens = Tensor([[1, 2, 3, 4, 5]])
 
     # Test all position encoding types
-    for pe_type in ["learned", "sinusoidal", None]:
-        embed_test = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding=pe_type)
+    for pe_type in ['learned', 'sinusoidal', None]:
+        embed_test = EmbeddingLayer(
+            vocab_size=100,
+            embed_dim=64,
+            pos_encoding=pe_type
+        )
 
         output = embed_test.forward(test_tokens)
         assert output.shape == (1, 5, 64), f"PE type {pe_type} failed shape test"
 
         # Check parameter counts
-        if pe_type == "learned":
-            assert len(embed_test.parameters()) == 2, "Learned PE should have 2 param tensors"
+        if pe_type == 'learned':
+            assert len(embed_test.parameters()) == 2, f"Learned PE should have 2 param tensors"
         else:
             assert len(embed_test.parameters()) == 1, f"PE type {pe_type} should have 1 param tensor"
 
@@ -2030,7 +2296,6 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 11")
-
 
 # %% [markdown]
 """
@@ -2082,7 +2347,6 @@ with similar vectors—this is how models understand language.
 In the next module, you'll use attention to let these embeddings interact with each other.
 """
 
-
 # %%
 def demo_embeddings():
     """🎯 See tokens become vectors."""
@@ -2104,7 +2368,6 @@ def demo_embeddings():
     print(f"Token 10 vector (first 5 dims): {vectors.data[1, :5].round(3)}")
 
     print("\n✨ Each token has its own learned representation!")
-
 
 # %%
 if __name__ == "__main__":

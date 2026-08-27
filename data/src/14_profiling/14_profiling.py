@@ -59,23 +59,20 @@ from trentorch.perf.profiling import Profiler, profile_forward_pass, profile_bac
 #| default_exp perf.profiling
 #| export
 
-import os
 import sys
+import os
 import time
-
 import numpy as np
-
 rng = np.random.default_rng(7)
-import gc
 import tracemalloc
+from typing import Dict, List, Any, Optional, Tuple
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
-
-from trentorch.core.layers import Linear
-from trentorch.core.spatial import Conv2d
+import gc
 
 # Import from TrenTorch package (previous modules must be completed and exported)
 from trentorch.core.tensor import Tensor
+from trentorch.core.layers import Linear
+from trentorch.core.spatial import Conv2d
 
 # Constants for memory and performance measurement
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
@@ -280,10 +277,474 @@ Profiler Class Structure:
 ```
 """
 
+# %% nbgrader={"grade": false, "grade_id": "profiler_class", "solution": true}
+
+class Profiler:
+    """
+    Professional-grade ML model profiler for performance analysis.
+
+    Measures parameters, FLOPs, memory usage, and latency with statistical rigor.
+    Used for optimization guidance and deployment planning.
+    """
+
+    def __init__(self):
+        """
+        Initialize profiler with measurement state.
+
+        TODO: Set up profiler tracking structures
+
+        APPROACH:
+        1. Create empty measurements dictionary
+        2. Initialize operation counters
+        3. Set up memory tracking state
+
+        EXAMPLE:
+        >>> profiler = Profiler()
+        >>> profiler.measurements
+        {}
+
+        HINTS:
+        - Use defaultdict(int) for operation counters
+        - measurements dict will store timing results
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.__init__")
+        ### END SOLUTION
+
+    def __enter__(self):
+        """Start timing for use as a context manager."""
+        self._context_start = time.perf_counter()
+        return self
+
+    def __exit__(self, *args):
+        """Stop timing and store elapsed time in milliseconds."""
+        self.elapsed = (time.perf_counter() - self._context_start) * 1000
+
+    def _count_layer_parameters(self, layer) -> int:
+        """
+        Count parameters in a single layer by inspecting weight and bias attributes.
+
+        Handles the fundamental unit of parameter counting: a single layer
+        with weight and optional bias tensors.
+
+        ```
+        Single Layer Parameter Count:
+        ┌─────────────────────────────────────────┐
+        │ layer.weight.data.size  (e.g., 128×64)  │
+        │ + layer.bias.data.size  (e.g., 64)      │
+        │ = total layer parameters (e.g., 8256)    │
+        └─────────────────────────────────────────┘
+        ```
+
+        Args:
+            layer: A layer object with .weight (and optionally .bias)
+
+        Returns:
+            int: Total parameter count for this layer
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._count_layer_parameters")
+        ### END SOLUTION
+
+    def count_parameters(self, model) -> int:
+        """
+        Count total trainable parameters in a model.
+
+        TODO: Implement parameter counting for any model with parameters() method
+
+        APPROACH:
+        1. Get all parameters from model.parameters() if available
+        2. For single layers, use _count_layer_parameters() helper
+        3. Sum total element count across all parameter tensors
+
+        EXAMPLE:
+        >>> linear = Linear(128, 64)  # 128*64 + 64 = 8256 parameters
+        >>> profiler = Profiler()
+        >>> count = profiler.count_parameters(linear)
+        >>> print(count)
+        8256
+
+        HINTS:
+        - Use _count_layer_parameters() for single layers
+        - Use parameter.data.size for tensor element count
+        - Handle models with and without parameters() method
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.count_parameters")
+        ### END SOLUTION
+
+    def _count_linear_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+        """
+        Count FLOPs for a Linear layer forward pass.
+
+        ```
+        Linear FLOP Formula:
+        FLOPs = in_features × out_features × 2
+                     ↑              ↑          ↑
+              Input dimension  Output dimension  Multiply + Add
+        ```
+
+        Args:
+            model: A Linear layer with .weight attribute
+            input_shape: Input tensor shape (batch, in_features)
+
+        Returns:
+            int: FLOP count for one forward pass (batch-independent)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._count_linear_flops")
+        ### END SOLUTION
+
+    def _count_conv_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+        """
+        Count FLOPs for a Conv2d layer forward pass.
+
+        ```
+        Conv2d FLOP Formula:
+        FLOPs = out_H × out_W × kernel_H × kernel_W × in_C × out_C × 2
+                  ↑       ↑        ↑          ↑         ↑       ↑      ↑
+              Output spatial    Kernel spatial     Channel dims   Mul+Add
+        ```
+
+        Args:
+            model: A Conv2d layer with kernel_size, in_channels, out_channels
+            input_shape: Input tensor shape (batch, channels, height, width)
+
+        Returns:
+            int: FLOP count for one forward pass
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._count_conv_flops")
+        ### END SOLUTION
+
+    def _count_sequential_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+        """
+        Count FLOPs for a Sequential model by summing per-layer FLOPs.
+
+        ```
+        Sequential FLOP Accumulation:
+        Layer 1 FLOPs + Layer 2 FLOPs + ... + Layer N FLOPs = Total FLOPs
+             ↓               ↓                    ↓
+          Shape propagated through each layer
+        ```
+
+        Args:
+            model: A model with .layers attribute (list of layers)
+            input_shape: Input tensor shape for the first layer
+
+        Returns:
+            int: Total FLOP count across all layers
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._count_sequential_flops")
+        ### END SOLUTION
+
+    def count_flops(self, model, input_shape: Tuple[int, ...]) -> int:
+        """
+        Count FLOPs (Floating Point Operations) for one forward pass.
+
+        TODO: Implement FLOP counting by dispatching to per-layer-type helpers
+
+        APPROACH:
+        1. Identify model type by class name
+        2. Dispatch to _count_linear_flops, _count_conv_flops, or _count_sequential_flops
+        3. Fall back to 1 FLOP per element for activations
+
+        EXAMPLE:
+        >>> linear = Linear(128, 64)
+        >>> profiler = Profiler()
+        >>> flops = profiler.count_flops(linear, (1, 128))
+        >>> print(flops)  # 128 * 64 * 2 = 16384
+        16384
+
+        HINT: Use model.__class__.__name__ to identify layer type
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.count_flops")
+        ### END SOLUTION
+
+    def _calculate_parameter_memory(self, model) -> float:
+        """
+        Calculate memory used by model parameters in megabytes.
+
+        ```
+        Parameter Memory Formula:
+        Memory (MB) = parameter_count × 4 bytes / (1024 × 1024)
+                           ↑              ↑
+                     From count_parameters  FP32 size
+        ```
+
+        Args:
+            model: Model to analyze
+
+        Returns:
+            float: Parameter memory in megabytes
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._calculate_parameter_memory")
+        ### END SOLUTION
+
+    def _calculate_memory_efficiency(self, useful_memory_mb: float, peak_memory_mb: float) -> float:
+        """
+        Calculate memory efficiency as ratio of useful to total memory.
+
+        ```
+        Efficiency = useful_memory / peak_memory
+                         ↑               ↑
+              Parameters + Activations   tracemalloc peak
+
+        Ideal: 1.0 (all memory is useful)
+        Typical: 0.3-0.8 (overhead from allocator, fragmentation)
+        ```
+
+        Args:
+            useful_memory_mb: Sum of parameter + activation memory
+            peak_memory_mb: Peak memory observed by tracemalloc
+
+        Returns:
+            float: Efficiency ratio clamped to [0, 1]
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._calculate_memory_efficiency")
+        ### END SOLUTION
+
+    def measure_memory(self, model, input_shape: Tuple[int, ...]) -> Dict[str, float]:
+        """
+        Measure memory usage during forward pass.
+
+        TODO: Implement memory tracking using tracemalloc and helper methods
+
+        APPROACH:
+        1. Use _calculate_parameter_memory() for parameter bytes
+        2. Use tracemalloc to track peak allocation during forward pass
+        3. Use _calculate_memory_efficiency() for efficiency ratio
+
+        EXAMPLE:
+        >>> linear = Linear(1024, 512)
+        >>> profiler = Profiler()
+        >>> memory = profiler.measure_memory(linear, (32, 1024))
+        >>> print(f"Parameters: {memory['parameter_memory_mb']:.1f} MB")
+        Parameters: 2.1 MB
+
+        HINT: tracemalloc.start() / get_traced_memory() / stop() lifecycle
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.measure_memory")
+        ### END SOLUTION
+
+    def measure_latency(self, model, input_tensor, warmup: int = 10, iterations: int = 100) -> float:
+        """
+        Measure model inference latency with statistical rigor.
+
+        TODO: Implement accurate latency measurement
+
+        APPROACH:
+        1. Run warmup iterations to stabilize performance
+        2. Measure multiple iterations for statistical accuracy
+        3. Calculate median latency to handle outliers
+        4. Return latency in milliseconds
+
+        PARAMETERS:
+        - warmup: Number of warmup runs (default 10)
+        - iterations: Number of measurement runs (default 100)
+
+        EXAMPLE:
+        >>> linear = Linear(128, 64)
+        >>> input_tensor = Tensor(rng.standard_normal((1, 128)))
+        >>> profiler = Profiler()
+        >>> latency = profiler.measure_latency(linear, input_tensor)
+        >>> print(f"Latency: {latency:.2f} ms")
+        Latency: 0.15 ms
+
+        HINTS:
+        - Use time.perf_counter() for high precision
+        - Use median instead of mean for robustness against outliers
+        - Handle different model interfaces (forward, __call__)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.measure_latency")
+        ### END SOLUTION
+
+    def profile_layer(self, layer, input_shape: Tuple[int, ...]) -> Dict[str, Any]:
+        """
+        Profile a single layer comprehensively.
+
+        TODO: Implement layer-wise profiling
+
+        APPROACH:
+        1. Count parameters for this layer
+        2. Count FLOPs for this layer
+        3. Measure memory usage
+        4. Measure latency
+        5. Return comprehensive layer profile
+
+        EXAMPLE:
+        >>> linear = Linear(256, 128)
+        >>> profiler = Profiler()
+        >>> profile = profiler.profile_layer(linear, (32, 256))
+        >>> print(f"Layer uses {profile['parameters']} parameters")
+        Layer uses 32896 parameters
+
+        HINTS:
+        - Use existing profiler methods (count_parameters, count_flops, etc.)
+        - Create dummy input for latency measurement
+        - Include layer type information in profile
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.profile_layer")
+        ### END SOLUTION
+
+    def _compute_derived_metrics(self, flops: int, latency_ms: float,
+                                  peak_memory_mb: float) -> Dict[str, float]:
+        """
+        Compute throughput and efficiency metrics from raw measurements.
+
+        ```
+        Derived Metrics Pipeline:
+        FLOPs + Latency → GFLOP/s (throughput)
+        Memory + Latency → MB/s (bandwidth)
+        GFLOP/s / Peak → Efficiency (utilization)
+        ```
+
+        Args:
+            flops: Total floating point operations
+            latency_ms: Measured latency in milliseconds
+            peak_memory_mb: Peak memory usage in megabytes
+
+        Returns:
+            dict with gflops_per_second, memory_bandwidth_mbs, computational_efficiency
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._compute_derived_metrics")
+        ### END SOLUTION
+
+    def _analyze_bottleneck(self, gflops_per_second: float,
+                            memory_bandwidth_mbs: float) -> Dict[str, Any]:
+        """
+        Identify whether workload is memory-bound or compute-bound.
+
+        ```
+        Bottleneck Decision:
+        If bandwidth >> GFLOP/s × 100 → Memory-bound (data movement dominates)
+        Otherwise                      → Compute-bound (arithmetic dominates)
+        ```
+
+        Args:
+            gflops_per_second: Compute throughput
+            memory_bandwidth_mbs: Memory bandwidth in MB/s
+
+        Returns:
+            dict with is_memory_bound, is_compute_bound, bottleneck label
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._analyze_bottleneck")
+        ### END SOLUTION
+
+    def profile_forward_pass(self, model, input_tensor) -> Dict[str, Any]:
+        """
+        Comprehensive profiling of a model's forward pass.
+
+        TODO: Gather measurements, then use _compute_derived_metrics and _analyze_bottleneck
+
+        APPROACH:
+        1. Gather raw measurements (parameters, FLOPs, memory, latency)
+        2. Use _compute_derived_metrics() for throughput and efficiency
+        3. Use _analyze_bottleneck() for bottleneck identification
+
+        EXAMPLE:
+        >>> model = Linear(256, 128)
+        >>> input_data = Tensor(rng.standard_normal((32, 256)))
+        >>> profiler = Profiler()
+        >>> profile = profiler.profile_forward_pass(model, input_data)
+        >>> print(f"Throughput: {profile['gflops_per_second']:.2f} GFLOP/s")
+        Throughput: 2.45 GFLOP/s
+
+        HINT: Compose helper outputs with ** unpacking into return dict
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.profile_forward_pass")
+        ### END SOLUTION
+
+    def _estimate_backward_costs(self, forward_flops: int,
+                                  forward_latency_ms: float) -> Dict[str, float]:
+        """
+        Estimate backward pass compute costs from forward pass measurements.
+
+        ```
+        Backward Pass Cost Estimation:
+        Backward FLOPs   = Forward FLOPs × 2   (gradient computation)
+        Backward Latency = Forward Latency × 2 (more complex operations)
+
+        Why 2×? Each operation needs:
+        1. Gradient w.r.t. weights (same cost as forward)
+        2. Gradient w.r.t. inputs (same cost as forward)
+        ```
+
+        Args:
+            forward_flops: FLOP count from forward pass
+            forward_latency_ms: Latency from forward pass
+
+        Returns:
+            dict with backward_flops and backward_latency_ms
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._estimate_backward_costs")
+        ### END SOLUTION
+
+    def _estimate_optimizer_memory(self, gradient_memory_mb: float) -> Dict[str, float]:
+        """
+        Estimate additional memory required by different optimizers.
+
+        ```
+        Optimizer Memory Requirements:
+        ┌───────────┬────────────────────────────────────┐
+        │ Optimizer │ Extra Memory                       │
+        ├───────────┼────────────────────────────────────┤
+        │ SGD       │ 0× (no state)                      │
+        │ Adam      │ 2× gradient memory (m + v)         │
+        │ AdamW     │ 2× gradient memory (m + v)         │
+        └───────────┴────────────────────────────────────┘
+        ```
+
+        Args:
+            gradient_memory_mb: Memory for gradient storage in MB
+
+        Returns:
+            dict mapping optimizer name to extra memory in MB
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler._estimate_optimizer_memory")
+        ### END SOLUTION
+
+    def profile_backward_pass(self, model, input_tensor, _loss_fn=None) -> Dict[str, Any]:
+        """
+        Profile both forward and backward passes for training analysis.
+
+        TODO: Use _estimate_backward_costs and _estimate_optimizer_memory helpers
+
+        APPROACH:
+        1. Profile forward pass with profile_forward_pass()
+        2. Use _estimate_backward_costs() for backward FLOPs and latency
+        3. Use _estimate_optimizer_memory() for optimizer memory estimates
+        4. Combine into total training iteration metrics
+
+        EXAMPLE:
+        >>> model = Linear(128, 64)
+        >>> input_data = Tensor(rng.standard_normal((16, 128)))
+        >>> profiler = Profiler()
+        >>> profile = profiler.profile_backward_pass(model, input_data)
+        >>> print(f"Training iteration: {profile['total_latency_ms']:.2f} ms")
+        Training iteration: 0.45 ms
+
+        HINT: Gradient memory equals parameter memory (one gradient per parameter)
+        """
+        ### BEGIN SOLUTION
+        raise NotImplementedError("TODO: implement Profiler.profile_backward_pass")
+        ### END SOLUTION
+
 # %% tags=["solution"]
 #| export
 # Solution
-
 
 class Profiler:
     """
@@ -352,9 +813,9 @@ class Profiler:
         """
         ### BEGIN SOLUTION
         params = 0
-        if hasattr(layer, "weight"):
+        if hasattr(layer, 'weight'):
             params += layer.weight.data.size
-            if hasattr(layer, "bias") and layer.bias is not None:
+            if hasattr(layer, 'bias') and layer.bias is not None:
                 params += layer.bias.data.size
         return params
         ### END SOLUTION
@@ -383,16 +844,16 @@ class Profiler:
         - Handle models with and without parameters() method
         """
         ### BEGIN SOLUTION
-        if hasattr(model, "layers"):
+        if hasattr(model, 'layers'):
             return sum(p.data.size for layer in model.layers for p in layer.parameters())
-        elif hasattr(model, "parameters"):
+        elif hasattr(model, 'parameters'):
             return sum(p.data.size for p in model.parameters())
-        elif hasattr(model, "weight"):
+        elif hasattr(model, 'weight'):
             return self._count_layer_parameters(model)
         return 0
         ### END SOLUTION
 
-    def _count_linear_flops(self, model, input_shape: tuple[int, ...]) -> int:
+    def _count_linear_flops(self, model, input_shape: Tuple[int, ...]) -> int:
         """
         Count FLOPs for a Linear layer forward pass.
 
@@ -412,11 +873,11 @@ class Profiler:
         """
         ### BEGIN SOLUTION
         in_features = input_shape[-1]
-        out_features = model.weight.shape[1] if hasattr(model, "weight") else 1
+        out_features = model.weight.shape[1] if hasattr(model, 'weight') else 1
         return in_features * out_features * 2
         ### END SOLUTION
 
-    def _count_conv_flops(self, model, input_shape: tuple[int, ...]) -> int:
+    def _count_conv_flops(self, model, input_shape: Tuple[int, ...]) -> int:
         """
         Count FLOPs for a Conv2d layer forward pass.
 
@@ -435,7 +896,7 @@ class Profiler:
             int: FLOP count for one forward pass
         """
         ### BEGIN SOLUTION
-        if not (hasattr(model, "kernel_size") and hasattr(model, "in_channels")):
+        if not (hasattr(model, 'kernel_size') and hasattr(model, 'in_channels')):
             return 0
 
         in_channels = model.in_channels
@@ -443,14 +904,14 @@ class Profiler:
         kernel_h = kernel_w = model.kernel_size
 
         input_h, input_w = input_shape[-2], input_shape[-1]
-        stride = model.stride if hasattr(model, "stride") else 1
+        stride = model.stride if hasattr(model, 'stride') else 1
         output_h = input_h // stride
         output_w = input_w // stride
 
         return output_h * output_w * kernel_h * kernel_w * in_channels * out_channels * 2
         ### END SOLUTION
 
-    def _count_sequential_flops(self, model, input_shape: tuple[int, ...]) -> int:
+    def _count_sequential_flops(self, model, input_shape: Tuple[int, ...]) -> int:
         """
         Count FLOPs for a Sequential model by summing per-layer FLOPs.
 
@@ -473,12 +934,12 @@ class Profiler:
         current_shape = input_shape
         for layer in model.layers:
             total_flops += self.count_flops(layer, current_shape)
-            if hasattr(layer, "weight"):
+            if hasattr(layer, 'weight'):
                 current_shape = current_shape[:-1] + (layer.weight.shape[1],)
         return total_flops
         ### END SOLUTION
 
-    def count_flops(self, model, input_shape: tuple[int, ...]) -> int:
+    def count_flops(self, model, input_shape: Tuple[int, ...]) -> int:
         """
         Count FLOPs (Floating Point Operations) for one forward pass.
 
@@ -501,11 +962,11 @@ class Profiler:
         ### BEGIN SOLUTION
         model_name = model.__class__.__name__
 
-        if model_name == "Linear":
+        if model_name == 'Linear':
             return self._count_linear_flops(model, input_shape)
-        elif model_name == "Conv2d":
+        elif model_name == 'Conv2d':
             return self._count_conv_flops(model, input_shape)
-        elif model_name == "Sequential" or hasattr(model, "layers"):
+        elif model_name == 'Sequential' or hasattr(model, 'layers'):
             return self._count_sequential_flops(model, input_shape)
         else:
             return int(np.prod(input_shape))
@@ -558,7 +1019,7 @@ class Profiler:
         return min(ratio, 1.0)
         ### END SOLUTION
 
-    def measure_memory(self, model, input_shape: tuple[int, ...]) -> dict[str, float]:
+    def measure_memory(self, model, input_shape: Tuple[int, ...]) -> Dict[str, float]:
         """
         Measure memory usage during forward pass.
 
@@ -595,10 +1056,10 @@ class Profiler:
 
         useful_memory = parameter_memory_mb + activation_memory_mb
         return {
-            "parameter_memory_mb": parameter_memory_mb,
-            "activation_memory_mb": activation_memory_mb,
-            "peak_memory_mb": max(peak_memory_mb, useful_memory),
-            "memory_efficiency": self._calculate_memory_efficiency(useful_memory, peak_memory_mb),
+            'parameter_memory_mb': parameter_memory_mb,
+            'activation_memory_mb': activation_memory_mb,
+            'peak_memory_mb': max(peak_memory_mb, useful_memory),
+            'memory_efficiency': self._calculate_memory_efficiency(useful_memory, peak_memory_mb)
         }
         ### END SOLUTION
 
@@ -651,7 +1112,7 @@ class Profiler:
         return float(median_latency)
         ### END SOLUTION
 
-    def profile_layer(self, layer, input_shape: tuple[int, ...]) -> dict[str, Any]:
+    def profile_layer(self, layer, input_shape: Tuple[int, ...]) -> Dict[str, Any]:
         """
         Profile a single layer comprehensively.
 
@@ -690,18 +1151,17 @@ class Profiler:
         gflops_per_second = (flops / 1e9) / max(latency / 1000, 1e-6)
 
         return {
-            "layer_type": layer.__class__.__name__,
-            "parameters": params,
-            "flops": flops,
-            "latency_ms": latency,
-            "gflops_per_second": gflops_per_second,
-            **memory,
+            'layer_type': layer.__class__.__name__,
+            'parameters': params,
+            'flops': flops,
+            'latency_ms': latency,
+            'gflops_per_second': gflops_per_second,
+            **memory
         }
         ### END SOLUTION
 
-    def _compute_derived_metrics(
-        self, flops: int, latency_ms: float, peak_memory_mb: float
-    ) -> dict[str, float]:
+    def _compute_derived_metrics(self, flops: int, latency_ms: float,
+                                  peak_memory_mb: float) -> Dict[str, float]:
         """
         Compute throughput and efficiency metrics from raw measurements.
 
@@ -728,13 +1188,14 @@ class Profiler:
         computational_efficiency = min(gflops_per_second / theoretical_peak_gflops, 1.0)
 
         return {
-            "gflops_per_second": gflops_per_second,
-            "memory_bandwidth_mbs": memory_bandwidth,
-            "computational_efficiency": computational_efficiency,
+            'gflops_per_second': gflops_per_second,
+            'memory_bandwidth_mbs': memory_bandwidth,
+            'computational_efficiency': computational_efficiency
         }
         ### END SOLUTION
 
-    def _analyze_bottleneck(self, gflops_per_second: float, memory_bandwidth_mbs: float) -> dict[str, Any]:
+    def _analyze_bottleneck(self, gflops_per_second: float,
+                            memory_bandwidth_mbs: float) -> Dict[str, Any]:
         """
         Identify whether workload is memory-bound or compute-bound.
 
@@ -754,13 +1215,13 @@ class Profiler:
         ### BEGIN SOLUTION
         is_memory_bound = memory_bandwidth_mbs > gflops_per_second * 100
         return {
-            "is_memory_bound": is_memory_bound,
-            "is_compute_bound": not is_memory_bound,
-            "bottleneck": "memory" if is_memory_bound else "compute",
+            'is_memory_bound': is_memory_bound,
+            'is_compute_bound': not is_memory_bound,
+            'bottleneck': 'memory' if is_memory_bound else 'compute'
         }
         ### END SOLUTION
 
-    def profile_forward_pass(self, model, input_tensor) -> dict[str, Any]:
+    def profile_forward_pass(self, model, input_tensor) -> Dict[str, Any]:
         """
         Comprehensive profiling of a model's forward pass.
 
@@ -787,20 +1248,18 @@ class Profiler:
         memory_stats = self.measure_memory(model, input_tensor.shape)
         latency_ms = self.measure_latency(model, input_tensor, warmup=5, iterations=20)
 
-        derived = self._compute_derived_metrics(flops, latency_ms, memory_stats["peak_memory_mb"])
-        bottleneck = self._analyze_bottleneck(derived["gflops_per_second"], derived["memory_bandwidth_mbs"])
+        derived = self._compute_derived_metrics(flops, latency_ms, memory_stats['peak_memory_mb'])
+        bottleneck = self._analyze_bottleneck(derived['gflops_per_second'],
+                                              derived['memory_bandwidth_mbs'])
 
         return {
-            "parameters": param_count,
-            "flops": flops,
-            "latency_ms": latency_ms,
-            **memory_stats,
-            **derived,
-            **bottleneck,
+            'parameters': param_count, 'flops': flops, 'latency_ms': latency_ms,
+            **memory_stats, **derived, **bottleneck
         }
         ### END SOLUTION
 
-    def _estimate_backward_costs(self, forward_flops: int, forward_latency_ms: float) -> dict[str, float]:
+    def _estimate_backward_costs(self, forward_flops: int,
+                                  forward_latency_ms: float) -> Dict[str, float]:
         """
         Estimate backward pass compute costs from forward pass measurements.
 
@@ -822,10 +1281,13 @@ class Profiler:
             dict with backward_flops and backward_latency_ms
         """
         ### BEGIN SOLUTION
-        return {"backward_flops": forward_flops * 2, "backward_latency_ms": forward_latency_ms * 2}
+        return {
+            'backward_flops': forward_flops * 2,
+            'backward_latency_ms': forward_latency_ms * 2
+        }
         ### END SOLUTION
 
-    def _estimate_optimizer_memory(self, gradient_memory_mb: float) -> dict[str, float]:
+    def _estimate_optimizer_memory(self, gradient_memory_mb: float) -> Dict[str, float]:
         """
         Estimate additional memory required by different optimizers.
 
@@ -848,13 +1310,13 @@ class Profiler:
         """
         ### BEGIN SOLUTION
         return {
-            "sgd": 0,
-            "adam": gradient_memory_mb * 2,
-            "adamw": gradient_memory_mb * 2,
+            'sgd': 0,
+            'adam': gradient_memory_mb * 2,
+            'adamw': gradient_memory_mb * 2,
         }
         ### END SOLUTION
 
-    def profile_backward_pass(self, model, input_tensor, _loss_fn=None) -> dict[str, Any]:
+    def profile_backward_pass(self, model, input_tensor, _loss_fn=None) -> Dict[str, Any]:
         """
         Profile both forward and backward passes for training analysis.
 
@@ -878,29 +1340,28 @@ class Profiler:
         """
         ### BEGIN SOLUTION
         fwd = self.profile_forward_pass(model, input_tensor)
-        bwd = self._estimate_backward_costs(fwd["flops"], fwd["latency_ms"])
+        bwd = self._estimate_backward_costs(fwd['flops'], fwd['latency_ms'])
 
-        gradient_memory_mb = fwd["parameter_memory_mb"]
-        total_flops = fwd["flops"] + bwd["backward_flops"]
-        total_latency_ms = fwd["latency_ms"] + bwd["backward_latency_ms"]
-        total_memory_mb = fwd["parameter_memory_mb"] + fwd["activation_memory_mb"] + gradient_memory_mb
+        gradient_memory_mb = fwd['parameter_memory_mb']
+        total_flops = fwd['flops'] + bwd['backward_flops']
+        total_latency_ms = fwd['latency_ms'] + bwd['backward_latency_ms']
+        total_memory_mb = fwd['parameter_memory_mb'] + fwd['activation_memory_mb'] + gradient_memory_mb
 
         return {
-            "forward_flops": fwd["flops"],
-            "forward_latency_ms": fwd["latency_ms"],
-            "forward_memory_mb": fwd["peak_memory_mb"],
+            'forward_flops': fwd['flops'],
+            'forward_latency_ms': fwd['latency_ms'],
+            'forward_memory_mb': fwd['peak_memory_mb'],
             **bwd,
-            "gradient_memory_mb": gradient_memory_mb,
-            "total_flops": total_flops,
-            "total_latency_ms": total_latency_ms,
-            "total_memory_mb": total_memory_mb,
-            "total_gflops_per_second": (total_flops / 1e9) / (total_latency_ms / 1000.0),
-            "optimizer_memory_estimates": self._estimate_optimizer_memory(gradient_memory_mb),
-            "memory_efficiency": fwd["memory_efficiency"],
-            "bottleneck": fwd["bottleneck"],
+            'gradient_memory_mb': gradient_memory_mb,
+            'total_flops': total_flops,
+            'total_latency_ms': total_latency_ms,
+            'total_memory_mb': total_memory_mb,
+            'total_gflops_per_second': (total_flops / 1e9) / (total_latency_ms / 1000.0),
+            'optimizer_memory_estimates': self._estimate_optimizer_memory(gradient_memory_mb),
+            'memory_efficiency': fwd['memory_efficiency'],
+            'bottleneck': fwd['bottleneck']
         }
         ### END SOLUTION
-
 
 # %% [markdown]
 """
@@ -917,7 +1378,6 @@ In production ML engineering, you often need quick insights without setting up f
 
 These functions wrap our core Profiler class with convenience interfaces used in real ML workflows for rapid iteration and debugging.
 """
-
 
 # %% nbgrader={"grade": false, "grade_id": "helper_quick_profile", "solution": true}
 #| export
@@ -954,10 +1414,9 @@ def quick_profile(model, input_tensor, profiler=None):
     print(f"   Latency: {profile['latency_ms']:.2f} ms")
     print(f"   Memory: {profile['peak_memory_mb']:.2f} MB")
     print(f"   Bottleneck: {profile['bottleneck']}")
-    print(f"   Efficiency: {profile['computational_efficiency'] * 100:.1f}%")
+    print(f"   Efficiency: {profile['computational_efficiency']*100:.1f}%")
 
     return profile
-
 
 # %% nbgrader={"grade": false, "grade_id": "helper_weight_distribution", "solution": true}
 #| export
@@ -982,37 +1441,36 @@ def analyze_weight_distribution(model, percentiles=[10, 25, 50, 75, 90]):
     """
     # Collect all weights
     weights = []
-    if hasattr(model, "parameters"):
+    if hasattr(model, 'parameters'):
         for param in model.parameters():
             weights.extend(param.data.flatten().tolist())
-    elif hasattr(model, "weight"):
+    elif hasattr(model, 'weight'):
         weights.extend(model.weight.data.flatten().tolist())
     else:
-        return {"error": "No weights found"}
+        return {'error': 'No weights found'}
 
     weights = np.array(weights)
     abs_weights = np.abs(weights)
 
     # Calculate statistics
     stats = {
-        "total_weights": len(weights),
-        "mean": float(np.mean(abs_weights)),
-        "std": float(np.std(abs_weights)),
-        "min": float(np.min(abs_weights)),
-        "max": float(np.max(abs_weights)),
+        'total_weights': len(weights),
+        'mean': float(np.mean(abs_weights)),
+        'std': float(np.std(abs_weights)),
+        'min': float(np.min(abs_weights)),
+        'max': float(np.max(abs_weights)),
     }
 
     # Percentile analysis
     for p in percentiles:
-        stats[f"percentile_{p}"] = float(np.percentile(abs_weights, p))
+        stats[f'percentile_{p}'] = float(np.percentile(abs_weights, p))
 
     # Threshold analysis (useful for pruning)
     for threshold in [0.001, 0.01, 0.1]:
         below = np.sum(abs_weights < threshold) / len(weights) * 100
-        stats[f"below_threshold_{str(threshold).replace('.', '')}"] = below
+        stats[f'below_threshold_{str(threshold).replace(".", "")}'] = below
 
     return stats
-
 
 # %% [markdown]
 """
@@ -1025,7 +1483,6 @@ This test validates our helper utilities work correctly and provide useful outpu
 **Expected**: Correct profiles with formatted output
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-helper-functions", "locked": true, "points": 5}
 def test_unit_helper_functions():
     """🧪 Test helper function implementations."""
@@ -1033,15 +1490,14 @@ def test_unit_helper_functions():
 
     # Test 1: Quick profile function
     from trentorch.core.layers import Linear
-
     test_model = Linear(16, 8)
     test_input = Tensor(rng.standard_normal((8, 16)))
     profile = quick_profile(test_model, test_input, profiler=Profiler())
 
     # Validate profile contains expected keys
-    assert "parameters" in profile, "Quick profile should include parameters"
-    assert "flops" in profile, "Quick profile should include FLOPs"
-    assert "latency_ms" in profile, "Quick profile should include latency"
+    assert 'parameters' in profile, "Quick profile should include parameters"
+    assert 'flops' in profile, "Quick profile should include FLOPs"
+    assert 'latency_ms' in profile, "Quick profile should include latency"
     print("✅ Quick profile provides comprehensive metrics")
 
     # Test 2: Weight distribution analysis
@@ -1053,10 +1509,10 @@ def test_unit_helper_functions():
     stats = analyze_weight_distribution(model)
 
     # Validate statistics structure
-    assert "total_weights" in stats, "Should count total weights"
-    assert "mean" in stats, "Should compute mean"
-    assert "std" in stats, "Should compute standard deviation"
-    assert stats["total_weights"] == 50, f"Expected 50 weights, got {stats['total_weights']}"
+    assert 'total_weights' in stats, "Should count total weights"
+    assert 'mean' in stats, "Should compute mean"
+    assert 'std' in stats, "Should compute standard deviation"
+    assert stats['total_weights'] == 50, f"Expected 50 weights, got {stats['total_weights']}"
     print(f"✅ Weight distribution analysis: {stats['total_weights']} weights analyzed")
 
     # Test 3: Weight distribution with no weights
@@ -1065,11 +1521,10 @@ def test_unit_helper_functions():
 
     no_weight_model = NoWeightModel()
     stats = analyze_weight_distribution(no_weight_model)
-    assert "error" in stats, "Should handle models without weights"
+    assert 'error' in stats, "Should handle models without weights"
     print("✅ Handles models without weights gracefully")
 
     print("✅ Helper functions work correctly!")
-
 
 if __name__ == "__main__":
     test_unit_helper_functions()
@@ -1109,7 +1564,6 @@ This test validates the helper that counts parameters from a single layer's weig
 **Expected**: Correct weight + bias element counts
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-count-layer-parameters", "locked": true, "points": 3}
 def test_unit_count_layer_parameters():
     """🧪 Test _count_layer_parameters helper."""
@@ -1148,7 +1602,6 @@ def test_unit_count_layer_parameters():
 
     print("✅ _count_layer_parameters works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_count_layer_parameters()
 
@@ -1162,7 +1615,6 @@ This test validates our parameter counting works correctly for different model t
 **Why it matters**: Accurate parameter counts predict memory usage and model complexity
 **Expected**: Correct counts for known model configurations
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-parameter-counting", "locked": true, "points": 10}
 def test_unit_parameter_counting():
@@ -1203,7 +1655,6 @@ def test_unit_parameter_counting():
     print(f"✅ Direct tensor: {param_count} parameters")
 
     print("✅ Parameter counting works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_parameter_counting()
@@ -1256,7 +1707,6 @@ This test validates the helper that computes FLOPs for a single Linear layer.
 **Expected**: Exact FLOP count matching the formula
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-count-linear-flops", "locked": true, "points": 3}
 def test_unit_count_linear_flops():
     """🧪 Test _count_linear_flops helper."""
@@ -1268,18 +1718,18 @@ def test_unit_count_linear_flops():
     class MockLinear:
         def __init__(self, in_f, out_f):
             self.weight = Tensor(rng.standard_normal((in_f, out_f)))
-            self.__class__.__name__ = "Linear"
+            self.__class__.__name__ = 'Linear'
 
     # Test 1: Known dimensions
     layer = MockLinear(128, 64)
     flops = profiler._count_linear_flops(layer, (1, 128))
-    assert flops == 128 * 64 * 2, f"Expected {128 * 64 * 2}, got {flops}"
+    assert flops == 128 * 64 * 2, f"Expected {128*64*2}, got {flops}"
     print(f"✅ Linear(128, 64): {flops} FLOPs")
 
     # Test 2: Square layer
     layer_sq = MockLinear(256, 256)
     flops_sq = profiler._count_linear_flops(layer_sq, (1, 256))
-    assert flops_sq == 256 * 256 * 2, f"Expected {256 * 256 * 2}, got {flops_sq}"
+    assert flops_sq == 256 * 256 * 2, f"Expected {256*256*2}, got {flops_sq}"
     print(f"✅ Linear(256, 256): {flops_sq} FLOPs")
 
     # Test 3: Batch independence (uses last dim only)
@@ -1289,7 +1739,6 @@ def test_unit_count_linear_flops():
     print("✅ Batch-independent FLOPs confirmed")
 
     print("✅ _count_linear_flops works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_count_linear_flops()
@@ -1305,7 +1754,6 @@ This test validates the helper that computes FLOPs for a Conv2d layer.
 **Expected**: Correct FLOPs accounting for kernel size and channel dimensions
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-count-conv-flops", "locked": true, "points": 3}
 def test_unit_count_conv_flops():
     """🧪 Test _count_conv_flops helper."""
@@ -1320,7 +1768,7 @@ def test_unit_count_conv_flops():
             self.out_channels = out_c
             self.kernel_size = k
             self.stride = s
-            self.__class__.__name__ = "Conv2d"
+            self.__class__.__name__ = 'Conv2d'
 
     # Test 1: Simple 3x3 conv, stride 1
     conv = MockConv(3, 16, 3, 1)
@@ -1346,7 +1794,6 @@ def test_unit_count_conv_flops():
 
     print("✅ _count_conv_flops works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_count_conv_flops()
 
@@ -1361,7 +1808,6 @@ This test validates the helper that sums FLOPs across layers in a sequential mod
 **Expected**: Sum of individual layer FLOPs with correct shape propagation
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-count-sequential-flops", "locked": true, "points": 3}
 def test_unit_count_sequential_flops():
     """🧪 Test _count_sequential_flops helper."""
@@ -1373,7 +1819,7 @@ def test_unit_count_sequential_flops():
     class MockLinear:
         def __init__(self, in_f, out_f):
             self.weight = Tensor(rng.standard_normal((in_f, out_f)))
-            self.__class__.__name__ = "Linear"
+            self.__class__.__name__ = 'Linear'
 
     class MockSequential:
         def __init__(self, *layer_list):
@@ -1389,11 +1835,10 @@ def test_unit_count_sequential_flops():
     # Single layer sequential
     model_single = MockSequential(MockLinear(32, 16))
     flops_single = profiler._count_sequential_flops(model_single, (1, 32))
-    assert flops_single == 32 * 16 * 2, f"Expected {32 * 16 * 2}, got {flops_single}"
+    assert flops_single == 32 * 16 * 2, f"Expected {32*16*2}, got {flops_single}"
     print(f"✅ Single-layer sequential: {flops_single} FLOPs")
 
     print("✅ _count_sequential_flops works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_count_sequential_flops()
@@ -1408,7 +1853,6 @@ This test validates our FLOP counting for different operations and architectures
 **Why it matters**: FLOPs predict computational cost and energy usage
 **Expected**: Correct FLOP counts for known operation types
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-flop-counting", "locked": true, "points": 10}
 def test_unit_flop_counting():
@@ -1428,7 +1872,7 @@ def test_unit_flop_counting():
     class MockLinear:
         def __init__(self, in_features, out_features):
             self.weight = Tensor(rng.standard_normal((in_features, out_features)))
-            self.__class__.__name__ = "Linear"
+            self.__class__.__name__ = 'Linear'
 
     mock_linear = MockLinear(128, 64)
     flops = profiler.count_flops(mock_linear, (1, 128))
@@ -1443,7 +1887,6 @@ def test_unit_flop_counting():
     print(f"✅ Batch independence: {flops_batch1} FLOPs (same for batch 1 and 32)")
 
     print("✅ FLOP counting works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_flop_counting()
@@ -1493,7 +1936,6 @@ This test validates the helper that converts parameter count to memory in MB.
 **Expected**: Exact byte-level accuracy for known parameter counts
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-calculate-parameter-memory", "locked": true, "points": 3}
 def test_unit_calculate_parameter_memory():
     """🧪 Test _calculate_parameter_memory helper."""
@@ -1523,7 +1965,6 @@ def test_unit_calculate_parameter_memory():
 
     print("✅ _calculate_parameter_memory works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_calculate_parameter_memory()
 
@@ -1537,7 +1978,6 @@ This test validates the helper that computes useful-to-total memory ratio.
 **Why it matters**: Low efficiency means memory fragmentation or allocator overhead
 **Expected**: Values between 0 and 1, with division-by-zero safety
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "test-calculate-memory-efficiency", "locked": true, "points": 3}
 def test_unit_calculate_memory_efficiency():
@@ -1568,7 +2008,6 @@ def test_unit_calculate_memory_efficiency():
 
     print("✅ _calculate_memory_efficiency works correctly!")
 
-
 if __name__ == "__main__":
     test_unit_calculate_memory_efficiency()
 
@@ -1583,7 +2022,6 @@ This test validates our memory tracking works correctly and provides useful metr
 **Expected**: Reasonable memory measurements with proper components
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-memory-measurement", "locked": true, "points": 10}
 def test_unit_memory_measurement():
     """🧪 Test memory measurement implementation."""
@@ -1592,14 +2030,13 @@ def test_unit_memory_measurement():
     profiler = Profiler()
 
     # Test 1: Basic memory measurement
-    Tensor(rng.standard_normal((10, 20)))
+    test_tensor = Tensor(rng.standard_normal((10, 20)))
     from trentorch.core.layers import Linear
-
     test_model = Linear(20, 10)
     memory_stats = profiler.measure_memory(test_model, (10, 20))
 
     # Validate dictionary structure
-    required_keys = ["parameter_memory_mb", "activation_memory_mb", "peak_memory_mb", "memory_efficiency"]
+    required_keys = ['parameter_memory_mb', 'activation_memory_mb', 'peak_memory_mb', 'memory_efficiency']
     for key in required_keys:
         assert key in memory_stats, f"Missing key: {key}"
 
@@ -1611,7 +2048,6 @@ def test_unit_memory_measurement():
 
     # Test 2: Memory scaling with size
     from trentorch.core.layers import Linear
-
     small_model = Linear(5, 5)
     large_model = Linear(50, 50)
 
@@ -1619,23 +2055,18 @@ def test_unit_memory_measurement():
     large_memory = profiler.measure_memory(large_model, (50, 50))
 
     # Larger tensor should use more activation memory
-    assert large_memory["activation_memory_mb"] >= small_memory["activation_memory_mb"], (
+    assert large_memory['activation_memory_mb'] >= small_memory['activation_memory_mb'], \
         "Larger tensor should use more activation memory"
-    )
 
-    print(
-        f"✅ Scaling: Small {small_memory['activation_memory_mb']:.3f} MB → Large {large_memory['activation_memory_mb']:.3f} MB"
-    )
+    print(f"✅ Scaling: Small {small_memory['activation_memory_mb']:.3f} MB → Large {large_memory['activation_memory_mb']:.3f} MB")
 
     # Test 3: Efficiency bounds
-    assert 0 <= memory_stats["memory_efficiency"] <= 1.0, (
+    assert 0 <= memory_stats['memory_efficiency'] <= 1.0, \
         f"Memory efficiency should be between 0 and 1, got {memory_stats['memory_efficiency']}"
-    )
 
     print(f"✅ Efficiency: {memory_stats['memory_efficiency']:.3f} (0-1 range)")
 
     print("✅ Memory measurement works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_memory_measurement()
@@ -1686,7 +2117,6 @@ This test validates our latency measurement provides consistent and reasonable r
 **Expected**: Consistent timing measurements with proper statistical handling
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-latency-measurement", "locked": true, "points": 10}
 def test_unit_latency_measurement():
     """🧪 Test latency measurement implementation."""
@@ -1696,7 +2126,6 @@ def test_unit_latency_measurement():
 
     # Test 1: Basic latency measurement
     from trentorch.core.layers import Linear
-
     test_model = Linear(8, 4)
     test_input = Tensor(rng.standard_normal((4, 8)))
     latency = profiler.measure_latency(test_model, test_input, warmup=2, iterations=5)
@@ -1730,7 +2159,6 @@ def test_unit_latency_measurement():
     print(f"✅ Scaling: Small {small_latency:.3f} ms, Large {large_latency:.3f} ms")
 
     print("✅ Latency measurement works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_latency_measurement()
@@ -1798,7 +2226,6 @@ This test validates the helper that converts raw FLOPs and latency into throughp
 **Expected**: Correct throughput calculations from known FLOP counts and latencies
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-compute-derived-metrics", "locked": true, "points": 3}
 def test_unit_compute_derived_metrics():
     """🧪 Test _compute_derived_metrics helper."""
@@ -1808,27 +2235,25 @@ def test_unit_compute_derived_metrics():
 
     # Test 1: Known values -> known throughput
     # 1e9 FLOPs in 1000ms (1 second) = 1.0 GFLOP/s
-    metrics = profiler._compute_derived_metrics(flops=1_000_000_000, latency_ms=1000.0, peak_memory_mb=100.0)
-    assert abs(metrics["gflops_per_second"] - 1.0) < 0.01, (
-        f"Expected 1.0 GFLOP/s, got {metrics['gflops_per_second']}"
+    metrics = profiler._compute_derived_metrics(
+        flops=1_000_000_000, latency_ms=1000.0, peak_memory_mb=100.0
     )
+    assert abs(metrics['gflops_per_second'] - 1.0) < 0.01, \
+        f"Expected 1.0 GFLOP/s, got {metrics['gflops_per_second']}"
     print(f"✅ 1B FLOPs / 1s = {metrics['gflops_per_second']:.1f} GFLOP/s")
 
     # Test 2: Memory bandwidth calculation
     # 100 MB in 1 second = 100 MB/s
-    assert abs(metrics["memory_bandwidth_mbs"] - 100.0) < 0.1, (
+    assert abs(metrics['memory_bandwidth_mbs'] - 100.0) < 0.1, \
         f"Expected 100 MB/s, got {metrics['memory_bandwidth_mbs']}"
-    )
     print(f"✅ Memory bandwidth: {metrics['memory_bandwidth_mbs']:.1f} MB/s")
 
     # Test 3: Efficiency bounded by [0, 1]
-    assert 0 <= metrics["computational_efficiency"] <= 1.0, (
+    assert 0 <= metrics['computational_efficiency'] <= 1.0, \
         f"Efficiency out of bounds: {metrics['computational_efficiency']}"
-    )
     print(f"✅ Efficiency: {metrics['computational_efficiency']:.3f}")
 
     print("✅ _compute_derived_metrics works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_compute_derived_metrics()
@@ -1844,7 +2269,6 @@ This test validates the helper that identifies memory-bound vs compute-bound wor
 **Expected**: Correct classification of memory-bound and compute-bound workloads
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-analyze-bottleneck", "locked": true, "points": 3}
 def test_unit_analyze_bottleneck():
     """🧪 Test _analyze_bottleneck helper."""
@@ -1854,25 +2278,23 @@ def test_unit_analyze_bottleneck():
 
     # Test 1: Memory-bound (high bandwidth relative to compute)
     result = profiler._analyze_bottleneck(gflops_per_second=1.0, memory_bandwidth_mbs=10000.0)
-    assert result["is_memory_bound"] is True, "High bandwidth should be memory-bound"
-    assert result["bottleneck"] == "memory"
+    assert result['is_memory_bound'] is True, "High bandwidth should be memory-bound"
+    assert result['bottleneck'] == 'memory'
     print("✅ High bandwidth -> memory-bound")
 
     # Test 2: Compute-bound (low bandwidth relative to compute)
     result = profiler._analyze_bottleneck(gflops_per_second=50.0, memory_bandwidth_mbs=100.0)
-    assert result["is_compute_bound"] is True, "Low bandwidth should be compute-bound"
-    assert result["bottleneck"] == "compute"
+    assert result['is_compute_bound'] is True, "Low bandwidth should be compute-bound"
+    assert result['bottleneck'] == 'compute'
     print("✅ Low bandwidth -> compute-bound")
 
     # Test 3: Mutually exclusive flags
     result = profiler._analyze_bottleneck(gflops_per_second=10.0, memory_bandwidth_mbs=500.0)
-    assert result["is_memory_bound"] != result["is_compute_bound"], (
+    assert result['is_memory_bound'] != result['is_compute_bound'], \
         "Memory-bound and compute-bound should be mutually exclusive"
-    )
     print(f"✅ Mutually exclusive: bottleneck = {result['bottleneck']}")
 
     print("✅ _analyze_bottleneck works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_analyze_bottleneck()
@@ -1888,7 +2310,6 @@ This test validates the helper that estimates backward pass FLOPs and latency fr
 **Expected**: Backward FLOPs and latency are exactly 2x the forward values
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-estimate-backward-costs", "locked": true, "points": 3}
 def test_unit_estimate_backward_costs():
     """🧪 Test _estimate_backward_costs helper."""
@@ -1898,18 +2319,17 @@ def test_unit_estimate_backward_costs():
 
     # Test 1: Known forward values -> 2x backward
     costs = profiler._estimate_backward_costs(forward_flops=1000, forward_latency_ms=5.0)
-    assert costs["backward_flops"] == 2000, f"Expected 2000, got {costs['backward_flops']}"
-    assert costs["backward_latency_ms"] == 10.0, f"Expected 10.0, got {costs['backward_latency_ms']}"
+    assert costs['backward_flops'] == 2000, f"Expected 2000, got {costs['backward_flops']}"
+    assert costs['backward_latency_ms'] == 10.0, f"Expected 10.0, got {costs['backward_latency_ms']}"
     print(f"✅ 1000 forward FLOPs -> {costs['backward_flops']} backward FLOPs")
 
     # Test 2: Zero forward -> zero backward
     costs_zero = profiler._estimate_backward_costs(forward_flops=0, forward_latency_ms=0.0)
-    assert costs_zero["backward_flops"] == 0
-    assert costs_zero["backward_latency_ms"] == 0.0
+    assert costs_zero['backward_flops'] == 0
+    assert costs_zero['backward_latency_ms'] == 0.0
     print("✅ Zero forward -> zero backward")
 
     print("✅ _estimate_backward_costs works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_estimate_backward_costs()
@@ -1925,7 +2345,6 @@ This test validates the helper that estimates memory requirements for different 
 **Expected**: SGD = 0 extra, Adam = 2x gradient memory, AdamW = 2x gradient memory
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-estimate-optimizer-memory", "locked": true, "points": 3}
 def test_unit_estimate_optimizer_memory():
     """🧪 Test _estimate_optimizer_memory helper."""
@@ -1936,18 +2355,17 @@ def test_unit_estimate_optimizer_memory():
     # Test with 100 MB gradient memory
     estimates = profiler._estimate_optimizer_memory(gradient_memory_mb=100.0)
 
-    assert estimates["sgd"] == 0, f"SGD should need 0 extra, got {estimates['sgd']}"
-    assert estimates["adam"] == 200.0, f"Adam should need 200 MB, got {estimates['adam']}"
-    assert estimates["adamw"] == 200.0, f"AdamW should need 200 MB, got {estimates['adamw']}"
+    assert estimates['sgd'] == 0, f"SGD should need 0 extra, got {estimates['sgd']}"
+    assert estimates['adam'] == 200.0, f"Adam should need 200 MB, got {estimates['adam']}"
+    assert estimates['adamw'] == 200.0, f"AdamW should need 200 MB, got {estimates['adamw']}"
     print(f"✅ SGD: {estimates['sgd']} MB, Adam: {estimates['adam']} MB, AdamW: {estimates['adamw']} MB")
 
     # Test with zero gradients
     estimates_zero = profiler._estimate_optimizer_memory(gradient_memory_mb=0.0)
-    assert estimates_zero["adam"] == 0.0, "Zero gradients -> zero optimizer memory"
+    assert estimates_zero['adam'] == 0.0, "Zero gradients -> zero optimizer memory"
     print("✅ Zero gradient memory handled correctly")
 
     print("✅ _estimate_optimizer_memory works correctly!")
-
 
 if __name__ == "__main__":
     test_unit_estimate_optimizer_memory()
@@ -1963,7 +2381,6 @@ This test validates our advanced profiling functions provide comprehensive analy
 **Expected**: Complete profiles with all required metrics and relationships
 """
 
-
 # %% nbgrader={"grade": true, "grade_id": "test-advanced-profiling", "locked": true, "points": 15}
 def test_unit_advanced_profiling():
     """🧪 Test advanced profiling functions."""
@@ -1972,7 +2389,6 @@ def test_unit_advanced_profiling():
     # Create profiler and test model
     profiler = Profiler()
     from trentorch.core.layers import Linear
-
     test_model = Linear(8, 4)
     test_input = Tensor(rng.standard_normal((4, 8)))
 
@@ -1981,21 +2397,17 @@ def test_unit_advanced_profiling():
 
     # Validate forward profile structure
     required_forward_keys = [
-        "parameters",
-        "flops",
-        "latency_ms",
-        "gflops_per_second",
-        "memory_bandwidth_mbs",
-        "bottleneck",
+        'parameters', 'flops', 'latency_ms', 'gflops_per_second',
+        'memory_bandwidth_mbs', 'bottleneck'
     ]
 
     for key in required_forward_keys:
         assert key in forward_profile, f"Missing key: {key}"
 
-    assert forward_profile["parameters"] >= 0
-    assert forward_profile["flops"] >= 0
-    assert forward_profile["latency_ms"] >= 0
-    assert forward_profile["gflops_per_second"] >= 0
+    assert forward_profile['parameters'] >= 0
+    assert forward_profile['flops'] >= 0
+    assert forward_profile['latency_ms'] >= 0
+    assert forward_profile['gflops_per_second'] >= 0
 
     print(f"✅ Forward profiling: {forward_profile['gflops_per_second']:.2f} GFLOP/s")
 
@@ -2004,33 +2416,28 @@ def test_unit_advanced_profiling():
 
     # Validate backward profile structure
     required_backward_keys = [
-        "forward_flops",
-        "backward_flops",
-        "total_flops",
-        "total_latency_ms",
-        "total_memory_mb",
-        "optimizer_memory_estimates",
+        'forward_flops', 'backward_flops', 'total_flops',
+        'total_latency_ms', 'total_memory_mb', 'optimizer_memory_estimates'
     ]
 
     for key in required_backward_keys:
         assert key in backward_profile, f"Missing key: {key}"
 
     # Validate relationships
-    assert backward_profile["total_flops"] >= backward_profile["forward_flops"]
-    assert backward_profile["total_latency_ms"] >= backward_profile["forward_latency_ms"]
-    assert "sgd" in backward_profile["optimizer_memory_estimates"]
-    assert "adam" in backward_profile["optimizer_memory_estimates"]
+    assert backward_profile['total_flops'] >= backward_profile['forward_flops']
+    assert backward_profile['total_latency_ms'] >= backward_profile['forward_latency_ms']
+    assert 'sgd' in backward_profile['optimizer_memory_estimates']
+    assert 'adam' in backward_profile['optimizer_memory_estimates']
 
     # Check backward pass estimates are reasonable
-    assert backward_profile["backward_flops"] >= backward_profile["forward_flops"], (
+    assert backward_profile['backward_flops'] >= backward_profile['forward_flops'], \
         "Backward pass should have at least as many FLOPs as forward"
-    )
-    assert backward_profile["gradient_memory_mb"] >= 0, "Gradient memory should be non-negative"
+    assert backward_profile['gradient_memory_mb'] >= 0, \
+        "Gradient memory should be non-negative"
 
     print(f"✅ Backward profiling: {backward_profile['total_latency_ms']:.2f} ms total")
     print(f"✅ Memory breakdown: {backward_profile['total_memory_mb']:.2f} MB training")
     print("✅ Advanced profiling functions work correctly!")
-
 
 if __name__ == "__main__":
     test_unit_advanced_profiling()
@@ -2058,7 +2465,6 @@ Insight: This workload is memory-bound -> Optimize data movement, not compute!
 ```
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "performance_analysis", "solution": true}
 def analyze_model_scaling():
     """📊 Analyze how model performance scales with size."""
@@ -2077,7 +2483,6 @@ def analyze_model_scaling():
     for size in sizes:
         # Create models of different sizes for comparison
         from trentorch.core.layers import Linear
-
         test_model = Linear(size, size)
         input_shape = (32, size)  # Batch of 32
         dummy_input = Tensor(rng.standard_normal(input_shape))
@@ -2092,41 +2497,36 @@ def analyze_model_scaling():
 
         gflops_per_second = (linear_flops / 1e9) / (latency / 1000)
 
-        results.append(
-            {
-                "size": size,
-                "parameters": linear_params,
-                "flops": linear_flops,
-                "latency_ms": latency,
-                "memory_mb": memory["peak_memory_mb"],
-                "gflops_per_second": gflops_per_second,
-            }
-        )
+        results.append({
+            'size': size,
+            'parameters': linear_params,
+            'flops': linear_flops,
+            'latency_ms': latency,
+            'memory_mb': memory['peak_memory_mb'],
+            'gflops_per_second': gflops_per_second
+        })
 
-        print(
-            f"{size}\t{linear_params:,}\t\t{linear_flops:,}\t\t"
-            f"{latency:.2f}\t\t{memory['peak_memory_mb']:.2f}\t\t"
-            f"{gflops_per_second:.2f}"
-        )
+        print(f"{size}\t{linear_params:,}\t\t{linear_flops:,}\t\t"
+              f"{latency:.2f}\t\t{memory['peak_memory_mb']:.2f}\t\t"
+              f"{gflops_per_second:.2f}")
 
     # Analysis insights
     print("\n💡 Scaling Analysis Insights:")
 
     # Memory scaling
-    memory_growth = results[-1]["memory_mb"] / max(results[0]["memory_mb"], 0.001)
+    memory_growth = results[-1]['memory_mb'] / max(results[0]['memory_mb'], 0.001)
     print(f"Memory grows {memory_growth:.1f}× from {sizes[0]} to {sizes[-1]} size")
 
     # Compute scaling
-    compute_growth = results[-1]["gflops_per_second"] / max(results[0]["gflops_per_second"], 0.001)
+    compute_growth = results[-1]['gflops_per_second'] / max(results[0]['gflops_per_second'], 0.001)
     print(f"Compute efficiency changes {compute_growth:.1f}× with size")
 
     # Performance characteristics
-    avg_efficiency = np.mean([r["gflops_per_second"] for r in results])
+    avg_efficiency = np.mean([r['gflops_per_second'] for r in results])
     if avg_efficiency < 10:  # Arbitrary threshold for "low" efficiency
         print("🚀 Low compute efficiency suggests memory-bound workload")
     else:
         print("🚀 High compute efficiency suggests compute-bound workload")
-
 
 def analyze_batch_size_effects():
     """📊 Analyze how batch size affects performance and efficiency."""
@@ -2142,7 +2542,6 @@ def analyze_batch_size_effects():
 
     for batch_size in batch_sizes:
         from trentorch.core.layers import Linear
-
         test_model = Linear(feature_size, feature_size)
         input_shape = (batch_size, feature_size)
         dummy_input = Tensor(rng.standard_normal(input_shape))
@@ -2155,16 +2554,13 @@ def analyze_batch_size_effects():
         samples_per_second = (batch_size * 1000) / latency  # samples/second
 
         # Calculate efficiency (samples per unit memory)
-        efficiency = samples_per_second / max(memory["peak_memory_mb"], 0.001)
+        efficiency = samples_per_second / max(memory['peak_memory_mb'], 0.001)
 
-        print(
-            f"{batch_size}\t{latency:.2f}\t\t{samples_per_second:.0f}\t\t\t"
-            f"{memory['peak_memory_mb']:.2f}\t\t{efficiency:.1f}"
-        )
+        print(f"{batch_size}\t{latency:.2f}\t\t{samples_per_second:.0f}\t\t\t"
+              f"{memory['peak_memory_mb']:.2f}\t\t{efficiency:.1f}")
 
     print("\n💡 Batch Size Insights:")
     print("Larger batches typically improve throughput but increase memory usage")
-
 
 # Run the analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -2204,7 +2600,6 @@ Optimization Strategy:
 ```
 """
 
-
 # %% nbgrader={"grade": false, "grade_id": "optimization_insights", "solution": true}
 def benchmark_operation_efficiency():
     """📊 Compare efficiency of different operations for optimization guidance."""
@@ -2227,34 +2622,29 @@ def benchmark_operation_efficiency():
     elementwise_latency = profiler.measure_latency(elementwise_model, input_tensor, iterations=20)
     elementwise_flops = size * 32  # One operation per element
 
-    operations.append(
-        {
-            "operation": "Elementwise",
-            "latency_ms": elementwise_latency,
-            "flops": elementwise_flops,
-            "gflops_per_second": (elementwise_flops / 1e9) / (elementwise_latency / 1000),
-            "efficiency_class": "memory-bound",
-            "optimization_focus": "data_locality",
-        }
-    )
+    operations.append({
+        'operation': 'Elementwise',
+        'latency_ms': elementwise_latency,
+        'flops': elementwise_flops,
+        'gflops_per_second': (elementwise_flops / 1e9) / (elementwise_latency / 1000),
+        'efficiency_class': 'memory-bound',
+        'optimization_focus': 'data_locality'
+    })
 
     # Matrix operations (compute-bound)
     from trentorch.core.layers import Linear
-
     matrix_model = Linear(size, size)
     matrix_latency = profiler.measure_latency(matrix_model, input_tensor, iterations=10)
     matrix_flops = size * size * 2  # Matrix multiplication
 
-    operations.append(
-        {
-            "operation": "Matrix Multiply",
-            "latency_ms": matrix_latency,
-            "flops": matrix_flops,
-            "gflops_per_second": (matrix_flops / 1e9) / (matrix_latency / 1000),
-            "efficiency_class": "compute-bound",
-            "optimization_focus": "algorithms",
-        }
-    )
+    operations.append({
+        'operation': 'Matrix Multiply',
+        'latency_ms': matrix_latency,
+        'flops': matrix_flops,
+        'gflops_per_second': (matrix_flops / 1e9) / (matrix_latency / 1000),
+        'efficiency_class': 'compute-bound',
+        'optimization_focus': 'algorithms'
+    })
 
     # Reduction operations (memory-bound)
     class ReductionModel:
@@ -2265,46 +2655,41 @@ def benchmark_operation_efficiency():
     reduction_latency = profiler.measure_latency(reduction_model, input_tensor, iterations=20)
     reduction_flops = size * 32  # Sum reduction
 
-    operations.append(
-        {
-            "operation": "Reduction",
-            "latency_ms": reduction_latency,
-            "flops": reduction_flops,
-            "gflops_per_second": (reduction_flops / 1e9) / (reduction_latency / 1000),
-            "efficiency_class": "memory-bound",
-            "optimization_focus": "parallelization",
-        }
-    )
+    operations.append({
+        'operation': 'Reduction',
+        'latency_ms': reduction_latency,
+        'flops': reduction_flops,
+        'gflops_per_second': (reduction_flops / 1e9) / (reduction_latency / 1000),
+        'efficiency_class': 'memory-bound',
+        'optimization_focus': 'parallelization'
+    })
 
     print("\nOperation Efficiency Comparison:")
     print("Operation\t\tLatency(ms)\tGFLOP/s\t\tEfficiency Class\tOptimization Focus")
     print("-" * 95)
 
     for op in operations:
-        print(
-            f"{op['operation']:<15}\t{op['latency_ms']:.3f}\t\t"
-            f"{op['gflops_per_second']:.2f}\t\t{op['efficiency_class']:<15}\t{op['optimization_focus']}"
-        )
+        print(f"{op['operation']:<15}\t{op['latency_ms']:.3f}\t\t"
+              f"{op['gflops_per_second']:.2f}\t\t{op['efficiency_class']:<15}\t{op['optimization_focus']}")
 
     print("\n💡 Operation Optimization Insights:")
 
     # Find most and least efficient
-    best_op = max(operations, key=lambda x: x["gflops_per_second"])
-    worst_op = min(operations, key=lambda x: x["gflops_per_second"])
+    best_op = max(operations, key=lambda x: x['gflops_per_second'])
+    worst_op = min(operations, key=lambda x: x['gflops_per_second'])
 
     print(f"Most efficient: {best_op['operation']} ({best_op['gflops_per_second']:.2f} GFLOP/s)")
     print(f"Least efficient: {worst_op['operation']} ({worst_op['gflops_per_second']:.2f} GFLOP/s)")
 
     # Count operation types
-    memory_bound_ops = [op for op in operations if op["efficiency_class"] == "memory-bound"]
-    compute_bound_ops = [op for op in operations if op["efficiency_class"] == "compute-bound"]
+    memory_bound_ops = [op for op in operations if op['efficiency_class'] == 'memory-bound']
+    compute_bound_ops = [op for op in operations if op['efficiency_class'] == 'compute-bound']
 
-    print("\n🚀 Optimization Priority:")
+    print(f"\n🚀 Optimization Priority:")
     if len(memory_bound_ops) > len(compute_bound_ops):
         print("Focus on memory optimization: data locality, bandwidth, caching")
     else:
         print("Focus on compute optimization: better algorithms, vectorization")
-
 
 def analyze_profiling_overhead():
     """📊 Measure the overhead of profiling itself."""
@@ -2323,7 +2708,6 @@ def analyze_profiling_overhead():
 
     # With profiling - includes measurement overhead
     profiler = Profiler()
-
     # Create a simple model for profiling overhead measurement
     class TestModel:
         def forward(self, x):
@@ -2338,19 +2722,18 @@ def analyze_profiling_overhead():
 
     overhead_factor = profiled_ms / max(baseline_ms, 0.001)
 
-    print("\nProfiling Overhead Analysis:")
+    print(f"\nProfiling Overhead Analysis:")
     print(f"Baseline execution: {baseline_ms:.2f} ms")
     print(f"With profiling: {profiled_ms:.2f} ms")
     print(f"Profiling overhead: {overhead_factor:.1f}× slower")
 
-    print("\n💡 Profiling Overhead Insights:")
+    print(f"\n💡 Profiling Overhead Insights:")
     if overhead_factor < 2:
         print("Low overhead - suitable for frequent profiling")
     elif overhead_factor < 10:
         print("Moderate overhead - use for development and debugging")
     else:
         print("High overhead - use sparingly in production")
-
 
 # Run optimization analysis
 if __name__ == "__main__" and os.environ.get("CI") != "true":
@@ -2367,7 +2750,6 @@ if __name__ == "__main__" and os.environ.get("CI") != "true":
 
 Final validation that everything works together correctly.
 """
-
 
 # %% nbgrader={"grade": true, "grade_id": "module-integration", "locked": true, "points": 20}
 def test_module():
@@ -2414,7 +2796,6 @@ def test_module():
 
     # Create test model and data
     from trentorch.core.layers import Linear
-
     test_model = Linear(16, 32)
     test_input = Tensor(rng.standard_normal((8, 16)))
 
@@ -2435,26 +2816,26 @@ def test_module():
     forward_profile = profiler.profile_forward_pass(test_model, test_input)
     backward_profile = profiler.profile_backward_pass(test_model, test_input)
 
-    assert "gflops_per_second" in forward_profile
-    assert "total_latency_ms" in backward_profile
+    assert 'gflops_per_second' in forward_profile
+    assert 'total_latency_ms' in backward_profile
     print(f"   Forward GFLOP/s: {forward_profile['gflops_per_second']:.2f}")
     print(f"   Training latency: {backward_profile['total_latency_ms']:.2f} ms")
 
     # Test bottleneck analysis
     print("3. Analyzing performance bottlenecks...")
-    bottleneck = forward_profile["bottleneck"]
-    efficiency = forward_profile["computational_efficiency"]
+    bottleneck = forward_profile['bottleneck']
+    efficiency = forward_profile['computational_efficiency']
     print(f"   Bottleneck: {bottleneck}")
     print(f"   Compute efficiency: {efficiency:.3f}")
 
     # Validate end-to-end workflow
     assert params >= 0, "Parameter count should be non-negative"
     assert flops >= 0, "FLOP count should be non-negative"
-    assert memory["peak_memory_mb"] >= 0, "Memory usage should be non-negative"
+    assert memory['peak_memory_mb'] >= 0, "Memory usage should be non-negative"
     assert latency >= 0, "Latency should be non-negative"
-    assert forward_profile["gflops_per_second"] >= 0, "GFLOP/s should be non-negative"
-    assert backward_profile["total_latency_ms"] >= 0, "Total latency should be non-negative"
-    assert bottleneck in ["memory", "compute"], "Bottleneck should be memory or compute"
+    assert forward_profile['gflops_per_second'] >= 0, "GFLOP/s should be non-negative"
+    assert backward_profile['total_latency_ms'] >= 0, "Total latency should be non-negative"
+    assert bottleneck in ['memory', 'compute'], "Bottleneck should be memory or compute"
     assert 0 <= efficiency <= 1, "Efficiency should be between 0 and 1"
 
     print("✅ End-to-end profiling workflow works!")
@@ -2464,14 +2845,13 @@ def test_module():
 
     # Simulate larger model analysis
     from trentorch.core.layers import Linear
-
     large_model = Linear(512, 256)
     large_input = Tensor(rng.standard_normal((32, 512)))  # Larger model input
     large_profile = profiler.profile_forward_pass(large_model, large_input)
 
     # Verify profile contains optimization insights
-    assert "bottleneck" in large_profile, "Profile should identify bottlenecks"
-    assert "memory_bandwidth_mbs" in large_profile, "Profile should measure memory bandwidth"
+    assert 'bottleneck' in large_profile, "Profile should identify bottlenecks"
+    assert 'memory_bandwidth_mbs' in large_profile, "Profile should measure memory bandwidth"
 
     print(f"   Large model analysis: {large_profile['bottleneck']} bottleneck")
     print(f"   Memory bandwidth: {large_profile['memory_bandwidth_mbs']:.1f} MB/s")
@@ -2481,7 +2861,6 @@ def test_module():
     print("\n" + "=" * 50)
     print("🎉 ALL TESTS PASSED! Module ready for export.")
     print("Run: tren module complete 14")
-
 
 # Run comprehensive module test
 
@@ -2541,7 +2920,6 @@ Answer these to deepen your understanding of profiling operations and their syst
 Profiling data guides optimization decisions — quantization, compression, and acceleration all start with measurement.
 """
 
-
 # %%
 def demo_profiling():
     """🎯 See your profiler reveal model secrets."""
@@ -2556,17 +2934,16 @@ def demo_profiling():
     params = profiler.count_parameters(layer)
     flops = profiler.count_flops(layer, input_shape=(1, 784))
 
-    print("Model: Linear(784 → 128)")
+    print(f"Model: Linear(784 → 128)")
     print(f"\nParameters: {params:,}")
-    print("  = 784 × 128 weights + 128 biases")
+    print(f"  = 784 × 128 weights + 128 biases")
 
     print(f"\nFLOPs: {flops:,}")
-    print("  = 784 × 128 × 2 (multiply-add per output)")
+    print(f"  = 784 × 128 × 2 (multiply-add per output)")
 
     print(f"\nMemory: {params * 4 / 1024:.1f} KB (at FP32)")
 
     print("\n✨ Profiling reveals optimization opportunities!")
-
 
 # %%
 if __name__ == "__main__":
@@ -2581,9 +2958,7 @@ if __name__ == "__main__":
         # coverage here. Skipping both keeps the actual
         # verification (every individual test above) while
         # cutting the redundant full re-run.
-        print(
-            "\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant)."
-        )
+        print("\u2705 All unit tests already passed above (test_module() and demo skipped under CI as redundant).")
     else:
         test_module()
         print("\n")
