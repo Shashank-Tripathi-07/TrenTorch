@@ -1,0 +1,29 @@
+name: 'Auto-assign PR to Author'
+
+# Assigns every new pull request to whoever opened it, so it's immediately
+# clear who owns driving it to merge. Uses pull_request_target (not
+# pull_request) since assigning requires a write-scoped token and this
+# workflow never checks out or runs any code from the PR branch itself --
+# only reads the author's username from the event payload.
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign PR to its author
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              assignees: [context.payload.pull_request.user.login],
+            });

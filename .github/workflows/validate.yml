@@ -74,6 +74,7 @@ on:
 permissions:
   contents: read
   actions: read
+  pull-requests: read
 
 # Concurrency: group by PR number for pull_request events, by commit SHA for
 # push events. cancel-in-progress only applies to pull_request runs (a new
@@ -109,10 +110,35 @@ jobs:
       run_cli: ${{ steps.config.outputs.run_cli }}
       run_e2e: ${{ steps.config.outputs.run_e2e }}
       run_release: ${{ steps.config.outputs.run_release }}
+      run_fresh_install: ${{ steps.config.outputs.run_fresh_install }}
 
     steps:
+      - name: Check whether this push is a PR merge already validated by CI
+        id: merge_check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IS_PR_MERGE="false"
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            # A push to main whose commit is associated with a PR that was
+            # merged into main is a merge commit produced by the merge
+            # button, not a direct commit: pull_request-triggered CI already
+            # ran the full "standard" suite against this exact code, so
+            # stages 1-6 would just be repeating work that already passed.
+            # A direct push (no associated merged PR) skipped that PR CI
+            # entirely, so it still gets the full "all" suite below.
+            MERGED_PR=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" \
+              --jq '[.[] | select(.merged_at != null and .base.ref == "main")] | length' 2>/dev/null || echo "0")
+            if [ "$MERGED_PR" -gt 0 ]; then
+              IS_PR_MERGE="true"
+            fi
+          fi
+          echo "is_pr_merge=$IS_PR_MERGE" >> $GITHUB_OUTPUT
+
       - name: Determine test configuration
         id: config
+        env:
+          IS_PR_MERGE: ${{ steps.merge_check.outputs.is_pr_merge }}
         run: |
           # Determine test type based on trigger
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -120,8 +146,17 @@ jobs:
           elif [ "${{ github.event_name }}" = "pull_request" ]; then
             TEST_TYPE="standard"
           elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            # main must be rock solid - run everything
-            TEST_TYPE="all"
+            if [ "$IS_PR_MERGE" = "true" ]; then
+              # Already validated by this exact commit's PR run -- only run
+              # what never ran on the PR (Stage 7's destructive journey),
+              # rebuilding the package once since Stage 7 needs a fresh
+              # artifact rather than reusing the PR run's.
+              TEST_TYPE="release"
+            else
+              # Direct push to main, bypassing PR review and its CI - main
+              # must be rock solid, so run everything.
+              TEST_TYPE="all"
+            fi
           else
             # anything else gets quick feedback
             TEST_TYPE="quick"
@@ -132,6 +167,11 @@ jobs:
           # Determine OS matrix based on input (default: both Linux and Windows)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             OS_INPUT="${{ github.event.inputs.os }}"
+          elif [ "$TEST_TYPE" = "release" ]; then
+            # Only Stage 1 (rebuild the artifact) and Stage 7 (ubuntu-only)
+            # run for this type, so a Windows Stage 1 build would produce an
+            # artifact nothing ever downloads.
+            OS_INPUT="linux"
           else
             # Automatic triggers run both Linux and Windows
             OS_INPUT="all"
@@ -160,6 +200,7 @@ jobs:
               echo "run_cli=true" >> $GITHUB_OUTPUT
               echo "run_e2e=false" >> $GITHUB_OUTPUT
               echo "run_release=false" >> $GITHUB_OUTPUT
+              echo "run_fresh_install=false" >> $GITHUB_OUTPUT
               ;;
             standard)
               echo "run_inline=true" >> $GITHUB_OUTPUT
@@ -168,6 +209,7 @@ jobs:
               echo "run_cli=true" >> $GITHUB_OUTPUT
               echo "run_e2e=true" >> $GITHUB_OUTPUT
               echo "run_release=false" >> $GITHUB_OUTPUT
+              echo "run_fresh_install=true" >> $GITHUB_OUTPUT
               ;;
             all|user-journey)
               echo "run_inline=true" >> $GITHUB_OUTPUT
@@ -176,6 +218,22 @@ jobs:
               echo "run_cli=true" >> $GITHUB_OUTPUT
               echo "run_e2e=true" >> $GITHUB_OUTPUT
               echo "run_release=true" >> $GITHUB_OUTPUT
+              echo "run_fresh_install=true" >> $GITHUB_OUTPUT
+              ;;
+            release)
+              # Push to main from an already-merged, already-green PR:
+              # stages 1-6 duplicate exactly what pull_request CI just ran
+              # against this code. Only Stage 7 (destructive user journey)
+              # never runs on a PR, so that's the only new validation this
+              # push needs; Stage 1 still rebuilds since Stage 7 needs a
+              # fresh package artifact of its own.
+              echo "run_inline=true" >> $GITHUB_OUTPUT
+              echo "run_unit=false" >> $GITHUB_OUTPUT
+              echo "run_integration=false" >> $GITHUB_OUTPUT
+              echo "run_cli=false" >> $GITHUB_OUTPUT
+              echo "run_e2e=false" >> $GITHUB_OUTPUT
+              echo "run_release=true" >> $GITHUB_OUTPUT
+              echo "run_fresh_install=false" >> $GITHUB_OUTPUT
               ;;
           esac
 
@@ -291,12 +349,12 @@ jobs:
     # Docker-based install from a fresh clone of the pushed commit, it
     # doesn't touch Stage 1's build artifact or any other stage's output,
     # so it has no real dependency on any of them. Only needs `configure`
-    # for its run_e2e/run_release flags; runs fully in parallel with
+    # for its run_fresh_install flag; runs fully in parallel with
     # everything else instead of waiting behind Stage 5.
     needs: [configure]
     if: |
       always() &&
-      (needs.configure.outputs.run_e2e == 'true' || needs.configure.outputs.run_release == 'true') &&
+      needs.configure.outputs.run_fresh_install == 'true' &&
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     timeout-minutes: 30
 
@@ -388,13 +446,11 @@ jobs:
               ("stage-3-integration",   3, "🔗 Integration",   "run_integration"),
               ("stage-4-cli",           4, "💻 CLI Tests",     "run_cli"),
               ("stage-5-e2e",           5, "🌐 E2E Tests",     "run_e2e"),
-              ("stage-6-fresh-install", 6, "📦 Fresh Install", "run_e2e_or_release"),
+              ("stage-6-fresh-install", 6, "📦 Fresh Install", "run_fresh_install"),
               ("stage-7-user-journey",  7, "🎓 User Journey",  "run_release"),
           ]
 
           def is_enabled(flag):
-              if flag == "run_e2e_or_release":
-                  return cfg.get("run_e2e") == "true" or cfg.get("run_release") == "true"
               return cfg.get(flag) == "true"
 
           lines = [
