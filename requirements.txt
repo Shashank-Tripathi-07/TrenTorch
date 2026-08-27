@@ -40,7 +40,7 @@ nbformat>=5.10.4
 # Jupyter for interactive development
 jupyter>=1.1.1
 jupyterlab>=4.5.7
-notebook>=7.0.0
+notebook>=7.6.2
 ipykernel>=7.2.0
 nbdev>=3.0.15,<3.0.16
 # Code quality tools
