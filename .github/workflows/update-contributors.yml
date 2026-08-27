@@ -19,6 +19,18 @@ permissions:
   pull-requests: write
   issues: read
 
+# Serializes runs instead of letting them race: several issue/PR events
+# arriving within seconds of each other (e.g. closing a batch of PRs) used
+# to start several runs in parallel, each checking out the same stale main
+# before any of them had merged, so every one of them computed the same
+# "real" diff and opened a now-redundant PR the moment the first one
+# landed. cancel-in-progress stays false -- a queued run still needs to
+# execute (and re-check main) after the one ahead of it finishes, not get
+# cancelled outright.
+concurrency:
+  group: update-contributors
+  cancel-in-progress: false
+
 jobs:
   update-contributors:
     runs-on: ubuntu-latest
