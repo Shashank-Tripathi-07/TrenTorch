@@ -42,7 +42,7 @@ jupyter>=1.1.1
 jupyterlab>=4.5.7
 notebook>=7.6.2
 ipykernel>=7.2.0
-nbdev>=3.0.15,<3.3.13
+nbdev>=3.0.15,<3.3.14
 # Code quality tools
 ruff>=0.6.0
 
