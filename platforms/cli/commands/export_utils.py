@@ -66,6 +66,25 @@ def _split_directives(cell_text: str):
     return header_line, directive_lines, body
 
 
+class UnpairedSolutionCellError(ValueError):
+    """A solution-tagged cell wasn't reachable as some earlier cell's
+    +1 partner (either it's the very first real cell in the file, or it
+    directly follows another solution cell that already consumed the
+    pairing check).
+
+    Pairing only ever inspects cells[i+1] to decide whether cells[i] is a
+    stub; nothing ever checks whether cells[i] is itself already a solution
+    cell before falling through to "append it as an ordinary cell". An
+    orphaned solution cell hitting that fallthrough is exactly how the
+    dropped-MSEBackward and dropped-Profiler-import incidents (section 6 of
+    docs/testing-strategy.md) happened, and in make_stub_variant it's worse
+    than a drop: the cell's full, unmodified solution code gets copied
+    straight into the student-facing package instead of being stripped.
+    Raising here turns that into a loud, immediate export failure instead
+    of a silent correctness or academic-integrity bug.
+    """
+
+
 def make_stub_variant(source: str) -> str:
     """Student-facing source: solution cells dropped, stub cells gain #| export."""
     cells = _CELL_SPLIT.split(source)
@@ -73,7 +92,16 @@ def make_stub_variant(source: str) -> str:
     i = 0
     while i < len(cells):
         cell = cells[i]
-        if i + 1 < len(cells) and _is_solution_cell(cells[i + 1]):
+        # _CELL_SPLIT's lookahead matches at position 0 for any real file
+        # (they always start with "# %%"), leaving an empty phantom cell at
+        # index 0 that has no real header of its own. Without `cell.strip()`
+        # here, that phantom would silently "absorb" a solution cell at
+        # index 1 as though it were a legitimate stub pairing -- the one
+        # orphan case UnpairedSolutionCellError below can't see, since the
+        # phantom itself is never solution-tagged. Requiring real content
+        # here excludes only that synthetic artifact; every genuine cell
+        # (stub or solution) always has non-empty "# %% ..." content.
+        if cell.strip() and i + 1 < len(cells) and _is_solution_cell(cells[i + 1]):
             header_line, directive_lines, body = _split_directives(cell)
             if not any(d.strip() == _EXPORT_DIRECTIVE for d in directive_lines):
                 directive_lines = directive_lines + [_EXPORT_DIRECTIVE]
@@ -84,6 +112,13 @@ def make_stub_variant(source: str) -> str:
             out.append(new_cell)
             i += 2  # skip the paired solution cell
         else:
+            if _is_solution_cell(cell):
+                raise UnpairedSolutionCellError(
+                    f"Cell {i} is tagged solution but isn't paired with a preceding "
+                    f"stub cell (header: {_cell_header(cell)!r}). Refusing to export "
+                    "it, since falling through here would copy the full solution "
+                    "into the student-facing stub package unmodified."
+                )
             out.append(cell)
             i += 1
     return "".join(out)
@@ -96,10 +131,22 @@ def make_solution_variant(source: str) -> str:
     i = 0
     while i < len(cells):
         cell = cells[i]
-        if i + 1 < len(cells) and _is_solution_cell(cells[i + 1]):
+        # See the matching comment in make_stub_variant: cell.strip()
+        # excludes _CELL_SPLIT's empty phantom cell at index 0 from
+        # eligibility to "absorb" a solution cell at index 1.
+        if cell.strip() and i + 1 < len(cells) and _is_solution_cell(cells[i + 1]):
             out.append(cells[i + 1])
             i += 2
         else:
+            if _is_solution_cell(cell):
+                raise UnpairedSolutionCellError(
+                    f"Cell {i} is tagged solution but isn't paired with a preceding "
+                    f"stub cell (header: {_cell_header(cell)!r}). This variant would "
+                    "include it correctly either way, but the same malformed "
+                    "structure silently leaks solution code in make_stub_variant, "
+                    "so both functions fail loud together rather than one silently "
+                    "succeeding while the other silently corrupts its output."
+                )
             out.append(cell)
             i += 1
     return "".join(out)

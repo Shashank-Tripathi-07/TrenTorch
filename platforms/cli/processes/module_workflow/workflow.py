@@ -497,8 +497,6 @@ class ModuleWorkflowCommand(BaseCommand):
         )
         self.console.print()
 
-        success = True
-
         # Step 1: Run UNIT tests (test source files, don't need exported package)
         if not skip_tests:
             self.console.print(
@@ -560,7 +558,7 @@ class ModuleWorkflowCommand(BaseCommand):
                 )
 
         # Step 3: Run INTEGRATION tests (AFTER export, since they import from tinytorch.core.*)
-        if not skip_tests and success:
+        if not skip_tests:
             self.console.print()
             self.console.print(
                 "[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]"
@@ -616,37 +614,40 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print()
 
         # Step 4: Celebration panel
-        if success:
-            component_name = module_name.split("_", 1)[1].title()
+        # (every path above this point that could fail already returned 1
+        # directly, so reaching here always means success -- an unused
+        # `success` flag used to wrap this in `if success:`, which was
+        # dead weight: it was set once to True and never reassigned
+        # anywhere in this function, so the celebration panel, the
+        # milestone-unlock check below, and this function's own return
+        # value were each conditioned on something that could never be
+        # False. Simplified to match what the code actually does.)
+        component_name = module_name.split("_", 1)[1].title()
 
-            celebration_text = Text()
-            celebration_text.append(
-                f"You didn't import {component_name}. You BUILT it.\n\n", style="bold green"
-            )
-            celebration_text.append("What you can do now:\n", style="bold")
-            celebration_text.append(f"  >>> from tinytorch import {component_name}\n", style="cyan")
-            celebration_text.append(
-                f"  >>> # Use your {component_name} implementation!\n\n", style="dim cyan"
-            )
+        celebration_text = Text()
+        celebration_text.append(f"You didn't import {component_name}. You BUILT it.\n\n", style="bold green")
+        celebration_text.append("What you can do now:\n", style="bold")
+        celebration_text.append(f"  >>> from tinytorch import {component_name}\n", style="cyan")
+        celebration_text.append(f"  >>> # Use your {component_name} implementation!\n\n", style="dim cyan")
 
-            # Next module suggestion
-            next_num = f"{int(normalized) + 1:02d}"
-            if next_num in module_mapping:
-                next_module = module_mapping[next_num]
-                next_name = next_module.split("_", 1)[1].title()
-                celebration_text.append("💡 Next: ", style="")
-                celebration_text.append(f"tito module start {next_num}", style="bold cyan")
-                celebration_text.append("\n", style="")
-                celebration_text.append(f"         Build {next_name}", style="dim")
+        # Next module suggestion
+        next_num = f"{int(normalized) + 1:02d}"
+        if next_num in module_mapping:
+            next_module = module_mapping[next_num]
+            next_name = next_module.split("_", 1)[1].title()
+            celebration_text.append("💡 Next: ", style="")
+            celebration_text.append(f"tito module start {next_num}", style="bold cyan")
+            celebration_text.append("\n", style="")
+            celebration_text.append(f"         Build {next_name}", style="dim")
 
-            self.console.print(
-                Panel(
-                    celebration_text,
-                    title="🎉 Module Complete!",
-                    border_style="bright_green",
-                    box=box.ROUNDED,
-                )
+        self.console.print(
+            Panel(
+                celebration_text,
+                title="🎉 Module Complete!",
+                border_style="bright_green",
+                box=box.ROUNDED,
             )
+        )
 
         # Step 5: Check for milestone unlocks. Skipped during the maintainer
         # verify-solution loop (Stage 1) to avoid auto-running a real,
@@ -654,10 +655,10 @@ class ModuleWorkflowCommand(BaseCommand):
         # correctness -- milestone behavior itself is covered by Stage 7.
         from .test_runner import VERIFY_SOLUTION_ENV
 
-        if success and os.environ.get(VERIFY_SOLUTION_ENV) != "1":
+        if os.environ.get(VERIFY_SOLUTION_ENV) != "1":
             check_and_run_milestone_unlocks(self.config, self.console)
 
-        return 0 if success else 1
+        return 0
 
     def complete_all_modules(self, skip_tests: bool = False, skip_export: bool = False) -> int:
         """Complete all modules in sequence.
