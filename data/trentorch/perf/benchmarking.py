@@ -21,12 +21,12 @@ __all__ = ['DEFAULT_WARMUP_RUNS', 'DEFAULT_MEASUREMENT_RUNS', 'rng', 'BenchmarkR
            'benchsuite_plot_pareto_frontier', 'benchsuite_generate_report', 'MLPerf', 'mlperf_run_standard_benchmark',
            'mlperf_run_all_benchmarks', 'mlperf_generate_compliance_report', 'analyze_optimization_techniques']
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #9b711724
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #7c0582fd
 # Constants for benchmarking defaults
 DEFAULT_WARMUP_RUNS = 5  # Default warmup runs for JIT compilation and cache warming
 DEFAULT_MEASUREMENT_RUNS = 10  # Default measurement runs for statistical significance
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #d9739b0a
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #93298ca2
 import numpy as np
 rng = np.random.default_rng(7)
 import time
@@ -89,7 +89,7 @@ except ImportError:
 # Import Profiler from Module 14 for measurement reuse
 from .profiling import Profiler
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #7b7b5442
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #b3c861f9
 # Solution
 
 @dataclass
@@ -166,7 +166,7 @@ class BenchmarkResult:
         return f"{self.metric_name}: {self.mean:.4f} ± {self.std:.4f} (n={self.count})"
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #23ef19be
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #ef9b99a8
 # Solution
 
 @contextmanager
@@ -211,7 +211,7 @@ def precise_timer():
         timer.elapsed = time.perf_counter() - timer.start_time
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #c090fa04
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #522cc3df
 # Solution
 
 class Benchmark:
@@ -265,7 +265,7 @@ class Benchmark:
         # Process memory measurement uses tracemalloc (via Profiler)
         ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #42e1a920
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #2d8385f6
 # Solution
 
     # --- Benchmark.run_latency_benchmark ---
@@ -325,7 +325,7 @@ def benchmark_run_latency_benchmark(self, input_shape: Tuple[int, ...] = (1, 28,
 
 Benchmark.run_latency_benchmark = benchmark_run_latency_benchmark
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #ce9975d3
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #174d027f
 # Solution
 
     # --- Benchmark.run_accuracy_benchmark ---
@@ -381,7 +381,7 @@ def benchmark_run_accuracy_benchmark(self) -> Dict[str, BenchmarkResult]:
 
 Benchmark.run_accuracy_benchmark = benchmark_run_accuracy_benchmark
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #3f1774b3
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #a0e806e8
 # Solution
 
     # --- Benchmark.run_memory_benchmark ---
@@ -432,7 +432,7 @@ def benchmark_run_memory_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 
 
 Benchmark.run_memory_benchmark = benchmark_run_memory_benchmark
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #fc26ca82
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #50621a90
 # Solution
 
     # --- Benchmark.compare_models ---
@@ -485,7 +485,7 @@ def benchmark_compare_models(self, metric: str = "latency"):
 
 Benchmark.compare_models = benchmark_compare_models
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #2eaba677
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #8a93dc04
 # Solution
 
 class BenchmarkSuite:
@@ -528,7 +528,7 @@ class BenchmarkSuite:
         self.results = {}
         ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #a8b40866
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #d534b112
 # Solution
 
     # --- BenchmarkSuite.run_full_benchmark ---
@@ -571,7 +571,7 @@ def benchsuite_run_full_benchmark(self) -> Dict[str, Dict[str, BenchmarkResult]]
 
 BenchmarkSuite.run_full_benchmark = benchsuite_run_full_benchmark
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #f775628e
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #f86ec76a
 # Solution
 
     # --- BenchmarkSuite._estimate_energy_efficiency ---
@@ -633,7 +633,7 @@ def _benchsuite_estimate_energy_efficiency(self) -> Dict[str, BenchmarkResult]:
 
 BenchmarkSuite._estimate_energy_efficiency = _benchsuite_estimate_energy_efficiency
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #60818475
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #886f71df
 # Solution
 
     # --- BenchmarkSuite.plot_results and plot_pareto_frontier ---
@@ -775,7 +775,7 @@ def benchsuite_plot_pareto_frontier(self, x_metric: str = 'latency', y_metric: s
 
 BenchmarkSuite.plot_pareto_frontier = benchsuite_plot_pareto_frontier
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #e099227b
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #df0166ab
 # Solution
 
 def _benchsuite_format_results_summary(self) -> List[str]:
@@ -823,7 +823,7 @@ def _benchsuite_format_results_summary(self) -> List[str]:
 
 BenchmarkSuite._format_results_summary = _benchsuite_format_results_summary
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #9ae30924
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #71cf8d5d
 # Solution
 
 def _benchsuite_format_recommendations(self) -> List[str]:
@@ -897,7 +897,7 @@ def _benchsuite_format_recommendations(self) -> List[str]:
 
 BenchmarkSuite._format_recommendations = _benchsuite_format_recommendations
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #040b82ef
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #f292a3a7
 # Solution
 
 def benchsuite_generate_report(self) -> str:
@@ -950,7 +950,7 @@ def benchsuite_generate_report(self) -> str:
 
 BenchmarkSuite.generate_report = benchsuite_generate_report
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #2a4f4398
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #172878a6
 # Solution
 
 class MLPerf:
@@ -1017,7 +1017,7 @@ class MLPerf:
         }
         ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #4e52e46d
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #6032a154
 # Solution
 
     # --- MLPerf._run_latency_test ---
@@ -1081,7 +1081,7 @@ def _mlperf_run_latency_test(self, model: Any, test_inputs: List[Any],
 
 MLPerf._run_latency_test = _mlperf_run_latency_test
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #d98f0c2a
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #764e35e8
 # Solution
 
 def _extract_pred_array(pred) -> np.ndarray:
@@ -1117,7 +1117,7 @@ def _extract_pred_array(pred) -> np.ndarray:
     return pred_array
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #101e63ee
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #b8167ce3
 # Solution
 
 def _mlperf_run_accuracy_test(self, model: Any, predictions: List[Any],
@@ -1174,7 +1174,7 @@ def _mlperf_run_accuracy_test(self, model: Any, predictions: List[Any],
 
 MLPerf._run_accuracy_test = _mlperf_run_accuracy_test
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #63803d26
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #a3682cba
 # Solution
 
     # --- MLPerf.run_standard_benchmark ---
@@ -1283,7 +1283,7 @@ def mlperf_run_all_benchmarks(self, model: Any) -> Dict[str, Dict[str, Any]]:
 
 MLPerf.run_all_benchmarks = mlperf_run_all_benchmarks
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #ff0f2afe
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #6324e371
 # Solution
 
 def _mlperf_compile_report_data(self, results: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
@@ -1357,7 +1357,7 @@ def _mlperf_compile_report_data(self, results: Dict[str, Dict[str, Any]]) -> Dic
 
 MLPerf._compile_report_data = _mlperf_compile_report_data
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #629a2261
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #0ed465ae
 # Solution
 
 def _mlperf_format_compliance_summary(self, report_data: Dict[str, Any]) -> str:
@@ -1410,7 +1410,7 @@ def _mlperf_format_compliance_summary(self, report_data: Dict[str, Any]) -> str:
 
 MLPerf._format_compliance_summary = _mlperf_format_compliance_summary
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #1f460de0
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #3d60a88a
 # Solution
 
 def mlperf_generate_compliance_report(self, results: Dict[str, Dict[str, Any]],
@@ -1449,7 +1449,7 @@ def mlperf_generate_compliance_report(self, results: Dict[str, Dict[str, Any]],
 
 MLPerf.generate_compliance_report = mlperf_generate_compliance_report
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #0bae017a
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #c6be2da5
 # Solution
 
 def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, float]:
@@ -1476,7 +1476,7 @@ def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, 
     return base_metrics
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #7f8e22e3
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #ca248b3e
 # Solution
 
 def _calculate_improvements(base_metrics: Dict[str, float], opt_metrics: Dict[str, float]) -> Dict[str, float]:
@@ -1514,7 +1514,7 @@ def _calculate_improvements(base_metrics: Dict[str, float], opt_metrics: Dict[st
     return improvements
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #9ac43e11
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #1153f78d
 # Solution
 
 def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> Dict[str, Dict]:
@@ -1601,7 +1601,7 @@ def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> 
     }
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #f690f2d8
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #59198872
 # Solution
 
 def analyze_optimization_techniques(base_model: Any, optimized_models: List[Any],

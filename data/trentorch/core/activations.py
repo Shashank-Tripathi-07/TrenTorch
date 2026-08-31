@@ -17,7 +17,7 @@
 # %% auto #0
 __all__ = ['rng', 'TOLERANCE', 'Sigmoid', 'ReLU', 'Tanh', 'GELU', 'Softmax']
 
-# %% ../../solutions/02_activations/activations.ipynb #e08bdf98
+# %% ../../solutions/02_activations/activations.ipynb #21251c0d
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -32,7 +32,7 @@ TOLERANCE = 1e-10  # Small tolerance for floating-point comparisons in tests
 # Export only activation classes
 __all__ = ['Sigmoid', 'ReLU', 'Tanh', 'GELU', 'Softmax']
 
-# %% ../../solutions/02_activations/activations.ipynb #05b71c74
+# %% ../../solutions/02_activations/activations.ipynb #f757edeb
 # Solution
 
 class Sigmoid:
@@ -86,7 +86,7 @@ class Sigmoid:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
-# %% ../../solutions/02_activations/activations.ipynb #24d9353f
+# %% ../../solutions/02_activations/activations.ipynb #42344e38
 # Solution
 
 class ReLU:
@@ -130,7 +130,7 @@ class ReLU:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
-# %% ../../solutions/02_activations/activations.ipynb #0e1b7a42
+# %% ../../solutions/02_activations/activations.ipynb #6d4fa19d
 # Solution
 
 class Tanh:
@@ -174,7 +174,7 @@ class Tanh:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
-# %% ../../solutions/02_activations/activations.ipynb #ed4e48e6
+# %% ../../solutions/02_activations/activations.ipynb #dfd74513
 # Solution
 
 class GELU:
@@ -218,7 +218,7 @@ class GELU:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
-# %% ../../solutions/02_activations/activations.ipynb #77cec5fd
+# %% ../../solutions/02_activations/activations.ipynb #8b209069
 # Solution
 
 class Softmax:

@@ -17,11 +17,11 @@
 # %% auto #0
 __all__ = ['rng', 'SimpleMLP', 'BenchmarkReport', 'generate_submission', 'save_submission']
 
-# %% ../solutions/20_capstone/capstone.ipynb #bb0b9be2
+# %% ../solutions/20_capstone/capstone.ipynb #ae757914
 #| default_exp olympics
 #| export
 
-# %% ../solutions/20_capstone/capstone.ipynb #aabf16a5
+# %% ../solutions/20_capstone/capstone.ipynb #662c331a
 import numpy as np
 rng = np.random.default_rng(7)
 import time
@@ -31,7 +31,7 @@ from typing import Dict, List, Tuple, Optional, Any
 import platform
 import sys
 
-# %% ../solutions/20_capstone/capstone.ipynb #01eb846c
+# %% ../solutions/20_capstone/capstone.ipynb #ccede895
 # Solution
 
 class SimpleMLP:
@@ -118,7 +118,7 @@ class SimpleMLP:
 if __name__ == "__main__":
     print("✅ SimpleMLP model defined")
 
-# %% ../solutions/20_capstone/capstone.ipynb #bdd77565
+# %% ../solutions/20_capstone/capstone.ipynb #84d5e7fb
 # Solution
 
 class BenchmarkReport:
@@ -262,7 +262,7 @@ class BenchmarkReport:
 if __name__ == "__main__":
     print("✅ BenchmarkReport class defined")
 
-# %% ../solutions/20_capstone/capstone.ipynb #239a69ff
+# %% ../solutions/20_capstone/capstone.ipynb #0c1b3361
 def generate_submission(
     baseline_report: BenchmarkReport,
     optimized_report: Optional[BenchmarkReport] = None,
