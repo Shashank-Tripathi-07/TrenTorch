@@ -58,9 +58,7 @@ def gh_json(args):
 
 
 def fetch_counts():
-    prs = gh_json(
-        ["pr", "list", "--repo", REPO, "--state", "all", "--limit", "1000", "--json", "author"]
-    )
+    prs = gh_json(["pr", "list", "--repo", REPO, "--state", "all", "--limit", "1000", "--json", "author"])
     issues = gh_json(
         ["issue", "list", "--repo", REPO, "--state", "all", "--limit", "1000", "--json", "author"]
     )
@@ -154,16 +152,14 @@ def main():
 
     header = (
         "# Contributors\n\n"
-        "Thanks to everyone who's helped build TrenTorch. Kept up to date "
-        "automatically — every new issue, PR, and merge updates the "
-        "relevant entry via "
+        "Thanks to everyone who's helped build TrenTorch. Recomputed nightly "
+        "from real issue/PR activity via "
         "[`.github/workflows/update-contributors.yml`](../.github/workflows/update-contributors.yml).\n\n"
     )
     footer = (
         "\n\n---\n\n"
         "Want to show up here? Open an issue or a PR — the first-contribution "
-        "bot will say hello, and this grid picks up the rest automatically "
-        "once it merges.\n"
+        "bot will say hello, and this grid picks you up on the next nightly run.\n"
     )
 
     new_content = header + grid + footer
