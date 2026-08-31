@@ -34,7 +34,7 @@ def run_tren(args: list, cwd: Path | None = None, timeout: int = 60) -> tuple[in
 
     cmd = [sys.executable, "-m", "platforms.cli.main"] + args
     env = os.environ.copy()
-    env["TREN_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
+    env["TITO_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
     result = subprocess.run(
         cmd,
         cwd=cwd or PROJECT_ROOT,
