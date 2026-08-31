@@ -18,7 +18,7 @@
 __all__ = ['rng', 'DEFAULT_LEARNING_RATE_SGD', 'DEFAULT_LEARNING_RATE_ADAM', 'DEFAULT_MOMENTUM', 'DEFAULT_BETA1', 'DEFAULT_BETA2',
            'DEFAULT_EPS', 'DEFAULT_WEIGHT_DECAY_ADAMW', 'Optimizer', 'SGD', 'Adam', 'AdamW']
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #b6cc5405
+# %% ../../solutions/07_optimizers/optimizers.ipynb #110ce474
 import numpy as np
 rng = np.random.default_rng(7)
 from typing import List, Union, Optional, Dict, Any
@@ -40,7 +40,7 @@ DEFAULT_BETA2 = 0.999  # Second moment decay rate for Adam
 DEFAULT_EPS = 1e-8  # Small epsilon for numerical stability in Adam
 DEFAULT_WEIGHT_DECAY_ADAMW = 0.01  # Default weight decay for AdamW
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #28ea7e63
+# %% ../../solutions/07_optimizers/optimizers.ipynb #7e617b27
 # Solution
 
 class Optimizer:
@@ -123,7 +123,7 @@ class Optimizer:
             f"                  param.data -= self.lr * param.grad.data"
         )
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #2e96c8ba
+# %% ../../solutions/07_optimizers/optimizers.ipynb #977e58bc
 # Solution
 
 class _ExtractGradientMixin:
@@ -162,7 +162,7 @@ class _ExtractGradientMixin:
 # Attach _extract_gradient to Optimizer so all subclasses inherit it
 Optimizer._extract_gradient = _ExtractGradientMixin._extract_gradient
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #1761a731
+# %% ../../solutions/07_optimizers/optimizers.ipynb #dcb34e66
 # Solution
 
 class SGD(Optimizer):
@@ -328,7 +328,7 @@ class SGD(Optimizer):
         self.step_count += 1
         ### END SOLUTION
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #518e5ba0
+# %% ../../solutions/07_optimizers/optimizers.ipynb #bf77454a
 # Solution
 
 class Adam(Optimizer):
@@ -373,7 +373,7 @@ class Adam(Optimizer):
         self.v_buffers = [None for _ in self.params]  # Second moment (variance)
         ### END SOLUTION
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #4a9a2d76
+# %% ../../solutions/07_optimizers/optimizers.ipynb #fdaae07c
 # Solution
 
 class _AdamUpdateMomentsMixin:
@@ -430,7 +430,7 @@ class _AdamUpdateMomentsMixin:
 # Attach _update_moments to Adam
 Adam._update_moments = _AdamUpdateMomentsMixin._update_moments
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #4227bbad
+# %% ../../solutions/07_optimizers/optimizers.ipynb #f4aee6b6
 # Solution
 
 class _AdamStepMixin:
@@ -482,7 +482,7 @@ class _AdamStepMixin:
 # Attach step to Adam
 Adam.step = _AdamStepMixin.step
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #92774a6a
+# %% ../../solutions/07_optimizers/optimizers.ipynb #31d1ceb8
 # Solution
 
 class AdamW(Optimizer):
@@ -525,7 +525,7 @@ class AdamW(Optimizer):
         self.v_buffers = [None for _ in self.params]
         ### END SOLUTION
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #eaecf5eb
+# %% ../../solutions/07_optimizers/optimizers.ipynb #275284a3
 # Solution
 
 class _AdamWUpdateMomentsMixin:
@@ -578,7 +578,7 @@ class _AdamWUpdateMomentsMixin:
 # Attach _update_moments to AdamW
 AdamW._update_moments = _AdamWUpdateMomentsMixin._update_moments
 
-# %% ../../solutions/07_optimizers/optimizers.ipynb #1d3c873a
+# %% ../../solutions/07_optimizers/optimizers.ipynb #178150c8
 # Solution
 
 class _AdamWStepMixin:

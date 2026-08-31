@@ -17,7 +17,7 @@
 # %% auto #0
 __all__ = ['rng', 'EPSILON', 'log_softmax', 'MSELoss', 'CrossEntropyLoss', 'BinaryCrossEntropyLoss']
 
-# %% ../../solutions/04_losses/losses.ipynb #60997dfe
+# %% ../../solutions/04_losses/losses.ipynb #2aaba77e
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -31,7 +31,7 @@ from .layers import Linear
 # Constants for numerical stability
 EPSILON = 1e-7  # Small value to prevent log(0) and numerical instability
 
-# %% ../../solutions/04_losses/losses.ipynb #af52beee
+# %% ../../solutions/04_losses/losses.ipynb #6e68138a
 # Solution
 
 def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
@@ -70,7 +70,7 @@ def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
     return Tensor(result)
     ### END SOLUTION
 
-# %% ../../solutions/04_losses/losses.ipynb #0c442475
+# %% ../../solutions/04_losses/losses.ipynb #52413146
 # Solution
 
 class MSELoss:
@@ -129,7 +129,7 @@ class MSELoss:
         """
         pass
 
-# %% ../../solutions/04_losses/losses.ipynb #1dba2dd8
+# %% ../../solutions/04_losses/losses.ipynb #3a405bf8
 # Solution
 
 class CrossEntropyLoss:
@@ -192,7 +192,7 @@ class CrossEntropyLoss:
         """
         pass
 
-# %% ../../solutions/04_losses/losses.ipynb #7186a897
+# %% ../../solutions/04_losses/losses.ipynb #c1866ad3
 # Solution
 
 class BinaryCrossEntropyLoss:

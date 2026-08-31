@@ -20,7 +20,7 @@ __all__ = ['rng', 'EPSILON', 'Function', 'AddBackward', 'MulBackward', 'SubBackw
            'SigmoidBackward', 'TanhBackward', 'SoftmaxBackward', 'GELUBackward', 'MSEBackward', 'BCEBackward',
            'CrossEntropyBackward', 'is_grad_enabled', 'no_grad', 'enable_autograd']
 
-# %% ../../solutions/06_autograd/autograd.ipynb #bff4c3a0
+# %% ../../solutions/06_autograd/autograd.ipynb #510b242f
 import numpy as np
 rng = np.random.default_rng(7)
 from typing import Optional, List, Tuple
@@ -32,7 +32,7 @@ from .tensor import Tensor
 # Constants for numerical differentiation
 EPSILON = 1e-7  # Small perturbation for numerical gradient computation
 
-# %% ../../solutions/06_autograd/autograd.ipynb #61c533a2
+# %% ../../solutions/06_autograd/autograd.ipynb #6abe1ad5
 class Function:
     """
     Base class for differentiable operations.
@@ -76,7 +76,7 @@ class Function:
         """
         raise NotImplementedError("Each Function must implement apply() method")
 
-# %% ../../solutions/06_autograd/autograd.ipynb #83b94f0a
+# %% ../../solutions/06_autograd/autograd.ipynb #fd699e4f
 # Solution
 
 def _reduce_broadcast_grad(grad, original_shape):
@@ -117,7 +117,7 @@ def _reduce_broadcast_grad(grad, original_shape):
     return grad
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #d4ba8473
+# %% ../../solutions/06_autograd/autograd.ipynb #fa059962
 # Solution
 
 class AddBackward(Function):
@@ -200,7 +200,7 @@ class AddBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #2e48df1e
+# %% ../../solutions/06_autograd/autograd.ipynb #735d0ffd
 # Solution
 
 class MulBackward(Function):
@@ -280,7 +280,7 @@ class MulBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #a69c5d0d
+# %% ../../solutions/06_autograd/autograd.ipynb #e0e3c2ae
 # Solution
 
 class SubBackward(Function):
@@ -340,7 +340,7 @@ class SubBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #13d8180c
+# %% ../../solutions/06_autograd/autograd.ipynb #d27e9d65
 # Solution
 
 class DivBackward(Function):
@@ -409,7 +409,7 @@ class DivBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #408619a6
+# %% ../../solutions/06_autograd/autograd.ipynb #9df2cbde
 # Solution
 
 class MatmulBackward(Function):
@@ -500,7 +500,7 @@ class MatmulBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #9cf67153
+# %% ../../solutions/06_autograd/autograd.ipynb #cd0eeb47
 # Solution
 
 class TransposeBackward(Function):
@@ -588,7 +588,7 @@ class TransposeBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #e93133ba
+# %% ../../solutions/06_autograd/autograd.ipynb #a2d8edb7
 # Solution
 
 class PermuteBackward(Function):
@@ -659,7 +659,7 @@ class PermuteBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #b1d76300
+# %% ../../solutions/06_autograd/autograd.ipynb #b232addf
 # Solution
 
 class SliceBackward(Function):
@@ -751,7 +751,7 @@ class SliceBackward(Function):
         return (grad_input,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #cdd7f9d2
+# %% ../../solutions/06_autograd/autograd.ipynb #902158d8
 # Solution
 
 class ReshapeBackward(Function):
@@ -824,7 +824,7 @@ class ReshapeBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #d4edd178
+# %% ../../solutions/06_autograd/autograd.ipynb #6cc1d521
 # Solution
 
 class SumBackward(Function):
@@ -892,7 +892,7 @@ class SumBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #9390d50b
+# %% ../../solutions/06_autograd/autograd.ipynb #82ba7642
 # Solution
 
 class ReLUBackward(Function):
@@ -943,7 +943,7 @@ class ReLUBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #098289dd
+# %% ../../solutions/06_autograd/autograd.ipynb #007fb8e7
 # Solution
 
 class SigmoidBackward(Function):
@@ -1002,7 +1002,7 @@ class SigmoidBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #4fc88aaa
+# %% ../../solutions/06_autograd/autograd.ipynb #cef069f8
 # Solution
 
 class TanhBackward(Function):
@@ -1061,7 +1061,7 @@ class TanhBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #b83cef44
+# %% ../../solutions/06_autograd/autograd.ipynb #55e1807d
 # Solution
 
 class SoftmaxBackward(Function):
@@ -1137,7 +1137,7 @@ class SoftmaxBackward(Function):
         return (None,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #fd83130e
+# %% ../../solutions/06_autograd/autograd.ipynb #bc3fce5c
 # Solution
 
 class GELUBackward(Function):
@@ -1195,7 +1195,7 @@ class GELUBackward(Function):
         return (None,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #1ec3b542
+# %% ../../solutions/06_autograd/autograd.ipynb #b3452e78
 # Solution
 
 class MSEBackward(Function):
@@ -1250,7 +1250,7 @@ class MSEBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #01f62c2b
+# %% ../../solutions/06_autograd/autograd.ipynb #7bb9869c
 # Solution
 
 class BCEBackward(Function):
@@ -1309,7 +1309,7 @@ class BCEBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #60020204
+# %% ../../solutions/06_autograd/autograd.ipynb #bfb55676
 # Solution
 
 def _stable_softmax(logits_data):
@@ -1346,7 +1346,7 @@ def _stable_softmax(logits_data):
     return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #8cce8b7c
+# %% ../../solutions/06_autograd/autograd.ipynb #2f923bfe
 # Solution
 
 def _one_hot_encode(targets, batch_size, num_classes):
@@ -1381,7 +1381,7 @@ def _one_hot_encode(targets, batch_size, num_classes):
     return one_hot
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #dcf97ddc
+# %% ../../solutions/06_autograd/autograd.ipynb #2d1a5c74
 # Solution
 
 class CrossEntropyBackward(Function):
@@ -1453,7 +1453,7 @@ class CrossEntropyBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #e9df1bf2
+# %% ../../solutions/06_autograd/autograd.ipynb #38b5f36e
 # ===== Global Gradient Tracking Flag =====
 # Why this exists: During inference or parameter updates, we don't need to build
 # computation graphs. Skipping graph construction saves memory and time.
@@ -1518,7 +1518,7 @@ class no_grad:
         _GRAD_TRACKING_ENABLED = self._prev_state
         return False  # Don't suppress exceptions
 
-# %% ../../solutions/06_autograd/autograd.ipynb #d0fc5b39
+# %% ../../solutions/06_autograd/autograd.ipynb #90369612
 def enable_autograd(quiet=False):
     """
     Enable gradient tracking for all Tensor operations.
@@ -1827,6 +1827,26 @@ def enable_autograd(quiet=False):
 
         return result
 
+    def mean_op(self, axis=None, keepdims=False):
+        """
+        Mean operation with gradient tracking.
+
+        Built from sum() and division rather than its own backward
+        Function: both already track gradients correctly by this point,
+        so this reuses two already-verified backward passes instead of
+        adding a third from scratch.
+        """
+        if axis is None:
+            n = self.data.size
+        elif isinstance(axis, tuple):
+            n = 1
+            for a in axis:
+                n *= self.data.shape[a]
+        else:
+            n = self.data.shape[axis]
+
+        return self.sum(axis=axis, keepdims=keepdims) / n
+
     def backward(self, gradient=None, retain_graph=False):
         """
         Compute gradients via backpropagation.
@@ -1943,6 +1963,7 @@ def enable_autograd(quiet=False):
     Tensor.transpose = tracked_transpose
     Tensor.reshape = tracked_reshape
     Tensor.sum = sum_op
+    Tensor.mean = mean_op
     Tensor.backward = backward
     Tensor.zero_grad = zero_grad
 

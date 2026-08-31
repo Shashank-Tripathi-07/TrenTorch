@@ -3894,6 +3894,26 @@ def enable_autograd(quiet=False):
 
         return result
 
+    def mean_op(self, axis=None, keepdims=False):
+        """
+        Mean operation with gradient tracking.
+
+        Built from sum() and division rather than its own backward
+        Function: both already track gradients correctly by this point,
+        so this reuses two already-verified backward passes instead of
+        adding a third from scratch.
+        """
+        if axis is None:
+            n = self.data.size
+        elif isinstance(axis, tuple):
+            n = 1
+            for a in axis:
+                n *= self.data.shape[a]
+        else:
+            n = self.data.shape[axis]
+
+        return self.sum(axis=axis, keepdims=keepdims) / n
+
     def backward(self, gradient=None, retain_graph=False):
         """
         Compute gradients via backpropagation.
@@ -4010,6 +4030,7 @@ def enable_autograd(quiet=False):
     Tensor.transpose = tracked_transpose
     Tensor.reshape = tracked_reshape
     Tensor.sum = sum_op
+    Tensor.mean = mean_op
     Tensor.backward = backward
     Tensor.zero_grad = zero_grad
 

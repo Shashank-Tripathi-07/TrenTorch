@@ -19,7 +19,7 @@ __all__ = ['rng', 'DEFAULT_MAX_LR', 'DEFAULT_MIN_LR', 'DEFAULT_TOTAL_EPOCHS', 'C
            'trainer_init', 'trainer_train_epoch', 'trainer_evaluate', 'trainer_save_checkpoint',
            'trainer_load_checkpoint']
 
-# %% ../../solutions/08_training/training.ipynb #8558a7df
+# %% ../../solutions/08_training/training.ipynb #c7c2f6d0
 import numpy as np
 rng = np.random.default_rng(7)
 import pickle
@@ -44,7 +44,7 @@ DEFAULT_MAX_LR = 0.1  # Default maximum learning rate for cosine schedule
 DEFAULT_MIN_LR = 0.01  # Default minimum learning rate for cosine schedule
 DEFAULT_TOTAL_EPOCHS = 100  # Default total epochs for learning rate schedule
 
-# %% ../../solutions/08_training/training.ipynb #8df31893
+# %% ../../solutions/08_training/training.ipynb #629ede31
 # Solution
 
 class CosineSchedule:
@@ -85,7 +85,7 @@ class CosineSchedule:
         return self.min_lr + (self.max_lr - self.min_lr) * cosine_factor
     ### END SOLUTION
 
-# %% ../../solutions/08_training/training.ipynb #1bbafca2
+# %% ../../solutions/08_training/training.ipynb #408b8653
 # Solution
 
 def clip_grad_norm(parameters: List, max_norm: float = 1.0) -> float:
@@ -148,7 +148,7 @@ def clip_grad_norm(parameters: List, max_norm: float = 1.0) -> float:
     return float(total_norm)
     ### END SOLUTION
 
-# %% ../../solutions/08_training/training.ipynb #b3cc0824
+# %% ../../solutions/08_training/training.ipynb #7231d068
 class Trainer:
     """
     Complete training orchestrator for neural networks.
@@ -210,7 +210,7 @@ class Trainer:
             if hasattr(self.scheduler, key):
                 setattr(self.scheduler, key, value)
 
-# %% ../../solutions/08_training/training.ipynb #deb92457
+# %% ../../solutions/08_training/training.ipynb #e60ffa8b
 # Solution
 
 def trainer_init(self, model, optimizer, loss_fn, scheduler=None, grad_clip_norm=None):
@@ -272,7 +272,7 @@ def trainer_init(self, model, optimizer, loss_fn, scheduler=None, grad_clip_norm
 
 Trainer.__init__ = trainer_init
 
-# %% ../../solutions/08_training/training.ipynb #21b68057
+# %% ../../solutions/08_training/training.ipynb #16182b87
 # Solution
 
 def _trainer_process_batch(self, inputs, targets, accumulation_steps):
@@ -314,7 +314,7 @@ def _trainer_process_batch(self, inputs, targets, accumulation_steps):
 
 Trainer._process_batch = _trainer_process_batch
 
-# %% ../../solutions/08_training/training.ipynb #cf8b06c2
+# %% ../../solutions/08_training/training.ipynb #40eea921
 # Solution
 
 def _trainer_optimizer_update(self):
@@ -339,7 +339,7 @@ def _trainer_optimizer_update(self):
 
 Trainer._optimizer_update = _trainer_optimizer_update
 
-# %% ../../solutions/08_training/training.ipynb #c0284ef8
+# %% ../../solutions/08_training/training.ipynb #b9ffab9a
 # Solution
 
 def trainer_train_epoch(self, dataloader, accumulation_steps=1):
@@ -404,7 +404,7 @@ def trainer_train_epoch(self, dataloader, accumulation_steps=1):
 
 Trainer.train_epoch = trainer_train_epoch
 
-# %% ../../solutions/08_training/training.ipynb #01dc140e
+# %% ../../solutions/08_training/training.ipynb #2a6c7bb3
 # Solution
 
 def trainer_evaluate(self, dataloader):
@@ -474,7 +474,7 @@ def trainer_evaluate(self, dataloader):
 
 Trainer.evaluate = trainer_evaluate
 
-# %% ../../solutions/08_training/training.ipynb #6c145d96
+# %% ../../solutions/08_training/training.ipynb #6b327c88
 # Solution
 
 def trainer_save_checkpoint(self, path: str):
@@ -518,7 +518,7 @@ def trainer_save_checkpoint(self, path: str):
 
 Trainer.save_checkpoint = trainer_save_checkpoint
 
-# %% ../../solutions/08_training/training.ipynb #8f142951
+# %% ../../solutions/08_training/training.ipynb #05c3253c
 # Solution
 
 def trainer_load_checkpoint(self, path: str):
