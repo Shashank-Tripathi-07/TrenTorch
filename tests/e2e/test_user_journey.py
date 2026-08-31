@@ -34,9 +34,16 @@ def run_tren(args: list, cwd: Path | None = None, timeout: int = 60) -> tuple[in
 
     cmd = [sys.executable, "-m", "platforms.cli.main"] + args
     env = os.environ.copy()
-    env["TREN_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
+    env["TITO_ALLOW_SYSTEM"] = "1"  # Allow running outside venv for tests
     result = subprocess.run(
-        cmd, cwd=cwd or PROJECT_ROOT, capture_output=True, text=True, timeout=timeout, env=env
+        cmd,
+        cwd=cwd or PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
+        env=env,
     )
     return result.returncode, result.stdout, result.stderr
 
@@ -44,7 +51,13 @@ def run_tren(args: list, cwd: Path | None = None, timeout: int = 60) -> tuple[in
 def run_python_script(script_path: Path, timeout: int = 120) -> tuple[int, str, str]:
     """Run a Python script and return (exit_code, stdout, stderr)."""
     result = subprocess.run(
-        [sys.executable, str(script_path)], cwd=PROJECT_ROOT, capture_output=True, text=True, timeout=timeout
+        [sys.executable, str(script_path)],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
     )
     return result.returncode, result.stdout, result.stderr
 
@@ -137,6 +150,8 @@ class TestQuickVerification:
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         assert result.returncode == 0, f"Cannot import trentorch: {result.stderr}"
         assert "OK" in result.stdout
@@ -216,7 +231,7 @@ class TestModuleFlow:
 
         # Check progress file still exists and has data
         assert progress_file.exists()
-        data = json.loads(progress_file.read_text())
+        data = json.loads(progress_file.read_text(encoding="utf-8"))
         assert "started_modules" in data
 
     @pytest.mark.module_flow
@@ -308,6 +323,8 @@ class TestFullJourney:
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         # This tests that the package structure is correct
         # If Tensor is not exported, that's a test failure
@@ -335,6 +352,8 @@ print('OK')
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=10,
         )
         assert result.returncode == 0, (

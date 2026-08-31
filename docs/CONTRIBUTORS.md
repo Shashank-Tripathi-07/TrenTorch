@@ -1,6 +1,6 @@
 # Contributors
 
-Thanks to everyone who's helped build TrenTorch. Kept up to date automatically â€” every new issue, PR, and merge updates the relevant entry via [`.github/workflows/update-contributors.yml`](../.github/workflows/update-contributors.yml).
+Thanks to everyone who's helped build TrenTorch. Recomputed nightly from real issue/PR activity via [`.github/workflows/update-contributors.yml`](../.github/workflows/update-contributors.yml).
 
 <table width="100%" style="width:100%">
   <tbody>
@@ -12,7 +12,7 @@ Thanks to everyone who's helped build TrenTorch. Kept up to date automatically â
         <br />
         <sub>Reducing CPU stalls, one commit at a time.</sub>
         <br />
-        <sub>Issues: 0 &middot; PRs: 1 &middot; Merged: 1</sub>
+        <sub>Issues: 0 &middot; PRs: 1</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" width="80px;" alt="Rocky"/></a>
@@ -21,7 +21,7 @@ Thanks to everyone who's helped build TrenTorch. Kept up to date automatically â
         <br />
         <sub>IIT Guwahati, debugs autograd for fun, ships before sunrise.</sub>
         <br />
-        <sub>Issues: 7 &middot; PRs: 2 &middot; Merged: 1</sub>
+        <sub>Issues: 7 &middot; PRs: 4</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="Shivtej Gaikwad"/></a>
@@ -30,7 +30,7 @@ Thanks to everyone who's helped build TrenTorch. Kept up to date automatically â
         <br />
         <sub>IIT Guwahati. Shows up, ships, moves on to the next thing.</sub>
         <br />
-        <sub>Issues: 0 &middot; PRs: 5 &middot; Merged: 2</sub>
+        <sub>Issues: 0 &middot; PRs: 5</sub>
       </td>
     </tr>
   </tbody>
@@ -38,4 +38,4 @@ Thanks to everyone who's helped build TrenTorch. Kept up to date automatically â
 
 ---
 
-Want to show up here? Open an issue or a PR â€” the first-contribution bot will say hello, and this grid picks up the rest automatically once it merges.
+Want to show up here? Open an issue or a PR â€” the first-contribution bot will say hello, and this grid picks you up on the next nightly run.

@@ -34,6 +34,8 @@ class TestCommandExecution:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Should exit successfully
@@ -50,6 +52,8 @@ class TestCommandExecution:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         assert result.returncode == 0
@@ -64,6 +68,8 @@ class TestCommandExecution:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         assert result.returncode == 0
@@ -79,6 +85,8 @@ class TestCommandExecution:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Help should always succeed
@@ -106,6 +114,8 @@ class TestCommandExecution:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Subcommand help should work
@@ -130,6 +140,8 @@ class TestCommandGrouping:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Key student commands should be visible
@@ -145,6 +157,8 @@ class TestCommandGrouping:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Developer commands should be in help
@@ -168,6 +182,8 @@ class TestErrorMessages:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Should fail
@@ -185,6 +201,8 @@ class TestErrorMessages:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Should show help or error

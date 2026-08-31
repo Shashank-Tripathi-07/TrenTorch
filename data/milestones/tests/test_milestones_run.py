@@ -52,7 +52,7 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
         cmd.extend(["--part", str(part)])
 
     env = os.environ.copy()
-    env["TREN_ALLOW_SYSTEM"] = "1"  # Allow running without venv
+    env["TITO_ALLOW_SYSTEM"] = "1"  # Allow running without venv
     env["PYTHONPATH"] = str(TRENTORCH_ROOT)
 
     # Auto-answer prompts by providing 'n' to stdin (decline syncing achievements, etc.)

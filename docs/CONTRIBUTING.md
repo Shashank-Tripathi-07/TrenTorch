@@ -74,7 +74,7 @@ source .venv/bin/activate
 # 2. Create feature branch (NEVER work on main directly)
 git checkout main
 git pull origin main
-git checkout -b feature/your-improvement
+git checkout -b your-github-username/your-improvement
 
 # 3. Make changes following standards in CONTRIBUTING.md
 # 4. Test thoroughly
@@ -90,14 +90,19 @@ git commit -m "Fix tensor broadcasting bug in Module 02
 - Update documentation with edge cases"
 
 # 6. Push and open a pull request
-git push origin feature/your-improvement
+git push origin your-github-username/your-improvement
 # Then open a PR on GitHub targeting the 'main' branch
 ```
+
+### Branch naming
+
+Every branch is named `<github-username>/<feature-name>` (e.g. `shivtej/fix-attention-mask`, `shashank/mean-gradient-tracking`), lowercase, hyphens between words in the feature part. This makes it immediately clear who's working on what across the repo's branch list, especially with multiple contributors touching different modules at once. Not `feature/`, not `fix/`, not a bare description, always your own username first.
 
 ### **Critical Policies - NO EXCEPTIONS**
 - ✅ Always use virtual environment (`.venv`)
 - ✅ Always work on feature branches
 - ✅ Always test before committing
+- ✅ **Branch names follow `<github-username>/<feature-name>`** — see Branch naming above
 - 🚨 **Use clear commit messages** — short subject line; add a body when the change needs context beyond the title.
 
 ## 🧪 Testing Requirements

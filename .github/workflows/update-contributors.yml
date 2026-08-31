@@ -1,17 +1,28 @@
 name: 'Update Contributors Table'
 
-# Recomputes CONTRIBUTORS.md (issues raised, PRs raised, PRs merged per
-# person) from the real GitHub API whenever an issue or PR is opened, or a
-# PR closes. Opens a PR with the change and merges it immediately: this is
-# pure, deterministic data (counts computed straight from the GitHub API,
-# nothing subjective), so it still goes through a real PR rather than a
-# direct push to main, but doesn't need a human to sit in front of it.
+# Recomputes CONTRIBUTORS.md (issues raised, PRs raised per person) from the
+# real GitHub API once a night, and opens+merges a PR immediately if the
+# result changed. Used to fire on every issue/PR open/close event -- correct,
+# but noisy: a short burst of PR activity (several merges/closes within
+# seconds) could spawn several of these PRs at once needing manual cleanup.
+# The nightly schedule alone fixes that (one run a day, not one per event).
+#
+# A direct push to main (no PR at all) was tried and doesn't work: main's
+# branch protection rejects it for GITHUB_TOKEN specifically ("GH006:
+# Protected branch update failed... Changes must be made through a pull
+# request"), confirmed by a live test run, not assumed. Only accounts with
+# admin bypass privilege (like the repo owner's own account) can push
+# directly; the bot's default token isn't one of those, and weakening branch
+# protection to grant it that, or pushing under a stored personal token
+# instead, are both real trade-offs to make deliberately, not a side effect
+# of "make CI quieter". So this still goes through a PR + auto-merge, which
+# already works end to end (a PR merge satisfies the "must go through a
+# pull request" rule the way a raw push doesn't) -- just once a night now
+# instead of on every event.
 
 on:
-  issues:
-    types: [opened]
-  pull_request:
-    types: [opened, closed]
+  schedule:
+    - cron: '11 20 * * *'  # ~1:41am IST, off-peak, minute offset from :00
   workflow_dispatch: {}
 
 permissions:
@@ -19,14 +30,9 @@ permissions:
   pull-requests: write
   issues: read
 
-# Serializes runs instead of letting them race: several issue/PR events
-# arriving within seconds of each other (e.g. closing a batch of PRs) used
-# to start several runs in parallel, each checking out the same stale main
-# before any of them had merged, so every one of them computed the same
-# "real" diff and opened a now-redundant PR the moment the first one
-# landed. cancel-in-progress stays false -- a queued run still needs to
-# execute (and re-check main) after the one ahead of it finishes, not get
-# cancelled outright.
+# Guards against two runs landing at once (a scheduled run overlapping a
+# manual workflow_dispatch), not against per-event races -- there's only one
+# trigger a day now, so the race this used to guard against can't happen.
 concurrency:
   group: update-contributors
   cancel-in-progress: false
@@ -38,14 +44,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # This workflow only ever reads/writes docs/CONTRIBUTORS.md and
-          # README.md based on live API stats, never a PR's own file
-          # changes. Explicitly pinning main matters because the default
-          # ref for a pull_request event (including Dependabot's own PRs)
-          # is refs/pull/N/merge, that PR's content merged into main, not
-          # main itself -- without this, the branch this job creates
-          # silently bundled whatever the triggering PR changed alongside
-          # the contributors update.
           ref: main
 
       - name: Run update script
@@ -77,7 +75,7 @@ jobs:
           git commit -m "Update CONTRIBUTORS.md"
           git push origin "$BRANCH"
           gh pr create --title "Update CONTRIBUTORS.md" \
-            --body "Automated update from real issue/PR activity. See .github/workflows/update-contributors.yml." \
+            --body "Automated nightly update from real issue/PR activity. See .github/workflows/update-contributors.yml." \
             --base main --head "$BRANCH"
           gh pr merge "$BRANCH" --squash --delete-branch || \
             echo "::warning::Could not auto-merge, left open for manual merge."

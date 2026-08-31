@@ -18,11 +18,9 @@
 __all__ = ['rng', 'INIT_SCALE_FACTOR', 'HE_SCALE_FACTOR', 'DROPOUT_MIN_PROB', 'DROPOUT_MAX_PROB', 'Layer', 'Linear', 'Dropout',
            'Sequential']
 
-# %% ../../solutions/03_layers/layers.ipynb #39025375
+# %% ../../solutions/03_layers/layers.ipynb #7ea222f8
 import os
-
 import numpy as np
-
 # Module-level RNG is seeded so Linear weight init is deterministic by default.
 # This is what the integration test suite (and any cross-run reproducibility)
 # relies on. Demo scripts that want fresh weights every run rebind this name
@@ -31,8 +29,8 @@ import numpy as np
 rng = np.random.default_rng(7)
 
 # Import from TrenTorch package (previous modules must be completed and exported)
-from .activations import ReLU, Sigmoid
 from .tensor import Tensor
+from .activations import ReLU, Sigmoid
 
 # Constants for weight initialization
 # Note: True Xavier/Glorot uses sqrt(2/(fan_in+fan_out)), but we use the simpler
@@ -44,7 +42,7 @@ HE_SCALE_FACTOR = 2.0  # He initialization uses sqrt(2/fan_in) for ReLU
 DROPOUT_MIN_PROB = 0.0  # Minimum dropout probability (no dropout)
 DROPOUT_MAX_PROB = 1.0  # Maximum dropout probability (drop everything)
 
-# %% ../../solutions/03_layers/layers.ipynb #6f792438
+# %% ../../solutions/03_layers/layers.ipynb #cf66612a
 class Layer:
     """
     Base class for all neural network layers.
@@ -93,9 +91,8 @@ class Layer:
         """String representation of the layer."""
         return f"{self.__class__.__name__}()"
 
-# %% ../../solutions/03_layers/layers.ipynb #091acf21
+# %% ../../solutions/03_layers/layers.ipynb #5e079870
 # Solution
-
 
 class Linear(Layer):
     """
@@ -216,9 +213,8 @@ class Linear(Layer):
         bias_str = f", bias={self.bias is not None}"
         return f"Linear(in_features={self.in_features}, out_features={self.out_features}{bias_str})"
 
-# %% ../../solutions/03_layers/layers.ipynb #6c33bf84
+# %% ../../solutions/03_layers/layers.ipynb #0a12e400
 # Solution
-
 
 class Dropout(Layer):
     """
@@ -386,7 +382,7 @@ class Dropout(Layer):
     def __repr__(self):
         return f"Dropout(p={self.p})"
 
-# %% ../../solutions/03_layers/layers.ipynb #da6ad473
+# %% ../../solutions/03_layers/layers.ipynb #fe2d52ff
 class Sequential:
     """
     Container that chains layers together sequentially.

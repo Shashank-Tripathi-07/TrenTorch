@@ -18,21 +18,18 @@
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'MB_TO_BYTES', 'measure_sparsity', 'magnitude_prune', 'structured_prune',
            'low_rank_approximate', 'KnowledgeDistillation', 'Compressor', 'verify_pruning_works']
 
-# %% ../../solutions/16_compression/compression.ipynb #8da7b4fe
+# %% ../../solutions/16_compression/compression.ipynb #26d4e68a
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 import copy
+from typing import List, Dict, Any, Tuple, Optional
 import time
-from typing import Any, Dict, List, Optional, Tuple
-
-from ..core.activations import ReLU
-from ..core.layers import Linear, Sequential
 
 # Import from TrenTorch package (previous modules must be completed and exported)
 from ..core.tensor import Tensor
+from ..core.layers import Linear, Sequential
+from ..core.activations import ReLU
 
 # Constants for memory calculations
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
@@ -40,9 +37,8 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
 # Sequential provides model container with .layers and .parameters()
 
-# %% ../../solutions/16_compression/compression.ipynb #a81ffa8b
+# %% ../../solutions/16_compression/compression.ipynb #16425fe6
 # Solution
-
 
 def measure_sparsity(model) -> float:
     """
@@ -90,9 +86,8 @@ def measure_sparsity(model) -> float:
     return (zero_params / total_params) * 100.0
     ### END SOLUTION
 
-# %% ../../solutions/16_compression/compression.ipynb #61195a67
+# %% ../../solutions/16_compression/compression.ipynb #f4887305
 # Solution
-
 
 def magnitude_prune(model, sparsity=0.9):
     """
@@ -148,9 +143,8 @@ def magnitude_prune(model, sparsity=0.9):
     return model
     ### END SOLUTION
 
-# %% ../../solutions/16_compression/compression.ipynb #42e77954
+# %% ../../solutions/16_compression/compression.ipynb #2f873b47
 # Solution
-
 
 def structured_prune(model, prune_ratio=0.5):
     """
@@ -208,9 +202,8 @@ def structured_prune(model, prune_ratio=0.5):
     return model
     ### END SOLUTION
 
-# %% ../../solutions/16_compression/compression.ipynb #2090c547
+# %% ../../solutions/16_compression/compression.ipynb #fbfc0a87
 # Solution
-
 
 def low_rank_approximate(weight_matrix, rank_ratio=0.5):
     """
@@ -253,9 +246,8 @@ def low_rank_approximate(weight_matrix, rank_ratio=0.5):
     return U_truncated, S_truncated, V_truncated
     ### END SOLUTION
 
-# %% ../../solutions/16_compression/compression.ipynb #99c887b8
+# %% ../../solutions/16_compression/compression.ipynb #14255d42
 # Solution
-
 
 class KnowledgeDistillation:
     """
@@ -373,7 +365,7 @@ class KnowledgeDistillation:
         else:
             return -np.mean(np.sum(labels * np.log(predictions + 1e-8), axis=1))
 
-# %% ../../solutions/16_compression/compression.ipynb #6de56ff5
+# %% ../../solutions/16_compression/compression.ipynb #a8101288
 class Compressor:
     """
     Complete compression system for milestone use.
@@ -404,7 +396,7 @@ class Compressor:
         return structured_prune(model, prune_ratio)
 
     @staticmethod
-    def compress_model(model, compression_config: dict[str, Any]):
+    def compress_model(model, compression_config: Dict[str, Any]):
         """
         Apply complete compression pipeline to a model.
 
@@ -417,28 +409,31 @@ class Compressor:
         Returns:
             Compressed model with sparsity stats (fractions 0-1)
         """
-        stats = {"original_sparsity": Compressor.measure_sparsity(model)}
+        stats = {
+            'original_sparsity': Compressor.measure_sparsity(model)
+        }
 
         # Apply magnitude pruning
-        if "magnitude_sparsity" in compression_config:
-            model = Compressor.magnitude_prune(model, compression_config["magnitude_sparsity"])
+        if 'magnitude_sparsity' in compression_config:
+            model = Compressor.magnitude_prune(
+                model, compression_config['magnitude_sparsity']
+            )
 
         # Apply structured pruning
-        if "structured_prune_ratio" in compression_config:
-            model = Compressor.structured_prune(model, compression_config["structured_prune_ratio"])
+        if 'structured_prune_ratio' in compression_config:
+            model = Compressor.structured_prune(
+                model, compression_config['structured_prune_ratio']
+            )
 
-        stats["final_sparsity"] = Compressor.measure_sparsity(model)
-        stats["compression_ratio"] = (
-            1.0 / (1.0 - stats["final_sparsity"]) if stats["final_sparsity"] < 1.0 else float("inf")
-        )
+        stats['final_sparsity'] = Compressor.measure_sparsity(model)
+        stats['compression_ratio'] = 1.0 / (1.0 - stats['final_sparsity']) if stats['final_sparsity'] < 1.0 else float('inf')
 
         return model, stats
-
 
 # Note: measure_sparsity, magnitude_prune, structured_prune are defined earlier in this module.
 # The Compressor class above delegates to those functions, providing an OOP interface for milestones.
 
-# %% ../../solutions/16_compression/compression.ipynb #f0eea575
+# %% ../../solutions/16_compression/compression.ipynb #b058cddf
 def verify_pruning_works(model, target_sparsity=0.8):
     """
     Verify pruning actually creates zeros using real zero counting.
@@ -471,26 +466,26 @@ def verify_pruning_works(model, target_sparsity=0.8):
     print(f"   Total parameters: {total:,}")
     print(f"   Zero parameters: {zeros:,}")
     print(f"   Active parameters: {total - zeros:,}")
-    print(f"   Sparsity achieved: {sparsity * 100:.1f}%")
+    print(f"   Sparsity achieved: {sparsity*100:.1f}%")
     print(f"   Memory footprint: {memory_bytes / MB_TO_BYTES:.2f} MB (unchanged with dense storage)")
 
     # Verify target met (allow 15% tolerance for structured pruning variations)
     verified = abs(sparsity - target_sparsity) < 0.15
-    status = "✓" if verified else "✗"
-    print(f"   {status} Meets {target_sparsity * 100:.0f}% sparsity target")
+    status = '✓' if verified else '✗'
+    print(f"   {status} Meets {target_sparsity*100:.0f}% sparsity target")
 
     assert verified, f"Sparsity target not met: {sparsity:.2f} vs {target_sparsity:.2f}"
 
-    print(f"\n✅ VERIFIED: {sparsity * 100:.1f}% sparsity achieved")
-    print("⚠️ Memory saved: 0 MB (dense numpy arrays)")
-    print(f"💡 LEARNING: Compute savings ~{sparsity * 100:.1f}% (skip zero multiplications)")
-    print("   In production: Use sparse formats (scipy.sparse.csr_matrix) for memory savings")
+    print(f"\n✅ VERIFIED: {sparsity*100:.1f}% sparsity achieved")
+    print(f"⚠️ Memory saved: 0 MB (dense numpy arrays)")
+    print(f"💡 LEARNING: Compute savings ~{sparsity*100:.1f}% (skip zero multiplications)")
+    print(f"   In production: Use sparse formats (scipy.sparse.csr_matrix) for memory savings")
 
     return {
-        "sparsity": sparsity,
-        "zeros": zeros,
-        "total": total,
-        "active": total - zeros,
-        "memory_mb": memory_bytes / MB_TO_BYTES,
-        "verified": verified,
+        'sparsity': sparsity,
+        'zeros': zeros,
+        'total': total,
+        'active': total - zeros,
+        'memory_mb': memory_bytes / MB_TO_BYTES,
+        'verified': verified
     }

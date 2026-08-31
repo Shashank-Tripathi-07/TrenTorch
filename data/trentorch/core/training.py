@@ -19,26 +19,24 @@ __all__ = ['rng', 'DEFAULT_MAX_LR', 'DEFAULT_MIN_LR', 'DEFAULT_TOTAL_EPOCHS', 'C
            'trainer_init', 'trainer_train_epoch', 'trainer_evaluate', 'trainer_save_checkpoint',
            'trainer_load_checkpoint']
 
-# %% ../../solutions/08_training/training.ipynb #d6f5b842
+# %% ../../solutions/08_training/training.ipynb #0c9365f5
 import numpy as np
-
 rng = np.random.default_rng(7)
-import os
 import pickle
-import sys
 import time
+from typing import Dict, List, Optional, Tuple, Any, Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
-
-# Enable autograd for gradient tracking (required for training)
-from .autograd import enable_autograd
-from .layers import Linear
-from .losses import CrossEntropyLoss, MSELoss
-from .optimizers import SGD, AdamW
+import sys
+import os
 
 # Import dependencies from other modules
 from .tensor import Tensor
+from .layers import Linear
+from .losses import MSELoss, CrossEntropyLoss
+from .optimizers import SGD, AdamW
 
+# Enable autograd for gradient tracking (required for training)
+from .autograd import enable_autograd
 enable_autograd()
 
 # Constants for learning rate scheduling defaults
@@ -46,9 +44,8 @@ DEFAULT_MAX_LR = 0.1  # Default maximum learning rate for cosine schedule
 DEFAULT_MIN_LR = 0.01  # Default minimum learning rate for cosine schedule
 DEFAULT_TOTAL_EPOCHS = 100  # Default total epochs for learning rate schedule
 
-# %% ../../solutions/08_training/training.ipynb #44429ab9
+# %% ../../solutions/08_training/training.ipynb #f619d280
 # Solution
-
 
 class CosineSchedule:
     """
@@ -72,14 +69,8 @@ class CosineSchedule:
 
     HINT: Use np.cos() and np.pi for the cosine calculation
     """
-
     ### BEGIN SOLUTION
-    def __init__(
-        self,
-        max_lr: float = DEFAULT_MAX_LR,
-        min_lr: float = DEFAULT_MIN_LR,
-        total_epochs: int = DEFAULT_TOTAL_EPOCHS,
-    ):
+    def __init__(self, max_lr: float = DEFAULT_MAX_LR, min_lr: float = DEFAULT_MIN_LR, total_epochs: int = DEFAULT_TOTAL_EPOCHS):
         self.max_lr = max_lr
         self.min_lr = min_lr
         self.total_epochs = total_epochs
@@ -92,14 +83,12 @@ class CosineSchedule:
         # Cosine annealing formula
         cosine_factor = (1 + np.cos(np.pi * epoch / self.total_epochs)) / 2
         return self.min_lr + (self.max_lr - self.min_lr) * cosine_factor
-
     ### END SOLUTION
 
-# %% ../../solutions/08_training/training.ipynb #bacd8cc8
+# %% ../../solutions/08_training/training.ipynb #b0e9bee2
 # Solution
 
-
-def clip_grad_norm(parameters: list, max_norm: float = 1.0) -> float:
+def clip_grad_norm(parameters: List, max_norm: float = 1.0) -> float:
     """
     Clip gradients by global norm to prevent exploding gradients.
 
@@ -140,7 +129,7 @@ def clip_grad_norm(parameters: list, max_norm: float = 1.0) -> float:
             else:
                 # Trust that Tensor has .data attribute
                 grad_data = param.grad.data
-            total_norm += np.sum(grad_data**2)
+            total_norm += np.sum(grad_data ** 2)
 
     total_norm = np.sqrt(total_norm)
 
@@ -159,7 +148,7 @@ def clip_grad_norm(parameters: list, max_norm: float = 1.0) -> float:
     return float(total_norm)
     ### END SOLUTION
 
-# %% ../../solutions/08_training/training.ipynb #85d0fb30
+# %% ../../solutions/08_training/training.ipynb #9b1e0d41
 class Trainer:
     """
     Complete training orchestrator for neural networks.
@@ -188,29 +177,29 @@ class Trainer:
     def _get_optimizer_state(self):
         """Extract optimizer state for checkpointing."""
         state = {}
-        state["lr"] = self.optimizer.lr
-        if hasattr(self.optimizer, "has_momentum") and self.optimizer.has_momentum():
+        state['lr'] = self.optimizer.lr
+        if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
             momentum_state = self.optimizer.get_momentum_state()
             if momentum_state is not None:
-                state["momentum_buffers"] = momentum_state
+                state['momentum_buffers'] = momentum_state
         return state
 
     def _set_optimizer_state(self, state):
         """Restore optimizer state from checkpoint."""
-        if "lr" in state:
-            self.optimizer.lr = state["lr"]
-        if "momentum_buffers" in state:
-            if hasattr(self.optimizer, "has_momentum") and self.optimizer.has_momentum():
-                self.optimizer.set_momentum_state(state["momentum_buffers"])
+        if 'lr' in state:
+            self.optimizer.lr = state['lr']
+        if 'momentum_buffers' in state:
+            if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
+                self.optimizer.set_momentum_state(state['momentum_buffers'])
 
     def _get_scheduler_state(self):
         """Extract scheduler state for checkpointing."""
         if self.scheduler is None:
             return None
         return {
-            "max_lr": getattr(self.scheduler, "max_lr", None),
-            "min_lr": getattr(self.scheduler, "min_lr", None),
-            "total_epochs": getattr(self.scheduler, "total_epochs", None),
+            'max_lr': getattr(self.scheduler, 'max_lr', None),
+            'min_lr': getattr(self.scheduler, 'min_lr', None),
+            'total_epochs': getattr(self.scheduler, 'total_epochs', None)
         }
 
     def _set_scheduler_state(self, state):
@@ -221,9 +210,8 @@ class Trainer:
             if hasattr(self.scheduler, key):
                 setattr(self.scheduler, key, value)
 
-# %% ../../solutions/08_training/training.ipynb #2a7726da
+# %% ../../solutions/08_training/training.ipynb #d7482933
 # Solution
-
 
 def trainer_init(self, model, optimizer, loss_fn, scheduler=None, grad_clip_norm=None):
     """
@@ -275,15 +263,17 @@ def trainer_init(self, model, optimizer, loss_fn, scheduler=None, grad_clip_norm
     self.training_mode = True
 
     # History tracking
-    self.history = {"train_loss": [], "eval_loss": [], "learning_rates": []}
+    self.history = {
+        'train_loss': [],
+        'eval_loss': [],
+        'learning_rates': []
+    }
     ### END SOLUTION
-
 
 Trainer.__init__ = trainer_init
 
-# %% ../../solutions/08_training/training.ipynb #48b40a30
+# %% ../../solutions/08_training/training.ipynb #2aee189d
 # Solution
-
 
 def _trainer_process_batch(self, inputs, targets, accumulation_steps):
     """
@@ -322,12 +312,10 @@ def _trainer_process_batch(self, inputs, targets, accumulation_steps):
     return float(scaled_loss)
     ### END SOLUTION
 
-
 Trainer._process_batch = _trainer_process_batch
 
-# %% ../../solutions/08_training/training.ipynb #ca9f2bf2
+# %% ../../solutions/08_training/training.ipynb #37415228
 # Solution
-
 
 def _trainer_optimizer_update(self):
     """
@@ -349,12 +337,10 @@ def _trainer_optimizer_update(self):
     self.optimizer.zero_grad()
     ### END SOLUTION
 
-
 Trainer._optimizer_update = _trainer_optimizer_update
 
-# %% ../../solutions/08_training/training.ipynb #17d8e30c
+# %% ../../solutions/08_training/training.ipynb #cd62da71
 # Solution
-
 
 def trainer_train_epoch(self, dataloader, accumulation_steps=1):
     """
@@ -386,7 +372,7 @@ def trainer_train_epoch(self, dataloader, accumulation_steps=1):
     if self.scheduler is not None:
         current_lr = self.scheduler.get_lr(self.epoch)
         self.optimizer.lr = current_lr
-        self.history["learning_rates"].append(current_lr)
+        self.history['learning_rates'].append(current_lr)
 
     total_loss = 0.0
     num_batches = 0
@@ -410,18 +396,16 @@ def trainer_train_epoch(self, dataloader, accumulation_steps=1):
         num_batches += 1
 
     avg_loss = total_loss / max(num_batches, 1)
-    self.history["train_loss"].append(avg_loss)
+    self.history['train_loss'].append(avg_loss)
 
     self.epoch += 1
     return avg_loss
     ### END SOLUTION
 
-
 Trainer.train_epoch = trainer_train_epoch
 
-# %% ../../solutions/08_training/training.ipynb #1811a3f4
+# %% ../../solutions/08_training/training.ipynb #2576658b
 # Solution
-
 
 def trainer_evaluate(self, dataloader):
     """
@@ -483,17 +467,15 @@ def trainer_evaluate(self, dataloader):
     avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
     accuracy = correct / total if total > 0 else 0.0
 
-    self.history["eval_loss"].append(avg_loss)
+    self.history['eval_loss'].append(avg_loss)
 
     return avg_loss, accuracy
     ### END SOLUTION
 
-
 Trainer.evaluate = trainer_evaluate
 
-# %% ../../solutions/08_training/training.ipynb #eaea4905
+# %% ../../solutions/08_training/training.ipynb #036080df
 # Solution
-
 
 def trainer_save_checkpoint(self, path: str):
     """
@@ -520,26 +502,24 @@ def trainer_save_checkpoint(self, path: str):
     """
     ### BEGIN SOLUTION
     checkpoint = {
-        "epoch": self.epoch,
-        "step": self.step,
-        "model_state": self._get_model_state(),
-        "optimizer_state": self._get_optimizer_state(),
-        "scheduler_state": self._get_scheduler_state(),
-        "history": self.history,
-        "training_mode": self.training_mode,
+        'epoch': self.epoch,
+        'step': self.step,
+        'model_state': self._get_model_state(),
+        'optimizer_state': self._get_optimizer_state(),
+        'scheduler_state': self._get_scheduler_state(),
+        'history': self.history,
+        'training_mode': self.training_mode
     }
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "wb") as f:
+    with open(path, 'wb') as f:
         pickle.dump(checkpoint, f)
     ### END SOLUTION
 
-
 Trainer.save_checkpoint = trainer_save_checkpoint
 
-# %% ../../solutions/08_training/training.ipynb #2b32fd7f
+# %% ../../solutions/08_training/training.ipynb #4bf271d4
 # Solution
-
 
 def trainer_load_checkpoint(self, path: str):
     """
@@ -566,22 +546,21 @@ def trainer_load_checkpoint(self, path: str):
     HINT: The private _set_*_state() helpers are already provided.
     """
     ### BEGIN SOLUTION
-    with open(path, "rb") as f:
+    with open(path, 'rb') as f:
         checkpoint = pickle.load(f)
 
-    self.epoch = checkpoint["epoch"]
-    self.step = checkpoint["step"]
-    self.history = checkpoint["history"]
-    self.training_mode = checkpoint["training_mode"]
+    self.epoch = checkpoint['epoch']
+    self.step = checkpoint['step']
+    self.history = checkpoint['history']
+    self.training_mode = checkpoint['training_mode']
 
     # Restore states
-    if "model_state" in checkpoint:
-        self._set_model_state(checkpoint["model_state"])
-    if "optimizer_state" in checkpoint:
-        self._set_optimizer_state(checkpoint["optimizer_state"])
-    if "scheduler_state" in checkpoint:
-        self._set_scheduler_state(checkpoint["scheduler_state"])
+    if 'model_state' in checkpoint:
+        self._set_model_state(checkpoint['model_state'])
+    if 'optimizer_state' in checkpoint:
+        self._set_optimizer_state(checkpoint['optimizer_state'])
+    if 'scheduler_state' in checkpoint:
+        self._set_scheduler_state(checkpoint['scheduler_state'])
     ### END SOLUTION
-
 
 Trainer.load_checkpoint = trainer_load_checkpoint

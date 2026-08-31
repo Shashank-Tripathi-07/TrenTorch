@@ -3894,6 +3894,77 @@ def enable_autograd(quiet=False):
 
         return result
 
+    def mean_op(self, axis=None, keepdims=False):
+        """
+        Mean operation with gradient tracking.
+
+        Built from sum() and division rather than its own backward
+        Function: both already track gradients correctly by this point,
+        so this reuses two already-verified backward passes instead of
+        adding a third from scratch.
+        """
+        if axis is None:
+            n = self.data.size
+        elif isinstance(axis, tuple):
+            n = 1
+            for a in axis:
+                n *= self.data.shape[a]
+        else:
+            n = self.data.shape[axis]
+
+        return self.sum(axis=axis, keepdims=keepdims) / n
+
+    class MaxBackward(Function):
+        """
+        Gradient computation for tensor max.
+
+        Unlike sum(), max() isn't a smooth combination of already-tracked
+        ops, so it needs its own Function rather than being built from
+        others the way mean() was. Only the element(s) equal to the
+        maximum receive gradient: perturbing any other element by a
+        small enough epsilon doesn't change the max, so its local
+        gradient is exactly zero. Ties split the incoming gradient
+        equally among themselves.
+        """
+
+        def __init__(self, tensor, axis=None, keepdims=False):
+            super().__init__(tensor)
+            self.axis = axis
+            self.keepdims = keepdims
+
+        def apply(self, grad_output):
+            tensor, = self.saved_tensors
+
+            if isinstance(tensor, Tensor) and tensor.requires_grad:
+                max_vals = np.max(tensor.data, axis=self.axis, keepdims=True)
+                mask = (tensor.data == max_vals).astype(tensor.data.dtype)
+                mask /= mask.sum(axis=self.axis, keepdims=True)
+
+                if self.axis is not None and not self.keepdims:
+                    grad_output = np.expand_dims(grad_output, axis=self.axis)
+
+                return mask * grad_output,
+            return None,
+
+    def max_op(self, axis=None, keepdims=False):
+        """
+        Max operation with gradient tracking.
+
+        Creates a new max method that builds computation graphs
+        when requires_grad=True, mirroring sum_op's structure but
+        routing gradient only through the argmax element(s).
+        """
+        _ensure_grad_attrs(self)
+
+        result_data = np.max(self.data, axis=axis, keepdims=keepdims)
+        result = Tensor(result_data)
+
+        if _get_requires_grad(self):
+            result.requires_grad = True
+            result._grad_fn = MaxBackward(self, axis=axis, keepdims=keepdims)
+
+        return result
+
     def backward(self, gradient=None, retain_graph=False):
         """
         Compute gradients via backpropagation.
@@ -4010,6 +4081,8 @@ def enable_autograd(quiet=False):
     Tensor.transpose = tracked_transpose
     Tensor.reshape = tracked_reshape
     Tensor.sum = sum_op
+    Tensor.mean = mean_op
+    Tensor.max = max_op
     Tensor.backward = backward
     Tensor.zero_grad = zero_grad
 
