@@ -97,3 +97,43 @@ def test_inline_skips_build(command):
     only R differs, isolating args.inline's effect."""
     command.run(_base_args(inline=True))
     assert not command._build_package.called
+
+
+# ---------------------------------------------------------------------------
+# run_unit's own default-selection decision:
+#   args.unit or args.all or (not any([unit, integration, e2e, cli, all,
+#                                       user_journey, milestone, inline]))
+# When nothing else is explicitly selected, unit tests run by default.
+# args.unit and args.all are already covered by the outer `or`'s own two
+# terms elsewhere in this file (they trivially make run_unit True on their
+# own); this covers the any()'s other six elements, each independently
+# turning the default off.
+# ---------------------------------------------------------------------------
+
+
+def test_nothing_selected_defaults_to_running_unit_tests(command):
+    """Baseline: every selector False -> any([...]) is False -> not any()
+    is True -> run_unit defaults on. no_build=True to skip past Step 1's
+    own gate (covered separately above) and reach Step 2 where run_unit
+    is actually used."""
+    command.run(_base_args(no_build=True))
+    assert command._run_unit_tests.called
+
+
+@pytest.mark.parametrize("flag", ["integration", "e2e", "cli", "user_journey", "milestone"])
+def test_explicit_selection_turns_off_the_unit_default(command, flag):
+    """Any one of the other selectors alone -> any([...]) True -> not
+    any() False -> run_unit no longer defaults on. Paired with the
+    baseline above: only this one flag differs each time, isolating its
+    individual effect on the any() the default depends on. no_build=True
+    for the same reason as the baseline.
+
+    inline is deliberately excluded from this parametrize: setting it
+    makes run_inline True, which hits its own `if run_inline:` block in
+    Step 2 first and returns early (via the mocked, failing
+    _run_inline_tests) before run_unit's block is ever reached -- so
+    _run_unit_tests.called would read False regardless of what run_unit
+    itself computed to, which wouldn't actually be isolating this
+    decision at all."""
+    command.run(_base_args(no_build=True, **{flag: True}))
+    assert not command._run_unit_tests.called

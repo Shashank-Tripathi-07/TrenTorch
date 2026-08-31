@@ -83,7 +83,11 @@ class ModuleStatus:
             return "BROKEN"
         if self.compliance_score >= 0.9 and self.runs_without_errors:
             return "EXCELLENT"
-        if self.compliance_score >= 0.7 and self.imports_successfully:
+        # `and self.imports_successfully` was dropped here: by this point
+        # it's always True (the `if not self.imports_successfully: return
+        # "BROKEN"` guard two lines up already ruled out False), so it was
+        # dead weight that could never independently affect this check.
+        if self.compliance_score >= 0.7:
             return "GOOD"
         if self.compliance_score >= 0.4:
             return "PARTIAL"
