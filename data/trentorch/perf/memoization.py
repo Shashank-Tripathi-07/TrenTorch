@@ -17,7 +17,7 @@
 # %% auto #0
 __all__ = ['rng', 'KVCache', 'enable_kv_cache', 'disable_kv_cache']
 
-# %% ../../solutions/18_memoization/memoization.ipynb #d5919623
+# %% ../../solutions/18_memoization/memoization.ipynb #972c0ca8
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -31,7 +31,7 @@ from ..core.tensor import Tensor
 _BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 _MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/18_memoization/memoization.ipynb #88e6ddf9
+# %% ../../solutions/18_memoization/memoization.ipynb #5dc40b08
 # Solution
 
 class KVCache:
@@ -320,7 +320,7 @@ class KVCache:
             'total_elements': total_elements
         }
 
-# %% ../../solutions/18_memoization/memoization.ipynb #0bbc5abc
+# %% ../../solutions/18_memoization/memoization.ipynb #27fef6d0
 def _cached_generation_step(x, attention, cache_obj, layer_idx):
     """
     Execute a single cached generation step for one new token.
@@ -401,7 +401,7 @@ def _cached_generation_step(x, attention, cache_obj, layer_idx):
 
     return attention.out_proj.forward(concat_output)
 
-# %% ../../solutions/18_memoization/memoization.ipynb #8dc35ab6
+# %% ../../solutions/18_memoization/memoization.ipynb #2b788f1e
 # Solution
 
 def _create_cache_storage(model):
@@ -468,7 +468,7 @@ def _create_cache_storage(model):
     return cache, head_dim
     ### END SOLUTION
 
-# %% ../../solutions/18_memoization/memoization.ipynb #45575072
+# %% ../../solutions/18_memoization/memoization.ipynb #e9c4f440
 # Solution
 
 def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
@@ -525,7 +525,7 @@ def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
     return _cached_generation_step(x, block.attention, cache_obj, layer_idx)
     ### END SOLUTION
 
-# %% ../../solutions/18_memoization/memoization.ipynb #18601da2
+# %% ../../solutions/18_memoization/memoization.ipynb #e5fc54a3
 # Solution
 
 def enable_kv_cache(model):

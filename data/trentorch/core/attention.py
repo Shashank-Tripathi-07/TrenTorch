@@ -17,11 +17,11 @@
 # %% auto #0
 __all__ = ['rng', 'MASK_VALUE', 'scaled_dot_product_attention', 'MultiHeadAttention']
 
-# %% ../../solutions/12_attention/attention.ipynb #8f9164ab
+# %% ../../solutions/12_attention/attention.ipynb #31b4f4c7
 #| default_exp core.attention
 #| export
 
-# %% ../../solutions/12_attention/attention.ipynb #25b0ceab
+# %% ../../solutions/12_attention/attention.ipynb #62087108
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -37,7 +37,7 @@ from .activations import Softmax
 # Constants for attention computation
 MASK_VALUE = -1e9  # Large negative value used for attention masking (becomes ~0 after softmax)
 
-# %% ../../solutions/12_attention/attention.ipynb #6c4de1f7
+# %% ../../solutions/12_attention/attention.ipynb #971b096b
 # Solution
 
 def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
@@ -62,7 +62,7 @@ def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
     return Q.matmul(K_t)
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #45e8e742
+# %% ../../solutions/12_attention/attention.ipynb #4449b6ed
 # Solution
 
 def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
@@ -86,7 +86,7 @@ def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
     return scores * scale_factor
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #00b2461e
+# %% ../../solutions/12_attention/attention.ipynb #0d88ce4e
 # Solution
 
 def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
@@ -111,7 +111,7 @@ def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
     return scores + adder
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #d6df72a3
+# %% ../../solutions/12_attention/attention.ipynb #936a741f
 # Solution
 
 def scaled_dot_product_attention(Q: Tensor, K: Tensor, V: Tensor, mask: Optional[Tensor] = None) -> Tuple[Tensor, Tensor]:
@@ -162,7 +162,7 @@ def scaled_dot_product_attention(Q: Tensor, K: Tensor, V: Tensor, mask: Optional
     return output, attention_weights
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #ff825e58
+# %% ../../solutions/12_attention/attention.ipynb #7c8f3e04
 # Solution
 
 class MultiHeadAttention:

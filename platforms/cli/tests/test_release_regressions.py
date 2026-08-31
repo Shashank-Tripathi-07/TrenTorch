@@ -125,6 +125,58 @@ def test_scalar_left_tensor_ops_preserve_autograd():
     np.testing.assert_allclose(x.grad, [-3.0, -0.75])
 
 
+def test_mean_preserves_autograd():
+    """Regression test for #53: Tensor.mean() used to run the plain
+    module-01 implementation with no gradient tracking at all, while
+    Tensor.sum() (built from the same autograd.py) correctly did. mean()
+    is now built from the already-tracked sum() and division, so it
+    must propagate requires_grad and produce the analytically correct
+    gradient (d/dx mean(x) = 1/n for every axis shape)."""
+    from trentorch import Tensor
+
+    x = Tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], requires_grad=True)
+
+    result = x.mean()
+    assert result.requires_grad is True
+
+    result.backward()
+    np.testing.assert_allclose(x.grad, np.full((2, 3), 1.0 / 6.0))
+
+    x.zero_grad()
+    (x * x).mean(axis=0).sum().backward()
+    np.testing.assert_allclose(x.grad, 2 * x.data / 2)
+
+    x.zero_grad()
+    (x * x).mean(axis=1, keepdims=True).sum().backward()
+    np.testing.assert_allclose(x.grad, 2 * x.data / 3)
+
+
+def test_max_preserves_autograd():
+    """Regression test: Tensor.max() had the same gap mean() did before
+    #53 -- autograd.py patched sum/mean but never wired an autograd-aware
+    max, so it silently ran module 01's plain np.max wrapper with no
+    requires_grad propagation. Gradient should route only to the
+    argmax element(s), 1/(number of ties) each, zero everywhere else."""
+    from trentorch import Tensor
+
+    x = Tensor([[1.0, 5.0, 3.0], [4.0, 2.0, 6.0]], requires_grad=True)
+
+    result = x.max()
+    assert result.requires_grad is True
+
+    result.backward()
+    np.testing.assert_allclose(x.grad, [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
+
+    x.zero_grad()
+    x.max(axis=1).sum().backward()
+    np.testing.assert_allclose(x.grad, [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+
+    # Ties split the gradient equally between the tied elements.
+    x2 = Tensor([1.0, 3.0, 3.0], requires_grad=True)
+    x2.max().backward()
+    np.testing.assert_allclose(x2.grad, [0.0, 0.5, 0.5])
+
+
 def test_mlperf_optimization_loads_packaged_tinydigits():
     script = TRENTORCH_ROOT / "data" / "milestones" / "06_2018_mlperf" / "01_optimization_olympics.py"
     module = _import_script(script)

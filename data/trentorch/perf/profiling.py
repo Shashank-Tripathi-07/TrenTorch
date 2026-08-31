@@ -17,7 +17,7 @@
 # %% auto #0
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'KB_TO_BYTES', 'MB_TO_BYTES', 'Profiler', 'quick_profile', 'analyze_weight_distribution']
 
-# %% ../../solutions/14_profiling/profiling.ipynb #c3b13111
+# %% ../../solutions/14_profiling/profiling.ipynb #1b1f20ac
 import sys
 import os
 import time
@@ -38,7 +38,7 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/14_profiling/profiling.ipynb #0b8f2f14
+# %% ../../solutions/14_profiling/profiling.ipynb #40c0b4b3
 # Solution
 
 class Profiler:
@@ -658,7 +658,7 @@ class Profiler:
         }
         ### END SOLUTION
 
-# %% ../../solutions/14_profiling/profiling.ipynb #92a774d7
+# %% ../../solutions/14_profiling/profiling.ipynb #922a4847
 def quick_profile(model, input_tensor, profiler=None):
     """
     Quick profiling function for immediate insights.
@@ -696,7 +696,7 @@ def quick_profile(model, input_tensor, profiler=None):
 
     return profile
 
-# %% ../../solutions/14_profiling/profiling.ipynb #3d93c931
+# %% ../../solutions/14_profiling/profiling.ipynb #b8fb92b6
 def analyze_weight_distribution(model, percentiles=[10, 25, 50, 75, 90]):
     """
     Analyze weight distribution across layers.
