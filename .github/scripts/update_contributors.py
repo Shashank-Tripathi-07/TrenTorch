@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Regenerates CONTRIBUTORS.md from real GitHub data (issues raised, PRs raised,
-PRs merged) for every contributor discovered from the repo's PR and issue
-history. Renders an avatar grid (the good part of the all-contributors
+Regenerates CONTRIBUTORS.md from real GitHub data (issues raised, PRs raised)
+for every contributor discovered from the repo's PR and issue history.
+Renders an avatar grid (the good part of the all-contributors
 project's UI) with plain-text stats instead of an emoji contribution-type
 key (the part we're deliberately not copying). Preserves each person's
 existing hand-written intro line; a first-time contributor gets a generic
@@ -59,7 +59,7 @@ def gh_json(args):
 
 def fetch_counts():
     prs = gh_json(
-        ["pr", "list", "--repo", REPO, "--state", "all", "--limit", "1000", "--json", "author,state"]
+        ["pr", "list", "--repo", REPO, "--state", "all", "--limit", "1000", "--json", "author"]
     )
     issues = gh_json(
         ["issue", "list", "--repo", REPO, "--state", "all", "--limit", "1000", "--json", "author"]
@@ -68,7 +68,7 @@ def fetch_counts():
     counts = {}
 
     def bucket(login):
-        return counts.setdefault(login, {"issues": 0, "prs": 0, "merged": 0})
+        return counts.setdefault(login, {"issues": 0, "prs": 0})
 
     # Exclude bots (e.g. this same workflow's own github-actions[bot] PRs
     # that update this file) from counting as a contributor.
@@ -76,10 +76,7 @@ def fetch_counts():
         if pr["author"].get("is_bot"):
             continue
         login = pr["author"]["login"]
-        b = bucket(login)
-        b["prs"] += 1
-        if pr["state"] == "MERGED":
-            b["merged"] += 1
+        bucket(login)["prs"] += 1
 
     for issue in issues:
         if issue["author"].get("is_bot"):
@@ -110,7 +107,7 @@ def build_grid(counts: dict, existing: dict) -> str:
         c = counts[login]
         name, intro = existing.get(login, (login, DEFAULT_INTRO))
         avatar_src = AVATAR_OVERRIDES.get(login, f"https://avatars.githubusercontent.com/{login}?v=4")
-        stats = f"Issues: {c['issues']} &middot; PRs: {c['prs']} &middot; Merged: {c['merged']}"
+        stats = f"Issues: {c['issues']} &middot; PRs: {c['prs']}"
         cells.append(
             f'      <td align="center" valign="top" width="{width}%">\n'
             f'        <a href="https://github.com/{login}">'

@@ -1,32 +1,27 @@
 name: 'Update Contributors Table'
 
-# Recomputes CONTRIBUTORS.md (issues raised, PRs raised, PRs merged per
-# person) from the real GitHub API whenever an issue or PR is opened, or a
-# PR closes. Opens a PR with the change and merges it immediately: this is
-# pure, deterministic data (counts computed straight from the GitHub API,
-# nothing subjective), so it still goes through a real PR rather than a
-# direct push to main, but doesn't need a human to sit in front of it.
+# Recomputes CONTRIBUTORS.md (issues raised, PRs raised per person) from the
+# real GitHub API once a night, and commits the result straight to main if
+# anything changed. Used to fire on every issue/PR open/close event and go
+# through a full open-a-PR-and-auto-merge cycle -- correct, but noisy: a
+# short burst of PR activity (several merges/closes within seconds) could
+# spawn several of these PRs at once needing manual cleanup. Nightly + a
+# direct push removes both problems: nobody needs to look at this more than
+# once, and there's nothing to review since this is pure, deterministic data
+# computed straight from the GitHub API, not a human judgment call.
 
 on:
-  issues:
-    types: [opened]
-  pull_request:
-    types: [opened, closed]
+  schedule:
+    - cron: '11 20 * * *'  # ~1:41am IST, off-peak, minute offset from :00
   workflow_dispatch: {}
 
 permissions:
   contents: write
-  pull-requests: write
   issues: read
 
-# Serializes runs instead of letting them race: several issue/PR events
-# arriving within seconds of each other (e.g. closing a batch of PRs) used
-# to start several runs in parallel, each checking out the same stale main
-# before any of them had merged, so every one of them computed the same
-# "real" diff and opened a now-redundant PR the moment the first one
-# landed. cancel-in-progress stays false -- a queued run still needs to
-# execute (and re-check main) after the one ahead of it finishes, not get
-# cancelled outright.
+# Guards against two runs landing at once (a scheduled run overlapping a
+# manual workflow_dispatch), not against per-event races -- there's only one
+# trigger a day now, so the race this used to guard against can't happen.
 concurrency:
   group: update-contributors
   cancel-in-progress: false
@@ -38,14 +33,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # This workflow only ever reads/writes docs/CONTRIBUTORS.md and
-          # README.md based on live API stats, never a PR's own file
-          # changes. Explicitly pinning main matters because the default
-          # ref for a pull_request event (including Dependabot's own PRs)
-          # is refs/pull/N/merge, that PR's content merged into main, not
-          # main itself -- without this, the branch this job creates
-          # silently bundled whatever the triggering PR changed alongside
-          # the contributors update.
           ref: main
 
       - name: Run update script
@@ -64,20 +51,11 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Open and merge update PR
+      - name: Commit and push directly to main
         if: steps.diff.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BRANCH="update-contributors-$(date +%s)"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
           git add docs/CONTRIBUTORS.md README.md
           git commit -m "Update CONTRIBUTORS.md"
-          git push origin "$BRANCH"
-          gh pr create --title "Update CONTRIBUTORS.md" \
-            --body "Automated update from real issue/PR activity. See .github/workflows/update-contributors.yml." \
-            --base main --head "$BRANCH"
-          gh pr merge "$BRANCH" --squash --delete-branch || \
-            echo "::warning::Could not auto-merge, left open for manual merge."
+          git push origin main
