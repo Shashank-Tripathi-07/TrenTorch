@@ -186,7 +186,11 @@ class TestJupyterEnvironment:
     def test_jupyter_lab_command(self):
         """JupyterLab command must be available."""
         result = subprocess.run(
-            ["jupyter", "lab", "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace"
+            ["jupyter", "lab", "--version"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         assert result.returncode == 0, "jupyter lab command not found"
         print(f"✅ jupyter lab command available: {result.stdout.strip()}")
@@ -369,7 +373,11 @@ class TestGitConfiguration:
             ["git", "config", "user.name"], capture_output=True, text=True, encoding="utf-8", errors="replace"
         )
         email_result = subprocess.run(
-            ["git", "config", "user.email"], capture_output=True, text=True, encoding="utf-8", errors="replace"
+            ["git", "config", "user.email"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         if name_result.returncode != 0 or email_result.returncode != 0:
