@@ -17,28 +17,22 @@
 # %% auto #0
 __all__ = ['rng', 'SimpleMLP', 'BenchmarkReport', 'generate_submission', 'save_submission']
 
-# %% ../solutions/20_capstone/capstone.ipynb #7d5d3a5d
+# %% ../solutions/20_capstone/capstone.ipynb #991b0afa
 #| default_exp olympics
 #| export
 
-# %% ../solutions/20_capstone/capstone.ipynb #031e4aca
+# %% ../solutions/20_capstone/capstone.ipynb #97be347a
 import numpy as np
-
 rng = np.random.default_rng(7)
+import time
 import json
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional, Any
 import platform
 import sys
-import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
-from .core.activations import ReLU
-from .core.layers import Linear
-from .core.losses import CrossEntropyLoss
-
-# %% ../solutions/20_capstone/capstone.ipynb #5deace8b
+# %% ../solutions/20_capstone/capstone.ipynb #9ef77172
 # Solution
-
 
 class SimpleMLP:
     """
@@ -56,7 +50,6 @@ class SimpleMLP:
     - Small by default: Fast benchmarking during development
     - Configurable sizes: Can scale up for experiments
     """
-
     def __init__(self, input_size=10, hidden_size=20, output_size=3):
         """
         Initialize simple MLP with random weights.
@@ -122,13 +115,11 @@ class SimpleMLP:
             total += param.data.size
         return total
 
-
 if __name__ == "__main__":
     print("✅ SimpleMLP model defined")
 
-# %% ../solutions/20_capstone/capstone.ipynb #7f3c8a76
+# %% ../solutions/20_capstone/capstone.ipynb #a0d85f44
 # Solution
-
 
 class BenchmarkReport:
     """
@@ -145,19 +136,18 @@ class BenchmarkReport:
         report.benchmark_model(model, X_test, y_test, num_runs=100)
         print(report.metrics)
     """
-
     def __init__(self, model_name="model"):
         self.model_name = model_name
         self.metrics = {}
         self.system_info = self._get_system_info()
-        self.timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
 
     def _get_system_info(self):
         """Collect system information for reproducibility."""
         return {
-            "platform": platform.platform(),
-            "python_version": sys.version.split()[0],
-            "numpy_version": np.__version__,
+            'platform': platform.platform(),
+            'python_version': sys.version.split()[0],
+            'numpy_version': np.__version__
         }
 
     def benchmark_model(self, model, X_test, y_test, num_runs=100):
@@ -202,22 +192,22 @@ class BenchmarkReport:
 
         # Store metrics (all as Python native types for JSON serialization)
         self.metrics = {
-            "parameter_count": int(param_count),
-            "model_size_mb": float(model_size_mb),
-            "accuracy": float(accuracy),
-            "latency_ms_mean": float(avg_latency),
-            "latency_ms_std": float(std_latency),
+            'parameter_count': int(param_count),
+            'model_size_mb': float(model_size_mb),
+            'accuracy': float(accuracy),
+            'latency_ms_mean': float(avg_latency),
+            'latency_ms_std': float(std_latency),
             # time.time()'s resolution is coarse enough (~15.6ms on Windows)
             # that a fast forward pass can measure exactly 0.0 elapsed time;
             # floor the denominator so throughput stays a large-but-finite
             # positive number instead of raising ZeroDivisionError.
-            "throughput_samples_per_sec": float(1000 / max(avg_latency, 1e-6)),
+            'throughput_samples_per_sec': float(1000 / max(avg_latency, 1e-6))
         }
 
         print(f"\n📊 Benchmark Results for {self.model_name}:")
         print(f"  Parameters: {param_count:,}")
         print(f"  Size: {model_size_mb:.2f} MB")
-        print(f"  Accuracy: {accuracy * 100:.1f}%")
+        print(f"  Accuracy: {accuracy*100:.1f}%")
         print(f"  Latency: {avg_latency:.2f}ms ± {std_latency:.2f}ms")
 
         return self.metrics
@@ -269,17 +259,16 @@ class BenchmarkReport:
         return (param_count * 4) / (1024 * 1024)
         ### END SOLUTION
 
-
 if __name__ == "__main__":
     print("✅ BenchmarkReport class defined")
 
-# %% ../solutions/20_capstone/capstone.ipynb #7d0b717c
+# %% ../solutions/20_capstone/capstone.ipynb #7c2921ec
 def generate_submission(
     baseline_report: BenchmarkReport,
-    optimized_report: BenchmarkReport | None = None,
-    student_name: str | None = None,
-    techniques_applied: list[str] | None = None,
-) -> dict[str, Any]:
+    optimized_report: Optional[BenchmarkReport] = None,
+    student_name: Optional[str] = None,
+    techniques_applied: Optional[List[str]] = None
+) -> Dict[str, Any]:
     """
     Generate a standardized benchmark submission.
 
@@ -307,45 +296,47 @@ def generate_submission(
         }
     """
     submission = {
-        "trentorch_version": "0.1.0",
-        "submission_type": "capstone_benchmark",
-        "timestamp": baseline_report.timestamp,
-        "system_info": baseline_report.system_info,
-        "baseline": {"model_name": baseline_report.model_name, "metrics": baseline_report.metrics},
+        'trentorch_version': '0.1.0',
+        'submission_type': 'capstone_benchmark',
+        'timestamp': baseline_report.timestamp,
+        'system_info': baseline_report.system_info,
+        'baseline': {
+            'model_name': baseline_report.model_name,
+            'metrics': baseline_report.metrics
+        }
     }
 
     # Add student name if provided
     if student_name:
-        submission["student_name"] = student_name
+        submission['student_name'] = student_name
 
     # Add optimization results if provided
     if optimized_report:
-        submission["optimized"] = {
-            "model_name": optimized_report.model_name,
-            "metrics": optimized_report.metrics,
-            "techniques_applied": techniques_applied or [],
+        submission['optimized'] = {
+            'model_name': optimized_report.model_name,
+            'metrics': optimized_report.metrics,
+            'techniques_applied': techniques_applied or []
         }
 
         # Calculate improvement metrics
-        baseline_latency = baseline_report.metrics["latency_ms_mean"]
-        optimized_latency = optimized_report.metrics["latency_ms_mean"]
-        baseline_size = baseline_report.metrics["model_size_mb"]
-        optimized_size = optimized_report.metrics["model_size_mb"]
+        baseline_latency = baseline_report.metrics['latency_ms_mean']
+        optimized_latency = optimized_report.metrics['latency_ms_mean']
+        baseline_size = baseline_report.metrics['model_size_mb']
+        optimized_size = optimized_report.metrics['model_size_mb']
 
-        submission["improvements"] = {
+        submission['improvements'] = {
             # See the matching guard in benchmark_model: time.time()'s coarse
             # resolution can measure a fast model's latency as exactly 0.0.
-            "speedup": float(baseline_latency / max(optimized_latency, 1e-6)),
-            "compression_ratio": float(baseline_size / optimized_size),
-            "accuracy_delta": float(
-                optimized_report.metrics["accuracy"] - baseline_report.metrics["accuracy"]
-            ),
+            'speedup': float(baseline_latency / max(optimized_latency, 1e-6)),
+            'compression_ratio': float(baseline_size / optimized_size),
+            'accuracy_delta': float(
+                optimized_report.metrics['accuracy'] - baseline_report.metrics['accuracy']
+            )
         }
 
     return submission
 
-
-def save_submission(submission: dict[str, Any], filepath: str = "submission.json"):
+def save_submission(submission: Dict[str, Any], filepath: str = "submission.json"):
     """
     Save submission to JSON file.
 
@@ -359,7 +350,6 @@ def save_submission(submission: dict[str, Any], filepath: str = "submission.json
     Path(filepath).write_text(json.dumps(submission, indent=2))
     print(f"\n✅ Submission saved to: {filepath}")
     return filepath
-
 
 if __name__ == "__main__":
     print("✅ Submission generation functions defined")

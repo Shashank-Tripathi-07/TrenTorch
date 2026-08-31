@@ -165,12 +165,22 @@ def check_package_functionality(package_name: str, import_name: str) -> tuple[bo
 
         elif package_name.lower() == "pytest":
             result = subprocess.run(
-                [sys.executable, "-m", "pytest", "--version"], capture_output=True, text=True
+                [sys.executable, "-m", "pytest", "--version"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
             )
             return result.returncode == 0, "Command available"
 
         elif package_name.lower() == "jupyterlab":
-            result = subprocess.run(["jupyter", "lab", "--version"], capture_output=True, text=True)
+            result = subprocess.run(
+                ["jupyter", "lab", "--version"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
             return result.returncode == 0, "Command available"
 
         elif package_name.lower() == "jupytext":
@@ -278,7 +288,7 @@ class TestRequirementsFileValidity:
         """Requirements file must be readable."""
         assert req_file.exists(), f"Requirements file not found: {req_file}"
 
-        content = req_file.read_text()
+        content = req_file.read_text(encoding="utf-8")
         assert len(content) > 0, f"Requirements file is empty: {req_file}"
 
         print(f"✅ Requirements file readable: {req_file}")
@@ -289,7 +299,7 @@ class TestRequirementsFileValidity:
         packages = parse_requirements_file(req_file)
 
         # Should have at least one package (unless it's all comments)
-        lines = req_file.read_text().splitlines()
+        lines = req_file.read_text(encoding="utf-8").splitlines()
         non_comment_lines = [line for line in lines if line.strip() and not line.strip().startswith("#")]
 
         if non_comment_lines:

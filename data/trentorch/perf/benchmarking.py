@@ -21,90 +21,76 @@ __all__ = ['DEFAULT_WARMUP_RUNS', 'DEFAULT_MEASUREMENT_RUNS', 'rng', 'BenchmarkR
            'benchsuite_plot_pareto_frontier', 'benchsuite_generate_report', 'MLPerf', 'mlperf_run_standard_benchmark',
            'mlperf_run_all_benchmarks', 'mlperf_generate_compliance_report', 'analyze_optimization_techniques']
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #fede780d
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #77abdb89
 # Constants for benchmarking defaults
 DEFAULT_WARMUP_RUNS = 5  # Default warmup runs for JIT compilation and cache warming
 DEFAULT_MEASUREMENT_RUNS = 10  # Default measurement runs for statistical significance
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #f61c6c45
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #35dab04d
 import numpy as np
-
 rng = np.random.default_rng(7)
-import json
-import os
-import platform
-import statistics
 import time
+import statistics
+import os
 import tracemalloc
-import warnings
-from contextlib import contextmanager
+from typing import Dict, List, Tuple, Any, Optional, Callable, Union
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+import json
+import platform
+from contextlib import contextmanager
+import warnings
 
-from ..core.layers import Linear
 from ..core.tensor import Tensor
+from ..core.layers import Linear
 
 # Optional dependency for visualization only
 try:
     import matplotlib.pyplot as plt
-
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
-
     # Create minimal fallback for when matplotlib is not available
     class plt:
         @staticmethod
         def subplots(*args, **kwargs):
             return None, None
-
         @staticmethod
         def figure(*args, **kwargs):
             return None
-
         @staticmethod
         def scatter(*args, **kwargs):
             pass
-
         @staticmethod
         def annotate(*args, **kwargs):
             pass
-
         @staticmethod
         def xlabel(*args, **kwargs):
             pass
-
         @staticmethod
         def ylabel(*args, **kwargs):
             pass
-
         @staticmethod
         def title(*args, **kwargs):
             pass
-
         @staticmethod
         def grid(*args, **kwargs):
             pass
-
         @staticmethod
         def tight_layout(*args, **kwargs):
             pass
-
         @staticmethod
         def savefig(*args, **kwargs):
             pass
-
         @staticmethod
         def show(*args, **kwargs):
             pass
 
-
 # Import Profiler from Module 14 for measurement reuse
+from .profiling import Profiler
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #7d79d2dc
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #129093ab
 # Solution
-
 
 @dataclass
 class BenchmarkResult:
@@ -129,11 +115,10 @@ class BenchmarkResult:
     - Store both raw data and summary statistics
     - Include confidence intervals for professional reporting
     """
-
     ### BEGIN SOLUTION
     metric_name: str
-    values: list[float]
-    metadata: dict[str, Any] = field(default_factory=dict)
+    values: List[float]
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Compute statistics after initialization."""
@@ -161,30 +146,28 @@ class BenchmarkResult:
         else:
             self.ci_lower = self.ci_upper = self.mean
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
-            "metric_name": self.metric_name,
-            "values": self.values,
-            "mean": self.mean,
-            "std": self.std,
-            "median": self.median,
-            "min": self.min_val,
-            "max": self.max_val,
-            "count": self.count,
-            "ci_lower": self.ci_lower,
-            "ci_upper": self.ci_upper,
-            "metadata": self.metadata,
+            'metric_name': self.metric_name,
+            'values': self.values,
+            'mean': self.mean,
+            'std': self.std,
+            'median': self.median,
+            'min': self.min_val,
+            'max': self.max_val,
+            'count': self.count,
+            'ci_lower': self.ci_lower,
+            'ci_upper': self.ci_upper,
+            'metadata': self.metadata
         }
 
     def __str__(self) -> str:
         return f"{self.metric_name}: {self.mean:.4f} ± {self.std:.4f} (n={self.count})"
-
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #8a649945
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #e36889b6
 # Solution
-
 
 @contextmanager
 def precise_timer():
@@ -213,7 +196,6 @@ def precise_timer():
     - Store start time in __enter__, compute elapsed in __exit__
     - Handle any exceptions gracefully
     """
-
     ### BEGIN SOLUTION
     class Timer:
         def __init__(self):
@@ -229,9 +211,8 @@ def precise_timer():
         timer.elapsed = time.perf_counter() - timer.start_time
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #5f9c8695
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #c0c6f43a
 # Solution
-
 
 class Benchmark:
     """
@@ -246,13 +227,8 @@ class Benchmark:
     >>> results = benchmark.run_accuracy_benchmark()
     """
 
-    def __init__(
-        self,
-        models: list[Any],
-        datasets: list[Any],
-        warmup_runs: int = DEFAULT_WARMUP_RUNS,
-        measurement_runs: int = DEFAULT_MEASUREMENT_RUNS,
-    ):
+    def __init__(self, models: List[Any], datasets: List[Any],
+                 warmup_runs: int = DEFAULT_WARMUP_RUNS, measurement_runs: int = DEFAULT_MEASUREMENT_RUNS):
         """
         Initialize benchmark with models and datasets.
 
@@ -280,23 +256,20 @@ class Benchmark:
 
         # System information for metadata (using Python standard library)
         self.system_info = {
-            "platform": platform.platform(),
-            "processor": platform.processor(),
-            "python_version": platform.python_version(),
-            "cpu_count": os.cpu_count() or 1,  # os.cpu_count() can return None
+            'platform': platform.platform(),
+            'processor': platform.processor(),
+            'python_version': platform.python_version(),
+            'cpu_count': os.cpu_count() or 1,  # os.cpu_count() can return None
         }
         # Note: System total memory not available via standard library
         # Process memory measurement uses tracemalloc (via Profiler)
         ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #7d102f9a
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #ad51cc4b
 # Solution
 
-
-# --- Benchmark.run_latency_benchmark ---
-def benchmark_run_latency_benchmark(
-    self, input_shape: tuple[int, ...] = (1, 28, 28)
-) -> dict[str, BenchmarkResult]:
+    # --- Benchmark.run_latency_benchmark ---
+def benchmark_run_latency_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 28)) -> Dict[str, BenchmarkResult]:
     """
     Benchmark model inference latency using Profiler.
 
@@ -317,16 +290,18 @@ def benchmark_run_latency_benchmark(
     results = {}
 
     for i, model in enumerate(self.models):
-        model_name = getattr(model, "name", f"model_{i}")
+        model_name = getattr(model, 'name', f'model_{i}')
 
         # Create input tensor for profiling
         from trentorch.core.tensor import Tensor
-
         input_tensor = Tensor(rng.standard_normal(input_shape).astype(np.float32))
 
         # Use Profiler to measure latency with proper warmup and iterations
         latency_ms = self.profiler.measure_latency(
-            model, input_tensor, warmup=self.warmup_runs, iterations=self.measurement_runs
+            model,
+            input_tensor,
+            warmup=self.warmup_runs,
+            iterations=self.measurement_runs
         )
 
         # Profiler returns single median value
@@ -334,25 +309,27 @@ def benchmark_run_latency_benchmark(
         # Run additional measurements for statistical analysis
         latencies = []
         for _ in range(self.measurement_runs):
-            single_latency = self.profiler.measure_latency(model, input_tensor, warmup=0, iterations=1)
+            single_latency = self.profiler.measure_latency(
+                model, input_tensor, warmup=0, iterations=1
+            )
             latencies.append(single_latency)
 
         results[model_name] = BenchmarkResult(
-            f"{model_name}_latency_ms", latencies, metadata={"input_shape": input_shape, **self.system_info}
+            f"{model_name}_latency_ms",
+            latencies,
+            metadata={'input_shape': input_shape, **self.system_info}
         )
 
     return results
     ### END SOLUTION
 
-
 Benchmark.run_latency_benchmark = benchmark_run_latency_benchmark
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #ac6840cc
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #07e33479
 # Solution
 
-
-# --- Benchmark.run_accuracy_benchmark ---
-def benchmark_run_accuracy_benchmark(self) -> dict[str, BenchmarkResult]:
+    # --- Benchmark.run_accuracy_benchmark ---
+def benchmark_run_accuracy_benchmark(self) -> Dict[str, BenchmarkResult]:
     """
     Benchmark model accuracy across datasets.
 
@@ -372,14 +349,14 @@ def benchmark_run_accuracy_benchmark(self) -> dict[str, BenchmarkResult]:
     results = {}
 
     for i, model in enumerate(self.models):
-        model_name = getattr(model, "name", f"model_{i}")
+        model_name = getattr(model, 'name', f'model_{i}')
         accuracies = []
 
         for dataset in self.datasets:
             # Simulate accuracy measurement
             # In practice, this would evaluate the model on the dataset
             try:
-                if hasattr(model, "evaluate"):
+                if hasattr(model, 'evaluate'):
                     accuracy = model.evaluate(dataset)
                 else:
                     # Simulate accuracy for demonstration
@@ -396,23 +373,19 @@ def benchmark_run_accuracy_benchmark(self) -> dict[str, BenchmarkResult]:
         results[model_name] = BenchmarkResult(
             f"{model_name}_accuracy",
             accuracies,
-            metadata={"num_datasets": len(self.datasets), **self.system_info},
+            metadata={'num_datasets': len(self.datasets), **self.system_info}
         )
 
     return results
     ### END SOLUTION
 
-
 Benchmark.run_accuracy_benchmark = benchmark_run_accuracy_benchmark
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #98d7f337
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #dae6affb
 # Solution
 
-
-# --- Benchmark.run_memory_benchmark ---
-def benchmark_run_memory_benchmark(
-    self, input_shape: tuple[int, ...] = (1, 28, 28)
-) -> dict[str, BenchmarkResult]:
+    # --- Benchmark.run_memory_benchmark ---
+def benchmark_run_memory_benchmark(self, input_shape: Tuple[int, ...] = (1, 28, 28)) -> Dict[str, BenchmarkResult]:
     """
     Benchmark model memory usage using Profiler.
 
@@ -432,14 +405,14 @@ def benchmark_run_memory_benchmark(
     results = {}
 
     for i, model in enumerate(self.models):
-        model_name = getattr(model, "name", f"model_{i}")
+        model_name = getattr(model, 'name', f'model_{i}')
         memory_usages = []
 
         for run in range(self.measurement_runs):
             # Use Profiler to measure memory
             memory_stats = self.profiler.measure_memory(model, input_shape)
             # Use peak_memory_mb as the primary metric
-            memory_used = memory_stats["peak_memory_mb"]
+            memory_used = memory_stats['peak_memory_mb']
 
             # If no significant memory change detected, estimate from parameters
             if memory_used < 1.0:
@@ -451,20 +424,18 @@ def benchmark_run_memory_benchmark(
         results[model_name] = BenchmarkResult(
             f"{model_name}_memory_mb",
             memory_usages,
-            metadata={"input_shape": input_shape, **self.system_info},
+            metadata={'input_shape': input_shape, **self.system_info}
         )
 
     return results
     ### END SOLUTION
 
-
 Benchmark.run_memory_benchmark = benchmark_run_memory_benchmark
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #3b68c96c
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #4f355d18
 # Solution
 
-
-# --- Benchmark.compare_models ---
+    # --- Benchmark.compare_models ---
 def benchmark_compare_models(self, metric: str = "latency"):
     """
     Compare models across a specific metric.
@@ -499,27 +470,23 @@ def benchmark_compare_models(self, metric: str = "latency"):
     # (No pandas dependency - students can convert to DataFrame if needed)
     comparison_data = []
     for model_name, result in results.items():
-        comparison_data.append(
-            {
-                "model": model_name.replace(f"_{metric}", "").replace("_ms", "").replace("_mb", ""),
-                "metric": metric,
-                "mean": result.mean,
-                "std": result.std,
-                "ci_lower": result.ci_lower,
-                "ci_upper": result.ci_upper,
-                "count": result.count,
-            }
-        )
+        comparison_data.append({
+            'model': model_name.replace(f'_{metric}', '').replace('_ms', '').replace('_mb', ''),
+            'metric': metric,
+            'mean': result.mean,
+            'std': result.std,
+            'ci_lower': result.ci_lower,
+            'ci_upper': result.ci_upper,
+            'count': result.count
+        })
 
     return comparison_data
     ### END SOLUTION
 
-
 Benchmark.compare_models = benchmark_compare_models
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #146be727
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #64a7246b
 # Solution
-
 
 class BenchmarkSuite:
     """
@@ -534,7 +501,8 @@ class BenchmarkSuite:
     >>> suite.generate_report(report)
     """
 
-    def __init__(self, models: list[Any], datasets: list[Any], output_dir: str = "benchmark_results"):
+    def __init__(self, models: List[Any], datasets: List[Any],
+                 output_dir: str = "benchmark_results"):
         """
         Initialize comprehensive benchmark suite.
 
@@ -560,12 +528,11 @@ class BenchmarkSuite:
         self.results = {}
         ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #46cff845
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #3eae2ab9
 # Solution
 
-
-# --- BenchmarkSuite.run_full_benchmark ---
-def benchsuite_run_full_benchmark(self) -> dict[str, dict[str, BenchmarkResult]]:
+    # --- BenchmarkSuite.run_full_benchmark ---
+def benchsuite_run_full_benchmark(self) -> Dict[str, Dict[str, BenchmarkResult]]:
     """
     Run all benchmark categories.
 
@@ -587,30 +554,28 @@ def benchsuite_run_full_benchmark(self) -> dict[str, dict[str, BenchmarkResult]]
 
     # Run all benchmark types
     print("  📊 Measuring latency...")
-    self.results["latency"] = self.benchmark.run_latency_benchmark()
+    self.results['latency'] = self.benchmark.run_latency_benchmark()
 
     print("  🎯 Measuring accuracy...")
-    self.results["accuracy"] = self.benchmark.run_accuracy_benchmark()
+    self.results['accuracy'] = self.benchmark.run_accuracy_benchmark()
 
     print("  💾 Measuring memory usage...")
-    self.results["memory"] = self.benchmark.run_memory_benchmark()
+    self.results['memory'] = self.benchmark.run_memory_benchmark()
 
     # Simulate energy benchmark (would require specialized hardware)
     print("  ⚡ Estimating energy efficiency...")
-    self.results["energy"] = self._estimate_energy_efficiency()
+    self.results['energy'] = self._estimate_energy_efficiency()
 
     return self.results
     ### END SOLUTION
 
-
 BenchmarkSuite.run_full_benchmark = benchsuite_run_full_benchmark
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #3a41228e
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #2acad982
 # Solution
 
-
-# --- BenchmarkSuite._estimate_energy_efficiency ---
-def _benchsuite_estimate_energy_efficiency(self) -> dict[str, BenchmarkResult]:
+    # --- BenchmarkSuite._estimate_energy_efficiency ---
+def _benchsuite_estimate_energy_efficiency(self) -> Dict[str, BenchmarkResult]:
     """
     Estimate energy efficiency (simplified simulation).
 
@@ -630,12 +595,12 @@ def _benchsuite_estimate_energy_efficiency(self) -> dict[str, BenchmarkResult]:
     energy_results = {}
 
     for i, model in enumerate(self.models):
-        model_name = getattr(model, "name", f"model_{i}")
+        model_name = getattr(model, 'name', f'model_{i}')
 
         # Energy roughly correlates with latency * memory usage
-        if "latency" in self.results and "memory" in self.results:
-            latency_result = self.results["latency"].get(model_name)
-            memory_result = self.results["memory"].get(model_name)
+        if 'latency' in self.results and 'memory' in self.results:
+            latency_result = self.results['latency'].get(model_name)
+            memory_result = self.results['memory'].get(model_name)
 
             if latency_result and memory_result:
                 # Energy ∝ power × time, power ∝ memory usage
@@ -648,32 +613,30 @@ def _benchsuite_estimate_energy_efficiency(self) -> dict[str, BenchmarkResult]:
                 energy_results[model_name] = BenchmarkResult(
                     f"{model_name}_energy_joules",
                     energy_values,
-                    metadata={"estimated": True, **self.benchmark.system_info},
+                    metadata={'estimated': True, **self.benchmark.system_info}
                 )
 
     # Fallback if no latency/memory results
     if not energy_results:
         for i, model in enumerate(self.models):
-            model_name = getattr(model, "name", f"model_{i}")
+            model_name = getattr(model, 'name', f'model_{i}')
             # Simulate energy measurements
             energy_values = [0.5 + rng.normal(0, 0.1) for _ in range(5)]
             energy_results[model_name] = BenchmarkResult(
                 f"{model_name}_energy_joules",
                 energy_values,
-                metadata={"estimated": True, **self.benchmark.system_info},
+                metadata={'estimated': True, **self.benchmark.system_info}
             )
 
     return energy_results
     ### END SOLUTION
 
-
 BenchmarkSuite._estimate_energy_efficiency = _benchsuite_estimate_energy_efficiency
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #18ebde6c
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #cfdf1068
 # Solution
 
-
-# --- BenchmarkSuite.plot_results and plot_pareto_frontier ---
+    # --- BenchmarkSuite.plot_results and plot_pareto_frontier ---
 def benchsuite_plot_results(self, save_plots: bool = True):
     """
     Generate visualization plots for benchmark results.
@@ -702,11 +665,11 @@ def benchsuite_plot_results(self, save_plots: bool = True):
         return
 
     fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-    fig.suptitle("ML Model Benchmark Results", fontsize=16, fontweight="bold")
+    fig.suptitle('ML Model Benchmark Results', fontsize=16, fontweight='bold')
 
     # Plot each metric type
-    metrics = ["latency", "accuracy", "memory", "energy"]
-    units = ["ms", "accuracy", "MB", "J"]
+    metrics = ['latency', 'accuracy', 'memory', 'energy']
+    units = ['ms', 'accuracy', 'MB', 'J']
 
     for idx, (metric, unit) in enumerate(zip(metrics, units)):
         ax = axes[idx // 2, idx % 2]
@@ -717,50 +680,43 @@ def benchsuite_plot_results(self, save_plots: bool = True):
             stds = []
 
             for model_name, result in self.results[metric].items():
-                clean_name = (
-                    model_name.replace(f"_{metric}", "")
-                    .replace("_ms", "")
-                    .replace("_mb", "")
-                    .replace("_joules", "")
-                )
+                clean_name = model_name.replace(f'_{metric}', '').replace('_ms', '').replace('_mb', '').replace('_joules', '')
                 model_names.append(clean_name)
                 means.append(result.mean)
                 stds.append(result.std)
 
             bars = ax.bar(model_names, means, yerr=stds, capsize=5, alpha=0.7)
-            ax.set_title(f"{metric.capitalize()} Comparison")
-            ax.set_ylabel(f"{metric.capitalize()} ({unit})")
-            ax.tick_params(axis="x", rotation=45)
+            ax.set_title(f'{metric.capitalize()} Comparison')
+            ax.set_ylabel(f'{metric.capitalize()} ({unit})')
+            ax.tick_params(axis='x', rotation=45)
 
             # Color bars by performance (green = better)
-            if metric in ["latency", "memory", "energy"]:  # Lower is better
+            if metric in ['latency', 'memory', 'energy']:  # Lower is better
                 best_idx = means.index(min(means))
             else:  # Higher is better (accuracy)
                 best_idx = means.index(max(means))
 
             for i, bar in enumerate(bars):
                 if i == best_idx:
-                    bar.set_color("green")
+                    bar.set_color('green')
                     bar.set_alpha(0.8)
         else:
-            ax.text(0.5, 0.5, f"No {metric} data", ha="center", va="center", transform=ax.transAxes)
-            ax.set_title(f"{metric.capitalize()} Comparison")
+            ax.text(0.5, 0.5, f'No {metric} data', ha='center', va='center', transform=ax.transAxes)
+            ax.set_title(f'{metric.capitalize()} Comparison')
 
     plt.tight_layout()
 
     if save_plots:
-        plot_path = self.output_dir / "benchmark_comparison.png"
-        plt.savefig(plot_path, dpi=300, bbox_inches="tight")
+        plot_path = self.output_dir / 'benchmark_comparison.png'
+        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         print(f"📊 Plots saved to {plot_path}")
 
     plt.show()
     ### END SOLUTION
 
-
 BenchmarkSuite.plot_results = benchsuite_plot_results
 
-
-def benchsuite_plot_pareto_frontier(self, x_metric: str = "latency", y_metric: str = "accuracy"):
+def benchsuite_plot_pareto_frontier(self, x_metric: str = 'latency', y_metric: str = 'accuracy'):
     """Plot Pareto frontier for two competing objectives."""
     if not MATPLOTLIB_AVAILABLE:
         print("⚠️ matplotlib not available - skipping plots. Install with: pip install matplotlib")
@@ -777,13 +733,8 @@ def benchsuite_plot_pareto_frontier(self, x_metric: str = "latency", y_metric: s
     model_names = []
 
     for model_name in self.results[x_metric].keys():
-        clean_name = (
-            model_name.replace(f"_{x_metric}", "")
-            .replace("_ms", "")
-            .replace("_mb", "")
-            .replace("_joules", "")
-        )
-        if clean_name in [mn.replace(f"_{y_metric}", "") for mn in self.results[y_metric].keys()]:
+        clean_name = model_name.replace(f'_{x_metric}', '').replace('_ms', '').replace('_mb', '').replace('_joules', '')
+        if clean_name in [mn.replace(f'_{y_metric}', '') for mn in self.results[y_metric].keys()]:
             x_val = self.results[x_metric][model_name].mean
 
             # Find corresponding y value
@@ -804,31 +755,30 @@ def benchsuite_plot_pareto_frontier(self, x_metric: str = "latency", y_metric: s
 
     # Label points
     for i, name in enumerate(model_names):
-        plt.annotate(name, (x_values[i], y_values[i]), xytext=(5, 5), textcoords="offset points")
+        plt.annotate(name, (x_values[i], y_values[i]),
+                    xytext=(5, 5), textcoords='offset points')
 
     # Determine if lower or higher is better for each metric
-    x_lower_better = x_metric in ["latency", "memory", "energy"]
-    y_lower_better = y_metric in ["latency", "memory", "energy"]
+    x_lower_better = x_metric in ['latency', 'memory', 'energy']
+    y_lower_better = y_metric in ['latency', 'memory', 'energy']
 
-    plt.xlabel(f"{x_metric.capitalize()} ({'lower' if x_lower_better else 'higher'} is better)")
-    plt.ylabel(f"{y_metric.capitalize()} ({'lower' if y_lower_better else 'higher'} is better)")
-    plt.title(f"Pareto Frontier: {x_metric.capitalize()} vs {y_metric.capitalize()}")
+    plt.xlabel(f'{x_metric.capitalize()} ({"lower" if x_lower_better else "higher"} is better)')
+    plt.ylabel(f'{y_metric.capitalize()} ({"lower" if y_lower_better else "higher"} is better)')
+    plt.title(f'Pareto Frontier: {x_metric.capitalize()} vs {y_metric.capitalize()}')
     plt.grid(True, alpha=0.3)
 
     # Save plot
-    plot_path = self.output_dir / f"pareto_{x_metric}_vs_{y_metric}.png"
-    plt.savefig(plot_path, dpi=300, bbox_inches="tight")
+    plot_path = self.output_dir / f'pareto_{x_metric}_vs_{y_metric}.png'
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     print(f"📊 Pareto plot saved to {plot_path}")
     plt.show()
 
-
 BenchmarkSuite.plot_pareto_frontier = benchsuite_plot_pareto_frontier
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #660f90f0
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #1cc7bb8f
 # Solution
 
-
-def _benchsuite_format_results_summary(self) -> list[str]:
+def _benchsuite_format_results_summary(self) -> List[str]:
     """
     Format per-metric results into report lines.
 
@@ -853,9 +803,9 @@ def _benchsuite_format_results_summary(self) -> list[str]:
         lines.append("")
 
         # Find best performer
-        if metric_type in ["latency", "memory", "energy"]:
+        if metric_type in ['latency', 'memory', 'energy']:
             best_model = min(results.items(), key=lambda x: x[1].mean)
-            comparison_text = "fastest" if metric_type == "latency" else "most efficient"
+            comparison_text = "fastest" if metric_type == 'latency' else "most efficient"
         else:
             best_model = max(results.items(), key=lambda x: x[1].mean)
             comparison_text = "most accurate"
@@ -864,26 +814,19 @@ def _benchsuite_format_results_summary(self) -> list[str]:
         lines.append("")
 
         for model_name, result in results.items():
-            clean_name = (
-                model_name.replace(f"_{metric_type}", "")
-                .replace("_ms", "")
-                .replace("_mb", "")
-                .replace("_joules", "")
-            )
+            clean_name = model_name.replace(f'_{metric_type}', '').replace('_ms', '').replace('_mb', '').replace('_joules', '')
             lines.append(f"- **{clean_name}**: {result.mean:.4f} ± {result.std:.4f}")
         lines.append("")
 
     return lines
     ### END SOLUTION
 
-
 BenchmarkSuite._format_results_summary = _benchsuite_format_results_summary
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #edef54dc
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #d77f1504
 # Solution
 
-
-def _benchsuite_format_recommendations(self) -> list[str]:
+def _benchsuite_format_recommendations(self) -> List[str]:
     """
     Generate recommendation lines from benchmark results.
 
@@ -907,15 +850,15 @@ def _benchsuite_format_recommendations(self) -> list[str]:
     lines.append("")
 
     if len(self.results) >= 2:
-        if "latency" in self.results and "accuracy" in self.results:
+        if 'latency' in self.results and 'accuracy' in self.results:
             lines.append("### Accuracy vs Speed Trade-off")
 
-            latency_results = self.results["latency"]
-            accuracy_results = self.results["accuracy"]
+            latency_results = self.results['latency']
+            accuracy_results = self.results['accuracy']
 
             scores = {}
             for model_name in latency_results.keys():
-                clean_name = model_name.replace("_latency", "").replace("_ms", "")
+                clean_name = model_name.replace('_latency', '').replace('_ms', '')
 
                 acc_key = None
                 for key in accuracy_results.keys():
@@ -927,26 +870,20 @@ def _benchsuite_format_recommendations(self) -> list[str]:
                     lat_vals = [r.mean for r in latency_results.values()]
                     acc_vals = [r.mean for r in accuracy_results.values()]
 
-                    norm_latency = 1 - (latency_results[model_name].mean - min(lat_vals)) / (
-                        max(lat_vals) - min(lat_vals) + 1e-8
-                    )
-                    norm_accuracy = (accuracy_results[acc_key].mean - min(acc_vals)) / (
-                        max(acc_vals) - min(acc_vals) + 1e-8
-                    )
+                    norm_latency = 1 - (latency_results[model_name].mean - min(lat_vals)) / (max(lat_vals) - min(lat_vals) + 1e-8)
+                    norm_accuracy = (accuracy_results[acc_key].mean - min(acc_vals)) / (max(acc_vals) - min(acc_vals) + 1e-8)
 
                     scores[clean_name] = (norm_latency + norm_accuracy) / 2
 
             if scores:
                 best_overall = max(scores.items(), key=lambda x: x[1])
-                lines.append(
-                    f"- **Best overall trade-off**: {best_overall[0]} (score: {best_overall[1]:.3f})"
-                )
+                lines.append(f"- **Best overall trade-off**: {best_overall[0]} (score: {best_overall[1]:.3f})")
                 lines.append("")
 
     lines.append("### Usage Recommendations")
-    if "accuracy" in self.results and "latency" in self.results:
-        acc_results = self.results["accuracy"]
-        lat_results = self.results["latency"]
+    if 'accuracy' in self.results and 'latency' in self.results:
+        acc_results = self.results['accuracy']
+        lat_results = self.results['latency']
 
         best_acc_model = max(acc_results.items(), key=lambda x: x[1].mean)
         best_lat_model = min(lat_results.items(), key=lambda x: x[1].mean)
@@ -958,12 +895,10 @@ def _benchsuite_format_recommendations(self) -> list[str]:
     return lines
     ### END SOLUTION
 
-
 BenchmarkSuite._format_recommendations = _benchsuite_format_recommendations
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #9c5d2405
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #9afd44bd
 # Solution
-
 
 def benchsuite_generate_report(self) -> str:
     """
@@ -1005,20 +940,18 @@ def benchsuite_generate_report(self) -> str:
 
     # Save report
     report_text = "\n".join(report_lines)
-    report_path = self.output_dir / "benchmark_report.md"
-    with open(report_path, "w") as f:
+    report_path = self.output_dir / 'benchmark_report.md'
+    with open(report_path, 'w') as f:
         f.write(report_text)
 
     print(f"📄 Report saved to {report_path}")
     return report_text
     ### END SOLUTION
 
-
 BenchmarkSuite.generate_report = benchsuite_generate_report
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #54eb3b41
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #ecf12f7b
 # Solution
-
 
 class MLPerf:
     """
@@ -1057,41 +990,39 @@ class MLPerf:
 
         # Standard MLPerf benchmark configurations
         self.benchmarks = {
-            "keyword_spotting": {
-                "input_shape": (1, 16000),  # 1 second of 16kHz audio
-                "target_accuracy": 0.90,
-                "max_latency_ms": 100,
-                "description": "Wake word detection",
+            'keyword_spotting': {
+                'input_shape': (1, 16000),  # 1 second of 16kHz audio
+                'target_accuracy': 0.90,
+                'max_latency_ms': 100,
+                'description': 'Wake word detection'
             },
-            "visual_wake_words": {
-                "input_shape": (1, 96, 96, 3),  # 96x96 RGB image
-                "target_accuracy": 0.80,
-                "max_latency_ms": 200,
-                "description": "Person detection in images",
+            'visual_wake_words': {
+                'input_shape': (1, 96, 96, 3),  # 96x96 RGB image
+                'target_accuracy': 0.80,
+                'max_latency_ms': 200,
+                'description': 'Person detection in images'
             },
-            "anomaly_detection": {
-                "input_shape": (1, 640),  # Machine sensor data
-                "target_accuracy": 0.85,
-                "max_latency_ms": 50,
-                "description": "Industrial anomaly detection",
+            'anomaly_detection': {
+                'input_shape': (1, 640),  # Machine sensor data
+                'target_accuracy': 0.85,
+                'max_latency_ms': 50,
+                'description': 'Industrial anomaly detection'
             },
-            "image_classification": {
-                "input_shape": (1, 32, 32, 3),  # CIFAR-10 style
-                "target_accuracy": 0.75,
-                "max_latency_ms": 150,
-                "description": "Tiny image classification",
-            },
+            'image_classification': {
+                'input_shape': (1, 32, 32, 3),  # CIFAR-10 style
+                'target_accuracy': 0.75,
+                'max_latency_ms': 150,
+                'description': 'Tiny image classification'
+            }
         }
         ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #0ba49734
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #4c40f805
 # Solution
 
-
-# --- MLPerf._run_latency_test ---
-def _mlperf_run_latency_test(
-    self, model: Any, test_inputs: list[Any], benchmark_name: str, num_runs: int
-) -> tuple[list[float], list[Any]]:
+    # --- MLPerf._run_latency_test ---
+def _mlperf_run_latency_test(self, model: Any, test_inputs: List[Any],
+                                  benchmark_name: str, num_runs: int) -> Tuple[List[float], List[Any]]:
     """
     Run latency measurement phase with warmup.
 
@@ -1113,9 +1044,9 @@ def _mlperf_run_latency_test(
     warmup_runs = max(1, num_runs // 10)
     print(f"   Warming up ({warmup_runs} runs)...")
     for i in range(warmup_runs):
-        if hasattr(model, "forward"):
+        if hasattr(model, 'forward'):
             model.forward(test_inputs[i])
-        elif hasattr(model, "predict"):
+        elif hasattr(model, 'predict'):
             model.predict(test_inputs[i])
         elif callable(model):
             model(test_inputs[i])
@@ -1128,19 +1059,15 @@ def _mlperf_run_latency_test(
     for i, test_input in enumerate(test_inputs):
         with precise_timer() as timer:
             try:
-                if hasattr(model, "forward"):
+                if hasattr(model, 'forward'):
                     output = model.forward(test_input)
-                elif hasattr(model, "predict"):
+                elif hasattr(model, 'predict'):
                     output = model.predict(test_input)
                 elif callable(model):
                     output = model(test_input)
                 else:
                     # Simulate prediction
-                    output = (
-                        rng.random(2)
-                        if benchmark_name in ["keyword_spotting", "visual_wake_words", "anomaly_detection"]
-                        else rng.random(10)
-                    )
+                    output = rng.random(2) if benchmark_name in ['keyword_spotting', 'visual_wake_words', 'anomaly_detection'] else rng.random(10)
 
                 predictions.append(output)
             except Exception:
@@ -1152,12 +1079,10 @@ def _mlperf_run_latency_test(
     return latencies, predictions
     ### END SOLUTION
 
-
 MLPerf._run_latency_test = _mlperf_run_latency_test
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #72dc8da4
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #b50bd46c
 # Solution
-
 
 def _extract_pred_array(pred) -> np.ndarray:
     """
@@ -1177,7 +1102,7 @@ def _extract_pred_array(pred) -> np.ndarray:
     3. Flatten if multi-dimensional
     """
     ### BEGIN SOLUTION
-    if hasattr(pred, "data"):
+    if hasattr(pred, 'data'):
         pred_array = pred.data
     else:
         pred_array = np.array(pred)
@@ -1192,13 +1117,11 @@ def _extract_pred_array(pred) -> np.ndarray:
     return pred_array
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #34cf73bd
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #daf431a4
 # Solution
 
-
-def _mlperf_run_accuracy_test(
-    self, model: Any, predictions: list[Any], benchmark_name: str, num_runs: int
-) -> float:
+def _mlperf_run_accuracy_test(self, model: Any, predictions: List[Any],
+                                    benchmark_name: str, num_runs: int) -> float:
     """
     Calculate accuracy from predictions against synthetic ground truth.
 
@@ -1216,7 +1139,7 @@ def _mlperf_run_accuracy_test(
     """
     ### BEGIN SOLUTION
     rng = np.random.default_rng(7)
-    if benchmark_name in ["keyword_spotting", "visual_wake_words", "anomaly_detection"]:
+    if benchmark_name in ['keyword_spotting', 'visual_wake_words', 'anomaly_detection']:
         # Binary classification
         true_labels = rng.integers(0, 2, num_runs)
         predicted_labels = []
@@ -1240,26 +1163,23 @@ def _mlperf_run_accuracy_test(
     accuracy = correct_predictions / num_runs
 
     # Add realistic noise based on model complexity
-    model_name = getattr(model, "name", "unknown_model")
-    if "efficient" in model_name.lower():
+    model_name = getattr(model, 'name', 'unknown_model')
+    if 'efficient' in model_name.lower():
         accuracy = min(0.95, accuracy + 0.1)
-    elif "accurate" in model_name.lower():
+    elif 'accurate' in model_name.lower():
         accuracy = min(0.98, accuracy + 0.2)
 
     return accuracy
     ### END SOLUTION
 
-
 MLPerf._run_accuracy_test = _mlperf_run_accuracy_test
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #0c918cad
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #e2faca45
 # Solution
 
-
-# --- MLPerf.run_standard_benchmark ---
-def mlperf_run_standard_benchmark(
-    self, model: Any, benchmark_name: str, num_runs: int = 100
-) -> dict[str, Any]:
+    # --- MLPerf.run_standard_benchmark ---
+def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
+                              num_runs: int = 100) -> Dict[str, Any]:
     """
     Run a standardized MLPerf benchmark.
 
@@ -1289,10 +1209,11 @@ def mlperf_run_standard_benchmark(
 
     config = self.benchmarks[benchmark_name]
     print(f"🧪 Running MLPerf {benchmark_name} benchmark...")
-    print(f"   Target: {config['target_accuracy']:.1%} accuracy, <{config['max_latency_ms']}ms latency")
+    print(f"   Target: {config['target_accuracy']:.1%} accuracy, "
+          f"<{config['max_latency_ms']}ms latency")
 
     # Generate standardized test inputs (as Tensors for TrenTorch model compatibility)
-    input_shape = config["input_shape"]
+    input_shape = config['input_shape']
     test_inputs = []
     for i in range(num_runs):
         # Use deterministic random generation for reproducibility
@@ -1311,27 +1232,27 @@ def mlperf_run_standard_benchmark(
 
     # Compile results
     mean_latency = float(np.mean(latencies))
-    accuracy_met = bool(accuracy >= config["target_accuracy"])
-    latency_met = bool(mean_latency <= config["max_latency_ms"])
+    accuracy_met = bool(accuracy >= config['target_accuracy'])
+    latency_met = bool(mean_latency <= config['max_latency_ms'])
 
     results = {
-        "benchmark_name": benchmark_name,
-        "model_name": getattr(model, "name", "unknown_model"),
-        "accuracy": float(accuracy),
-        "mean_latency_ms": mean_latency,
-        "std_latency_ms": float(np.std(latencies)),
-        "p50_latency_ms": float(np.percentile(latencies, 50)),
-        "p90_latency_ms": float(np.percentile(latencies, 90)),
-        "p99_latency_ms": float(np.percentile(latencies, 99)),
-        "max_latency_ms": float(np.max(latencies)),
-        "throughput_fps": float(1000 / mean_latency),
-        "target_accuracy": float(config["target_accuracy"]),
-        "target_latency_ms": float(config["max_latency_ms"]),
-        "accuracy_met": accuracy_met,
-        "latency_met": latency_met,
-        "compliant": accuracy_met and latency_met,
-        "num_runs": int(num_runs),
-        "random_seed": int(self.random_seed),
+        'benchmark_name': benchmark_name,
+        'model_name': getattr(model, 'name', 'unknown_model'),
+        'accuracy': float(accuracy),
+        'mean_latency_ms': mean_latency,
+        'std_latency_ms': float(np.std(latencies)),
+        'p50_latency_ms': float(np.percentile(latencies, 50)),
+        'p90_latency_ms': float(np.percentile(latencies, 90)),
+        'p99_latency_ms': float(np.percentile(latencies, 99)),
+        'max_latency_ms': float(np.max(latencies)),
+        'throughput_fps': float(1000 / mean_latency),
+        'target_accuracy': float(config['target_accuracy']),
+        'target_latency_ms': float(config['max_latency_ms']),
+        'accuracy_met': accuracy_met,
+        'latency_met': latency_met,
+        'compliant': accuracy_met and latency_met,
+        'num_runs': int(num_runs),
+        'random_seed': int(self.random_seed)
     }
 
     print(f"   Results: {accuracy:.1%} accuracy, {np.mean(latencies):.1f}ms latency")
@@ -1340,11 +1261,9 @@ def mlperf_run_standard_benchmark(
     return results
     ### END SOLUTION
 
-
 MLPerf.run_standard_benchmark = mlperf_run_standard_benchmark
 
-
-def mlperf_run_all_benchmarks(self, model: Any) -> dict[str, dict[str, Any]]:
+def mlperf_run_all_benchmarks(self, model: Any) -> Dict[str, Dict[str, Any]]:
     """Run all MLPerf benchmarks on a model."""
     all_results = {}
 
@@ -1358,18 +1277,16 @@ def mlperf_run_all_benchmarks(self, model: Any) -> dict[str, dict[str, Any]]:
             print()
         except Exception as e:
             print(f"   ❌ Failed to run {benchmark_name}: {e}")
-            all_results[benchmark_name] = {"error": str(e)}
+            all_results[benchmark_name] = {'error': str(e)}
 
     return all_results
 
-
 MLPerf.run_all_benchmarks = mlperf_run_all_benchmarks
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #afaf2ee8
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #6197eba1
 # Solution
 
-
-def _mlperf_compile_report_data(self, results: dict[str, dict[str, Any]]) -> dict[str, Any]:
+def _mlperf_compile_report_data(self, results: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
     """
     Compile benchmark results into structured report data.
 
@@ -1396,56 +1313,54 @@ def _mlperf_compile_report_data(self, results: dict[str, dict[str, Any]]) -> dic
     total_benchmarks = 0
 
     report_data = {
-        "mlperf_version": "1.0",
-        "random_seed": self.random_seed,
-        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "model_name": "unknown",
-        "benchmarks": {},
-        "summary": {},
+        'mlperf_version': '1.0',
+        'random_seed': self.random_seed,
+        'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'model_name': 'unknown',
+        'benchmarks': {},
+        'summary': {}
     }
 
     for benchmark_name, result in results.items():
-        if "error" not in result:
+        if 'error' not in result:
             total_benchmarks += 1
-            if result.get("compliant", False):
+            if result.get('compliant', False):
                 compliant_benchmarks.append(benchmark_name)
 
-            if report_data["model_name"] == "unknown":
-                report_data["model_name"] = result.get("model_name", "unknown")
+            if report_data['model_name'] == 'unknown':
+                report_data['model_name'] = result.get('model_name', 'unknown')
 
-            report_data["benchmarks"][benchmark_name] = {
-                "accuracy": result["accuracy"],
-                "mean_latency_ms": result["mean_latency_ms"],
-                "p99_latency_ms": result["p99_latency_ms"],
-                "throughput_fps": result["throughput_fps"],
-                "target_accuracy": result["target_accuracy"],
-                "target_latency_ms": result["target_latency_ms"],
-                "accuracy_met": result["accuracy_met"],
-                "latency_met": result["latency_met"],
-                "compliant": result["compliant"],
+            report_data['benchmarks'][benchmark_name] = {
+                'accuracy': result['accuracy'],
+                'mean_latency_ms': result['mean_latency_ms'],
+                'p99_latency_ms': result['p99_latency_ms'],
+                'throughput_fps': result['throughput_fps'],
+                'target_accuracy': result['target_accuracy'],
+                'target_latency_ms': result['target_latency_ms'],
+                'accuracy_met': result['accuracy_met'],
+                'latency_met': result['latency_met'],
+                'compliant': result['compliant']
             }
 
     if total_benchmarks > 0:
         compliance_rate = len(compliant_benchmarks) / total_benchmarks
-        report_data["summary"] = {
-            "total_benchmarks": total_benchmarks,
-            "compliant_benchmarks": len(compliant_benchmarks),
-            "compliance_rate": compliance_rate,
-            "overall_compliant": compliance_rate == 1.0,
-            "compliant_benchmark_names": compliant_benchmarks,
+        report_data['summary'] = {
+            'total_benchmarks': total_benchmarks,
+            'compliant_benchmarks': len(compliant_benchmarks),
+            'compliance_rate': compliance_rate,
+            'overall_compliant': compliance_rate == 1.0,
+            'compliant_benchmark_names': compliant_benchmarks
         }
 
     return report_data
     ### END SOLUTION
 
-
 MLPerf._compile_report_data = _mlperf_compile_report_data
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #bf75eb9f
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #36a32948
 # Solution
 
-
-def _mlperf_format_compliance_summary(self, report_data: dict[str, Any]) -> str:
+def _mlperf_format_compliance_summary(self, report_data: Dict[str, Any]) -> str:
     """
     Format report data into a human-readable markdown summary.
 
@@ -1470,26 +1385,22 @@ def _mlperf_format_compliance_summary(self, report_data: dict[str, Any]) -> str:
     summary_lines.append(f"Date: {report_data['timestamp']}")
     summary_lines.append("")
 
-    if report_data["summary"]:
-        overall = report_data["summary"]["overall_compliant"]
-        rate = report_data["summary"]["compliance_rate"]
-        compliant_count = report_data["summary"]["compliant_benchmarks"]
-        total = report_data["summary"]["total_benchmarks"]
+    if report_data['summary']:
+        overall = report_data['summary']['overall_compliant']
+        rate = report_data['summary']['compliance_rate']
+        compliant_count = report_data['summary']['compliant_benchmarks']
+        total = report_data['summary']['total_benchmarks']
 
         summary_lines.append(f"## Overall Result: {'✅ COMPLIANT' if overall else '❌ NON-COMPLIANT'}")
         summary_lines.append(f"Compliance Rate: {rate:.1%} ({compliant_count}/{total})")
         summary_lines.append("")
 
         summary_lines.append("## Benchmark Details:")
-        for benchmark_name, result in report_data["benchmarks"].items():
-            status = "✅ PASS" if result["compliant"] else "❌ FAIL"
+        for benchmark_name, result in report_data['benchmarks'].items():
+            status = "✅ PASS" if result['compliant'] else "❌ FAIL"
             summary_lines.append(f"- **{benchmark_name}**: {status}")
-            summary_lines.append(
-                f"  - Accuracy: {result['accuracy']:.1%} (target: {result['target_accuracy']:.1%})"
-            )
-            summary_lines.append(
-                f"  - Latency: {result['mean_latency_ms']:.1f}ms (target: <{result['target_latency_ms']}ms)"
-            )
+            summary_lines.append(f"  - Accuracy: {result['accuracy']:.1%} (target: {result['target_accuracy']:.1%})")
+            summary_lines.append(f"  - Latency: {result['mean_latency_ms']:.1f}ms (target: <{result['target_latency_ms']}ms)")
             summary_lines.append("")
     else:
         summary_lines.append("No successful benchmark runs.")
@@ -1497,16 +1408,13 @@ def _mlperf_format_compliance_summary(self, report_data: dict[str, Any]) -> str:
     return "\n".join(summary_lines)
     ### END SOLUTION
 
-
 MLPerf._format_compliance_summary = _mlperf_format_compliance_summary
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #2fa1af2f
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #e0dbaf16
 # Solution
 
-
-def mlperf_generate_compliance_report(
-    self, results: dict[str, dict[str, Any]], output_path: str = "mlperf_report.json"
-) -> str:
+def mlperf_generate_compliance_report(self, results: Dict[str, Dict[str, Any]],
+                                           output_path: str = "mlperf_report.json") -> str:
     """
     Generate MLPerf compliance report.
 
@@ -1523,14 +1431,14 @@ def mlperf_generate_compliance_report(
     report_data = self._compile_report_data(results)
 
     # Save JSON report
-    with open(output_path, "w") as f:
+    with open(output_path, 'w') as f:
         json.dump(report_data, f, indent=2)
 
     # Generate and save human-readable summary
     summary_text = self._format_compliance_summary(report_data)
 
-    summary_path = output_path.replace(".json", "_summary.md")
-    with open(summary_path, "w") as f:
+    summary_path = output_path.replace('.json', '_summary.md')
+    with open(summary_path, 'w') as f:
         f.write(summary_text)
 
     print(f"📄 MLPerf report saved to {output_path}")
@@ -1539,14 +1447,12 @@ def mlperf_generate_compliance_report(
     return summary_text
     ### END SOLUTION
 
-
 MLPerf.generate_compliance_report = mlperf_generate_compliance_report
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #4c610d67
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #2c3ca515
 # Solution
 
-
-def _collect_base_metrics(base_name: str, benchmark_results: dict) -> dict[str, float]:
+def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, float]:
     """
     Extract base model metrics from benchmark results.
 
@@ -1570,13 +1476,10 @@ def _collect_base_metrics(base_name: str, benchmark_results: dict) -> dict[str, 
     return base_metrics
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #fa99fedb
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #8de419bd
 # Solution
 
-
-def _calculate_improvements(
-    base_metrics: dict[str, float], opt_metrics: dict[str, float]
-) -> dict[str, float]:
+def _calculate_improvements(base_metrics: Dict[str, float], opt_metrics: Dict[str, float]) -> Dict[str, float]:
     """
     Calculate improvement ratios for an optimized model vs baseline.
 
@@ -1593,29 +1496,28 @@ def _calculate_improvements(
     """
     ### BEGIN SOLUTION
     improvements = {}
-    for metric_type in ["latency", "memory", "energy"]:
+    for metric_type in ['latency', 'memory', 'energy']:
         if metric_type in base_metrics and metric_type in opt_metrics:
             # For these metrics, lower is better, so improvement = base/optimized
             if opt_metrics[metric_type] > 0:
-                improvements[f"{metric_type}_speedup"] = base_metrics[metric_type] / opt_metrics[metric_type]
+                improvements[f'{metric_type}_speedup'] = base_metrics[metric_type] / opt_metrics[metric_type]
             else:
-                improvements[f"{metric_type}_speedup"] = 1.0
+                improvements[f'{metric_type}_speedup'] = 1.0
 
-    if "accuracy" in base_metrics and "accuracy" in opt_metrics:
+    if 'accuracy' in base_metrics and 'accuracy' in opt_metrics:
         # Accuracy retention (higher is better)
-        if base_metrics["accuracy"] > 0:
-            improvements["accuracy_retention"] = opt_metrics["accuracy"] / base_metrics["accuracy"]
+        if base_metrics['accuracy'] > 0:
+            improvements['accuracy_retention'] = opt_metrics['accuracy'] / base_metrics['accuracy']
         else:
-            improvements["accuracy_retention"] = 1.0
+            improvements['accuracy_retention'] = 1.0
 
     return improvements
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #86b0714f
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #f04f8631
 # Solution
 
-
-def _generate_recommendations(all_improvements: dict[str, dict[str, float]]) -> dict[str, dict]:
+def _generate_recommendations(all_improvements: Dict[str, Dict[str, float]]) -> Dict[str, Dict]:
     """
     Generate deployment recommendations from improvement data.
 
@@ -1644,28 +1546,28 @@ def _generate_recommendations(all_improvements: dict[str, dict[str, float]]) -> 
 
     for opt_name, improvements in all_improvements.items():
         # Latency recommendation
-        if "latency_speedup" in improvements and improvements["latency_speedup"] > best_latency_score:
-            best_latency_score = improvements["latency_speedup"]
+        if 'latency_speedup' in improvements and improvements['latency_speedup'] > best_latency_score:
+            best_latency_score = improvements['latency_speedup']
             best_latency = opt_name
 
         # Memory recommendation
-        if "memory_speedup" in improvements and improvements["memory_speedup"] > best_memory_score:
-            best_memory_score = improvements["memory_speedup"]
+        if 'memory_speedup' in improvements and improvements['memory_speedup'] > best_memory_score:
+            best_memory_score = improvements['memory_speedup']
             best_memory = opt_name
 
         # Accuracy recommendation
-        if "accuracy_retention" in improvements and improvements["accuracy_retention"] > best_accuracy_score:
-            best_accuracy_score = improvements["accuracy_retention"]
+        if 'accuracy_retention' in improvements and improvements['accuracy_retention'] > best_accuracy_score:
+            best_accuracy_score = improvements['accuracy_retention']
             best_accuracy = opt_name
 
         # Overall balance (considering all factors)
         overall_score = 0
         count = 0
         for key, value in improvements.items():
-            if "speedup" in key:
+            if 'speedup' in key:
                 overall_score += min(value, 5.0)  # Cap speedup at 5x to avoid outliers
                 count += 1
-            elif "retention" in key:
+            elif 'retention' in key:
                 overall_score += value * 5  # Weight accuracy retention heavily
                 count += 1
 
@@ -1676,36 +1578,34 @@ def _generate_recommendations(all_improvements: dict[str, dict[str, float]]) -> 
                 best_overall = opt_name
 
     return {
-        "for_latency_critical": {
-            "model": best_latency,
-            "reason": f"Best latency improvement: {best_latency_score:.2f}x faster",
-            "use_case": "Real-time applications, edge devices with strict timing requirements",
+        'for_latency_critical': {
+            'model': best_latency,
+            'reason': f"Best latency improvement: {best_latency_score:.2f}x faster",
+            'use_case': "Real-time applications, edge devices with strict timing requirements"
         },
-        "for_memory_constrained": {
-            "model": best_memory,
-            "reason": f"Best memory reduction: {best_memory_score:.2f}x smaller",
-            "use_case": "Mobile devices, IoT sensors, embedded systems",
+        'for_memory_constrained': {
+            'model': best_memory,
+            'reason': f"Best memory reduction: {best_memory_score:.2f}x smaller",
+            'use_case': "Mobile devices, IoT sensors, embedded systems"
         },
-        "for_accuracy_preservation": {
-            "model": best_accuracy,
-            "reason": f"Best accuracy retention: {best_accuracy_score:.1%} of original",
-            "use_case": "Applications where quality cannot be compromised",
+        'for_accuracy_preservation': {
+            'model': best_accuracy,
+            'reason': f"Best accuracy retention: {best_accuracy_score:.1%} of original",
+            'use_case': "Applications where quality cannot be compromised"
         },
-        "for_balanced_deployment": {
-            "model": best_overall,
-            "reason": f"Best overall trade-off (score: {best_overall_score:.2f})",
-            "use_case": "General production deployment with multiple constraints",
-        },
+        'for_balanced_deployment': {
+            'model': best_overall,
+            'reason': f"Best overall trade-off (score: {best_overall_score:.2f})",
+            'use_case': "General production deployment with multiple constraints"
+        }
     }
     ### END SOLUTION
 
-# %% ../../solutions/19_benchmarking/benchmarking.ipynb #4fed8303
+# %% ../../solutions/19_benchmarking/benchmarking.ipynb #140b0d14
 # Solution
 
-
-def analyze_optimization_techniques(
-    base_model: Any, optimized_models: list[Any], datasets: list[Any]
-) -> dict[str, Any]:
+def analyze_optimization_techniques(base_model: Any, optimized_models: List[Any],
+                                  datasets: List[Any]) -> Dict[str, Any]:
     """
     Compare base model against various optimization techniques.
 
@@ -1738,23 +1638,21 @@ def analyze_optimization_techniques(
     benchmark_results = suite.run_full_benchmark()
 
     # Extract base model performance using helper
-    base_name = getattr(base_model, "name", "model_0")
+    base_name = getattr(base_model, 'name', 'model_0')
     base_metrics = _collect_base_metrics(base_name, benchmark_results)
 
     # Initialize comparison results
     comparison_results = {
-        "base_model": base_name,
-        "base_metrics": base_metrics,
-        "optimized_results": {},
-        "improvements": {},
-        "efficiency_metrics": {},
-        "recommendations": {},
+        'base_model': base_name,
+        'base_metrics': base_metrics,
+        'optimized_results': {},
+        'improvements': {},
+        'efficiency_metrics': {},
+        'recommendations': {}
     }
 
     for opt_model in optimized_models:
-        opt_name = getattr(
-            opt_model, "name", f"optimized_model_{len(comparison_results['optimized_results'])}"
-        )
+        opt_name = getattr(opt_model, 'name', f'optimized_model_{len(comparison_results["optimized_results"])}')
 
         # Find results for this optimized model
         opt_metrics = {}
@@ -1764,41 +1662,41 @@ def analyze_optimization_techniques(
                     opt_metrics[metric_type] = result.mean
                     break
 
-        comparison_results["optimized_results"][opt_name] = opt_metrics
+        comparison_results['optimized_results'][opt_name] = opt_metrics
 
         # Calculate improvements using helper
         improvements = _calculate_improvements(base_metrics, opt_metrics)
-        comparison_results["improvements"][opt_name] = improvements
+        comparison_results['improvements'][opt_name] = improvements
 
         # Calculate efficiency metrics
         efficiency = {}
-        if "accuracy" in opt_metrics:
-            if "memory" in opt_metrics and opt_metrics["memory"] > 0:
-                efficiency["accuracy_per_mb"] = opt_metrics["accuracy"] / opt_metrics["memory"]
-            if "latency" in opt_metrics and opt_metrics["latency"] > 0:
-                efficiency["accuracy_per_ms"] = opt_metrics["accuracy"] / opt_metrics["latency"]
+        if 'accuracy' in opt_metrics:
+            if 'memory' in opt_metrics and opt_metrics['memory'] > 0:
+                efficiency['accuracy_per_mb'] = opt_metrics['accuracy'] / opt_metrics['memory']
+            if 'latency' in opt_metrics and opt_metrics['latency'] > 0:
+                efficiency['accuracy_per_ms'] = opt_metrics['accuracy'] / opt_metrics['latency']
 
-        comparison_results["efficiency_metrics"][opt_name] = efficiency
+        comparison_results['efficiency_metrics'][opt_name] = efficiency
 
     # Generate recommendations using helper
-    recommendations = _generate_recommendations(comparison_results["improvements"])
-    comparison_results["recommendations"] = recommendations
+    recommendations = _generate_recommendations(comparison_results['improvements'])
+    comparison_results['recommendations'] = recommendations
 
     # Print summary
     print("\n📊 Optimization Comparison Results:")
     print("=" * 50)
 
-    for opt_name, improvements in comparison_results["improvements"].items():
+    for opt_name, improvements in comparison_results['improvements'].items():
         print(f"\n{opt_name}:")
         for metric, value in improvements.items():
-            if "speedup" in metric:
+            if 'speedup' in metric:
                 print(f"  {metric}: {value:.2f}x improvement")
-            elif "retention" in metric:
+            elif 'retention' in metric:
                 print(f"  {metric}: {value:.1%}")
 
     print("\n🎯 Recommendations:")
     for use_case, rec in recommendations.items():
-        if rec["model"]:
+        if rec['model']:
             print(f"  {use_case}: {rec['model']} - {rec['reason']}")
 
     return comparison_results

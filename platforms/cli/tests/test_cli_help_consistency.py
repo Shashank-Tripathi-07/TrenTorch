@@ -34,6 +34,8 @@ class TestHelpConsistency:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         return result.stdout + result.stderr
 
@@ -53,6 +55,8 @@ class TestHelpConsistency:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Get help output
@@ -61,6 +65,8 @@ class TestHelpConsistency:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         bare_output = bare_result.stdout
@@ -178,6 +184,8 @@ class TestWelcomeScreen:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         output = result.stdout
@@ -192,6 +200,8 @@ class TestWelcomeScreen:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         output = result.stdout
@@ -206,6 +216,8 @@ class TestWelcomeScreen:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         output = result.stdout
@@ -232,6 +244,8 @@ class TestCommandDocumentation:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         # Get help
@@ -240,6 +254,8 @@ class TestCommandDocumentation:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         combined = welcome_result.stdout + help_result.stdout
@@ -261,6 +277,8 @@ class TestCommandDocumentation:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         help_result = subprocess.run(
@@ -268,6 +286,8 @@ class TestCommandDocumentation:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         combined = welcome_result.stdout + help_result.stdout
@@ -280,6 +300,8 @@ class TestCommandDocumentation:
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
 
         assert (

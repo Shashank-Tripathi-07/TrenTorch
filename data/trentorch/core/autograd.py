@@ -20,20 +20,19 @@ __all__ = ['rng', 'EPSILON', 'Function', 'AddBackward', 'MulBackward', 'SubBackw
            'SigmoidBackward', 'TanhBackward', 'SoftmaxBackward', 'GELUBackward', 'MSEBackward', 'BCEBackward',
            'CrossEntropyBackward', 'is_grad_enabled', 'no_grad', 'enable_autograd']
 
-# %% ../../solutions/06_autograd/autograd.ipynb #f8aa125d
+# %% ../../solutions/06_autograd/autograd.ipynb #bff4c3a0
 import numpy as np
-
 rng = np.random.default_rng(7)
-import os
+from typing import Optional, List, Tuple
 import sys
-from typing import List, Optional, Tuple
+import os
 
 from .tensor import Tensor
 
 # Constants for numerical differentiation
 EPSILON = 1e-7  # Small perturbation for numerical gradient computation
 
-# %% ../../solutions/06_autograd/autograd.ipynb #393d02ba
+# %% ../../solutions/06_autograd/autograd.ipynb #61c533a2
 class Function:
     """
     Base class for differentiable operations.
@@ -77,9 +76,8 @@ class Function:
         """
         raise NotImplementedError("Each Function must implement apply() method")
 
-# %% ../../solutions/06_autograd/autograd.ipynb #6763f326
+# %% ../../solutions/06_autograd/autograd.ipynb #83b94f0a
 # Solution
-
 
 def _reduce_broadcast_grad(grad, original_shape):
     """
@@ -109,19 +107,18 @@ def _reduce_broadcast_grad(grad, original_shape):
     # Example: grad (32, 128) with original (128,) → sum over axis 0
     while grad.ndim > len(original_shape):
         grad = grad.sum(axis=0)
-
+    
     # Step 2: Collapse dimensions where original had size 1
     # Example: grad (10, 5) with original (10, 1) → sum over axis 1 with keepdims
     for i in range(len(original_shape)):
         if original_shape[i] == 1 and grad.shape[i] > 1:
             grad = grad.sum(axis=i, keepdims=True)
-
+    
     return grad
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #9e7a648a
+# %% ../../solutions/06_autograd/autograd.ipynb #d4ba8473
 # Solution
-
 
 class AddBackward(Function):
     """
@@ -203,9 +200,8 @@ class AddBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #dcfae3ca
+# %% ../../solutions/06_autograd/autograd.ipynb #2e48df1e
 # Solution
-
 
 class MulBackward(Function):
     """
@@ -284,9 +280,8 @@ class MulBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #ff60608e
+# %% ../../solutions/06_autograd/autograd.ipynb #a69c5d0d
 # Solution
-
 
 class SubBackward(Function):
     """
@@ -345,9 +340,8 @@ class SubBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #1cd32a73
+# %% ../../solutions/06_autograd/autograd.ipynb #13d8180c
 # Solution
-
 
 class DivBackward(Function):
     """
@@ -408,16 +402,15 @@ class DivBackward(Function):
 
         if isinstance(b, Tensor) and b.requires_grad:
             # ∂(a/b)/∂b = -a/b²
-            grad_b = -grad_output * a.data / (b.data**2)
+            grad_b = -grad_output * a.data / (b.data ** 2)
             # Handle broadcasting: reduce gradient to match original shape
             grad_b = _reduce_broadcast_grad(grad_b, b.data.shape)
 
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #89b004e7
+# %% ../../solutions/06_autograd/autograd.ipynb #408619a6
 # Solution
-
 
 class MatmulBackward(Function):
     """
@@ -507,9 +500,8 @@ class MatmulBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #7daabe96
+# %% ../../solutions/06_autograd/autograd.ipynb #9cf67153
 # Solution
-
 
 class TransposeBackward(Function):
     """
@@ -574,7 +566,7 @@ class TransposeBackward(Function):
         - Return as single-element tuple: (grad_x,)
         """
         ### BEGIN SOLUTION
-        (x,) = self.saved_tensors
+        x, = self.saved_tensors
         grad_x = None
 
         if isinstance(x, Tensor) and x.requires_grad:
@@ -596,9 +588,8 @@ class TransposeBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #2d8356c4
+# %% ../../solutions/06_autograd/autograd.ipynb #e93133ba
 # Solution
-
 
 class PermuteBackward(Function):
     """
@@ -658,7 +649,7 @@ class PermuteBackward(Function):
         - Return as single-element tuple: (grad_x,)
         """
         ### BEGIN SOLUTION
-        (x,) = self.saved_tensors
+        x, = self.saved_tensors
         grad_x = None
 
         if isinstance(x, Tensor) and x.requires_grad:
@@ -668,9 +659,8 @@ class PermuteBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #764cc77a
+# %% ../../solutions/06_autograd/autograd.ipynb #b1d76300
 # Solution
-
 
 class SliceBackward(Function):
     """
@@ -747,7 +737,7 @@ class SliceBackward(Function):
         - Return as single-element tuple: (grad_input,)
         """
         ### BEGIN SOLUTION
-        (tensor,) = self.saved_tensors
+        tensor, = self.saved_tensors
         grad_input = None
 
         if isinstance(tensor, Tensor) and tensor.requires_grad:
@@ -761,9 +751,8 @@ class SliceBackward(Function):
         return (grad_input,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #058fd61e
+# %% ../../solutions/06_autograd/autograd.ipynb #cdd7f9d2
 # Solution
-
 
 class ReshapeBackward(Function):
     """
@@ -825,7 +814,7 @@ class ReshapeBackward(Function):
         - Return as single-element tuple: (grad_x,)
         """
         ### BEGIN SOLUTION
-        (x,) = self.saved_tensors
+        x, = self.saved_tensors
         grad_x = None
 
         if isinstance(x, Tensor) and x.requires_grad:
@@ -835,9 +824,8 @@ class ReshapeBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #d336b1b6
+# %% ../../solutions/06_autograd/autograd.ipynb #d4edd178
 # Solution
-
 
 class SumBackward(Function):
     """
@@ -893,20 +881,19 @@ class SumBackward(Function):
         - Return as single-element tuple: (grad_result,)
         """
         ### BEGIN SOLUTION
-        (tensor,) = self.saved_tensors
+        tensor, = self.saved_tensors
 
         if isinstance(tensor, Tensor) and tensor.requires_grad:
             # For axis-reduced sums, expand grad_output back along the summed
             # axis before broadcasting, so each row/column gets its own gradient.
             if self.axis is not None and not self.keepdims:
                 grad_output = np.expand_dims(grad_output, axis=self.axis)
-            return (np.ones_like(tensor.data) * grad_output,)
-        return (None,)
+            return np.ones_like(tensor.data) * grad_output,
+        return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #7f475be6
+# %% ../../solutions/06_autograd/autograd.ipynb #9390d50b
 # Solution
-
 
 class ReLUBackward(Function):
     """
@@ -947,18 +934,17 @@ class ReLUBackward(Function):
         - Convert to float32 for gradient computation
         """
         ### BEGIN SOLUTION
-        (tensor,) = self.saved_tensors
+        tensor, = self.saved_tensors
 
         if isinstance(tensor, Tensor) and tensor.requires_grad:
             # ReLU gradient: 1 if x > 0, else 0
             relu_grad = (tensor.data > 0).astype(np.float32)
-            return (grad_output * relu_grad,)
-        return (None,)
+            return grad_output * relu_grad,
+        return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #8c163464
+# %% ../../solutions/06_autograd/autograd.ipynb #098289dd
 # Solution
-
 
 class SigmoidBackward(Function):
     """
@@ -1007,18 +993,17 @@ class SigmoidBackward(Function):
         - This avoids recomputing sigmoid during backward pass
         """
         ### BEGIN SOLUTION
-        (tensor,) = self.saved_tensors
+        tensor, = self.saved_tensors
 
         if isinstance(tensor, Tensor) and tensor.requires_grad:
             # σ'(x) = σ(x) * (1 - σ(x))
             sigmoid_grad = self.output_data * (1 - self.output_data)
-            return (grad_output * sigmoid_grad,)
-        return (None,)
+            return grad_output * sigmoid_grad,
+        return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #ee9fed81
+# %% ../../solutions/06_autograd/autograd.ipynb #4fc88aaa
 # Solution
-
 
 class TanhBackward(Function):
     """
@@ -1067,18 +1052,17 @@ class TanhBackward(Function):
         - This avoids recomputing tanh during backward pass
         """
         ### BEGIN SOLUTION
-        (tensor,) = self.saved_tensors
+        tensor, = self.saved_tensors
 
         if isinstance(tensor, Tensor) and tensor.requires_grad:
             # tanh'(x) = 1 - tanh(x)²
-            tanh_grad = 1 - self.output_data**2
-            return (grad_output * tanh_grad,)
-        return (None,)
+            tanh_grad = 1 - self.output_data ** 2
+            return grad_output * tanh_grad,
+        return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #6e573829
+# %% ../../solutions/06_autograd/autograd.ipynb #b83cef44
 # Solution
-
 
 class SoftmaxBackward(Function):
     """
@@ -1140,7 +1124,7 @@ class SoftmaxBackward(Function):
         - Vectorized formula: softmax * (grad_output - sum(grad_output * softmax))
         """
         ### BEGIN SOLUTION
-        (tensor,) = self.saved_tensors
+        tensor, = self.saved_tensors
 
         if isinstance(tensor, Tensor) and tensor.requires_grad:
             # Compute sum(grad_output * softmax) along the softmax dimension
@@ -1153,9 +1137,8 @@ class SoftmaxBackward(Function):
         return (None,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #b52beef9
+# %% ../../solutions/06_autograd/autograd.ipynb #fd83130e
 # Solution
-
 
 class GELUBackward(Function):
     """
@@ -1198,7 +1181,7 @@ class GELUBackward(Function):
         - Formula: 0.5 * (1 + tanh(...)) + 0.5 * x * sech²(...) * d(tanh_arg)/dx
         """
         ### BEGIN SOLUTION
-        (tensor,) = self.saved_tensors
+        tensor, = self.saved_tensors
 
         if isinstance(tensor, Tensor) and tensor.requires_grad:
             x = tensor.data
@@ -1212,9 +1195,8 @@ class GELUBackward(Function):
         return (None,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #caa8615d
+# %% ../../solutions/06_autograd/autograd.ipynb #1ec3b542
 # Solution
-
 
 class MSEBackward(Function):
     """
@@ -1258,19 +1240,18 @@ class MSEBackward(Function):
         - Multiply by grad_output for chain rule
         """
         ### BEGIN SOLUTION
-        (predictions,) = self.saved_tensors
+        predictions, = self.saved_tensors
 
         if isinstance(predictions, Tensor) and predictions.requires_grad:
             # Gradient: 2 * (predictions - targets) / N
             grad = 2.0 * (predictions.data - self.targets_data) / self.num_samples
 
-            return (grad * grad_output,)
-        return (None,)
+            return grad * grad_output,
+        return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #32a2361d
+# %% ../../solutions/06_autograd/autograd.ipynb #01f62c2b
 # Solution
-
 
 class BCEBackward(Function):
     """
@@ -1314,7 +1295,7 @@ class BCEBackward(Function):
         - Divide by N for mean loss
         """
         ### BEGIN SOLUTION
-        (predictions,) = self.saved_tensors
+        predictions, = self.saved_tensors
 
         if isinstance(predictions, Tensor) and predictions.requires_grad:
             eps = EPSILON
@@ -1324,13 +1305,12 @@ class BCEBackward(Function):
             # Gradient: (p - y) / (p * (1-p) * N)
             grad = (p - y) / (p * (1 - p) * self.num_samples)
 
-            return (grad * grad_output,)
-        return (None,)
+            return grad * grad_output,
+        return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #63d588d4
+# %% ../../solutions/06_autograd/autograd.ipynb #60020204
 # Solution
-
 
 def _stable_softmax(logits_data):
     """
@@ -1366,9 +1346,8 @@ def _stable_softmax(logits_data):
     return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #42efc9d8
+# %% ../../solutions/06_autograd/autograd.ipynb #8cce8b7c
 # Solution
-
 
 def _one_hot_encode(targets, batch_size, num_classes):
     """
@@ -1402,9 +1381,8 @@ def _one_hot_encode(targets, batch_size, num_classes):
     return one_hot
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #e0ab0e28
+# %% ../../solutions/06_autograd/autograd.ipynb #dcf97ddc
 # Solution
-
 
 class CrossEntropyBackward(Function):
     """
@@ -1462,7 +1440,7 @@ class CrossEntropyBackward(Function):
         - Use _one_hot_encode() for target encoding
         """
         ### BEGIN SOLUTION
-        (logits,) = self.saved_tensors
+        logits, = self.saved_tensors
 
         if isinstance(logits, Tensor) and logits.requires_grad:
             softmax = _stable_softmax(logits.data)
@@ -1471,11 +1449,11 @@ class CrossEntropyBackward(Function):
             # Gradient: (softmax - one_hot) / batch_size
             grad = (softmax - one_hot) / self.batch_size
 
-            return (grad * grad_output,)
-        return (None,)
+            return grad * grad_output,
+        return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #242af51b
+# %% ../../solutions/06_autograd/autograd.ipynb #e9df1bf2
 # ===== Global Gradient Tracking Flag =====
 # Why this exists: During inference or parameter updates, we don't need to build
 # computation graphs. Skipping graph construction saves memory and time.
@@ -1540,7 +1518,7 @@ class no_grad:
         _GRAD_TRACKING_ENABLED = self._prev_state
         return False  # Don't suppress exceptions
 
-# %% ../../solutions/06_autograd/autograd.ipynb #3b2baee9
+# %% ../../solutions/06_autograd/autograd.ipynb #d0fc5b39
 def enable_autograd(quiet=False):
     """
     Enable gradient tracking for all Tensor operations.
@@ -1578,7 +1556,7 @@ def enable_autograd(quiet=False):
     # 2. We're checking if a class has been dynamically modified
     # 3. _autograd_enabled is a marker attribute we add at runtime
     # This is the CORRECT use of hasattr() for dynamic class modification
-    if hasattr(Tensor, "_autograd_enabled"):
+    if hasattr(Tensor, '_autograd_enabled'):
         # Silently return if already enabled - no need to warn
         return
 
@@ -1617,14 +1595,14 @@ def enable_autograd(quiet=False):
         """
         if not _GRAD_TRACKING_ENABLED:
             return False
-        return getattr(tensor, "requires_grad", False) if isinstance(tensor, Tensor) else False
+        return getattr(tensor, 'requires_grad', False) if isinstance(tensor, Tensor) else False
 
     def _ensure_grad_attrs(tensor):
         """Ensure tensor has gradient attributes (for tensors created before enable_autograd)."""
         if isinstance(tensor, Tensor):
-            if not hasattr(tensor, "requires_grad"):
+            if not hasattr(tensor, 'requires_grad'):
                 tensor.requires_grad = False
-            if not hasattr(tensor, "grad"):
+            if not hasattr(tensor, 'grad'):
                 tensor.grad = None
 
     # Enhanced operations that track gradients
@@ -1926,7 +1904,7 @@ def enable_autograd(quiet=False):
 
         # Propagate gradients through computation graph
         # _grad_fn is set by autograd enhancement when tensor is created from an operation
-        grad_fn = getattr(self, "_grad_fn", None)
+        grad_fn = getattr(self, '_grad_fn', None)
         if grad_fn is not None:
             grads = grad_fn.apply(gradient)
 
@@ -1970,8 +1948,8 @@ def enable_autograd(quiet=False):
 
     # Patch activations and losses to track gradients
     try:
-        from trentorch.core.activations import GELU, ReLU, Sigmoid, Softmax, Tanh
-        from trentorch.core.losses import BinaryCrossEntropyLoss, CrossEntropyLoss, MSELoss
+        from trentorch.core.activations import Sigmoid, ReLU, Softmax, GELU, Tanh
+        from trentorch.core.losses import BinaryCrossEntropyLoss, MSELoss, CrossEntropyLoss
 
         # Store original methods
         _original_sigmoid_forward = Sigmoid.forward
@@ -2062,7 +2040,7 @@ def enable_autograd(quiet=False):
             """MSE loss with gradient tracking."""
             # Compute MSE loss
             diff = predictions.data - targets.data
-            squared_diff = diff**2
+            squared_diff = diff ** 2
             mse = np.mean(squared_diff)
 
             result = Tensor(mse)
@@ -2119,9 +2097,7 @@ def enable_autograd(quiet=False):
         print("   - backward() computes gradients")
         print("   - requires_grad=True enables tracking")
 
-
 # Auto-enable when module is imported
 # Always quiet to avoid cluttering user imports
 import os
-
 enable_autograd(quiet=True)

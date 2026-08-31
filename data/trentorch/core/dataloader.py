@@ -17,11 +17,11 @@
 # %% auto #0
 __all__ = ['rng', 'Dataset', 'TensorDataset', 'DataLoader', 'RandomHorizontalFlip', 'RandomCrop', 'Compose']
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #3e7f6546
+# %% ../../solutions/05_dataloader/dataloader.ipynb #716e8424
 #| default_exp core.dataloader
 #| export
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #bb6935f2
+# %% ../../solutions/05_dataloader/dataloader.ipynb #a2cb4077
 # Essential imports for data loading
 import random
 import sys
@@ -30,15 +30,13 @@ from abc import ABC, abstractmethod
 from typing import Iterator, List, Tuple
 
 import numpy as np
-
 rng = np.random.default_rng(7)
 
 # Import real Tensor class from trentorch package
 from .tensor import Tensor
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #1c8a0287
+# %% ../../solutions/05_dataloader/dataloader.ipynb #c98dc897
 # Solution
-
 
 class Dataset(ABC):
     """
@@ -90,12 +88,10 @@ class Dataset(ABC):
             Could be (data, label) tuple, single tensor, etc.
         """
         pass
-
     ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #09ad2161
+# %% ../../solutions/05_dataloader/dataloader.ipynb #88f256b0
 # Solution
-
 
 class TensorDataset(Dataset):
     """
@@ -174,7 +170,7 @@ class TensorDataset(Dataset):
         return len(self.tensors[0].data)
         ### END SOLUTION
 
-    def __getitem__(self, idx: int) -> tuple[Tensor, ...]:
+    def __getitem__(self, idx: int) -> Tuple[Tensor, ...]:
         """
         Return tuple of tensor slices at given index.
 
@@ -210,9 +206,8 @@ class TensorDataset(Dataset):
         return tuple(Tensor(tensor.data[idx]) for tensor in self.tensors)
         ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #47160141
+# %% ../../solutions/05_dataloader/dataloader.ipynb #90293a16
 # Solution
-
 
 class DataLoader:
     """
@@ -312,14 +307,14 @@ class DataLoader:
 
         # Yield batches
         for i in range(0, len(indices), self.batch_size):
-            batch_indices = indices[i : i + self.batch_size]
+            batch_indices = indices[i:i + self.batch_size]
             batch = [self.dataset[idx] for idx in batch_indices]
 
             # Collate batch - convert list of tuples to tuple of tensors
             yield self._collate_batch(batch)
         ### END SOLUTION
 
-    def _collate_batch(self, batch: list[tuple[Tensor, ...]]) -> tuple[Tensor, ...]:
+    def _collate_batch(self, batch: List[Tuple[Tensor, ...]]) -> Tuple[Tensor, ...]:
         """
         Collate individual samples into batch tensors.
 
@@ -368,9 +363,8 @@ class DataLoader:
         return tuple(batched_tensors)
         ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #5d44b0c7
+# %% ../../solutions/05_dataloader/dataloader.ipynb #8e6068c8
 # Solution
-
 
 class RandomHorizontalFlip:
     """
@@ -467,9 +461,8 @@ class RandomHorizontalFlip:
         return x
         ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #ef7a8909
+# %% ../../solutions/05_dataloader/dataloader.ipynb #883a59e1
 # Solution
-
 
 def _pad_image(data, padding):
     """
@@ -496,18 +489,18 @@ def _pad_image(data, padding):
     ### BEGIN SOLUTION
     if data.ndim == 2:
         # (H, W) format — pad both axes
-        return np.pad(data, padding, mode="constant", constant_values=0)
+        return np.pad(data, padding, mode='constant', constant_values=0)
     elif data.ndim == 3:
         if data.shape[0] <= 4:
             # Channels-first: (C, H, W) — pad only H and W
-            return np.pad(
-                data, ((0, 0), (padding, padding), (padding, padding)), mode="constant", constant_values=0
-            )
+            return np.pad(data,
+                          ((0, 0), (padding, padding), (padding, padding)),
+                          mode='constant', constant_values=0)
         else:
             # Channels-last: (H, W, C) — pad only H and W
-            return np.pad(
-                data, ((padding, padding), (padding, padding), (0, 0)), mode="constant", constant_values=0
-            )
+            return np.pad(data,
+                          ((padding, padding), (padding, padding), (0, 0)),
+                          mode='constant', constant_values=0)
     else:
         raise ValueError(
             f"RandomCrop requires 2D or 3D input\n"
@@ -519,9 +512,8 @@ def _pad_image(data, padding):
         )
     ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #5c115c82
+# %% ../../solutions/05_dataloader/dataloader.ipynb #0e0992fd
 # Solution
-
 
 def _random_crop_region(padded_h, padded_w, target_h, target_w):
     """
@@ -546,9 +538,8 @@ def _random_crop_region(padded_h, padded_w, target_h, target_w):
     return top, left
     ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #01f20966
+# %% ../../solutions/05_dataloader/dataloader.ipynb #0e63e043
 # Solution
-
 
 class RandomCrop:
     """
@@ -633,24 +624,22 @@ class RandomCrop:
         if data.ndim == 2:
             padded_h, padded_w = padded.shape
             top, left = _random_crop_region(padded_h, padded_w, target_h, target_w)
-            cropped = padded[top : top + target_h, left : left + target_w]
+            cropped = padded[top:top + target_h, left:left + target_w]
         elif data.shape[0] <= 4:
             # Channels-first: (C, H, W)
             padded_h, padded_w = padded.shape[1], padded.shape[2]
             top, left = _random_crop_region(padded_h, padded_w, target_h, target_w)
-            cropped = padded[:, top : top + target_h, left : left + target_w]
+            cropped = padded[:, top:top + target_h, left:left + target_w]
         else:
             # Channels-last: (H, W, C)
             padded_h, padded_w = padded.shape[0], padded.shape[1]
             top, left = _random_crop_region(padded_h, padded_w, target_h, target_w)
-            cropped = padded[top : top + target_h, left : left + target_w, :]
+            cropped = padded[top:top + target_h, left:left + target_w, :]
 
         return Tensor(cropped) if is_tensor else cropped
         ### END SOLUTION
 
-
 #| export
-
 
 class Compose:
     """

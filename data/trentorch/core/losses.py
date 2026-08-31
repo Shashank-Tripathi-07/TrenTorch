@@ -17,26 +17,22 @@
 # %% auto #0
 __all__ = ['rng', 'EPSILON', 'log_softmax', 'MSELoss', 'CrossEntropyLoss', 'BinaryCrossEntropyLoss']
 
-# %% ../../solutions/04_losses/losses.ipynb #d5f1828c
+# %% ../../solutions/04_losses/losses.ipynb #60997dfe
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 from typing import Optional
 
-from .activations import ReLU
-from .layers import Linear
-
 # Import from TrenTorch package (previous modules must be completed and exported)
 from .tensor import Tensor
+from .activations import ReLU
+from .layers import Linear
 
 # Constants for numerical stability
 EPSILON = 1e-7  # Small value to prevent log(0) and numerical instability
 
-# %% ../../solutions/04_losses/losses.ipynb #bd0d8ae3
+# %% ../../solutions/04_losses/losses.ipynb #af52beee
 # Solution
-
 
 def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
     """
@@ -74,9 +70,8 @@ def log_softmax(x: Tensor, dim: int = -1) -> Tensor:
     return Tensor(result)
     ### END SOLUTION
 
-# %% ../../solutions/04_losses/losses.ipynb #278db40b
+# %% ../../solutions/04_losses/losses.ipynb #0c442475
 # Solution
-
 
 class MSELoss:
     """Mean Squared Error loss for regression tasks."""
@@ -114,7 +109,7 @@ class MSELoss:
         diff = predictions.data - targets.data
 
         # Step 2: Square the differences
-        squared_diff = diff**2
+        squared_diff = diff ** 2
 
         # Step 3: Take mean across all elements
         mse = np.mean(squared_diff)
@@ -134,9 +129,8 @@ class MSELoss:
         """
         pass
 
-# %% ../../solutions/04_losses/losses.ipynb #059a1297
+# %% ../../solutions/04_losses/losses.ipynb #1dba2dd8
 # Solution
-
 
 class CrossEntropyLoss:
     """Cross-entropy loss for multi-class classification."""
@@ -198,9 +192,8 @@ class CrossEntropyLoss:
         """
         pass
 
-# %% ../../solutions/04_losses/losses.ipynb #693fb393
+# %% ../../solutions/04_losses/losses.ipynb #7186a897
 # Solution
-
 
 class BinaryCrossEntropyLoss:
     """Binary cross-entropy loss for binary classification."""

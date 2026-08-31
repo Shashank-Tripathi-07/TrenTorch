@@ -47,7 +47,13 @@ class TestPythonEnvironment:
 
     def test_pip_available(self):
         """pip must be available for package management."""
-        result = subprocess.run([sys.executable, "-m", "pip", "--version"], capture_output=True, text=True)
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "--version"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
         assert result.returncode == 0, "pip not available"
         print(f"✅ pip available: {result.stdout.strip()}")
 
@@ -115,7 +121,13 @@ class TestCoreDependencies:
 
     def test_pytest_available(self):
         """pytest must be available for testing."""
-        result = subprocess.run([sys.executable, "-m", "pytest", "--version"], capture_output=True, text=True)
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "--version"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
         assert result.returncode == 0, "pytest not available"
         print(f"✅ pytest available: {result.stdout.strip()}")
 
@@ -165,19 +177,29 @@ class TestJupyterEnvironment:
 
     def test_jupyter_command_available(self):
         """Jupyter command must be available."""
-        result = subprocess.run(["jupyter", "--version"], capture_output=True, text=True)
+        result = subprocess.run(
+            ["jupyter", "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         assert result.returncode == 0, "jupyter command not found"
         print(f"✅ jupyter command available:\n{result.stdout.strip()}")
 
     def test_jupyter_lab_command(self):
         """JupyterLab command must be available."""
-        result = subprocess.run(["jupyter", "lab", "--version"], capture_output=True, text=True)
+        result = subprocess.run(
+            ["jupyter", "lab", "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         assert result.returncode == 0, "jupyter lab command not found"
         print(f"✅ jupyter lab command available: {result.stdout.strip()}")
 
     def test_jupyter_kernelspec(self):
         """Jupyter kernel must be configured."""
-        result = subprocess.run(["jupyter", "kernelspec", "list"], capture_output=True, text=True)
+        result = subprocess.run(
+            ["jupyter", "kernelspec", "list"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
         assert result.returncode == 0, "Cannot list Jupyter kernels"
         assert "python3" in result.stdout, "Python3 kernel not found"
         print(f"✅ Jupyter kernel configured:\n{result.stdout.strip()}")
@@ -317,7 +339,11 @@ class TestSystemResources:
         if system == "Darwin" and arch == "x86_64":
             try:
                 result = subprocess.run(
-                    ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True
+                    ["sysctl", "-n", "machdep.cpu.brand_string"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
                 )
                 if "Apple" in result.stdout:
                     print("⚠️  Running x86_64 Python on Apple Silicon (Rosetta)")
@@ -331,14 +357,20 @@ class TestGitConfiguration:
 
     def test_git_available(self):
         """Git command must be available."""
-        result = subprocess.run(["git", "--version"], capture_output=True, text=True)
+        result = subprocess.run(
+            ["git", "--version"], capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
         assert result.returncode == 0, "git command not found"
         print(f"✅ Git available: {result.stdout.strip()}")
 
     def test_git_user_configured(self):
         """Git user.name and user.email should be configured."""
-        name_result = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True)
-        email_result = subprocess.run(["git", "config", "user.email"], capture_output=True, text=True)
+        name_result = subprocess.run(
+            ["git", "config", "user.name"], capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
+        email_result = subprocess.run(
+            ["git", "config", "user.email"], capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
 
         if name_result.returncode != 0 or email_result.returncode != 0:
             print("⚠️  Git user not configured (optional but recommended)")
@@ -368,7 +400,7 @@ class TestStudentProtection:
         if module_dirs:
             test_file = list(module_dirs[0].glob("*.py"))
             if test_file:
-                content = test_file[0].read_text()
+                content = test_file[0].read_text(encoding="utf-8")
                 assert len(content) > 0, "Cannot read source files"
                 print(f"✅ Source files readable: {test_file[0]}")
 

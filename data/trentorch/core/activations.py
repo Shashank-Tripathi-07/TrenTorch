@@ -17,11 +17,9 @@
 # %% auto #0
 __all__ = ['rng', 'TOLERANCE', 'Sigmoid', 'ReLU', 'Tanh', 'GELU', 'Softmax']
 
-# %% ../../solutions/02_activations/activations.ipynb #0993a25e
+# %% ../../solutions/02_activations/activations.ipynb #bf1c0041
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 from typing import Optional
 
@@ -32,11 +30,10 @@ from .tensor import Tensor
 TOLERANCE = 1e-10  # Small tolerance for floating-point comparisons in tests
 
 # Export only activation classes
-__all__ = ["Sigmoid", "ReLU", "Tanh", "GELU", "Softmax"]
+__all__ = ['Sigmoid', 'ReLU', 'Tanh', 'GELU', 'Softmax']
 
-# %% ../../solutions/02_activations/activations.ipynb #95f97f06
+# %% ../../solutions/02_activations/activations.ipynb #187bdf1c
 # Solution
-
 
 class Sigmoid:
     """
@@ -89,9 +86,8 @@ class Sigmoid:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
-# %% ../../solutions/02_activations/activations.ipynb #2482ed51
+# %% ../../solutions/02_activations/activations.ipynb #330f1fa2
 # Solution
-
 
 class ReLU:
     """
@@ -134,9 +130,8 @@ class ReLU:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
-# %% ../../solutions/02_activations/activations.ipynb #2ec14323
+# %% ../../solutions/02_activations/activations.ipynb #24296968
 # Solution
-
 
 class Tanh:
     """
@@ -179,9 +174,8 @@ class Tanh:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
-# %% ../../solutions/02_activations/activations.ipynb #9a192a15
+# %% ../../solutions/02_activations/activations.ipynb #aa028394
 # Solution
-
 
 class GELU:
     """
@@ -224,9 +218,8 @@ class GELU:
         """Allows the activation to be called like a function."""
         return self.forward(x)
 
-# %% ../../solutions/02_activations/activations.ipynb #6866633e
+# %% ../../solutions/02_activations/activations.ipynb #c2812e76
 # Solution
-
 
 class Softmax:
     """

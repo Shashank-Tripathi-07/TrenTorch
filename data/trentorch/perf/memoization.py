@@ -17,14 +17,12 @@
 # %% auto #0
 __all__ = ['rng', 'KVCache', 'enable_kv_cache', 'disable_kv_cache']
 
-# %% ../../solutions/18_memoization/memoization.ipynb #7ac3bb86
+# %% ../../solutions/18_memoization/memoization.ipynb #78bc3038
 import os
-
 import numpy as np
-
 rng = np.random.default_rng(7)
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Tuple, Optional, Dict, List
 
 # Import TrenTorch components from previous modules
 from ..core.tensor import Tensor
@@ -33,9 +31,8 @@ from ..core.tensor import Tensor
 _BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 _MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/18_memoization/memoization.ipynb #d906e74c
+# %% ../../solutions/18_memoization/memoization.ipynb #b66ccb89
 # Solution
-
 
 class KVCache:
     """
@@ -74,7 +71,8 @@ class KVCache:
     - Memory: O(num_layers × batch × heads × max_seq × head_dim)
     """
 
-    def __init__(self, batch_size: int, max_seq_len: int, num_layers: int, num_heads: int, head_dim: int):
+    def __init__(self, batch_size: int, max_seq_len: int, num_layers: int,
+                 num_heads: int, head_dim: int):
         """
         Initialize KV cache for efficient generation.
 
@@ -198,13 +196,13 @@ class KVCache:
         # Update cache at current position (efficient O(1) write)
         # Note: We use .data here because caching is inference-only (no gradients needed)
         # This avoids gradient tracking overhead during generation
-        key_cache.data[:, :, self.seq_pos : self.seq_pos + 1, :] = key.data
-        value_cache.data[:, :, self.seq_pos : self.seq_pos + 1, :] = value.data
+        key_cache.data[:, :, self.seq_pos:self.seq_pos+1, :] = key.data
+        value_cache.data[:, :, self.seq_pos:self.seq_pos+1, :] = value.data
 
         # Note: seq_pos is advanced externally via advance() after all layers process
         ### END SOLUTION
 
-    def get(self, layer_idx: int) -> tuple[Tensor, Tensor]:
+    def get(self, layer_idx: int) -> Tuple[Tensor, Tensor]:
         """
         Retrieve cached key-value pairs for attention computation.
 
@@ -299,7 +297,7 @@ class KVCache:
             key_cache.data.fill(0.0)
             value_cache.data.fill(0.0)
 
-    def get_memory_usage(self) -> dict[str, float]:
+    def get_memory_usage(self) -> Dict[str, float]:
         """
         Calculate memory usage of the cache system.
 
@@ -316,13 +314,13 @@ class KVCache:
         total_mb = total_bytes / _MB_TO_BYTES
 
         return {
-            "total_mb": total_mb,
-            "per_layer_mb": total_mb / self.num_layers,
-            "cache_tensors": total_cache_tensors,
-            "total_elements": total_elements,
+            'total_mb': total_mb,
+            'per_layer_mb': total_mb / self.num_layers,
+            'cache_tensors': total_cache_tensors,
+            'total_elements': total_elements
         }
 
-# %% ../../solutions/18_memoization/memoization.ipynb #02c959db
+# %% ../../solutions/18_memoization/memoization.ipynb #5f8f585a
 def _cached_generation_step(x, attention, cache_obj, layer_idx):
     """
     Execute a single cached generation step for one new token.
@@ -362,9 +360,15 @@ def _cached_generation_step(x, attention, cache_obj, layer_idx):
     V_new = attention.v_proj.forward(x)
 
     # Step 2: Reshape to multi-head format (batch, num_heads, 1, head_dim)
-    Q_heads = Tensor(np.transpose(Q_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)))
-    K_heads = Tensor(np.transpose(K_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)))
-    V_heads = Tensor(np.transpose(V_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)))
+    Q_heads = Tensor(np.transpose(
+        Q_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)
+    ))
+    K_heads = Tensor(np.transpose(
+        K_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)
+    ))
+    V_heads = Tensor(np.transpose(
+        V_new.reshape(batch_size, 1, num_heads, head_dim).data, (0, 2, 1, 3)
+    ))
 
     # Step 3: Update cache with new K, V
     cache_obj.update(layer_idx, K_heads, V_heads)
@@ -397,9 +401,8 @@ def _cached_generation_step(x, attention, cache_obj, layer_idx):
 
     return attention.out_proj.forward(concat_output)
 
-# %% ../../solutions/18_memoization/memoization.ipynb #d672ab48
+# %% ../../solutions/18_memoization/memoization.ipynb #b8e19a79
 # Solution
-
 
 def _create_cache_storage(model):
     """
@@ -429,7 +432,7 @@ def _create_cache_storage(model):
     ### BEGIN SOLUTION
     # Validate model has required attributes
     # hasattr() is LEGITIMATE here: plugin system with user-defined models
-    required_attrs = ["embed_dim", "num_layers", "num_heads", "max_seq_len", "blocks"]
+    required_attrs = ['embed_dim', 'num_layers', 'num_heads', 'max_seq_len', 'blocks']
     for attr in required_attrs:
         if not hasattr(model, attr):
             raise AttributeError(
@@ -446,7 +449,7 @@ def _create_cache_storage(model):
             f"Invalid model architecture for multi-head attention\n"
             f"  ❌ embed_dim={model.embed_dim} is not divisible by num_heads={model.num_heads} (remainder: {model.embed_dim % model.num_heads})\n"
             f"  💡 Each attention head needs equal dimensions. embed_dim must be evenly divisible by num_heads.\n"
-            f"  🔧 Use embed_dim={model.num_heads * (model.embed_dim // model.num_heads + 1)} (next valid size) or num_heads={[h for h in [1, 2, 4, 8, 12, 16] if model.embed_dim % h == 0]}"
+            f"  🔧 Use embed_dim={model.num_heads * (model.embed_dim // model.num_heads + 1)} (next valid size) or num_heads={[h for h in [1,2,4,8,12,16] if model.embed_dim % h == 0]}"
         )
 
     # Create cache for this model
@@ -455,7 +458,7 @@ def _create_cache_storage(model):
         max_seq_len=model.max_seq_len,
         num_layers=model.num_layers,
         num_heads=model.num_heads,
-        head_dim=head_dim,
+        head_dim=head_dim
     )
 
     # Store cache on model for easy access
@@ -465,9 +468,8 @@ def _create_cache_storage(model):
     return cache, head_dim
     ### END SOLUTION
 
-# %% ../../solutions/18_memoization/memoization.ipynb #60501a31
+# %% ../../solutions/18_memoization/memoization.ipynb #56bd557d
 # Solution
-
 
 def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
     """
@@ -523,9 +525,8 @@ def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
     return _cached_generation_step(x, block.attention, cache_obj, layer_idx)
     ### END SOLUTION
 
-# %% ../../solutions/18_memoization/memoization.ipynb #efca2aad
+# %% ../../solutions/18_memoization/memoization.ipynb #9824a278
 # Solution
-
 
 def enable_kv_cache(model):
     """
@@ -576,27 +577,29 @@ def enable_kv_cache(model):
     for layer_idx, block in enumerate(model.blocks):
         # Save original forward (avoid double-patching)
         # hasattr() is LEGITIMATE: monkey-patching safety check
-        if not hasattr(block, "_original_attention_forward"):
+        if not hasattr(block, '_original_attention_forward'):
             block._original_attention_forward = block.attention.forward
 
         # Create cached version using factory for correct closure binding
         def make_cached_forward(layer_idx, original_forward, cache_obj):
             """Factory to create cached forward with correct layer_idx closure."""
-
             def cached_forward(x, mask=None):
-                return _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward)
-
+                return _cached_attention_forward(
+                    block, x, cache_obj, layer_idx, original_forward
+                )
             return cached_forward
 
-        block.attention.forward = make_cached_forward(layer_idx, block._original_attention_forward, cache)
+        block.attention.forward = make_cached_forward(
+            layer_idx, block._original_attention_forward, cache
+        )
 
     # Step 3: Print confirmation
-    print("⚡ KV Cache enabled for model!")
+    print(f"⚡ KV Cache enabled for model!")
     print(f"   Architecture: {model.num_layers} layers × {model.num_heads} heads × {head_dim}D")
     print(f"   Memory: {cache.get_memory_usage()['total_mb']:.2f} MB")
-    print("   Cache stored in: model._kv_cache")
+    print(f"   Cache stored in: model._kv_cache")
     print()
-    print("💡 To disable: call disable_kv_cache(model)")
+    print(f"💡 To disable: call disable_kv_cache(model)")
     print()
 
     return cache
@@ -620,7 +623,7 @@ def disable_kv_cache(model):
     """
     # Educational Note: hasattr() is LEGITIMATE here because:
     # Checking if monkey-patch markers exist before restoration
-    if not hasattr(model, "_cache_enabled") or not model._cache_enabled:
+    if not hasattr(model, '_cache_enabled') or not model._cache_enabled:
         print("⚠️  KV cache not enabled on this model")
         return
 
@@ -628,14 +631,14 @@ def disable_kv_cache(model):
     for block in model.blocks:
         # Educational Note: hasattr() is LEGITIMATE here because:
         # Checking for monkey-patch backup before restoration
-        if hasattr(block, "_original_attention_forward"):
+        if hasattr(block, '_original_attention_forward'):
             block.attention.forward = block._original_attention_forward
 
     # Clean up
     model._cache_enabled = False
     # Educational Note: hasattr() is LEGITIMATE here because:
     # Safe cleanup check before deleting dynamically added attribute
-    if hasattr(model, "_kv_cache"):
-        delattr(model, "_kv_cache")
+    if hasattr(model, '_kv_cache'):
+        delattr(model, '_kv_cache')
 
     print("✓ KV cache disabled, original attention restored")

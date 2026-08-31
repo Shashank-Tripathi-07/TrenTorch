@@ -2026,7 +2026,7 @@ def test_unit_json_serialization():
     assert Path(filepath).exists(), "Submission file should exist"
 
     # Load and verify JSON is valid
-    loaded_json = json.loads(Path(test_file).read_text())
+    loaded_json = json.loads(Path(test_file).read_text(encoding="utf-8"))
 
     # Verify structure is preserved
     assert loaded_json['trentorch_version'] == submission['trentorch_version'], "Version should match"
