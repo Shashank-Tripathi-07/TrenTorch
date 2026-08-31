@@ -1,14 +1,24 @@
 name: 'Update Contributors Table'
 
 # Recomputes CONTRIBUTORS.md (issues raised, PRs raised per person) from the
-# real GitHub API once a night, and commits the result straight to main if
-# anything changed. Used to fire on every issue/PR open/close event and go
-# through a full open-a-PR-and-auto-merge cycle -- correct, but noisy: a
-# short burst of PR activity (several merges/closes within seconds) could
-# spawn several of these PRs at once needing manual cleanup. Nightly + a
-# direct push removes both problems: nobody needs to look at this more than
-# once, and there's nothing to review since this is pure, deterministic data
-# computed straight from the GitHub API, not a human judgment call.
+# real GitHub API once a night, and opens+merges a PR immediately if the
+# result changed. Used to fire on every issue/PR open/close event -- correct,
+# but noisy: a short burst of PR activity (several merges/closes within
+# seconds) could spawn several of these PRs at once needing manual cleanup.
+# The nightly schedule alone fixes that (one run a day, not one per event).
+#
+# A direct push to main (no PR at all) was tried and doesn't work: main's
+# branch protection rejects it for GITHUB_TOKEN specifically ("GH006:
+# Protected branch update failed... Changes must be made through a pull
+# request"), confirmed by a live test run, not assumed. Only accounts with
+# admin bypass privilege (like the repo owner's own account) can push
+# directly; the bot's default token isn't one of those, and weakening branch
+# protection to grant it that, or pushing under a stored personal token
+# instead, are both real trade-offs to make deliberately, not a side effect
+# of "make CI quieter". So this still goes through a PR + auto-merge, which
+# already works end to end (a PR merge satisfies the "must go through a
+# pull request" rule the way a raw push doesn't) -- just once a night now
+# instead of on every event.
 
 on:
   schedule:
@@ -17,6 +27,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
   issues: read
 
 # Guards against two runs landing at once (a scheduled run overlapping a
@@ -51,11 +62,20 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Commit and push directly to main
+      - name: Open and merge update PR
         if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          BRANCH="update-contributors-$(date +%s)"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
           git add docs/CONTRIBUTORS.md README.md
           git commit -m "Update CONTRIBUTORS.md"
-          git push origin main
+          git push origin "$BRANCH"
+          gh pr create --title "Update CONTRIBUTORS.md" \
+            --body "Automated nightly update from real issue/PR activity. See .github/workflows/update-contributors.yml." \
+            --base main --head "$BRANCH"
+          gh pr merge "$BRANCH" --squash --delete-branch || \
+            echo "::warning::Could not auto-merge, left open for manual merge."
