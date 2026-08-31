@@ -43,7 +43,7 @@ dev = [
     "jupyter>=1.1.1",
     "jupyterlab>=4.5.7",
     "ipykernel>=7.2.0",
-    "nbdev>=3.0.15,<3.3.13",
+    "nbdev>=3.0.15,<3.3.14",
 ]
 visualization = [
     "matplotlib>=3.10.9",  # For plotting in Modules 17, 19, 20
