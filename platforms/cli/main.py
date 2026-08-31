@@ -37,6 +37,8 @@ from platforms.cli.processes.convert import ConvertCommand
 from platforms.cli.processes.milestone import MilestoneCommand
 from platforms.cli.processes.module_workflow import ModuleWorkflowCommand
 from platforms.cli.processes.olympics import OlympicsCommand
+from platforms.cli.server import ServeCommand
+from platforms.cli.tui import TUICommand
 
 from .commands.base import BaseCommand
 from .core.config import CLIConfig, migrate_progress_dir
@@ -87,6 +89,10 @@ class TrenTorchCLI:
         self._user_data_dir = self.config.project_root / "user_data"
         # SINGLE SOURCE OF TRUTH: All valid commands registered here
         self.commands: dict[str, type[BaseCommand]] = {
+            # Interactive Interfaces
+            "tui": TUICommand,
+            "dashboard": TUICommand,
+            "serve": ServeCommand,
             # Essential
             "setup": SetupCommand,
             # Workflow (student-facing)
@@ -103,12 +109,20 @@ class TrenTorchCLI:
         }
 
         # Command categorization for help display
-        self.student_commands = ["module", "milestone", "benchmark", "olympics"]
+        self.student_commands = ["tui", "serve", "module", "milestone", "benchmark", "olympics"]
         self.developer_commands = ["dev", "system", "package"]
 
-        # Welcome screen sections (used for both tito and tito --help)
+        # Welcome screen sections (used for both tren and tren --help)
         self.welcome_sections = {
             "quick_start": [
+                (
+                    f"[{Theme.CAT_QUICKSTART}]tren tui[/{Theme.CAT_QUICKSTART}]",
+                    "Launch interactive visual TUI dashboard",
+                ),
+                (
+                    f"[{Theme.CAT_QUICKSTART}]tren serve[/{Theme.CAT_QUICKSTART}]",
+                    "Launch visualizer Web UI (http://localhost:8080)",
+                ),
                 (
                     f"[{Theme.CAT_QUICKSTART}]tren setup[/{Theme.CAT_QUICKSTART}]",
                     "First-time setup (includes verification)",
@@ -235,15 +249,16 @@ The best way to learn:
         """Create the main argument parser."""
         parser = argparse.ArgumentParser(
             prog="tren",
-            description="Tren🔥Torch CLI - Build ML systems from scratch",
+            description="Tren⚡️Torch CLI - Build ML systems from scratch",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog=self._generate_epilog(),
         )
 
         # Global options
-        parser.add_argument("--version", action="version", version=f"Tren🔥Torch v{__version__}")
+        parser.add_argument("--version", action="version", version=f"Tren⚡️Torch v{__version__}")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
         parser.add_argument("--no-color", action="store_true", help="Disable colored output")
+        parser.add_argument("--tui", "-i", action="store_true", help="Launch interactive Textual TUI dashboard")
 
         # Subcommands
         subparsers = parser.add_subparsers(dest="command", help="Available commands", metavar="COMMAND")
@@ -296,11 +311,11 @@ The best way to learn:
 
         self.console.print()
         self.console.print(
-            f"[{Theme.SECTION}]Tiny🔥Torch CLI[/{Theme.SECTION}] - Build ML systems from scratch"
+            f"[{Theme.SECTION}]Tren⚡️Torch CLI[/{Theme.SECTION}] - Build ML systems from scratch"
         )
         self.console.print()
         self.console.print(
-            f"[{Theme.EMPHASIS}]Usage:[/{Theme.EMPHASIS}] [{Theme.INFO}]tito[/{Theme.INFO}] [{Theme.OPTION}]COMMAND[/{Theme.OPTION}] [{Theme.DIM}][OPTIONS][/{Theme.DIM}]"
+            f"[{Theme.EMPHASIS}]Usage:[/{Theme.EMPHASIS}] [{Theme.INFO}]tren[/{Theme.INFO}] [{Theme.OPTION}]COMMAND[/{Theme.OPTION}] [{Theme.DIM}][OPTIONS][/{Theme.DIM}]"
         )
         self.console.print()
         self.console.print(f"[{Theme.SECTION}]Available Commands:[/{Theme.SECTION}]")
@@ -311,6 +326,7 @@ The best way to learn:
         self.console.print(f"[{Theme.SECTION}]Global Options:[/{Theme.SECTION}]")
         self.console.print(f"  [{Theme.OPTION}]--help, -h[/{Theme.OPTION}]      Show this help message")
         self.console.print(f"  [{Theme.OPTION}]--version[/{Theme.OPTION}]       Show version number")
+        self.console.print(f"  [{Theme.OPTION}]--tui, -i[/{Theme.OPTION}]        Launch interactive TUI dashboard")
         self.console.print(f"  [{Theme.OPTION}]--verbose, -v[/{Theme.OPTION}]   Enable verbose output")
         self.console.print(f"  [{Theme.OPTION}]--no-color[/{Theme.OPTION}]      Disable colored output")
         self.console.print()
@@ -372,16 +388,20 @@ The best way to learn:
             if hasattr(parsed_args, "no_color") and parsed_args.no_color:
                 self.config.no_color = True
 
+            # If --tui / -i flag was passed, launch TUI
+            if hasattr(parsed_args, "tui") and parsed_args.tui:
+                return self.commands["tui"](self.config).execute(parsed_args)
+
             # Guard against running outside a virtual environment unless explicitly allowed
             if parsed_args.command not in ["setup", None]:
                 # Check both sys.prefix (traditional activation) and VIRTUAL_ENV (direnv/PATH-based)
                 in_venv = sys.prefix != sys.base_prefix or os.environ.get("VIRTUAL_ENV") is not None
-                allow_system = os.environ.get("TITO_ALLOW_SYSTEM") == "1"
+                allow_system = os.environ.get("TREN_ALLOW_SYSTEM") == "1" or os.environ.get("TITO_ALLOW_SYSTEM") == "1"
                 if not in_venv and not allow_system:
                     print_error(
-                        "TinyTorch must run inside a virtual environment.\n"
+                        "TrenTorch must run inside a virtual environment.\n"
                         "Activate your project venv (for example, source .venv/bin/activate) "
-                        "or set TITO_ALLOW_SYSTEM=1 to proceed at your own risk.",
+                        "or set TREN_ALLOW_SYSTEM=1 to proceed at your own risk.",
                         "Virtual Environment Required",
                     )
                     return 1
@@ -419,7 +439,7 @@ The best way to learn:
                 self.console.print(
                     Panel(
                         self._generate_welcome_text(),
-                        title="Welcome to Tren🔥Torch!",
+                        title="Welcome to Tren⚡️Torch!",
                         border_style=Theme.BORDER_WELCOME,
                     )
                 )

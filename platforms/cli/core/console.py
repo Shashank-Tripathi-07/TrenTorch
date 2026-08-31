@@ -61,27 +61,27 @@ def get_console():
 
 
 def print_banner(compact: bool = False):
-    """Print the TinyTorch banner using Rich with clean block text style."""
+    """Print the TrenTorch banner using Rich with clean block text style."""
     console = get_console()
     if compact:
         print_compact_banner()
     else:
         # Create banner text that matches the clean block text theme
         banner_text = Text()
-        banner_text.append("Tiny", style=Theme.BRAND_ACCENT)
-        banner_text.append("🔥", style=Theme.BRAND_FLAME)
+        banner_text.append("Tren", style=Theme.BRAND_ACCENT)
+        banner_text.append("⚡️", style=Theme.BRAND_FLAME)
         banner_text.append("TORCH", style=Theme.BRAND_PRIMARY)
         banner_text.append(": Don't import it. Build it.", style=Theme.DIM)
         console.print(Panel(banner_text, style=Theme.BORDER_DEFAULT, padding=(1, 2)))
 
 
 def print_compact_banner():
-    """Print a compact TinyTorch banner with 'Tiny' above TORCH."""
+    """Print a compact TrenTorch banner with 'Tren' above TORCH."""
     console = get_console()
     # Create compact banner text
     banner_text = Text()
-    banner_text.append("Tiny", style=Theme.BRAND_ACCENT)
-    banner_text.append("\n🔥", style=Theme.BRAND_FLAME)
+    banner_text.append("Tren", style=Theme.BRAND_ACCENT)
+    banner_text.append("\n⚡️", style=Theme.BRAND_FLAME)
     banner_text.append("TORCH", style=Theme.BRAND_PRIMARY)
     banner_text.append(": Don't import it. Build it.", style=Theme.DIM)
     console.print(Panel(banner_text, style=Theme.BORDER_DEFAULT, padding=(1, 2)))
@@ -100,19 +100,19 @@ def print_ascii_logo(compact: bool = False):
 
     logo_lines = [
         # Flames positioned above T and H
-        "    🔥                                     🔥",
+        "    ⚡️                                     ⚡️",
         "    ████████╗ ██████╗ ██████╗  ██████╗██╗  ██╗",
         "    ╚T═██╔══╝██╔═══██╗██╔══██╗██╔════╝██║  ██║",
-        "     I ██║   ██║   ██║██████╔╝██║     ███████║",
-        "     N ██║   ██║   ██║██╔══██╗██║     ██╔══██║",
-        "     Y ██║   ╚██████╔╝██║  ██║╚██████╗██║  ██║",
+        "     R ██║   ██║   ██║██████╔╝██║     ███████║",
+        "     E ██║   ██║   ██║██╔══██╗██║     ██╔══██║",
+        "     N ██║   ╚██████╔╝██║  ██║╚██████╗██║  ██║",
         "       ╚═╝    ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝",
     ]
 
     # ============================================
     # COLOR CONFIGURATION - Uses Theme constants
     # ============================================
-    FLAME_COLOR = Theme.BRAND_FLAME  # Color for 🔥 emoji
+    FLAME_COLOR = Theme.BRAND_FLAME  # Color for ⚡️ emoji
     TINY_COLOR = Theme.BRAND_ACCENT  # Color for "tiny" text
     TORCH_COLOR = Theme.BRAND_PRIMARY  # Color for "TORCH" text
     TAGLINE_COLOR = Theme.BRAND_ACCENT  # Color for tagline
@@ -133,7 +133,7 @@ def print_ascii_logo(compact: bool = False):
         logo_text.append("\n")
 
     # Add tagline with flame (aligned under TORCH)
-    logo_text.append("\n           🔥 Don't import it. Build it.", style=TAGLINE_COLOR)
+    logo_text.append("\n           ⚡️ Don't import it. Build it.", style=TAGLINE_COLOR)
     logo_text.append("\n")
 
     # Combine logo and tagline

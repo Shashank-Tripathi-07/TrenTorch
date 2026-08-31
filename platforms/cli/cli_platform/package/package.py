@@ -44,12 +44,12 @@ class PackageCommand(BaseCommand):
                 Panel(
                     "[bold cyan]Package Commands[/bold cyan]\n\n"
                     "Available subcommands:\n"
-                    "  • [bold]reset[/bold]   - Reset tinytorch package to clean state\n"
+                    "  • [bold]reset[/bold]   - Reset trentorch package to clean state\n"
                     "  • [bold]nbdev[/bold]   - nbdev notebook development commands\n\n"
                     "[dim]Examples:[/dim]\n"
-                    "[dim]  tito package reset --force[/dim]\n"
-                    "[dim]  tito package nbdev --export[/dim]\n\n"
-                    "[dim]Note: Use 'tito module export' for exporting modules[/dim]",
+                    "[dim]  tren package reset --force[/dim]\n"
+                    "[dim]  tren package nbdev --export[/dim]\n\n"
+                    "[dim]Note: Use 'tren dev export' for developer module exports[/dim]",
                     title="Package Command Group",
                     border_style="bright_cyan",
                 )

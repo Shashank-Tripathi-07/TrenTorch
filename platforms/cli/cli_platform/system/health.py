@@ -1,5 +1,5 @@
 """
-Health command for TinyTorch CLI: environment health check and validation.
+Health command for Tren⚡️Torch CLI: environment health check and validation.
 """
 
 import os
@@ -32,7 +32,7 @@ class HealthCommand(BaseCommand):
 
         # Run quick health check
         console.print(
-            Panel("💚 TinyTorch Environment Health Check", title="System Health", border_style="bright_green")
+            Panel("💚 TrenTorch Environment Health Check", title="System Health", border_style="bright_green")
         )
         console.print()
 
@@ -246,7 +246,7 @@ class HealthCommand(BaseCommand):
         return 0
 
     def _check_jupyter_kernel(self):
-        """Check if a TinyTorch Jupyter kernel is registered."""
+        """Check if a TrenTorch Jupyter kernel is registered."""
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "jupyter", "kernelspec", "list"],
