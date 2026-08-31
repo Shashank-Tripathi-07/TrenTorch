@@ -201,7 +201,7 @@ def test_generation_speedup_import_error_lists_actual_requirements():
 
 def test_milestone_list_uses_actual_history_start_year():
     env = os.environ.copy()
-    env["TREN_ALLOW_SYSTEM"] = "1"
+    env["TITO_ALLOW_SYSTEM"] = "1"
     result = subprocess.run(
         [sys.executable, "-m", "platforms.cli.main", "milestone", "list", "--simple"],
         cwd=TRENTORCH_ROOT,
