@@ -18,7 +18,7 @@
 __all__ = ['KB_TO_BYTES', 'Tokenizer', 'CharTokenizer', 'BPETokenizer', 'create_tokenizer', 'tokenize_dataset',
            'analyze_tokenization']
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #bddd7f0a
+# %% ../../solutions/10_tokenization/tokenization.ipynb #a89e3f00
 from collections import Counter
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -28,7 +28,7 @@ import numpy as np
 # Constants for memory calculations
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #4e7fe372
+# %% ../../solutions/10_tokenization/tokenization.ipynb #1efede9e
 # Solution
 
 class Tokenizer:
@@ -92,7 +92,7 @@ class Tokenizer:
         )
         ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #68ad8263
+# %% ../../solutions/10_tokenization/tokenization.ipynb #62fd4534
 # Solution
 
 class CharTokenizer(Tokenizer):
@@ -217,7 +217,7 @@ class CharTokenizer(Tokenizer):
         return ''.join(chars)
         ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #49e13448
+# %% ../../solutions/10_tokenization/tokenization.ipynb #973b5a18
 # Solution
 
 def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> Counter:
@@ -257,7 +257,7 @@ def _count_byte_pairs(word_tokens: Dict[str, List[str]], word_freq: Counter) -> 
     return pair_counts
     ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #bfd0e67a
+# %% ../../solutions/10_tokenization/tokenization.ipynb #abd09df0
 # Solution
 
 def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str:
@@ -311,7 +311,7 @@ def _merge_pair(word_tokens: Dict[str, List[str]], pair: Tuple[str, str]) -> str
     return merged_token
     ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #1411753c
+# %% ../../solutions/10_tokenization/tokenization.ipynb #ceb0d1c6
 # Solution
 
 class BPETokenizer(Tokenizer):
@@ -600,7 +600,7 @@ class BPETokenizer(Tokenizer):
         return text
         ### END SOLUTION
 
-# %% ../../solutions/10_tokenization/tokenization.ipynb #18097f74
+# %% ../../solutions/10_tokenization/tokenization.ipynb #441db6c1
 # Solution
 
 def create_tokenizer(strategy: str = "char", vocab_size: int = 1000, corpus: List[str] = None) -> Tokenizer:

@@ -18,7 +18,7 @@
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'KB_TO_BYTES', 'MB_TO_BYTES', 'EmbeddingBackward', 'Embedding', 'PositionalEncoding',
            'create_sinusoidal_embeddings', 'EmbeddingLayer', 'emblayer_forward']
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #4579d4ab
+# %% ../../solutions/11_embeddings/embeddings.ipynb #3236e845
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -37,7 +37,7 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #ff497f6e
+# %% ../../solutions/11_embeddings/embeddings.ipynb #04373dc6
 # Solution
 
 class EmbeddingBackward(Function):
@@ -118,7 +118,7 @@ class EmbeddingBackward(Function):
         return (grad_weight,)
         ### END SOLUTION
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #3395a180
+# %% ../../solutions/11_embeddings/embeddings.ipynb #58a69725
 # Solution
 
 class Embedding:
@@ -219,7 +219,7 @@ class Embedding:
     def __repr__(self):
         return f"Embedding(vocab_size={self.vocab_size}, embed_dim={self.embed_dim})"
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #8207e9d5
+# %% ../../solutions/11_embeddings/embeddings.ipynb #cb580b7a
 # Solution
 
 class PositionalEncoding:
@@ -341,7 +341,7 @@ class PositionalEncoding:
     def __repr__(self):
         return f"PositionalEncoding(max_seq_len={self.max_seq_len}, embed_dim={self.embed_dim})"
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #eecf0e68
+# %% ../../solutions/11_embeddings/embeddings.ipynb #3ab9a2ce
 # Solution
 
 def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
@@ -401,7 +401,7 @@ def _compute_sinusoidal_table(max_len: int, embed_dim: int) -> np.ndarray:
     return pe
     ### END SOLUTION
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #0b08fa19
+# %% ../../solutions/11_embeddings/embeddings.ipynb #45227b9e
 # Solution
 
 def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
@@ -434,7 +434,7 @@ def create_sinusoidal_embeddings(max_seq_len: int, embed_dim: int) -> Tensor:
     return Tensor(pe)
     ### END SOLUTION
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #6eda9041
+# %% ../../solutions/11_embeddings/embeddings.ipynb #32a3bf7c
 # Solution
 
 class EmbeddingLayer:
@@ -520,7 +520,7 @@ class EmbeddingLayer:
                 f"embed_dim={self.embed_dim}, "
                 f"pos_encoding='{self.pos_encoding_type}')")
 
-# %% ../../solutions/11_embeddings/embeddings.ipynb #adc6e295
+# %% ../../solutions/11_embeddings/embeddings.ipynb #e11792c1
 # Solution
 
 # Continue the EmbeddingLayer class with forward and utility methods
