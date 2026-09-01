@@ -311,7 +311,11 @@ class ModuleWorkflowCommand(BaseCommand):
                     for module in completed
                     if str(module).split("_", 1)[0].isdigit()
                 }
-                modules_left = len([r for r in required if r not in completed_nums and r >= module_num])
+                # r >= module_num is always true here: the prerequisite
+                # check above already returned 1 if any module before
+                # module_num was incomplete, so any required r < module_num
+                # is guaranteed to already be in completed_nums.
+                modules_left = len([r for r in required if r not in completed_nums])
                 if modules_left <= 3:
                     info_table.add_row("🏆 Milestone", f"[magenta]{mid} - {mname}[/magenta]")
                     info_table.add_row("", f"[dim]{modules_left} modules until unlock[/dim]")
