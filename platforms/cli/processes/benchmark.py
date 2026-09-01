@@ -349,7 +349,19 @@ class BenchmarkCommand(BaseCommand):
             progress.update(task, description="[cyan]Testing performance...")
             time.sleep(1)  # Simulate benchmark time
 
+        # STILL a placeholder, same as the full-capstone path above: this
+        # score is fixed and doesn't measure anything about the student's
+        # actual code. The 1-second sleep above just paces the spinner, it
+        # isn't running a real benchmark. Warned on-screen (not just in the
+        # saved JSON's "note" field, which nobody reads) so this fallback --
+        # the path *every* student without Module 20 now hits -- doesn't
+        # quietly repeat the exact bug this PR fixes on the other path.
+        console.print(
+            "[yellow]⚠️  Note: this simplified score isn't a real measurement either -- "
+            "it's a fixed placeholder number, not something computed from your code.[/yellow]\n"
+        )
         results = {
+            "placeholder": True,
             "benchmark_type": "capstone_simplified",
             "timestamp": datetime.now().isoformat(),
             "system_info": self._get_system_info(),
