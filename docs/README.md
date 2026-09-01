@@ -23,6 +23,6 @@ Two upstream docs were dropped rather than adapted:
 
 This fork also inherited a community dashboard, progress-sync path, and `tren community`/`tren login` commands from the codebase we forked from; the backend they talked to (`mlsysbook.ai`, Netlify, Supabase) belonged to the original TrenTorch project, not TrenTorch, so they never worked standalone here. That code, along with the Quarto-based docs site it shipped alongside, has since been removed rather than kept as dead code pointing at someone else's infrastructure. Where the docs below still reference this history, it's marked as removed, not upstream-only.
 
-## A note on "TrenTorch" in these docs
+## A note on "TinyTorch" in these docs
 
-These docs still say "TrenTorch" throughout, because that's the actual name of the package, CLI banner text, and class names in this codebase (`import trentorch`, the `tren` CLI, `src/`, `trentorch/core/`). That's accurate, not a leftover to clean up. "TrenTorch" is the name of this project and this repo; "TrenTorch" is still the name of the software it builds.
+These docs still say "TinyTorch" in places, and that's deliberate, not a leftover to clean up. "TinyTorch" is the framework's own pedagogical name, the founding story behind what a student builds (see `tren system logo`) and it's distinct from "TrenTorch," the name of this project and this repo. The actual package and CLI are named separately again: `import trentorch`, the `tren` command, `trentorch/core/`. Three names, three different things: the course's teaching identity, this fork's project identity, and the installed software's own identity.
