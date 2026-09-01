@@ -8,7 +8,7 @@ TrenTorch is an educational ML framework: a local CLI and a from-scratch NumPy-b
 
 Instead, use GitHub's private reporting flow:
 
-1. Go to the [Security tab](https://github.com/Shashank-Tripathi-07/TrenTorch/security)
+1. Go to the [Security tab](https://github.com/TrenTorch/TrenTorch/security)
 2. Click **"Report a vulnerability"**
 3. Describe the issue: what's affected, how to reproduce it, and its impact
 

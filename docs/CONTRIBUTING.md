@@ -16,7 +16,7 @@ TrenTorch is an **educational framework** where every contribution should:
 
 1. **Clone and setup environment**:
    ```bash
-   git clone https://github.com/Shashank-Tripathi-07/TrenTorch.git
+   git clone https://github.com/TrenTorch/TrenTorch.git
    cd TrenTorch
    python3 -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
@@ -35,7 +35,7 @@ TrenTorch is an **educational framework** where every contribution should:
    - `docs/CONTRIBUTING.md` - Development standards (this file)
    - `docs/design.md` - Educational context and teaching approach
    - `README.md` - Repository structure and project overview
-   - the [wiki](https://github.com/Shashank-Tripathi-07/TrenTorch/wiki) - curriculum overview, CLI reference, architecture
+   - the [wiki](https://github.com/TrenTorch/TrenTorch/wiki) - curriculum overview, CLI reference, architecture
 
 ## 🛠️ Types of Contributions
 

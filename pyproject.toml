@@ -74,9 +74,9 @@ doc_baseurl = "/TrenTorch/"
 
 [project.urls]
 Homepage = "https://trentorch.vercel.app"
-Repository = "https://github.com/Shashank-Tripathi-07/TrenTorch"
+Repository = "https://github.com/TrenTorch/TrenTorch"
 Documentation = "https://github.com/ShivtejG236/docs4TrenTorch"
-Issues = "https://github.com/Shashank-Tripathi-07/TrenTorch/issues"
+Issues = "https://github.com/TrenTorch/TrenTorch/issues"
 
 # trentorch's own source now lives at data/trentorch/ (grouped with the
 # rest of the curriculum's generated content), but the installed package

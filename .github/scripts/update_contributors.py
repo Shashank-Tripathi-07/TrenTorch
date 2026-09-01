@@ -20,7 +20,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO = "Shashank-Tripathi-07/TrenTorch"
+REPO = "TrenTorch/TrenTorch"
 ROOT = Path(__file__).resolve().parent.parent.parent
 CONTRIBUTORS_FILE = ROOT / "docs" / "CONTRIBUTORS.md"
 README_FILE = ROOT / "README.md"
@@ -35,9 +35,12 @@ AVATAR_OVERRIDES = {
     "Shashank-Tripathi-07": ".github/assets/rocky-avatar.png",
 }
 
-# Private repo, so shields.io can't query the real GitHub API for a live
-# contributor count (no auth to a private repo) -- this badge is a static
-# image whose count this script keeps in sync manually instead.
+# The repo was private when this script was first written, so shields.io
+# couldn't query the real GitHub API for a live contributor count -- this
+# badge is a static image whose count this script keeps in sync manually
+# instead. Now public (moved to the TrenTorch org), but left as a static
+# badge rather than switching to a live query, since that's an unrelated
+# behavior change from what this script is here to do.
 BADGE_RE = re.compile(
     r"\[!\[Contributors\]\(https://img\.shields\.io/badge/contributors-\d+-orange\.svg\)\]\(docs/CONTRIBUTORS\.md\)"
 )

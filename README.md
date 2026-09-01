@@ -5,7 +5,7 @@
 # Tren⚡Torch
 
 
-[![Validate](https://github.com/Shashank-Tripathi-07/TrenTorch/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/Shashank-Tripathi-07/TrenTorch/actions/workflows/validate.yml)
+[![Validate](https://github.com/TrenTorch/TrenTorch/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/TrenTorch/TrenTorch/actions/workflows/validate.yml)
 [![Contributors](https://img.shields.io/badge/contributors-3-orange.svg)](docs/CONTRIBUTORS.md)
 [![Python](https://img.shields.io/badge/python-3.10+-3776ab?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -109,7 +109,7 @@ A **complete ML framework**, built from zero. No single finish line, a set of mi
 
 **Want to explore the code?** [Browse the repository structure](#repository-structure).
 
-**Adventurous?** Local installation works, but bring a spotter. See the setup notes on the [wiki's Getting Started page](https://github.com/Shashank-Tripathi-07/TrenTorch/wiki/Getting-Started).
+**Adventurous?** Local installation works, but bring a spotter. See the setup notes on the [wiki's Getting Started page](https://github.com/TrenTorch/TrenTorch/wiki/Getting-Started).
 
 ---
 
