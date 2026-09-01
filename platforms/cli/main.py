@@ -67,9 +67,11 @@ from .core.virtual_env_manager import get_venv_path
 def _get_version() -> str:
     """Read version from pyproject.toml."""
     try:
-        # Try to find pyproject.toml relative to this file
-        tito_dir = Path(__file__).parent
-        pyproject_path = tito_dir.parent / "pyproject.toml"
+        # Try to find pyproject.toml relative to this file.
+        # This file lives at platforms/cli/main.py, and pyproject.toml is at
+        # the repo root -- two levels up from this file's own directory, not one.
+        cli_dir = Path(__file__).parent
+        pyproject_path = cli_dir.parent.parent / "pyproject.toml"
         if pyproject_path.exists():
             content = pyproject_path.read_text()
             for line in content.splitlines():
