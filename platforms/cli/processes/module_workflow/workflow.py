@@ -637,7 +637,7 @@ class ModuleWorkflowCommand(BaseCommand):
         celebration_text = Text()
         celebration_text.append(f"You didn't import {component_name}. You BUILT it.\n\n", style="bold green")
         celebration_text.append("What you can do now:\n", style="bold")
-        celebration_text.append(f"  >>> from tinytorch import {component_name}\n", style="cyan")
+        celebration_text.append(f"  >>> from trentorch import {component_name}\n", style="cyan")
         celebration_text.append(f"  >>> # Use your {component_name} implementation!\n\n", style="dim cyan")
 
         # Next module suggestion
