@@ -2,27 +2,22 @@
 TrenTorch Interactive Textual Terminal User Interface (TUI).
 """
 
-import asyncio
 import json
 import os
 import subprocess
 import sys
-from datetime import datetime
-from pathlib import Path
 from typing import Any
 
-from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Grid, Horizontal, ScrollableContainer, Vertical
+from textual.containers import Horizontal, Vertical
 from textual.widgets import (
     Button,
     DataTable,
     Footer,
     Header,
     Label,
-    LoadingIndicator,
     OptionList,
     ProgressBar,
     RichLog,
@@ -30,6 +25,7 @@ from textual.widgets import (
     TabbedContent,
     TabPane,
 )
+from textual.worker import get_current_worker
 
 from platforms.cli.core.config import CLIConfig
 from platforms.cli.core.modules import get_all_module_metadata, get_module_mapping, normalize_module_number
@@ -297,7 +293,9 @@ class TrenTorchApp(App):
                     with Vertical(id="milestone-detail", classes="box-panel"):
                         yield Static(id="milestone-detail-text")
                         with Horizontal():
-                            yield Button("🚀 Run Milestone Script", id="btn-run-milestone", classes="btn-complete")
+                            yield Button(
+                                "🚀 Run Milestone Script", id="btn-run-milestone", classes="btn-complete"
+                            )
                         yield Label("\nMilestone Execution Output:", classes="dim-label")
                         yield RichLog(id="milestone-log", wrap=True, highlight=True, markup=True)
 
@@ -360,7 +358,11 @@ class TrenTorchApp(App):
         for stage_name, mod_nums in MODULE_STAGES.items():
             for num in mod_nums:
                 folder_name = self.module_mapping.get(num, f"{num}_module")
-                display_title = folder_name.split("_", 1)[1].replace("_", " ").title() if "_" in folder_name else folder_name
+                display_title = (
+                    folder_name.split("_", 1)[1].replace("_", " ").title()
+                    if "_" in folder_name
+                    else folder_name
+                )
 
                 if num in completed:
                     badge = "[green]✓ DONE[/green]"
@@ -429,7 +431,11 @@ class TrenTorchApp(App):
 
         is_completed = num in self.progress_data.get("completed_modules", [])
         is_started = num in self.progress_data.get("started_modules", [])
-        status_str = "[bold green]COMPLETED[/bold green]" if is_completed else ("[bold cyan]IN PROGRESS[/bold cyan]" if is_started else "[dim]NOT STARTED[/dim]")
+        status_str = (
+            "[bold green]COMPLETED[/bold green]"
+            if is_completed
+            else ("[bold cyan]IN PROGRESS[/bold cyan]" if is_started else "[dim]NOT STARTED[/dim]")
+        )
 
         header_widget.update(
             f"[bold #38bdf8]Module {num}: {title}[/bold #38bdf8]  • {status_str} •  [dim]({stage_name})[/dim]"
@@ -479,7 +485,11 @@ class TrenTorchApp(App):
         )
 
         table.add_columns("Component", "Status", "Details")
-        table.add_row("Python Version", "✅ PASS", f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+        table.add_row(
+            "Python Version",
+            "✅ PASS",
+            f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        )
         table.add_row("Virtualenv", "✅ ACTIVE" if in_venv else "⚠️ SYSTEM", str(sys.prefix))
 
         # Check core packages
@@ -496,22 +506,29 @@ class TrenTorchApp(App):
         table.add_row(
             "Exported Library (data/trentorch)",
             "✅ FOUND" if tp_path.exists() else "⚠️ NOT EXPORTED",
-            f"{len(list(tp_path.glob('*.py')))} modules exported" if tp_path.exists() else "Run 'tren dev export --all'",
+            f"{len(list(tp_path.glob('*.py')))} modules exported"
+            if tp_path.exists()
+            else "Run 'tren dev export --all'",
         )
 
     # ------------------ ASYNC WORKERS FOR ACTIONS ------------------
 
     @work(exclusive=True, thread=True)
-    def _run_subprocess_worker(self, cmd: list[str], log_widget_id: str = "execution-log", title: str = "Task") -> None:
-        """Run subprocess in a background worker and stream output to RichLog."""
-        if self.is_task_running:
-            self._log("[yellow]⚠️ A task is already running. Please wait...[/yellow]", log_widget_id)
-            return
+    def _run_subprocess_worker(
+        self, cmd: list[str], log_widget_id: str = "execution-log", title: str = "Task"
+    ) -> None:
+        """Run subprocess in a background worker and stream output to RichLog.
 
+        ``exclusive=True`` means a new run cancels the previous one; the
+        cancellation check inside the read loop is what actually stops the
+        subprocess, since worker threads cannot be force-killed.
+        """
+        worker = get_current_worker()
         self.is_task_running = True
         self._log(f"\n[bold #38bdf8]─── {title} ───[/bold #38bdf8]", log_widget_id)
         self._log(f"[dim]$ {' '.join(cmd)}[/dim]\n", log_widget_id)
 
+        process = None
         try:
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
@@ -529,17 +546,25 @@ class TrenTorchApp(App):
 
             if process.stdout:
                 for line in process.stdout:
+                    if worker.is_cancelled:
+                        process.kill()
+                        self._log("[yellow]⚠️ Task cancelled.[/yellow]", log_widget_id)
+                        return
                     self._log(line.rstrip(), log_widget_id)
 
             process.wait()
             rc = process.returncode
             if rc == 0:
-                self._log(f"[bold green]✔ {title} Completed Successfully (exit code 0)[/bold green]", log_widget_id)
+                self._log(
+                    f"[bold green]✔ {title} Completed Successfully (exit code 0)[/bold green]", log_widget_id
+                )
             else:
                 self._log(f"[bold red]✘ {title} Failed (exit code {rc})[/bold red]", log_widget_id)
 
         except Exception as e:
             self._log(f"[bold red]Error executing command: {e}[/bold red]", log_widget_id)
+            if process is not None:
+                process.kill()
         finally:
             self.is_task_running = False
             # Reload progress in case it updated
@@ -559,7 +584,6 @@ class TrenTorchApp(App):
     def action_run_complete(self) -> None:
         """Complete & export current module."""
         num = self.current_module_num
-        folder_name = self.module_mapping.get(num, f"{num}_module")
         cmd = [sys.executable, "-m", "platforms.cli.main", "module", "complete", num]
         self._run_subprocess_worker(cmd, "execution-log", f"Completing & Exporting Module {num}")
 

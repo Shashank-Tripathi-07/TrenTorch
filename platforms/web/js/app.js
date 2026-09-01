@@ -111,6 +111,8 @@ async function fetchBenchmarks() {
     const res = await fetch('/api/benchmarks/quick');
     const data = await res.json();
     renderBenchmarks(data.benchmarks || []);
+    const note = document.getElementById('benchmarkNote');
+    if (note && data.note) note.innerText = data.note;
   } catch (err) {
     console.warn('Failed to fetch benchmarks:', err);
   }
@@ -324,19 +326,19 @@ function drawDagNode(ctx, node) {
 
 function runDagForward() {
   State.dagAnimation.stage = 'forward';
-  document.getElementById('dagStatusInfo').innerText = '▶ Forward Pass: Activations computed from inputs to Loss = 0.1428';
+  document.getElementById('dagStatusInfo').innerText = '▶ Forward pass: activations flow from inputs to the loss node (illustrative values).';
   renderDag();
 }
 
 function runDagBackward() {
   State.dagAnimation.stage = 'backward';
-  document.getElementById('dagStatusInfo').innerText = '⚡ Backward Pass: Gradients propagated via Chain Rule (∂L/∂W₁, ∂L/∂W₂ updated)';
+  document.getElementById('dagStatusInfo').innerText = '⚡ Backward pass: gradients flow back via the chain rule (illustrative values).';
   renderDag();
 }
 
 function resetDag() {
   State.dagAnimation.stage = 'idle';
-  document.getElementById('dagStatusInfo').innerText = 'Graph Ready. Click Forward or Backward pass to trace.';
+  document.getElementById('dagStatusInfo').innerText = 'Illustrative graph. Click Forward or Backward pass to trace the flow.';
   renderDag();
 }
 
@@ -348,6 +350,30 @@ function initAttentionHeatmap() {
 
   const tokens = ['The', 'robot', 'learned', 'to', 'think', 'deeply'];
   const numTokens = tokens.length;
+
+  // Fixed toy embeddings (d = 4). Q = K = these vectors, so the heatmap is a
+  // real causal softmax(QKᵀ / √d), computed here rather than randomised.
+  const embeddings = [
+    [0.9, 0.1, 0.0, 0.2],
+    [0.2, 0.8, 0.1, 0.0],
+    [0.1, 0.3, 0.9, 0.2],
+    [0.0, 0.1, 0.2, 0.7],
+    [0.3, 0.2, 0.6, 0.4],
+    [0.2, 0.5, 0.3, 0.8],
+  ];
+  const d = embeddings[0].length;
+  const scale = Math.sqrt(d);
+  const dot = (a, b) => a.reduce((s, v, k) => s + v * b[k], 0);
+
+  // Row-wise causal softmax of the score matrix.
+  const attn = embeddings.map((qi, i) => {
+    const scores = embeddings.map((kj, j) => (j > i ? -Infinity : dot(qi, kj) / scale));
+    const max = Math.max(...scores.filter(Number.isFinite));
+    const exps = scores.map(s => (Number.isFinite(s) ? Math.exp(s - max) : 0));
+    const sum = exps.reduce((s, v) => s + v, 0) || 1;
+    return exps.map(v => v / sum);
+  });
+
   container.style.gridTemplateColumns = `repeat(${numTokens + 1}, auto)`;
 
   let html = `<div class="heatmap-cell" style="background:transparent"></div>`;
@@ -358,13 +384,10 @@ function initAttentionHeatmap() {
   for (let i = 0; i < numTokens; i++) {
     html += `<div class="heatmap-cell" style="background:transparent; color:var(--accent-cyan); font-weight:bold">${tokens[i]}</div>`;
     for (let j = 0; j < numTokens; j++) {
-      // Softmax attention weight simulation
-      let weight = (i === j) ? 0.65 : ((j === 1 && i > 1) ? 0.45 : (0.05 + Math.random() * 0.1));
-      if (j > i) weight *= 0.1; // Causal mask
-      const norm = Math.min(1.0, weight);
-      const alpha = norm.toFixed(2);
-      const bg = `rgba(139, 92, 246, ${alpha})`;
-      const textCol = alpha > 0.4 ? '#ffffff' : '#94a3b8';
+      const weight = attn[i][j];
+      const alpha = weight.toFixed(2);
+      const bg = `rgba(139, 92, 246, ${Math.min(1, weight)})`;
+      const textCol = weight > 0.4 ? '#ffffff' : '#94a3b8';
 
       html += `<div class="heatmap-cell" style="background:${bg}; color:${textCol}" title="Attention (${tokens[i]} → ${tokens[j]}): ${alpha}">
         ${alpha}
@@ -375,11 +398,21 @@ function initAttentionHeatmap() {
   container.innerHTML = html;
 }
 
+// A fixed 6x6 input tensor so the Conv2D view is deterministic between renders.
+const CONV_INPUT = [
+  [1, 2, 0, 3, 1, 0],
+  [0, 4, 2, 1, 0, 2],
+  [3, 1, 5, 2, 1, 3],
+  [2, 0, 1, 4, 2, 1],
+  [1, 3, 2, 0, 5, 0],
+  [0, 1, 4, 2, 1, 2],
+];
+
 function initConvVisualizer() {
   const container = document.getElementById('convGrid');
   if (!container) return;
 
-  // 6x6 feature map matrix with active 3x3 kernel overlay
+  // 6x6 input tensor with the active 3x3 receptive field (rows/cols 1..3) highlighted.
   container.style.gridTemplateColumns = 'repeat(6, 40px)';
   let html = '';
   for (let r = 0; r < 6; r++) {
@@ -387,8 +420,7 @@ function initConvVisualizer() {
       const inKernel = (r >= 1 && r <= 3 && c >= 1 && c <= 3);
       const bg = inKernel ? 'rgba(56, 189, 248, 0.4)' : 'rgba(255, 255, 255, 0.05)';
       const border = inKernel ? '1px solid var(--accent-cyan)' : '1px solid rgba(255, 255, 255, 0.08)';
-      const val = Math.floor(Math.random() * 9);
-      html += `<div class="heatmap-cell" style="width:38px; height:38px; background:${bg}; border:${border}; color:#e2e8f0">${val}</div>`;
+      html += `<div class="heatmap-cell" style="width:38px; height:38px; background:${bg}; border:${border}; color:#e2e8f0">${CONV_INPUT[r][c]}</div>`;
     }
   }
   container.innerHTML = html;
@@ -414,8 +446,6 @@ function initDigitCanvas() {
     ctx.beginPath();
     ctx.arc(x, y, 14, 0, Math.PI * 2);
     ctx.fill();
-
-    updateDigitPrediction();
   }
 
   canvas.addEventListener('mousedown', e => {
@@ -431,38 +461,26 @@ function initDigitCanvas() {
   document.getElementById('btnClearCanvas')?.addEventListener('click', () => {
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    updateDigitPrediction(true);
   });
 
-  updateDigitPrediction(true);
+  renderDigitPlaceholder();
 }
 
-function updateDigitPrediction(clear = false) {
+// Model inference is not wired into the companion yet, so show an honest
+// placeholder instead of fabricated per-digit confidence scores.
+function renderDigitPlaceholder() {
   const barsContainer = document.getElementById('digitProbBars');
-  if (!barsContainer) return;
-
-  const probs = clear ? Array(10).fill(0.1) : Array(10).fill(0).map((_, i) => (i === 7 ? 0.88 : (Math.random() * 0.05)));
-  const highest = probs.indexOf(Math.max(...probs));
-
-  let html = '';
-  probs.forEach((p, idx) => {
-    const pct = Math.round(p * 100);
-    const isTop = idx === highest && !clear;
-    html += `
-      <div class="bar-row">
-        <span style="width: 20px; font-weight: bold; color: ${isTop ? 'var(--accent-amber)' : 'var(--text-secondary)'}">${idx}</span>
-        <div class="bar-track">
-          <div class="bar-fill ${isTop ? 'highlight' : ''}" style="width: ${pct}%"></div>
-        </div>
-        <span style="width: 38px; text-align: right; color: var(--text-muted)">${pct}%</span>
+  if (barsContainer) {
+    barsContainer.innerHTML = `
+      <div class="log-line dim" style="font-family: var(--font-mono); font-size: 0.8rem;">
+        LeNet-5 inference is not connected to the companion yet.<br>
+        Export Module 09 (Conv2D) and Milestone 04 to enable it.
       </div>
     `;
-  });
-
-  barsContainer.innerHTML = html;
+  }
   const predBadge = document.getElementById('predictedDigitBadge');
   if (predBadge) {
-    predBadge.innerText = clear ? '?' : highest;
+    predBadge.innerText = '—';
   }
 }
 
@@ -571,12 +589,17 @@ function renderBenchmarks(benchmarks) {
   const tableBody = document.getElementById('benchmarkTableBody');
   if (!tableBody) return;
 
-  tableBody.innerHTML = benchmarks.map(b => `
+  tableBody.innerHTML = benchmarks.map(b => {
+    const tren = (b.trentorch_time === null || b.trentorch_time === undefined)
+      ? '<span style="color: var(--text-muted)">not exported</span>'
+      : `${b.trentorch_time} ${b.unit}`;
+    return `
     <tr>
       <td style="font-weight: 600">${b.op}</td>
       <td style="font-family: var(--font-mono); color: var(--accent-cyan)">${b.numpy_time} ${b.unit}</td>
-      <td style="font-family: var(--font-mono); color: var(--accent-emerald); font-weight: bold">${b.trentorch_time} ${b.unit}</td>
+      <td style="font-family: var(--font-mono); color: var(--accent-emerald); font-weight: bold">${tren}</td>
       <td style="font-family: var(--font-mono); color: var(--accent-amber)">${b.throughput_gflops} GFLOPS</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 }

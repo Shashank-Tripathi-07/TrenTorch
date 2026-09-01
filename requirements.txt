@@ -11,6 +11,10 @@ numpy>=2.2.6,<3.0.0
 # Terminal UI - Used by tito CLI and milestone examples
 rich>=15.0.0
 
+# Interactive TUI dashboard - `tren tui` / `tren -i` (optional extra
+# `trentorch[tui]` for end users; installed here so dev + CI exercise it)
+textual>=8.0.0
+
 # Configuration files - Used by tito CLI
 PyYAML>=6.0.3
 

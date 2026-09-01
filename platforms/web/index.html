@@ -11,12 +11,7 @@
   <meta name="description" content="High-performance interactive visualizer for TrenTorch Machine Learning Framework">
   <link rel="icon" type="image/svg+xml" href="/icons/icon-192.svg">
 
-  <!-- Typography -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Styles -->
+  <!-- Styles (self-contained: fonts fall back to the system stack so the PWA works fully offline) -->
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -75,7 +70,7 @@
         <div class="controls-bar">
           <div>
             <h2 class="card-title">🧠 Interactive Autograd Computational Graph</h2>
-            <p class="card-subtitle">Visualize forward tensor activations and backward gradient backpropagation across operational nodes.</p>
+            <p class="card-subtitle">Illustrative reference graph (representative values), not a live trace. Shows how a forward pass and backward pass flow through an MLP.</p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn btn-primary" id="btnDagForward">▶ Forward Pass</button>
@@ -99,7 +94,7 @@
         <!-- Attention Matrix -->
         <div class="card">
           <h2 class="card-title">🔍 Multi-Head Self-Attention Matrix</h2>
-          <p class="card-subtitle">Module 12: Scaled dot-product attention scores A = Softmax(QKᵀ / √d)</p>
+          <p class="card-subtitle">Module 12: real softmax(QKᵀ / √d) with a causal mask, computed in-browser over fixed toy token embeddings.</p>
           <div class="heatmap-container">
             <div class="heatmap-grid" id="attentionGrid"></div>
           </div>
@@ -108,7 +103,7 @@
         <!-- Conv2D Kernel Slider -->
         <div class="card">
           <h2 class="card-title">🖼 Conv2D Spatial Feature Maps</h2>
-          <p class="card-subtitle">Module 09: 3x3 receptive field kernel sliding over input tensor</p>
+          <p class="card-subtitle">Module 09: fixed 6x6 input tensor with the 3x3 receptive field highlighted.</p>
           <div class="heatmap-container">
             <div class="heatmap-grid" id="convGrid"></div>
           </div>
@@ -119,9 +114,9 @@
     <!-- TAB 3: MILESTONE PLAYGROUND -->
     <section class="tab-pane" id="tab-milestones">
       <div class="card">
-        <h2 class="card-title">🎨 Milestone 04: LeNet-5 Digit Recognizer</h2>
-        <p class="card-subtitle">Draw a digit (0–9) below. Your hand-crafted NumPy Conv2D and MLP models run real-time inference!</p>
-        
+        <h2 class="card-title">🎨 Milestone 04: LeNet-5 Digit Canvas</h2>
+        <p class="card-subtitle">Draw a digit (0–9) below. This is the input surface for the LeNet-5 milestone. Model inference is not wired into the companion yet, so no prediction is shown.</p>
+
         <div class="draw-sandbox">
           <div class="canvas-wrapper">
             <canvas id="digitCanvas" width="280" height="280"></canvas>
@@ -130,7 +125,7 @@
           <div class="pred-bars">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <span style="font-weight: 700; color: var(--text-secondary)">Predicted Digit:</span>
-              <span id="predictedDigitBadge" style="font-size: 2rem; font-weight: 800; color: var(--accent-amber)">7</span>
+              <span id="predictedDigitBadge" style="font-size: 2rem; font-weight: 800; color: var(--accent-amber)">—</span>
             </div>
             <div id="digitProbBars"></div>
             <div style="margin-top: 16px;">
@@ -164,15 +159,15 @@
     <section class="tab-pane" id="tab-benchmarks">
       <div class="card">
         <h2 class="card-title">⚡ Operator Throughput & Latency Benchmarks</h2>
-        <p class="card-subtitle">Benchmarking TrenTorch custom operator implementations against pure NumPy baselines.</p>
-        
+        <p class="card-subtitle" id="benchmarkNote">NumPy figures are measured on this machine. TrenTorch figures appear once the matching module is exported to data/trentorch.</p>
+
         <table class="benchmark-table">
           <thead>
             <tr>
               <th>Operator</th>
-              <th>NumPy Baseline</th>
-              <th>TrenTorch Time</th>
-              <th>Throughput</th>
+              <th>NumPy (measured)</th>
+              <th>TrenTorch (measured)</th>
+              <th>Throughput (NumPy)</th>
             </tr>
           </thead>
           <tbody id="benchmarkTableBody"></tbody>

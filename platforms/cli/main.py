@@ -258,7 +258,9 @@ The best way to learn:
         parser.add_argument("--version", action="version", version=f"Tren⚡️Torch v{__version__}")
         parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
         parser.add_argument("--no-color", action="store_true", help="Disable colored output")
-        parser.add_argument("--tui", "-i", action="store_true", help="Launch interactive Textual TUI dashboard")
+        parser.add_argument(
+            "--tui", "-i", action="store_true", help="Launch interactive Textual TUI dashboard"
+        )
 
         # Subcommands
         subparsers = parser.add_subparsers(dest="command", help="Available commands", metavar="COMMAND")
@@ -326,7 +328,9 @@ The best way to learn:
         self.console.print(f"[{Theme.SECTION}]Global Options:[/{Theme.SECTION}]")
         self.console.print(f"  [{Theme.OPTION}]--help, -h[/{Theme.OPTION}]      Show this help message")
         self.console.print(f"  [{Theme.OPTION}]--version[/{Theme.OPTION}]       Show version number")
-        self.console.print(f"  [{Theme.OPTION}]--tui, -i[/{Theme.OPTION}]        Launch interactive TUI dashboard")
+        self.console.print(
+            f"  [{Theme.OPTION}]--tui, -i[/{Theme.OPTION}]        Launch interactive TUI dashboard"
+        )
         self.console.print(f"  [{Theme.OPTION}]--verbose, -v[/{Theme.OPTION}]   Enable verbose output")
         self.console.print(f"  [{Theme.OPTION}]--no-color[/{Theme.OPTION}]      Disable colored output")
         self.console.print()
@@ -388,15 +392,19 @@ The best way to learn:
             if hasattr(parsed_args, "no_color") and parsed_args.no_color:
                 self.config.no_color = True
 
-            # If --tui / -i flag was passed, launch TUI
-            if hasattr(parsed_args, "tui") and parsed_args.tui:
-                return self.commands["tui"](self.config).execute(parsed_args)
+            # --tui / -i is a shortcut for the `tui` subcommand. Route it
+            # through the normal command path so it gets the same venv guard,
+            # environment validation, and banner as `tren tui`.
+            if getattr(parsed_args, "tui", False) and not parsed_args.command:
+                parsed_args.command = "tui"
 
             # Guard against running outside a virtual environment unless explicitly allowed
             if parsed_args.command not in ["setup", None]:
                 # Check both sys.prefix (traditional activation) and VIRTUAL_ENV (direnv/PATH-based)
                 in_venv = sys.prefix != sys.base_prefix or os.environ.get("VIRTUAL_ENV") is not None
-                allow_system = os.environ.get("TREN_ALLOW_SYSTEM") == "1" or os.environ.get("TITO_ALLOW_SYSTEM") == "1"
+                allow_system = (
+                    os.environ.get("TREN_ALLOW_SYSTEM") == "1" or os.environ.get("TITO_ALLOW_SYSTEM") == "1"
+                )
                 if not in_venv and not allow_system:
                     print_error(
                         "TrenTorch must run inside a virtual environment.\n"

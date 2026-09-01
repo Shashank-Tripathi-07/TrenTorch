@@ -27,7 +27,6 @@ classifiers = [
 dependencies = [
     "numpy>=2.2.6,<3.0.0",
     "rich>=15.0.0",
-    "textual>=8.0.0",
     "PyYAML>=6.0.3",
     "pytest>=8.0.0",
 ]
@@ -48,6 +47,9 @@ dev = [
 ]
 visualization = [
     "matplotlib>=3.10.9",  # For plotting in Modules 17, 19, 20
+]
+tui = [
+    "textual>=8.0.0",  # Interactive `tren tui` / `tren -i` dashboard
 ]
 docs = [
     "jupyter-book>=2.1.5,<3.0.0",
