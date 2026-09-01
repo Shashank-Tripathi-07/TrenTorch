@@ -352,7 +352,13 @@ class PreflightCommand(BaseCommand):
         # Check module count
         start = time.time()
         modules_dir = project_root / "data" / "modules"
-        if modules_dir.exists():
+        # is_dir(), not just exists(): the required-dirs loop above already
+        # reports data/modules/ missing-or-not-a-directory as its own FAIL,
+        # but iterdir() on a path that exists as a plain file raises
+        # NotADirectoryError -- this used to crash the whole preflight run
+        # instead of just skipping the module-count check, in exactly the
+        # state the earlier check already flagged as broken.
+        if modules_dir.is_dir():
             module_count = len([d for d in modules_dir.iterdir() if d.is_dir() and d.name[0].isdigit()])
             if module_count >= 15:
                 category.checks.append(
