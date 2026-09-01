@@ -396,7 +396,7 @@ class UpdateCommand(BaseCommand):
         if args.check:
             self.console.print()
             self.console.print("To update, run:")
-            self.console.print("  [cyan]tito system update[/cyan]")
+            self.console.print("  [cyan]tren system update[/cyan]")
             return 0
 
         # Confirm update (unless --yes)

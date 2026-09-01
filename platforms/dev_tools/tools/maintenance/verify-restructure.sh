@@ -145,7 +145,7 @@ if [ $FAILED -eq 0 ]; then
     echo ""
     echo "Next steps:"
     echo "  1. Test website build: cd docs && ./build.sh"
-    echo "  2. Test module workflow: tito module status"
+    echo "  2. Test module workflow: tren module status"
     echo "  3. Run test suite: pytest tests/"
     exit 0
 else

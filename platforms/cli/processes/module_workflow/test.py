@@ -12,7 +12,7 @@ what each test is checking and why it matters.
 
 TESTING PHILOSOPHY:
 ==================
-When a student runs `tito module test 05`, we want them to understand:
+When a student runs `tren module test 05`, we want them to understand:
 1. Does my implementation work? (Inline tests)
 2. Does it handle edge cases? (Module tests with --trentorch)
 3. Does it integrate correctly with previous modules? (Integration tests)
@@ -571,9 +571,9 @@ class ModuleTestCommand(BaseCommand):
                 Panel(
                     "[red]Error: Module number required[/red]\n\n"
                     "[dim]Examples:[/dim]\n"
-                    "[dim]  tito module test 01        # Test module 01[/dim]\n"
-                    "[dim]  tito module test 01 -v     # Test with verbose output[/dim]\n"
-                    "[dim]  tito module test --all     # Test all modules[/dim]",
+                    "[dim]  tren module test 01        # Test module 01[/dim]\n"
+                    "[dim]  tren module test 01 -v     # Test with verbose output[/dim]\n"
+                    "[dim]  tren module test --all     # Test all modules[/dim]",
                     title="Module Number Required",
                     border_style="red",
                 )

@@ -5,7 +5,7 @@ Wraps the project's make-based clean target so tools can call
 Tito instead of raw make commands.
 
 Usage:
-    tito dev clean          Clean all generated files (project root)
+    tren dev clean          Clean all generated files (project root)
 """
 
 import subprocess

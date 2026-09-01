@@ -2,9 +2,9 @@
 Enhanced Module Workflow for TinyTorch CLI.
 
 Implements the natural workflow:
-1. tito module start 01 → Opens module 01 in Jupyter
+1. tren module start 01 → Opens module 01 in Jupyter
 2. Student works and saves
-3. tito module complete 01 → Tests, exports, updates progress
+3. tren module complete 01 → Tests, exports, updates progress
 """
 
 import os
@@ -209,7 +209,7 @@ class ModuleWorkflowCommand(BaseCommand):
         # Check if already started
         if self.is_module_started(normalized):
             self.console.print(f"[yellow]⚠️  Module {normalized} already started[/yellow]")
-            self.console.print(f"💡 Did you mean: [bold cyan]tito module resume {normalized}[/bold cyan]")
+            self.console.print(f"💡 Did you mean: [bold cyan]tren module resume {normalized}[/bold cyan]")
             return 1
 
         # Check prerequisites - all previous modules must be completed
@@ -256,7 +256,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
                 # Show what to do next
                 first_missing = missing_prereqs[0][0]
-                self.console.print(f"💡 Next: [bold cyan]tito module start {first_missing}[/bold cyan]")
+                self.console.print(f"💡 Next: [bold cyan]tren module start {first_missing}[/bold cyan]")
                 self.console.print("   Complete modules in order to build your ML framework progressively")
 
                 return 1
@@ -335,14 +335,14 @@ class ModuleWorkflowCommand(BaseCommand):
         if no_jupyter:
             # CI/testing mode - just create notebook, don't open Jupyter
             self.console.print(f"[green]✅ Module {normalized} ready (notebook created)[/green]")
-            self.console.print(f"💡 Next: [bold cyan]tito module complete {normalized}[/bold cyan]")
+            self.console.print(f"💡 Next: [bold cyan]tren module complete {normalized}[/bold cyan]")
             return 0
 
         # Instructions
         self.console.print("💡 [bold]What to do:[/bold]")
         self.console.print("   1. Work in Jupyter Lab (opening now...)")
         self.console.print("   2. Build your implementation")
-        self.console.print("   3. Run: [bold cyan]tito module complete " + normalized + "[/bold cyan]")
+        self.console.print("   3. Run: [bold cyan]tren module complete " + normalized + "[/bold cyan]")
         self.console.print()
 
         return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
@@ -367,7 +367,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
         if not notebook_file.exists():
             self.console.print(f"[yellow]⚠️  Module {normalized} not started yet[/yellow]")
-            self.console.print(f"💡 Run: [bold cyan]tito module start {normalized}[/bold cyan]")
+            self.console.print(f"💡 Run: [bold cyan]tren module start {normalized}[/bold cyan]")
             return 1
 
         return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
@@ -375,11 +375,11 @@ class ModuleWorkflowCommand(BaseCommand):
     def _create_module_from_src(self, module_name: str) -> bool:
         """Create a module in data/modules/ by converting from src/.
 
-        Uses the same conversion logic as 'tito dev export' but only creates
+        Uses the same conversion logic as 'tren dev export' but only creates
         the student-facing notebook, without exporting to the tinytorch package.
         Full `src/` (including `### BEGIN SOLUTION` ... `### END SOLUTION` blocks) is
         passed through to jupytext so notebooks match the source-of-truth and exports
-        remain consistent for `tito module complete` and CI user-journey.
+        remain consistent for `tren module complete` and CI user-journey.
         """
         from platforms.cli.commands.export_utils import convert_py_to_notebook
 
@@ -429,7 +429,7 @@ class ModuleWorkflowCommand(BaseCommand):
             last_worked = self.get_last_worked_module()
             if not last_worked:
                 self.console.print("[yellow]⚠️  No module to resume[/yellow]")
-                self.console.print("💡 Start with: [bold cyan]tito module start 01[/bold cyan]")
+                self.console.print("💡 Start with: [bold cyan]tren module start 01[/bold cyan]")
                 return 1
             module_number = last_worked
 
@@ -446,7 +446,7 @@ class ModuleWorkflowCommand(BaseCommand):
         # Check if module was started
         if not self.is_module_started(normalized):
             self.console.print(f"[yellow]⚠️  Module {normalized} not started yet[/yellow]")
-            self.console.print(f"💡 Start with: [bold cyan]tito module start {normalized}[/bold cyan]")
+            self.console.print(f"💡 Start with: [bold cyan]tren module start {normalized}[/bold cyan]")
             return 1
 
         # Update last worked
@@ -454,7 +454,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
         self.console.print(f"🔄 Resuming Module {normalized}: {module_name}")
         self.console.print("💡 Continue your work, then run:")
-        self.console.print(f"   [bold cyan]tito module complete {normalized}[/bold cyan]")
+        self.console.print(f"   [bold cyan]tren module complete {normalized}[/bold cyan]")
 
         return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
 
@@ -471,7 +471,7 @@ class ModuleWorkflowCommand(BaseCommand):
             last_worked = self.get_last_worked_module()
             if not last_worked:
                 self.console.print("[yellow]⚠️  No module to complete[/yellow]")
-                self.console.print("💡 Start with: [bold cyan]tito module start 01[/bold cyan]")
+                self.console.print("💡 Start with: [bold cyan]tren module start 01[/bold cyan]")
                 return 1
             module_number = last_worked
 
@@ -493,7 +493,7 @@ class ModuleWorkflowCommand(BaseCommand):
             if prev_num not in completed:
                 self.console.print(f"[red]❌ Cannot complete module {normalized}[/red]")
                 self.console.print(f"[yellow]⚠️  You must complete module {prev_num} first[/yellow]")
-                self.console.print(f"💡 Run: [bold cyan]tito module complete {prev_num}[/bold cyan]")
+                self.console.print(f"💡 Run: [bold cyan]tren module complete {prev_num}[/bold cyan]")
                 return 1
 
         # Header
@@ -646,7 +646,7 @@ class ModuleWorkflowCommand(BaseCommand):
             next_module = module_mapping[next_num]
             next_name = next_module.split("_", 1)[1].title()
             celebration_text.append("💡 Next: ", style="")
-            celebration_text.append(f"tito module start {next_num}", style="bold cyan")
+            celebration_text.append(f"tren module start {next_num}", style="bold cyan")
             celebration_text.append("\n", style="")
             celebration_text.append(f"         Build {next_name}", style="dim")
 
@@ -680,7 +680,7 @@ class ModuleWorkflowCommand(BaseCommand):
         - Rebuilding the full package from existing notebooks
 
         Note: This expects notebooks to exist in data/modules/. For rebuilding
-        from src/, use 'tito dev export --all' instead.
+        from src/, use 'tren dev export --all' instead.
         """
         from rich import box
 
@@ -804,7 +804,7 @@ class ModuleWorkflowCommand(BaseCommand):
         This only runs nbdev_export on the existing notebook.
         It does NOT convert from data/src/*.py (that would overwrite student work).
 
-        Developers who want to rebuild from src/ should use: tito dev export
+        Developers who want to rebuild from src/ should use: tren dev export
         """
         import os
         from pathlib import Path
@@ -1075,8 +1075,8 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print()
         self.console.print(table)
         self.console.print()
-        self.console.print("[dim]Start a module: [bold]tito module start 01[/bold][/dim]")
-        self.console.print("[dim]Check progress: [bold]tito module status[/bold][/dim]")
+        self.console.print("[dim]Start a module: [bold]tren module start 01[/bold][/dim]")
+        self.console.print("[dim]Check progress: [bold]tren module status[/bold][/dim]")
         self.console.print()
 
         return 0
@@ -1183,18 +1183,18 @@ class ModuleWorkflowCommand(BaseCommand):
                 if num == last_worked:
                     status = "🚀 Working"
                     status_style = "yellow bold"
-                    next_action = f"tito module complete {num}"
+                    next_action = f"tren module complete {num}"
                 else:
                     status = "💻 Started"
                     status_style = "cyan"
-                    next_action = f"tito module resume {num}"
+                    next_action = f"tren module resume {num}"
             else:
                 # Check if previous module is completed
                 prev_num = f"{int(num) - 1:02d}"
                 if prev_num in completed or int(num) == 1:
                     status = "⏳ Ready"
                     status_style = "dim"
-                    next_action = f"tito module start {num}"
+                    next_action = f"tren module start {num}"
                 else:
                     status = "🔒 Locked"
                     status_style = "dim"
@@ -1225,20 +1225,20 @@ class ModuleWorkflowCommand(BaseCommand):
         # Next steps
         if last_worked:
             if last_worked not in completed:
-                self.console.print(f"💡 Next: [bold cyan]tito module complete {last_worked}[/bold cyan]")
+                self.console.print(f"💡 Next: [bold cyan]tren module complete {last_worked}[/bold cyan]")
             else:
                 next_num = f"{int(last_worked) + 1:02d}"
                 if next_num in module_mapping:
-                    self.console.print(f"💡 Next: [bold cyan]tito module start {next_num}[/bold cyan]")
+                    self.console.print(f"💡 Next: [bold cyan]tren module start {next_num}[/bold cyan]")
         else:
-            self.console.print("💡 Next: [bold cyan]tito module start 01[/bold cyan]")
+            self.console.print("💡 Next: [bold cyan]tren module start 01[/bold cyan]")
 
         return 0
 
     def _check_milestone_readiness(self, completed_modules: list) -> list:
         """Check which milestones are unlocked or ready.
 
-        Uses the canonical ``MILESTONE_SCRIPTS`` table from ``tito milestone``
+        Uses the canonical ``MILESTONE_SCRIPTS`` table from ``tren milestone``
         so module status, milestone list, and milestone run share one set of
         prerequisites.
         """
@@ -1340,27 +1340,27 @@ class ModuleWorkflowCommand(BaseCommand):
             Panel(
                 "[bold cyan]Module Lifecycle Commands[/bold cyan]\n\n"
                 "[bold]Core Workflow:[/bold]\n"
-                "  [bold green]tito module start 01[/bold green]     - Start working on Module 01 (first time)\n"
-                "  [bold green]tito module view 01[/bold green]      - Open Module 01 notebook\n"
-                "  [bold green]tito module resume 01[/bold green]    - Resume working on Module 01 (continue)\n"
-                "  [bold green]tito module complete 01[/bold green]  - Complete Module 01 (test + export)\n"
-                "  [bold yellow]tito module reset 01[/bold yellow]    - Reset Module 01 to clean state (with backup)\n\n"
+                "  [bold green]tren module start 01[/bold green]     - Start working on Module 01 (first time)\n"
+                "  [bold green]tren module view 01[/bold green]      - Open Module 01 notebook\n"
+                "  [bold green]tren module resume 01[/bold green]    - Resume working on Module 01 (continue)\n"
+                "  [bold green]tren module complete 01[/bold green]  - Complete Module 01 (test + export)\n"
+                "  [bold yellow]tren module reset 01[/bold yellow]    - Reset Module 01 to clean state (with backup)\n\n"
                 "[bold]Smart Defaults:[/bold]\n"
-                "  [bold]tito module resume[/bold]        - Resume last worked module\n"
-                "  [bold]tito module complete[/bold]      - Complete current module\n"
-                "  [bold]tito module status[/bold]        - Show progress with states\n\n"
+                "  [bold]tren module resume[/bold]        - Resume last worked module\n"
+                "  [bold]tren module complete[/bold]      - Complete current module\n"
+                "  [bold]tren module status[/bold]        - Show progress with states\n\n"
                 "[bold]Natural Learning Flow:[/bold]\n"
-                "  1. [dim]tito module start 01[/dim]     → Begin tensors (first time)\n"
+                "  1. [dim]tren module start 01[/dim]     → Begin tensors (first time)\n"
                 "  2. [dim]Work in Jupyter, save[/dim]    → Ctrl+S to save progress\n"
-                "  3. [dim]tito module complete 01[/dim]  → Test, export, track progress\n"
-                "  4. [dim]tito module start 02[/dim]     → Begin activations\n"
-                "  5. [dim]tito module view 02[/dim]      → Just open the notebook\n\n"
+                "  3. [dim]tren module complete 01[/dim]  → Test, export, track progress\n"
+                "  4. [dim]tren module start 02[/dim]     → Begin activations\n"
+                "  5. [dim]tren module view 02[/dim]      → Just open the notebook\n\n"
                 "[bold]Module States:[/bold]\n"
                 "  ⏳ Not started  🚀 In progress  ✅ Completed\n\n"
                 "[bold]Reset Options:[/bold]\n"
-                "  [dim]tito module reset[/dim]         - Prompt for module to reset\n"
-                "  [dim]tito module reset 01[/dim]      - Reset module 01\n"
-                "  [dim]tito module reset --all[/dim]   - Reset all modules (fresh install)",
+                "  [dim]tren module reset[/dim]         - Prompt for module to reset\n"
+                "  [dim]tren module reset 01[/dim]      - Reset module 01\n"
+                "  [dim]tren module reset --all[/dim]   - Reset all modules (fresh install)",
                 title="Module Development Workflow",
                 border_style="bright_cyan",
             )

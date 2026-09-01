@@ -6,7 +6,7 @@ Workflow: data/src/*.py → data/modules/*.ipynb (stub) + data/solutions/*.ipynb
 (reference) → trentorch package files, built from data/solutions/ so the
 package always reflects fully-working code regardless of student progress.
 
-Students should use `tito module complete` which only exports their own
+Students should use `tren module complete` which only exports their own
 notebook work in data/modules/ to the package (without overwriting their
 notebook).
 """
@@ -82,7 +82,7 @@ class DevExportCommand(BaseCommand):
                 "This rebuilds notebooks from data/src/*.py files.\n"
                 "[bold red]Student notebooks in data/modules/ will be OVERWRITTEN![/bold red]\n"
                 "[dim]data/solutions/ (maintainer/CI reference) is also rebuilt.[/dim]\n\n"
-                "[dim]Students: Use 'tito module complete' instead.[/dim]",
+                "[dim]Students: Use 'tren module complete' instead.[/dim]",
                 title="🛠️ Developer Export",
                 border_style="yellow",
             )
@@ -123,10 +123,10 @@ class DevExportCommand(BaseCommand):
                 Panel(
                     "[red]❌ Must specify either module names or --all[/red]\n\n"
                     "[dim]Examples:[/dim]\n"
-                    "[dim]  tito dev export 01[/dim]           (shorthand)\n"
-                    "[dim]  tito dev export 01_tensor[/dim]    (full name)\n"
-                    "[dim]  tito dev export 01 02 03[/dim]     (multiple)\n"
-                    "[dim]  tito dev export --all[/dim]        (all modules)",
+                    "[dim]ren dev export 01[/dim]           (shorthand)\n"
+                    "[dim]  tren dev export 01_tensor[/dim]    (full name)\n"
+                    "[dim]  tren dev export 01 02 03[/dim]     (multiple)\n"
+                    "[dim]  tren dev export --all[/dim]        (all modules)",
                     title="Missing Arguments",
                     border_style="red",
                 )

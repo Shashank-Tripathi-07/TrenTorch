@@ -120,8 +120,8 @@ class ModuleResetCommand(BaseCommand):
                     f"[bold green]✅ Module {normalized} reset successfully![/bold green]\n\n"
                     f"The notebook has been recreated from source.\n\n"
                     f"[bold]Next steps:[/bold]\n"
-                    f"  • [dim]tito module start {normalized}[/dim] - Begin working\n"
-                    f"  • [dim]tito module view {normalized}[/dim] - Open the notebook",
+                    f"  • [dim]tren module start {normalized}[/dim] - Begin working\n"
+                    f"  • [dim]tren module view {normalized}[/dim] - Open the notebook",
                     title="Reset Complete",
                     border_style="green",
                 )
@@ -195,8 +195,8 @@ class ModuleResetCommand(BaseCommand):
                     f"[bold green]✅ All {reset_count} modules reset![/bold green]\n\n"
                     f"You now have a fresh TinyTorch install.\n\n"
                     f"[bold]Next steps:[/bold]\n"
-                    f"  • [dim]tito module start 01[/dim] - Begin your journey\n"
-                    f"  • [dim]tito module status[/dim] - Check status",
+                    f"  • [dim]tren module start 01[/dim] - Begin your journey\n"
+                    f"  • [dim]tren module status[/dim] - Check status",
                     title="Fresh Install State",
                     border_style="green",
                 )

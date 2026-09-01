@@ -67,7 +67,7 @@ class HealthCommand(BaseCommand):
             issues.append("Virtual environment exists but is not activated")
         else:
             venv_status = "[red]❌ Missing[/red]"
-            issues.append("Virtual environment not found — run: tito setup")
+            issues.append("Virtual environment not found — run: tren setup")
         env_table.add_row("Virtual Environment", venv_status)
 
         # Required dependencies (from requirements.txt)
@@ -177,16 +177,27 @@ class HealthCommand(BaseCommand):
         kernel_python = self._get_kernel_python()
         if kernel_python:
             if os.path.realpath(kernel_python) == os.path.realpath(sys.executable):
-                nb_table.add_row("Kernel ↔ tito Python", "[green]✅ Match[/green]", "Same interpreter")
+                nb_table.add_row(
+                    "Kernel ↔ tren Python",
+                    "[green]✅ Match[/green]",
+                    "Same interpreter",
+                )
             else:
-                nb_table.add_row("Kernel ↔ tito Python", "[red]❌ Mismatch[/red]", f"Kernel: {kernel_python}")
+                nb_table.add_row(
+                    "Kernel ↔ tren Python",
+                    "[red]❌ Mismatch[/red]",
+                    f"Kernel: {kernel_python}",
+                )
                 issues.append(
-                    "Jupyter kernel uses a different Python than tito — "
-                    "run: python -m ipykernel install --user --name tinytorch"
+                    "Jupyter kernel uses a different Python than tren — "
+                    "run: python -m ipykernel install --user --name=tinytorch --display-name 'Python (TrenTorch)'"
                 )
         else:
-            nb_table.add_row("Kernel ↔ tito Python", "[dim]○ Skipped[/dim]", "No kernel to check")
-
+            nb_table.add_row(
+                "Kernel ↔ tren Python",
+                "[dim]○ Skipped[/dim]",
+                "No kernel to check",
+            )
         console.print(nb_table)
         console.print()
 
@@ -238,7 +249,7 @@ class HealthCommand(BaseCommand):
         if completed_count < total_count:
             next_modules = [m for m in sorted(module_mapping) if m not in completed]
             if next_modules:
-                status_text += f"\n[dim]Next: tito module start {next_modules[0]}[/dim]"
+                status_text += f"\n[dim]Next: tren module start {next_modules[0]}[/dim]"
         else:
             status_text += "\n[dim]All modules complete![/dim]"
 

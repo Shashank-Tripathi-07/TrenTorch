@@ -68,7 +68,7 @@ class ResetCommand(BaseCommand):
                     "  • [bold]progress[/bold]    - Reset module completion tracking only\n"
                     "  • [bold]milestones[/bold]  - Reset milestone achievements only\n"
                     "  • [bold]config[/bold]      - Reset configuration to defaults\n\n"
-                    "[dim]Example: tito reset progress --backup[/dim]",
+                    "[dim]Example: tren reset progress --backup[/dim]",
                     title="Reset Command Group",
                     border_style="bright_yellow",
                 )
@@ -174,7 +174,7 @@ class ResetCommand(BaseCommand):
                 f"\n✅ Reset complete! Removed {files_removed} generated files.\n", style="bold green"
             )
             reset_text.append("\n💡 Next steps:\n", style="bold yellow")
-            reset_text.append("  • Run: tito module complete 01  - Re-export modules\n", style="white")
+            reset_text.append("  • Run: tren module complete 01  - Re-export modules\n", style="white")
 
             console.print(Panel(reset_text, title="Reset Complete", border_style="green"))
         else:
@@ -263,7 +263,7 @@ class ResetCommand(BaseCommand):
             Panel(
                 "[green]✅ All progress reset![/green]\n\n"
                 "You're ready to start fresh.\\n"
-                "Run: [cyan]tito module start 01[/cyan]",
+                "Run: [cyan]tren module start 01[/cyan]",
                 title="🔄 Reset Complete",
                 border_style="green",
             )
