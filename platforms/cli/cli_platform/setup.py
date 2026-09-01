@@ -1,11 +1,11 @@
 """
-Setup command for Tiny🔥Torch CLI: First-time environment setup and configuration.
+Setup command for Tren⚡️Torch CLI: First-time environment setup and configuration.
 
 This replaces the old 01_setup module with a proper CLI command that handles:
 - Package installation and virtual environment setup
 - Environment validation and compatibility checking
 - User profile creation for development tracking
-- Workspace initialization for Tiny🔥Torch development
+- Workspace initialization for Tren⚡️Torch development
 """
 
 import datetime
@@ -38,7 +38,7 @@ def _print_file_update(console, file_path: Path) -> None:
 
 
 class SetupCommand(BaseCommand):
-    """First-time setup command for Tiny🔥Torch development environment."""
+    """First-time setup command for Tren⚡️Torch development environment."""
 
     @property
     def name(self) -> str:
@@ -51,7 +51,7 @@ class SetupCommand(BaseCommand):
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add setup command arguments."""
         parser.description = (
-            "Set up your Tiny🔥Torch development environment.\n\n"
+            "Set up your Tren⚡️Torch development environment.\n\n"
             "This command is idempotent - safe to run multiple times. "
             "It will skip steps that are already complete and only set up what's missing.\n\n"
             "Steps performed:\n"
@@ -114,8 +114,8 @@ class SetupCommand(BaseCommand):
             return False
 
     def install_packages(self) -> bool:
-        """Install required packages for Tiny🔥Torch development."""
-        # Essential packages for TinyTorch
+        """Install required packages for Tren⚡️Torch development."""
+        # Essential packages for Tren⚡️Torch
         packages = [
             ("numpy", "numpy>=1.21.0"),
             ("jupyter", "jupyter>=1.0.0"),
@@ -192,13 +192,13 @@ class SetupCommand(BaseCommand):
         is_windows = platform.system() == "Windows"
         if is_windows and self._check_package_installed("trentorch"):
             self.console.print(
-                "[green]✅ Tiny🔥Torch already installed (skipping reinstall on Windows)[/green]"
+                "[green]✅ Tren⚡️Torch already installed (skipping reinstall on Windows)[/green]"
             )
         else:
             with Progress(
                 SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=self.console
             ) as progress:
-                task = progress.add_task("Installing Tiny🔥Torch in development mode...", total=None)
+                task = progress.add_task("Installing Tren⚡️Torch in development mode...", total=None)
 
                 try:
                     result = subprocess.run(
@@ -212,15 +212,15 @@ class SetupCommand(BaseCommand):
                     )
 
                     if result.returncode == 0:
-                        progress.update(task, description="[green]✅ Tiny🔥Torch installed[/green]")
+                        progress.update(task, description="[green]✅ Tren⚡️Torch installed[/green]")
                     else:
-                        progress.update(task, description="[red]❌ Tiny🔥Torch install failed[/red]")
-                        self.console.print(f"[red]Failed to install Tiny🔥Torch: {result.stderr}[/red]")
+                        progress.update(task, description="[red]❌ Tren⚡️Torch install failed[/red]")
+                        self.console.print(f"[red]Failed to install Tren⚡️Torch: {result.stderr}[/red]")
                         return False
 
                 except Exception as e:
-                    progress.update(task, description="[red]❌ Tiny🔥Torch error[/red]")
-                    self.console.print(f"[red]Error installing Tiny🔥Torch: {e}[/red]")
+                    progress.update(task, description="[red]❌ Tren⚡️Torch error[/red]")
+                    self.console.print(f"[red]Error installing Tren⚡️Torch: {e}[/red]")
                     return False
 
         # Register Jupyter kernel so notebooks use this Python environment
@@ -269,7 +269,7 @@ class SetupCommand(BaseCommand):
         return True
 
     def create_virtual_environment(self, force: bool = False) -> bool:
-        """Create a virtual environment for Tiny🔥Torch development.
+        """Create a virtual environment for Tren⚡️Torch development.
 
         Args:
             force: If True, recreate even if venv exists (after user confirmation).
@@ -413,10 +413,10 @@ class SetupCommand(BaseCommand):
                 self.console.print("[green]✅ Keeping existing profile[/green]")
                 return existing_profile
 
-        self.console.print("👋 Creating your Tiny🔥Torch development profile...")
+        self.console.print("👋 Creating your Tren⚡️Torch development profile...")
 
         # Collect user information
-        name = Prompt.ask("Your name", default="Tiny🔥Torch Developer")
+        name = Prompt.ask("Your name", default="Tren⚡️Torch Developer")
         email = Prompt.ask("Your email (optional)", default="dev@tinytorch.local")
         affiliation = Prompt.ask("Your affiliation (university, company, etc.)", default="Independent")
 
@@ -536,38 +536,38 @@ class SetupCommand(BaseCommand):
     def print_success_message(self, profile: dict[str, Any]) -> None:
         """Print success message with next steps."""
         success_text = Text()
-        success_text.append("🎉 Tiny🔥Torch setup completed successfully!\n\n", style="bold green")
+        success_text.append("🎉 Tren⚡️Torch setup completed successfully!\n\n", style="bold green")
         success_text.append(f"👋 Welcome, {profile['name']}!\n", style="bold")
         success_text.append(f"📧 Email: {profile['email']}\n", style="dim")
         success_text.append(f"🏢 Affiliation: {profile['affiliation']}\n", style="dim")
         success_text.append(f"💻 Platform: {profile['platform']}\n", style="dim")
         success_text.append(f"🐍 Python: {profile['python_version']}\n\n", style="dim")
 
-        success_text.append("🔥 Activate your environment:\n\n", style="bold yellow")
+        success_text.append("⚡️ Activate your environment:\n\n", style="bold yellow")
         success_text.append("  source .venv/bin/activate", style="bold cyan")
         success_text.append("  # On Windows: .venv\\Scripts\\activate\n\n", style="dim")
 
         success_text.append("🚀 Start building ML systems:\n\n", style="bold green")
-        success_text.append("  tito module start 01", style="bold green")
+        success_text.append("  tren module start 01", style="bold green")
         success_text.append("  # Begin with tensor foundations\n\n", style="dim")
 
         success_text.append("💡 Essential commands:\n", style="bold")
         success_text.append("  • ", style="dim")
-        success_text.append("tito system health", style="green")
+        success_text.append("tren system health", style="green")
         success_text.append(" - Check environment\n", style="dim")
         success_text.append("  • ", style="dim")
-        success_text.append("tito module status", style="green")
+        success_text.append("tren module status", style="green")
         success_text.append(" - Track progress\n", style="dim")
 
-        self.console.print(Panel(success_text, title="🔥 Tiny🔥Torch Setup Complete!", border_style="green"))
+        self.console.print(Panel(success_text, title="⚡️ Tren⚡️Torch Setup Complete!", border_style="green"))
 
     def run(self, args: Namespace) -> int:
         """Execute the setup command."""
         self.console.print(
             Panel(
-                "🔥 Tiny🔥Torch First-Time Setup\n\n"
+                "⚡️ Tren⚡️Torch First-Time Setup\n\n"
                 "This will configure your development environment for building ML systems from scratch.",
-                title="Welcome to Tiny🔥Torch!",
+                title="Welcome to Tren⚡️Torch!",
                 border_style="bright_green",
             )
         )
@@ -625,7 +625,7 @@ class SetupCommand(BaseCommand):
                 self.print_success_message(profile)
             else:
                 self.console.print("[green]✅ Setup completed successfully![/green]")
-                self.console.print("💡 Try: [bold]tito module start 01[/bold]")
+                self.console.print("💡 Try: [bold]tren module start 01[/bold]")
 
             return 0
 

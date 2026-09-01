@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrenTorch | Interactive Deep Learning Systems Visualizer</title>
+  
+  <!-- PWA Meta -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#8b5cf6">
+  <meta name="description" content="High-performance interactive visualizer for TrenTorch Machine Learning Framework">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon-192.svg">
+
+  <!-- Styles (self-contained: fonts fall back to the system stack so the PWA works fully offline) -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <svg class="brand-logo" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="hdrBolt" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f59e0b" />
+            <stop offset="50%" stop-color="#ec4899" />
+            <stop offset="100%" stop-color="#8b5cf6" />
+          </linearGradient>
+        </defs>
+        <path d="M290 48 L144 272 L256 272 L222 464 L368 240 L256 240 Z" fill="url(#hdrBolt)" />
+      </svg>
+      <span class="brand-title">Tren⚡️Torch</span>
+      <span class="brand-badge">COMPANION</span>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-links">
+      <button class="nav-btn active" data-tab="autograd">
+        <span>🧠</span> Autograd DAG
+      </button>
+      <button class="nav-btn" data-tab="matrices">
+        <span>🔍</span> Attention & Conv2D
+      </button>
+      <button class="nav-btn" data-tab="milestones">
+        <span>🎨</span> Milestone Playground
+      </button>
+      <button class="nav-btn" data-tab="modules">
+        <span>📦</span> 20 Modules & Tests
+      </button>
+      <button class="nav-btn" data-tab="benchmarks">
+        <span>⚡</span> Benchmarks
+      </button>
+    </nav>
+
+    <!-- Header Status -->
+    <div class="header-status">
+      <div class="status-pill" id="headerStatusPill">
+        <span class="status-dot"></span>
+        <span>Connecting to local bridge...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- TAB 1: AUTOGRAD COMPUTATIONAL DAG -->
+    <section class="tab-pane active" id="tab-autograd">
+      <div class="card">
+        <div class="controls-bar">
+          <div>
+            <h2 class="card-title">🧠 Interactive Autograd Computational Graph</h2>
+            <p class="card-subtitle">Illustrative reference graph (representative values), not a live trace. Shows how a forward pass and backward pass flow through an MLP.</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-primary" id="btnDagForward">▶ Forward Pass</button>
+            <button class="btn btn-amber" id="btnDagBackward">⚡ Backward Pass (Gradients)</button>
+            <button class="btn btn-secondary" id="btnDagReset">🔄 Reset</button>
+          </div>
+        </div>
+
+        <div class="dag-container">
+          <canvas id="dagCanvas"></canvas>
+          <div class="dag-overlay-info" id="dagStatusInfo">
+            Graph Ready. Click Forward or Backward pass to trace data and gradient flow.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: ATTENTION & CONV2D MATRIX -->
+    <section class="tab-pane" id="tab-matrices">
+      <div class="grid-2col">
+        <!-- Attention Matrix -->
+        <div class="card">
+          <h2 class="card-title">🔍 Multi-Head Self-Attention Matrix</h2>
+          <p class="card-subtitle">Module 12: real softmax(QKᵀ / √d) with a causal mask, computed in-browser over fixed toy token embeddings.</p>
+          <div class="heatmap-container">
+            <div class="heatmap-grid" id="attentionGrid"></div>
+          </div>
+        </div>
+
+        <!-- Conv2D Kernel Slider -->
+        <div class="card">
+          <h2 class="card-title">🖼 Conv2D Spatial Feature Maps</h2>
+          <p class="card-subtitle">Module 09: fixed 6x6 input tensor with the 3x3 receptive field highlighted.</p>
+          <div class="heatmap-container">
+            <div class="heatmap-grid" id="convGrid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: MILESTONE PLAYGROUND -->
+    <section class="tab-pane" id="tab-milestones">
+      <div class="card">
+        <h2 class="card-title">🎨 Milestone 04: LeNet-5 Digit Canvas</h2>
+        <p class="card-subtitle">Draw a digit (0–9) below. This is the input surface for the LeNet-5 milestone. Model inference is not wired into the companion yet, so no prediction is shown.</p>
+
+        <div class="draw-sandbox">
+          <div class="canvas-wrapper">
+            <canvas id="digitCanvas" width="280" height="280"></canvas>
+          </div>
+
+          <div class="pred-bars">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-weight: 700; color: var(--text-secondary)">Predicted Digit:</span>
+              <span id="predictedDigitBadge" style="font-size: 2rem; font-weight: 800; color: var(--accent-amber)">—</span>
+            </div>
+            <div id="digitProbBars"></div>
+            <div style="margin-top: 16px;">
+              <button class="btn btn-secondary" id="btnClearCanvas">🗑 Clear Canvas</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: 20 MODULES & TEST RUNNER -->
+    <section class="tab-pane" id="tab-modules">
+      <!-- Live Terminal Console -->
+      <div class="card" style="margin-bottom: 24px;">
+        <h2 class="card-title">📟 Live Test & Export Console</h2>
+        <p class="card-subtitle">Real-time pytest execution stream directly from your local Python environment via Server-Sent Events (SSE).</p>
+        <div class="terminal-window" id="terminalOutput">
+          <div class="log-line dim">Select any module below to trigger tests or export code to data/trentorch.</div>
+        </div>
+      </div>
+
+      <!-- Modules Matrix -->
+      <div class="card">
+        <h2 class="card-title">📦 20 Progressive Modules Curriculum</h2>
+        <p class="card-subtitle">Track your implementation journey from raw Tensors to full Capstone Transformers.</p>
+        <div class="modules-matrix" id="modulesMatrix"></div>
+      </div>
+    </section>
+
+    <!-- TAB 5: BENCHMARKS -->
+    <section class="tab-pane" id="tab-benchmarks">
+      <div class="card">
+        <h2 class="card-title">⚡ Operator Throughput & Latency Benchmarks</h2>
+        <p class="card-subtitle" id="benchmarkNote">NumPy figures are measured on this machine. TrenTorch figures appear once the matching module is exported to data/trentorch.</p>
+
+        <table class="benchmark-table">
+          <thead>
+            <tr>
+              <th>Operator</th>
+              <th>NumPy (measured)</th>
+              <th>TrenTorch (measured)</th>
+              <th>Throughput (NumPy)</th>
+            </tr>
+          </thead>
+          <tbody id="benchmarkTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="/js/app.js"></script>
+</body>
+</html>

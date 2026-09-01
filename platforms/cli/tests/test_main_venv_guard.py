@@ -4,26 +4,19 @@ MC/DC coverage for TrenTorchCLI.run()'s virtual-environment guard.
 Every `tren` command other than `setup` (and no-command) is gated by:
 
     in_venv = sys.prefix != sys.base_prefix or os.environ.get("VIRTUAL_ENV") is not None
-    allow_system = os.environ.get("TITO_ALLOW_SYSTEM") == "1"
+    allow_system = (
+        os.environ.get("TREN_ALLOW_SYSTEM") == "1" or os.environ.get("TITO_ALLOW_SYSTEM") == "1"
+    )
     if not in_venv and not allow_system:
         ... return 1
 
-three independent atomic conditions (call them A, B, C). This is the single
-highest-traffic decision in the whole CLI -- it runs on every invocation of
-every command -- and had no dedicated test before this.
+three independent atomic conditions (call them A, B, C -- C being "either
+escape-hatch variable is set to 1"). This is the single highest-traffic
+decision in the whole CLI -- it runs on every invocation of every command.
 
-While writing this, found a real (if currently harmless) instance of the
-project's own documented rename-migration bug pattern (section 6 of
-docs/testing-strategy.md, the `tito` -> `trentorch` renames): three test
-files (platforms/cli/tests/test_release_regressions.py,
-tests/e2e/test_user_journey.py, data/milestones/tests/test_milestones_run.py)
-set `TREN_ALLOW_SYSTEM=1` in the subprocess env expecting it to be this
-escape hatch, but this code (and every doc describing it, and both CI
-workflow files) has only ever read `TITO_ALLOW_SYSTEM`. It doesn't fail any
-test today only because those subprocess calls already run with
-sys.executable pointing at an activated venv, so A is independently True
-and C's value never gets exercised. Fixed those three call sites to set the
-name this guard actually reads.
+The escape hatch is spelled `TREN_ALLOW_SYSTEM` after the `tito` -> `tren`
+rename, with the old `TITO_ALLOW_SYSTEM` kept as a backward-compatible
+alias. Both names are pinned below so a future rename has to be deliberate.
 
 Four cases give real MC/DC: a "blocked" baseline (A=F, B=F, C=F) plus each
 condition flipped alone (each flip alone must move the outcome to
@@ -59,7 +52,9 @@ def cli(monkeypatch):
     return app
 
 
-def _set_conditions(monkeypatch, *, differing_prefix, virtual_env_set, allow_system_set):
+def _set_conditions(
+    monkeypatch, *, differing_prefix, virtual_env_set, allow_system_set, allow_system_var="TREN_ALLOW_SYSTEM"
+):
     if differing_prefix:
         monkeypatch.setattr(sys, "prefix", "/fake/venv")
         monkeypatch.setattr(sys, "base_prefix", "/fake/system")
@@ -72,10 +67,11 @@ def _set_conditions(monkeypatch, *, differing_prefix, virtual_env_set, allow_sys
     else:
         monkeypatch.delenv("VIRTUAL_ENV", raising=False)
 
+    # Both escape-hatch names must be absent for C to be independently False.
+    monkeypatch.delenv("TREN_ALLOW_SYSTEM", raising=False)
+    monkeypatch.delenv("TITO_ALLOW_SYSTEM", raising=False)
     if allow_system_set:
-        monkeypatch.setenv("TITO_ALLOW_SYSTEM", "1")
-    else:
-        monkeypatch.delenv("TITO_ALLOW_SYSTEM", raising=False)
+        monkeypatch.setenv(allow_system_var, "1")
 
 
 def test_no_venv_signal_and_no_override_is_blocked(cli, monkeypatch, capsys):
@@ -105,10 +101,17 @@ def test_virtual_env_var_alone_is_allowed(cli, monkeypatch):
     assert cli.run(["module"]) == 0
 
 
-def test_allow_system_alone_is_allowed(cli, monkeypatch):
+@pytest.mark.parametrize("allow_system_var", ["TREN_ALLOW_SYSTEM", "TITO_ALLOW_SYSTEM"])
+def test_allow_system_alone_is_allowed(cli, monkeypatch, allow_system_var):
     """A=False, B=False, C=True -> allowed. Paired with the baseline: only
-    C differs, isolating TITO_ALLOW_SYSTEM's effect."""
-    _set_conditions(monkeypatch, differing_prefix=False, virtual_env_set=False, allow_system_set=True)
+    C differs. Runs once per escape-hatch name (new + legacy alias)."""
+    _set_conditions(
+        monkeypatch,
+        differing_prefix=False,
+        virtual_env_set=False,
+        allow_system_set=True,
+        allow_system_var=allow_system_var,
+    )
 
     assert cli.run(["module"]) == 0
 
@@ -129,6 +132,7 @@ def test_setup_command_bypasses_the_guard_entirely(monkeypatch):
     monkeypatch.setattr(sys, "prefix", "/fake/same")
     monkeypatch.setattr(sys, "base_prefix", "/fake/same")
     monkeypatch.delenv("VIRTUAL_ENV", raising=False)
+    monkeypatch.delenv("TREN_ALLOW_SYSTEM", raising=False)
     monkeypatch.delenv("TITO_ALLOW_SYSTEM", raising=False)
 
     assert app.run(["setup"]) == 0
@@ -136,16 +140,16 @@ def test_setup_command_bypasses_the_guard_entirely(monkeypatch):
 
 
 def test_os_environ_get_matches_the_name_used_everywhere_else():
-    """Documents the migration-name gap directly: os.environ has no
-    built-in tie to what a test file happens to set, so this pins the
-    literal env var name main.py reads, the same way section 6 of
-    docs/testing-strategy.md pins check_tinytorch_package()'s `import
-    tito` regression -- a future rename of this variable should have to
-    touch this assertion on purpose."""
+    """Pins the literal env var names main.py reads, the same way section 6
+    of docs/testing-strategy.md pins check_tinytorch_package()'s `import
+    tito` regression. After the `tito` -> `tren` rename the guard accepts
+    `TREN_ALLOW_SYSTEM` (primary) and keeps `TITO_ALLOW_SYSTEM` as a
+    backward-compatible alias -- a future rename should have to touch this
+    assertion on purpose."""
     import inspect
 
     from platforms.cli import main as main_module
 
     source = inspect.getsource(main_module.TrenTorchCLI.run)
+    assert 'os.environ.get("TREN_ALLOW_SYSTEM")' in source
     assert 'os.environ.get("TITO_ALLOW_SYSTEM")' in source
-    assert "TREN_ALLOW_SYSTEM" not in source

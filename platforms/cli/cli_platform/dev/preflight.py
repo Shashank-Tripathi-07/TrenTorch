@@ -1,14 +1,14 @@
 """
-Preflight checks for TinyTorch development and releases.
+Preflight checks for TrenTorch development and releases.
 
 This command runs comprehensive verification before commits, PRs, or releases.
 The same checks can be used in CI/CD pipelines.
 
 Usage:
-    tito dev preflight              # Standard preflight (quick + structure)
-    tito dev preflight --full       # Full validation (includes module tests)
-    tito dev preflight --release    # Release validation (comprehensive)
-    tito dev preflight --ci         # CI mode (non-interactive, exit codes)
+    tren dev preflight              # Standard preflight (quick + structure)
+    tren dev preflight --full       # Full validation (includes module tests)
+    tren dev preflight --release    # Release validation (comprehensive)
+    tren dev preflight --ci         # CI mode (non-interactive, exit codes)
 """
 
 import json
@@ -488,7 +488,7 @@ class PreflightCommand(BaseCommand):
                     CheckResult(
                         name=name,
                         status=CheckStatus.FAIL if is_critical else CheckStatus.WARN,
-                        message="Import failed - run: tito dev export --all"
+                        message="Import failed - run: tren dev export --all"
                         if is_critical
                         else "Import failed (may need export)",
                         duration_ms=duration,
@@ -913,8 +913,8 @@ class PreflightCommand(BaseCommand):
         if not is_ci:
             if all_passed:
                 if level == "quick":
-                    console.print("\n[dim]💡 For thorough validation: tito dev preflight --full[/dim]")
+                    console.print("\n[dim]💡 For thorough validation: tren dev preflight --full[/dim]")
                 elif level == "standard":
-                    console.print("\n[dim]💡 For release validation: tito dev preflight --release[/dim]")
+                    console.print("\n[dim]💡 For release validation: tren dev preflight --release[/dim]")
             else:
-                console.print("\n[dim]💡 Fix issues and re-run: tito dev preflight[/dim]")
+                console.print("\n[dim]💡 Fix issues and re-run: tren dev preflight[/dim]")
