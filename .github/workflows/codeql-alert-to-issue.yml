@@ -2,66 +2,85 @@ name: 'Open an Issue for New Code Scanning Alerts'
 
 # Alert #3 (the CORS header-injection finding, py/http-response-splitting)
 # sat in the Security tab until someone happened to go look. This opens a
-# tracking issue automatically the moment CodeQL reports a *new* alert
-# that's actually live on main (not a transient finding on someone's PR
-# branch -- those already surface through the PR's own CodeQL check).
-# Dedups against existing open "security" issues so a re-run doesn't spam
-# duplicates for the same alert number.
+# tracking issue automatically for any open CodeQL alert on main that
+# doesn't already have one. Dedups against existing open "security" issues
+# so a re-run doesn't spam duplicates for the same alert number.
+#
+# Originally triggered by the `code_scanning_alert` webhook event, but
+# that failed to schedule on every single push (13/13 failures, confirmed
+# via the Actions run history) -- GitHub Free-tier orgs have known gaps
+# in support for that specific event as an Actions trigger. A scheduled
+# poll against the code-scanning/alerts API sidesteps that entirely and
+# is directly testable via workflow_dispatch, unlike a trigger that fails
+# silently.
 
 on:
-  code_scanning_alert:
-    types: [created]
+  schedule:
+    - cron: '17 */6 * * *'  # every 6 hours, minute offset from :00
+  workflow_dispatch: {}
 
 permissions:
+  contents: read
   issues: write
   security-events: read
 
 jobs:
   open-issue:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const alert = context.payload.alert;
-            const ref = alert.most_recent_instance?.ref || "";
-            if (!ref.endsWith("/main")) {
-              console.log(`Alert ref is "${ref}", not main -- skipping. PR-branch alerts already show up on that PR's own CodeQL check.`);
+            const { data: alerts } = await github.rest.codeScanning.listAlertsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              ref: "refs/heads/main",
+            });
+
+            if (alerts.length === 0) {
+              console.log("No open code scanning alerts on main.");
               return;
             }
 
-            const marker = `CodeQL alert #${alert.number}`;
             const { data: openIssues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: "open",
               labels: "security",
             });
-            if (openIssues.some((i) => i.title.includes(marker) || (i.body || "").includes(marker))) {
-              console.log("An open issue already tracks this alert, skipping.");
-              return;
+            const alreadyTracked = (marker) =>
+              openIssues.some((i) => i.title.includes(marker) || (i.body || "").includes(marker));
+
+            for (const alert of alerts) {
+              const marker = `CodeQL alert #${alert.number}`;
+              if (alreadyTracked(marker)) {
+                console.log(`${marker}: already tracked, skipping.`);
+                continue;
+              }
+
+              const rule = alert.rule || {};
+              const loc = alert.most_recent_instance?.location || {};
+              const severity = rule.security_severity_level || rule.severity || "unknown";
+
+              const title = `Security: ${rule.description || rule.id} (${marker})`;
+              const body = [
+                `An open CodeQL code scanning alert on \`main\` has no tracking issue yet.`,
+                ``,
+                `**Rule:** \`${rule.id}\` (severity: ${severity})`,
+                `**Location:** \`${loc.path || "unknown"}\`${loc.start_line ? `:${loc.start_line}` : ""}`,
+                `**Alert:** ${alert.html_url}`,
+                ``,
+                rule.full_description || rule.description || "",
+              ].join("\n");
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ["security"],
+              });
+              console.log(`${marker}: opened a new tracking issue.`);
             }
-
-            const rule = alert.rule || {};
-            const loc = alert.most_recent_instance?.location || {};
-            const severity = rule.security_severity_level || rule.severity || "unknown";
-
-            const title = `Security: ${rule.description || rule.id} (${marker})`;
-            const body = [
-              `A new CodeQL code scanning alert appeared on \`main\`.`,
-              ``,
-              `**Rule:** \`${rule.id}\` (severity: ${severity})`,
-              `**Location:** \`${loc.path || "unknown"}\`${loc.start_line ? `:${loc.start_line}` : ""}`,
-              `**Alert:** ${alert.html_url}`,
-              ``,
-              rule.full_description || rule.description || "",
-            ].join("\n");
-
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title,
-              body,
-              labels: ["security"],
-            });
