@@ -336,9 +336,7 @@ class ModuleTestCommand(BaseCommand):
         console.print()
 
         short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-        notebook_path = (
-            self.config.project_root / "data" / "modules" / module_name / f"{short_name}.ipynb"
-        )
+        notebook_path = self.config.project_root / "data" / "modules" / module_name / f"{short_name}.ipynb"
 
         if not notebook_path.exists():
             console.print(f"[red]✗ Notebook not found: {notebook_path}[/red]")
