@@ -51,9 +51,10 @@ git push origin your-github-username/your-improvement
 ## Testing
 
 ```bash
-pytest tests/NN_name/       # e.g. pytest tests/01_tensor/
-tren module test NN         # e.g. tren module test 01
-pytest tests/integration/
+tren module test NN         # e.g. tren module test 01 -- one module's own tests
+pytest tests/integration/    # cross-module integration tests
+pytest tests/                # everything: integration, regression, e2e
+pytest platforms/cli/tests/  # the tren CLI's own test suite
 ```
 
 CI (`.github/workflows/validate.yml`) has to be green before a PR merges — see it run on your own PR rather than only trusting local results.
