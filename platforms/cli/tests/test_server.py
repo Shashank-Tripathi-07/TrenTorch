@@ -153,16 +153,22 @@ def test_server_api_endpoints(running_server):
 def test_status_field_completeness(running_server):
     """Every key the Web UI depends on must be present in /api/status."""
     expected_keys = {
-        "title", "version", "total_modules", "completed_count",
-        "completed_modules", "started_modules", "completion_percentage",
-        "python_version", "in_venv", "library_exported", "last_updated",
+        "title",
+        "version",
+        "total_modules",
+        "completed_count",
+        "completed_modules",
+        "started_modules",
+        "completion_percentage",
+        "python_version",
+        "in_venv",
+        "library_exported",
+        "last_updated",
     }
     with urllib.request.urlopen(f"{running_server}/api/status") as resp:
         data = json.loads(resp.read().decode("utf-8"))
 
-    assert expected_keys <= data.keys(), (
-        f"Missing keys in /api/status: {expected_keys - data.keys()}"
-    )
+    assert expected_keys <= data.keys(), f"Missing keys in /api/status: {expected_keys - data.keys()}"
     # Type sanity — values must match what the front-end consumes
     assert isinstance(data["total_modules"], int)
     assert isinstance(data["completed_count"], int)
@@ -176,8 +182,14 @@ def test_status_field_completeness(running_server):
 def test_modules_field_completeness(running_server):
     """Each module object must carry the full set of fields the UI renders."""
     required_fields = {
-        "id", "folder", "title", "stage", "description",
-        "status", "source_path", "notebook_path",
+        "id",
+        "folder",
+        "title",
+        "stage",
+        "description",
+        "status",
+        "source_path",
+        "notebook_path",
     }
     valid_statuses = {"not_started", "in_progress", "completed"}
 
@@ -206,8 +218,14 @@ def test_modules_field_completeness(running_server):
 def test_milestones_field_completeness(running_server):
     """Each milestone object must carry the full set of fields the UI renders."""
     required_fields = {
-        "id", "name", "year", "title", "emoji",
-        "description", "required_modules", "is_unlocked",
+        "id",
+        "name",
+        "year",
+        "title",
+        "emoji",
+        "description",
+        "required_modules",
+        "is_unlocked",
     }
     with urllib.request.urlopen(f"{running_server}/api/milestones") as resp:
         milestones = json.loads(resp.read().decode("utf-8"))["milestones"]
@@ -222,9 +240,7 @@ def test_milestones_field_completeness(running_server):
         assert isinstance(ms["required_modules"], list), (
             f"Milestone {ms['id']!r}: required_modules must be a list"
         )
-        assert isinstance(ms["is_unlocked"], bool), (
-            f"Milestone {ms['id']!r}: is_unlocked must be bool"
-        )
+        assert isinstance(ms["is_unlocked"], bool), f"Milestone {ms['id']!r}: is_unlocked must be bool"
 
 
 def test_autograd_demo_node_and_edge_shapes(running_server):
@@ -242,23 +258,15 @@ def test_autograd_demo_node_and_edge_shapes(running_server):
     for node in data["nodes"]:
         missing = node_required - node.keys()
         assert not missing, f"Node {node.get('id')!r} missing fields: {missing}"
-        assert node["type"] in valid_node_types, (
-            f"Node {node['id']!r} has unknown type: {node['type']!r}"
-        )
-        assert isinstance(node["shape"], list), (
-            f"Node {node['id']!r}: shape must be a list"
-        )
+        assert node["type"] in valid_node_types, f"Node {node['id']!r} has unknown type: {node['type']!r}"
+        assert isinstance(node["shape"], list), f"Node {node['id']!r}: shape must be a list"
 
     node_ids = {n["id"] for n in data["nodes"]}
     for edge in data["edges"]:
         missing = edge_required - edge.keys()
         assert not missing, f"Edge missing fields: {missing}"
-        assert edge["source"] in node_ids, (
-            f"Edge source {edge['source']!r} references a non-existent node"
-        )
-        assert edge["target"] in node_ids, (
-            f"Edge target {edge['target']!r} references a non-existent node"
-        )
+        assert edge["source"] in node_ids, f"Edge source {edge['source']!r} references a non-existent node"
+        assert edge["target"] in node_ids, f"Edge target {edge['target']!r} references a non-existent node"
 
 
 def test_benchmarks_all_three_rows(running_server):
@@ -465,9 +473,9 @@ def test_sse_module_test_stream_wire_format(running_server):
             line = raw_line.decode("utf-8").rstrip("\r\n")
 
             if line.startswith("event:"):
-                current["event"] = line[len("event:"):].strip()
+                current["event"] = line[len("event:") :].strip()
             elif line.startswith("data:"):
-                current["data"] = json.loads(line[len("data:"):].strip())
+                current["data"] = json.loads(line[len("data:") :].strip())
             elif line == "" and current:
                 events.append(current)
                 is_end = current.get("event") == "end"
