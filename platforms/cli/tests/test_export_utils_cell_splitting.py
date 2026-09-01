@@ -143,7 +143,38 @@ def test_normal_stub_solution_pair_is_recognized():
     assert "raise NotImplementedError" in stub
     assert "return 42" not in stub
     assert "return 42" in solution
-    assert "raise NotImplementedError" not in solution
+
+
+# ---------------------------------------------------------------------------
+# not any(d.strip() == _EXPORT_DIRECTIVE for d in directive_lines)
+# (avoids duplicating #| export onto a stub cell that already has it)
+# ---------------------------------------------------------------------------
+
+
+def test_stub_without_export_directive_gets_it_added():
+    """Baseline: no directive_lines equal "#| export" -> the not any()
+    is True, so it gets appended."""
+    source = "# %% stub-a\n#| default_exp core.tensor\nraise NotImplementedError\n\n" + _cell(
+        'tags=["solution"]', "return 42"
+    )
+
+    stub = make_stub_variant(source)
+
+    assert stub.count("#| export") == 1
+    assert "#| default_exp core.tensor" in stub
+
+
+def test_stub_already_containing_export_directive_is_not_duplicated():
+    """Any directive line already equals "#| export" -> not any() is
+    False, nothing appended. Paired with the baseline: only the existing
+    directive's presence differs, isolating this condition -- without
+    it, a stub cell that's already correctly tagged would end up with
+    "#| export" twice."""
+    source = "# %% stub-a\n#| export\nraise NotImplementedError\n\n" + _cell('tags=["solution"]', "return 42")
+
+    stub = make_stub_variant(source)
+
+    assert stub.count("#| export") == 1
 
 
 def test_last_cell_has_no_next_cell_to_pair_with():

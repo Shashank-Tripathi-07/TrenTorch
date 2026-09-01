@@ -96,3 +96,51 @@ def test_data_modules_as_a_file_does_not_crash_the_module_count_check(tmp_path):
     checks = _structure_check(tmp_path, data_modules_kind="file", trentorch_kind=None)
     assert checks["data/modules/ exists"].status == CheckStatus.FAIL
     assert not any(name.startswith("Module count") for name in checks)
+
+
+# ---------------------------------------------------------------------------
+# Module-count comprehension: d.is_dir() and d.name[0].isdigit()
+# (only reached once modules_dir.is_dir() is already True, above)
+# ---------------------------------------------------------------------------
+
+
+def _module_count(tmp_path, entries: dict[str, str]):
+    """entries: name -> "dir" or "file"."""
+    modules_dir = tmp_path / "data" / "modules"
+    modules_dir.mkdir(parents=True)
+    for name, kind in entries.items():
+        if kind == "dir":
+            (modules_dir / name).mkdir()
+        else:
+            (modules_dir / name).write_text("", encoding="utf-8")
+    (tmp_path / "data" / "src").mkdir(parents=True)
+    (tmp_path / "data" / "milestones").mkdir(parents=True)
+    (tmp_path / "tests").mkdir(parents=True)
+    (tmp_path / "platforms" / "cli").mkdir(parents=True)
+
+    cmd = PreflightCommand(CLIConfig.from_project_root(tmp_path))
+    category = cmd._check_structure(tmp_path, verbose=False)
+    (count_check,) = [c for c in category.checks if c.name.startswith("Module count")]
+    return int(count_check.name.split("(")[1].rstrip(")"))
+
+
+def test_digit_prefixed_directory_counts_as_a_module(tmp_path):
+    """Baseline: is_dir() True, name[0].isdigit() True -> counted."""
+    count = _module_count(tmp_path, {"01_tensor": "dir"})
+    assert count == 1
+
+
+def test_non_digit_prefixed_directory_does_not_count(tmp_path):
+    """is_dir() True, name[0].isdigit() False -> not counted. Paired
+    with the baseline: only the name's first character differs,
+    isolating that half of the and."""
+    count = _module_count(tmp_path, {"__pycache__": "dir"})
+    assert count == 0
+
+
+def test_digit_prefixed_file_does_not_count(tmp_path):
+    """is_dir() False (a file, not a directory), even with a digit-
+    prefixed name -> not counted. Paired with the baseline: only
+    is_dir()'s result differs, isolating that half of the and."""
+    count = _module_count(tmp_path, {"01_stray.txt": "file"})
+    assert count == 0

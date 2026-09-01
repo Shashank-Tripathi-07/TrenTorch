@@ -48,6 +48,18 @@ def test_none_of_the_three_signals_reports_inactive(monkeypatch, tmp_path):
     assert info["venv_active"] is False
 
 
+def test_real_prefix_alone_reports_active(monkeypatch, tmp_path):
+    """Isolates the third disjunct (hasattr(sys, "real_prefix")) on its
+    own -- the one atom neither of the two tests above exercised, since
+    both left it deleted."""
+    monkeypatch.delenv("VIRTUAL_ENV", raising=False)
+    monkeypatch.setattr(sys, "prefix", "/same")
+    monkeypatch.setattr(sys, "base_prefix", "/same")
+    monkeypatch.setattr(sys, "real_prefix", "/fake/old-venv", raising=False)
+    info = _gather_system_info(tmp_path)
+    assert info["venv_active"] is True
+
+
 # ---------------------------------------------------------------------------
 # InfoCommand.run: venv_exists and in_venv
 # ---------------------------------------------------------------------------
