@@ -19,7 +19,22 @@ from pathlib import Path
 # not UTF-8, so emoji output crashes with UnicodeEncodeError unless the
 # already-open streams are reconfigured directly (setting PYTHONIOENCODING
 # here is too late to affect them).
-if sys.platform == "win32" or os.name == "nt":
+
+
+def _is_windows(platform: str, os_name: str) -> bool:
+    """Whether stdout/stderr need UTF-8 reconfiguration for this platform.
+
+    Pulled out of the top-level if so it's callable directly with fake
+    platform/os_name values in a test -- the original inline check could
+    only be exercised by reloading this whole module under a monkeypatched
+    sys.platform/os.name, which cascades into re-running every import below
+    (including export_utils.py's module-level Path(...) default argument)
+    and crashes on a real Windows filesystem.
+    """
+    return platform == "win32" or os_name == "nt"
+
+
+if _is_windows(sys.platform, os.name):
     os.environ.setdefault("PYTHONIOENCODING", "utf-8")
     for _stream in (sys.stdout, sys.stderr):
         if hasattr(_stream, "reconfigure"):
