@@ -26,7 +26,7 @@ NOTICE — TinyTorch is dual-licensed alongside the MLSysBook ecosystem.
 --------------------------------------------------------------------------
 
 The TinyTorch *software* (this directory: source code, build scripts,
-test harnesses, the `tito` CLI, and packaging metadata) is released
+test harnesses, the `tren` CLI, and packaging metadata) is released
 under the MIT License above so that it can be freely used and embedded
 in other research, courseware, and projects.
 

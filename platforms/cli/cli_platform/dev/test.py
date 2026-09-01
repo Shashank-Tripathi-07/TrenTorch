@@ -1,13 +1,13 @@
 """
-Unified Developer Test Command for TinyTorch.
+Unified Developer Test Command for TrenTorch.
 
 Simple, explicit test types:
-    tito dev test                 # Default: unit tests
-    tito dev test --unit          # Unit tests only
-    tito dev test --integration   # Integration tests
-    tito dev test --e2e           # End-to-end tests
-    tito dev test --all           # All test types
-    tito dev test --release       # Full release validation (destructive)
+    tren dev test                 # Default: unit tests
+    tren dev test --unit          # Unit tests only
+    tren dev test --integration   # Integration tests
+    tren dev test --e2e           # End-to-end tests
+    tren dev test --all           # All test types
+    tren dev test --release       # Full release validation (destructive)
 
 Think like PyTorch: explicit, predictable, one way to do things.
 """
@@ -328,7 +328,7 @@ class DevTestCommand(BaseCommand):
     def _build_package(self, project_root: Path, verbose: bool, ci_mode: bool = False) -> TestResult:
         """Build package by exporting all modules from src/.
 
-        This runs 'tito dev export --all' which:
+        This runs 'tren dev export --all' which:
         1. Converts data/src/*.py → data/modules/*.ipynb (stub) + data/solutions/*.ipynb (jupytext)
         2. Runs nbdev_export from data/solutions/ to copy working code to tinytorch/core/
 
@@ -340,7 +340,7 @@ class DevTestCommand(BaseCommand):
         if ci_mode:
             print(f"\n{'=' * 60}")
             print("  BUILD PACKAGE")
-            print("  Command: tito dev export --all")
+            print("  Command: tren dev export --all")
             print(f"{'=' * 60}")
 
         try:
@@ -968,7 +968,7 @@ class DevTestCommand(BaseCommand):
             milestone_name = MILESTONE_SCRIPTS[milestone_id].get("name", milestone_id)
             milestone_start = time.time()
             if ci_mode:
-                print(f"  → tito milestone run {milestone_id} ({milestone_name})", end=" ", flush=True)
+                print(f"  → tren milestone run {milestone_id} ({milestone_name})", end=" ", flush=True)
 
             try:
                 result = subprocess.run(

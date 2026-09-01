@@ -43,7 +43,7 @@ Auto-discovers and tests ALL packages from requirements files:
 ## Running Tests
 
 ```bash
-# Via TITO (recommended)
+# Via TREN (recommended)
 tren system health
 
 # Via pytest

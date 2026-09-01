@@ -609,6 +609,8 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 cwd=str(self.config.project_root),
                 env=self._subprocess_env(),
             )
@@ -655,6 +657,8 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
                 cmd,
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 cwd=str(self.config.project_root),
                 env=self._subprocess_env(),
             )

@@ -76,7 +76,7 @@ class SystemCommand(BaseCommand):
                     "  • [bold]update[/bold]  - Check for and install updates\n"
                     "  • [bold]logo[/bold]    - Learn about the TinyTorch logo\n"
                     "  • [bold]reset[/bold]   - Reset to pristine state (clear data/modules/ and trentorch/core/)\n\n"
-                    "[dim]Example: tito system health[/dim]",
+                    "[dim]Example: tren system health[/dim]",
                     title="System Command Group",
                     border_style="bright_cyan",
                 )

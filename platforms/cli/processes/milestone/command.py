@@ -101,12 +101,12 @@ class MilestoneCommand(BaseCommand):
                     "  • [bold]test[/bold]       - Test milestone requirements\n"
                     "  • [bold]demo[/bold]       - Run capability demonstration\n\n"
                     "[dim]Examples:[/dim]\n"
-                    "[dim]  tito milestone list[/dim]\n"
-                    "[dim]  tito milestone run 03           # Run all parts[/dim]\n"
-                    "[dim]  tito milestone run 03 --part 1  # Run Part 1 only[/dim]\n"
-                    "[dim]  tito milestone run 03 --part 2  # Run Part 2 only[/dim]\n"
-                    "[dim]  tito milestone info 03[/dim]\n"
-                    "[dim]  tito milestone status --detailed[/dim]",
+                    "[dim]  tren milestone list[/dim]\n"
+                    "[dim]  tren milestone run 03           # Run all parts[/dim]\n"
+                    "[dim]  tren milestone run 03 --part 1  # Run Part 1 only[/dim]\n"
+                    "[dim]  tren milestone run 03 --part 2  # Run Part 2 only[/dim]\n"
+                    "[dim]  tren milestone info 03[/dim]\n"
+                    "[dim]  tren milestone status --detailed[/dim]",
                     title="🏆 Milestone System",
                     border_style="bright_cyan",
                 )
@@ -156,7 +156,7 @@ class MilestoneCommand(BaseCommand):
                     Panel(
                         "[yellow]No milestone available to test.[/yellow]\n\n"
                         "Either all milestones are unlocked or none are ready.\n"
-                        "Use [dim]tito milestone status[/dim] to see your progress.",
+                        "Use [dim]tren milestone status[/dim] to see your progress.",
                         title="No Test Available",
                         border_style="yellow",
                     )
@@ -199,7 +199,7 @@ class MilestoneCommand(BaseCommand):
                     f"[green]All requirements met for {result['milestone_name']}[/green]\n"
                     f"[cyan]Capability: {result['capability']}[/cyan]\n\n"
                     f"[bold yellow]Run the milestone:[/bold yellow]\n"
-                    f"[dim]tito milestone run {milestone_id}[/dim]",
+                    f"[dim]tren milestone run {milestone_id}[/dim]",
                     title="🎉 Ready to Unlock!",
                     border_style="green",
                 )
@@ -248,7 +248,7 @@ class MilestoneCommand(BaseCommand):
                     f"[bold]{milestone['emoji']} {milestone['title']}[/bold]\n"
                     f"[dim]{milestone.get('victory_condition', milestone.get('description', ''))}[/dim]\n\n"
                     f"[cyan]Complete the requirements first:[/cyan]\n"
-                    f"[dim]tito milestone test {milestone_id}[/dim]",
+                    f"[dim]tren milestone test {milestone_id}[/dim]",
                     title="Milestone Locked",
                     border_style="yellow",
                 )
@@ -261,7 +261,7 @@ class MilestoneCommand(BaseCommand):
             console.print(
                 Panel(
                     f"[yellow]Demo not available for Milestone {milestone_id}[/yellow]\n\n"
-                    f"Use [dim]tito milestone run {milestone_id}[/dim] to run the milestone script.",
+                    f"Use [dim]tren milestone run {milestone_id}[/dim] to run the milestone script.",
                     title="Demo Unavailable",
                     border_style="yellow",
                 )
@@ -473,7 +473,7 @@ class MilestoneCommand(BaseCommand):
                         f"[red]Missing: {', '.join(f'{m:02d}' for m in missing_modules)}[/red]\n\n"
                         f"[cyan]Complete the missing modules first:[/cyan]\n"
                         + "\n".join(
-                            f"[dim]  tito module complete {m:02d}[/dim]" for m in missing_modules[:3]
+                            f"[dim]  tren module complete {m:02d}[/dim]" for m in missing_modules[:3]
                         ),
                         title="Prerequisites Not Met",
                         border_style="yellow",
@@ -500,7 +500,7 @@ class MilestoneCommand(BaseCommand):
                         + ("\n  • ..." if len(export_failures) > 8 else "")
                         + "\n\n"
                         "[dim]Your modules may not be exported correctly.[/dim]\n"
-                        "[dim]Try re-exporting: tito module complete XX[/dim]",
+                        "[dim]Try re-exporting: tren module complete XX[/dim]",
                         title="Import Test Failed",
                         border_style="red",
                     )
@@ -665,7 +665,7 @@ class MilestoneCommand(BaseCommand):
                         f"[dim]Unlock by completing modules: {', '.join(f'{m:02d}' for m in missing[:3])}[/dim]"
                     )
                 else:
-                    console.print(f"[green]Ready to run: tito milestone run {next_id}[/green]")
+                    console.print(f"[green]Ready to run: tren milestone run {next_id}[/green]")
 
             return 0
         else:

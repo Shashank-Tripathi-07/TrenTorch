@@ -1,8 +1,8 @@
 """
-Developer command group for TinyTorch CLI.
+Developer command group for TrenTorch CLI.
 
-These commands are for TinyTorch developers and instructors, not students.
-Primary command: tito dev test (unified testing)
+These commands are for TrenTorch developers and instructors, not students.
+Primary command: tren dev test (unified testing)
 """
 
 from argparse import ArgumentParser, Namespace
@@ -67,28 +67,28 @@ class DevCommand(BaseCommand):
                     "[bold cyan]Developer Commands[/bold cyan]\n\n"
                     "[bold]For developers and instructors - not for students.[/bold]\n\n"
                     "[bold cyan]Testing (Primary):[/bold cyan]\n"
-                    "  [dim]tito dev test[/dim]               Run pytest unit tests (default)\n"
-                    "  [dim]tito dev test --all[/dim]         Run all test types\n"
-                    "  [dim]tito dev test --inline[/dim]      Inline tests from src/ (progressive)\n"
-                    "  [dim]tito dev test --unit[/dim]        Pytest unit tests\n"
-                    "  [dim]tito dev test --integration[/dim] Integration tests\n"
-                    "  [dim]tito dev test --e2e[/dim]         End-to-end tests\n"
-                    "  [dim]tito dev test --cli[/dim]         CLI tests\n"
-                    "  [dim]tito dev test --milestone[/dim]   Milestone script tests\n"
-                    "  [dim]tito dev test --release[/dim]     Full release validation\n"
-                    "  [dim]tito dev test --module 06[/dim]   Test specific module\n\n"
+                    "  [dim]tren dev test[/dim]               Run pytest unit tests (default)\n"
+                    "  [dim]tren dev test --all[/dim]         Run all test types\n"
+                    "  [dim]tren dev test --inline[/dim]      Inline tests from src/ (progressive)\n"
+                    "  [dim]tren dev test --unit[/dim]        Pytest unit tests\n"
+                    "  [dim]tren dev test --integration[/dim] Integration tests\n"
+                    "  [dim]tren dev test --e2e[/dim]         End-to-end tests\n"
+                    "  [dim]tren dev test --cli[/dim]         CLI tests\n"
+                    "  [dim]tren dev test --milestone[/dim]   Milestone script tests\n"
+                    "  [dim]tren dev test --release[/dim]     Full release validation\n"
+                    "  [dim]tren dev test --module 06[/dim]   Test specific module\n\n"
                     "[bold cyan]Preflight (Release Checks):[/bold cyan]\n"
-                    "  [dim]tito dev preflight[/dim]          Standard preflight checks\n"
-                    "  [dim]tito dev preflight --quick[/dim]  Quick checks\n"
-                    "  [dim]tito dev preflight --release[/dim] Release validation\n\n"
+                    "  [dim]tren dev preflight[/dim]          Standard preflight checks\n"
+                    "  [dim]tren dev preflight --quick[/dim]  Quick checks\n"
+                    "  [dim]tren dev preflight --release[/dim] Release validation\n\n"
                     "[bold cyan]Export (Rebuild Curriculum):[/bold cyan]\n"
-                    "  [dim]tito dev export --all[/dim]       Export all modules\n"
-                    "  [dim]tito dev export 01[/dim]          Export specific module\n"
+                    "  [dim]tren dev export --all[/dim]       Export all modules\n"
+                    "  [dim]tren dev export 01[/dim]          Export specific module\n"
                     "  [bold red]⚠️  This OVERWRITES student notebooks![/bold red]\n\n"
                     "[bold cyan]Clean:[/bold cyan]\n"
-                    "  [dim]tito dev clean[/dim]              Clean all generated files\n\n"
+                    "  [dim]tren dev clean[/dim]              Clean all generated files\n\n"
                     "[bold cyan]CI/CD Integration:[/bold cyan]\n"
-                    "  [dim]tito dev test --ci[/dim]          JSON output for automation",
+                    "  [dim]tren dev test --ci[/dim]          JSON output for automation",
                     title="🛠️ Developer Tools",
                     border_style="bright_cyan",
                 )

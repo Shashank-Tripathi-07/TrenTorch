@@ -211,7 +211,7 @@ class BenchmarkCommand(BaseCommand):
                 f"[bold green]🎉 Baseline Benchmark Complete![/bold green]\n\n"
                 f"📊 Your Score: [bold]{score}/100[/bold]\n"
                 f"✅ Setup verified and working!\n\n"
-                f"💡 Run [cyan]tito benchmark capstone[/cyan] after Module 20 for full benchmarks",
+                f"💡 Run [cyan]tren benchmark capstone[/cyan] after Module 20 for full benchmarks",
                 title="Success",
                 border_style="green",
             )
@@ -244,7 +244,7 @@ class BenchmarkCommand(BaseCommand):
                 Panel(
                     "[red]❌ Module 19 (Benchmarking) not available[/red]\n\n"
                     "Please complete Module 19 first:\n"
-                    "  [cyan]tito module complete 19[/cyan]",
+                    "  [cyan]tren module complete 19[/cyan]",
                     title="Error",
                     border_style="red",
                 )
@@ -262,7 +262,7 @@ class BenchmarkCommand(BaseCommand):
                     "[yellow]⚠️  Module 20 (Capstone) not complete[/yellow]\n\n"
                     "Running simplified capstone benchmarks...\n"
                     "For full benchmarks, complete Module 20 first:\n"
-                    "  [cyan]tito module complete 20[/cyan]",
+                    "  [cyan]tren module complete 20[/cyan]",
                     title="Warning",
                     border_style="yellow",
                 )
@@ -507,7 +507,7 @@ class BenchmarkCommand(BaseCommand):
                     console.print("[yellow]⚠️  You're not in the community yet.[/yellow]")
                     join = Confirm.ask("Would you like to join the community first?", default=True)
                     if join:
-                        console.print("\n[cyan]Run: [bold]tito community login[/bold][/cyan]")
+                        console.print("\n[cyan]Run: [bold]tren community login[/bold][/cyan]")
                         return
 
                 # Additional submission options

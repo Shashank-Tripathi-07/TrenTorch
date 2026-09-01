@@ -148,7 +148,7 @@ class TinyTorchStatusAnalyzer:
         return env_status
 
     def check_tito_health(self) -> dict[str, Any]:
-        """Check tito CLI system health"""
+        """Check tren CLI system health"""
         tito_status = {"tito_available": False, "commands_working": {}, "issues": []}
 
         try:

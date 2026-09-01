@@ -52,7 +52,7 @@ Transformers didn't just improve NLP - they unified vision, language, and multim
 - **Dataset:** Synthetic sequences generated in-script (no separate download)
 - **Success criteria:** See script header (typically ~95% / ~95% / ~90% on the three challenges)
 
-**Run via TITO (recommended):**
+**Run via TREN (recommended):**
 
 ```bash
 tren milestone run 05

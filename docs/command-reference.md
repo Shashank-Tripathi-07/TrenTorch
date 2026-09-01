@@ -171,7 +171,7 @@ Running `tren olympics` with no subcommand shows the coming-soon panel with a pr
 
 | Flag | Effect |
 |---|---|
-| `--version` | Print `Tren🔥Torch v<version>` (version read from `pyproject.toml`) |
+| `--version` | Print `Tren⚡️Torch v<version>` (version read from `pyproject.toml`) |
 | `--verbose`/`-v` | Enable verbose (DEBUG-level) logging |
 | `--no-color` | Disable colored/Rich output |
 | `--help`/`-h` | Rich-formatted custom help screen (`TrenTorchCLI._show_help`), not argparse's default |

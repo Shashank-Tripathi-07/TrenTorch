@@ -51,7 +51,7 @@ def show_status(config, console, args: Namespace) -> int:
                 f"[bold yellow]{next_milestone['emoji']} {next_milestone['title']}[/bold yellow]\n"
                 f"[dim]{next_milestone['victory_condition']}[/dim]\n\n"
                 f"[green]Ready to run![/green]\n"
-                f"[dim]tito milestone run {next_milestone['id']}[/dim]",
+                f"[dim]tren milestone run {next_milestone['id']}[/dim]",
                 title="Next Milestone",
                 border_style="bright_green",
             )
@@ -72,7 +72,7 @@ def show_status(config, console, args: Namespace) -> int:
             Panel(
                 "[bold yellow]⚡ All milestones unlocked![/bold yellow]\n\n"
                 "[yellow]Every milestone is ready to run.[/yellow]\n"
-                "[dim]Run each with tito milestone run <id> to actually achieve it.[/dim]",
+                "[dim]Run each with tren milestone run <id> to actually achieve it.[/dim]",
                 title="🔓 All Milestones Ready",
                 border_style="bright_yellow",
             )
@@ -287,7 +287,7 @@ def show_list(config, console, args: Namespace) -> int:
 
             if prereqs_met and not is_complete:
                 milestone_display += (
-                    f"[bold yellow]▶ Run now:[/bold yellow] [cyan]tito milestone run {milestone_id}[/cyan]\n"
+                    f"[bold yellow]▶ Run now:[/bold yellow] [cyan]tren milestone run {milestone_id}[/cyan]\n"
                 )
             elif not prereqs_met:
                 missing = [f"{m:02d}" for m in required_modules if m not in completed_module_nums]
@@ -362,7 +362,7 @@ def show_info(config, console, args: Namespace) -> int:
 
     if prereqs_met:
         info_text += (
-            f"\n[bold green]✅ Ready to run![/bold green]\n[cyan]tito milestone run {milestone_id}[/cyan]"
+            f"\n[bold green]✅ Ready to run![/bold green]\n[cyan]tren milestone run {milestone_id}[/cyan]"
         )
     else:
         missing = [m for m in milestone["required_modules"] if m not in completed_module_nums]

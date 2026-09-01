@@ -61,7 +61,7 @@ class SystemResetCommand(BaseCommand):
                     )
                     + "\n"
                     "[dim]The src/ files remain untouched - you can rebuild everything with:[/dim]\n"
-                    "  [cyan]tito module complete --all[/cyan]",
+                    "  [cyan]tren module complete --all[/cyan]",
                     title="🔄 System Reset",
                     border_style="red",
                 )
@@ -153,7 +153,7 @@ class SystemResetCommand(BaseCommand):
                         f"[green]✅ Reset complete![/green]\n\n"
                         f"Cleared: {', '.join(summary) if summary else 'nothing to clear'}\n\n"
                         "[dim]To rebuild the package:[/dim]\n"
-                        "  [cyan]tito module complete --all[/cyan]",
+                        "  [cyan]tren module complete --all[/cyan]",
                         title="🔄 System Reset Complete",
                         border_style="green",
                     )
