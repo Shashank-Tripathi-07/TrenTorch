@@ -96,9 +96,9 @@ class OlympicsCommand(BaseCommand):
 
         message.append("💡 In the Meantime:\n", style="bold cyan")
         message.append("  • Complete modules: ", style="white")
-        message.append("tito module status\n", style="cyan")
+        message.append("tren module status\n", style="cyan")
         message.append("  • Track milestones: ", style="white")
-        message.append("tito milestone status\n", style="cyan")
+        message.append("tren milestone status\n", style="cyan")
 
         # Combine logo and message
         content = Group(
