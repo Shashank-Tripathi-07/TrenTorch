@@ -117,7 +117,14 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
         origin = self.headers.get("Origin", "")
         origin_host = self._safe_hostname(origin).lower()
         self.send_response(HTTPStatus.OK)
-        if origin and origin_host in self._trusted_hostnames():
+        # CodeQL py/http-response-splitting: `origin` is the raw Origin
+        # header value, so it must never be echoed back into a response
+        # header without ruling out embedded CR/LF first -- those could
+        # otherwise inject extra headers or a forged response body into
+        # this reply. The hostname check above already restricts *which*
+        # origins get echoed; this restricts *what characters* the echoed
+        # value itself is allowed to carry.
+        if origin and "\r" not in origin and "\n" not in origin and origin_host in self._trusted_hostnames():
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
