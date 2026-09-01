@@ -456,7 +456,15 @@ class MilestoneCommand(BaseCommand):
 
             if missing_modules:
                 part_info = ""
-                if args.part is not None and len(script_configs) == 1:
+                # `and len(script_configs) == 1` used to also gate this: every
+                # code path above that leaves script_configs longer than one
+                # element (the "run every part" fallback a few dozen lines up)
+                # only runs when args.part is None, so by the time args.part
+                # is not None here, script_configs is already guaranteed to
+                # have exactly one element -- the length check could never
+                # independently be False, dead weight rather than a real
+                # second condition.
+                if args.part is not None:
                     part_info = f" (Part {args.part})"
                 console.print(
                     Panel(
