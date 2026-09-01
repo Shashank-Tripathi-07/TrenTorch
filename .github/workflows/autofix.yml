@@ -1,0 +1,81 @@
+name: 'Autofix (ruff)'
+
+# Runs ruff's autofix + formatter on every PR push and pushes the result
+# straight onto the PR's own branch, proactively -- not gated behind
+# lint.yml failing first, so a contributor (or the require-linked-issue/
+# auto-label bots) never even sees a formatting nit if a machine could
+# just fix it.
+#
+# Only works for PRs from branches in *this* repo: a `pull_request`-
+# triggered workflow's default GITHUB_TOKEN is read-only against a fork's
+# branch by GitHub's own design, and even for same-repo branches, pushes
+# authenticated with the default token don't re-trigger other required
+# checks (GitHub's anti-recursion rule) -- so this uses AUTOFIX_PAT, a
+# fine-grained PAT scoped to just this repo's Contents permission, whose
+# pushes trigger CI normally. Until that secret exists, every step below
+# no-ops cleanly with a clear log line instead of failing.
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: autofix-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    # Fork PRs can't be pushed to by any token this repo holds -- lint.yml
+    # still runs and fails normally for those, this job just skips.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check AUTOFIX_PAT is configured
+        id: has-pat
+        run: |
+          if [ -z "${{ secrets.AUTOFIX_PAT }}" ]; then
+            echo "::notice::AUTOFIX_PAT secret isn't set yet -- skipping autofix. lint.yml still checks/fails normally in the meantime."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout PR head
+        if: steps.has-pat.outputs.configured == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.AUTOFIX_PAT }}
+
+      - name: Setup Python
+        if: steps.has-pat.outputs.configured == 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+
+      - name: Install ruff
+        if: steps.has-pat.outputs.configured == 'true'
+        run: pip install ruff>=0.6.0
+
+      - name: Autofix
+        if: steps.has-pat.outputs.configured == 'true'
+        run: |
+          ruff check --fix .
+          ruff format .
+
+      - name: Commit and push fixes if any
+        if: steps.has-pat.outputs.configured == 'true'
+        run: |
+          if git diff --quiet; then
+            echo "Nothing to fix."
+            exit 0
+          fi
+          git config user.name "trentorch-bot"
+          git config user.email "trentorch-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "style: ruff autofix + format"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}

@@ -1,0 +1,68 @@
+name: 'Auto-label Issues by Keyword'
+
+# Issues have no file diff to key off (unlike auto-label-prs.yml), so
+# this matches keywords in the title/body against a small fixed rule
+# set instead. Deliberately hand-rolled via github-script rather than a
+# third-party issue-labeler action, matching this repo's existing bots
+# (pr-auto-assign.yml, require-linked-issue.yml) -- keeps the matching
+# logic auditable in one place instead of a separate action's own config
+# format.
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: github.event.sender.type != 'Bot'
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const title = context.payload.issue.title || "";
+            const body = context.payload.issue.body || "";
+            const text = (title + "\n" + body).toLowerCase();
+
+            // First match wins per category; order doesn't matter since
+            // multiple labels can apply to the same issue.
+            const rules = [
+              { label: "bug", pattern: /\b(bug|crash(ed|es)?|traceback|broken|doesn'?t work|fails?|failing)\b/ },
+              { label: "enhancement", pattern: /\b(feature request|enhancement|proposal|would be nice|add support|suggestion)\b/ },
+              { label: "question", pattern: /\b(question|how do i|how to|is it possible|why does|why is)\b/ },
+              { label: "documentation", pattern: /\b(docs?|documentation|readme|typo)\b/ },
+              { label: "cli", pattern: /\btren\b|\bcli\b/ },
+              { label: "curriculum", pattern: /\bmodule\s?\d{1,2}\b|\bcurriculum\b|\bnotebook\b/ },
+              { label: "milestones", pattern: /\bmilestone\b/ },
+              { label: "security", pattern: /\b(security|vulnerab(le|ility)|exploit|injection|cve)\b/ },
+            ];
+
+            const matched = rules.filter((r) => r.pattern.test(text)).map((r) => r.label);
+            if (matched.length === 0) {
+              console.log("No keyword matches, nothing to label.");
+              return;
+            }
+
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = issue.labels.map((l) => (typeof l === "string" ? l : l.name));
+            const toAdd = matched.filter((l) => !existing.includes(l));
+
+            if (toAdd.length === 0) {
+              console.log("All matched labels already present.");
+              return;
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: toAdd,
+            });
