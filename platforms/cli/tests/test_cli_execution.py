@@ -62,7 +62,11 @@ class TestCommandExecution:
         assert "Quick Start" in result.stdout or "module" in result.stdout
 
     def test_tren_version(self):
-        """Test 'tren --version' shows version."""
+        """Test 'tren --version' shows the real version from pyproject.toml,
+        not just some Tren-ish text. "Tren" or "CLI" appearing anywhere in
+        the output would pass just as well when the version lookup silently
+        fails and falls back to "unknown" (issue #80) -- checking against
+        pyproject.toml's own version string is what actually catches that."""
         result = subprocess.run(
             [sys.executable, "-m", "platforms.cli.main", "--version"],
             cwd=self.project_root,
@@ -72,8 +76,16 @@ class TestCommandExecution:
             errors="replace",
         )
 
+        pyproject_content = (self.project_root / "pyproject.toml").read_text(encoding="utf-8")
+        real_version = next(
+            line.split("=")[1].strip().strip('"').strip("'")
+            for line in pyproject_content.splitlines()
+            if line.strip().startswith("version")
+        )
+
         assert result.returncode == 0
-        assert "Tren" in result.stdout or "CLI" in result.stdout
+        assert real_version in result.stdout
+        assert "unknown" not in result.stdout.lower()
 
     @pytest.mark.parametrize(
         "command", ["setup", "system", "module", "dev", "package", "milestone", "benchmark", "olympics"]
