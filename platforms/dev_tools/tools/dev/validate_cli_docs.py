@@ -1,240 +1,191 @@
 #!/usr/bin/env python3
 """
-Validate that CLI commands referenced in documentation match actual tren CLI.
-
-This script extracts all `tren X Y` commands from markdown files and validates
-them against the actual CLI structure. Runs as a pre-commit hook to catch
-documentation drift before it reaches the repo.
+Validate that `tren ...` commands referenced in docs/*.md actually exist,
+by introspecting the real CLI's argparse structure directly -- not a
+hand-maintained parallel list of "valid commands" that drifts out of sync
+with the code the moment a command is added, renamed, or removed. That's
+exactly what made the previous version of this script unusable after the
+data/ and platforms/ restructurings: its DOCS_DIRS pointed at directories
+that no longer exist (site/, modules/, tests/, milestones/) and its
+VALID_COMMANDS dict was a frozen snapshot missing tui/serve/convert,
+still listing removed groups (grade, community), and wrong on several
+subcommand lists. Ground truth here is the live parser, so it can't go
+stale the same way again.
 
 Usage:
-    python tools/dev/validate_cli_docs.py [--fix] [--verbose]
+    python platforms/dev_tools/tools/dev/validate_cli_docs.py [--verbose]
 
 Exit codes:
-    0 - All commands valid
-    1 - Invalid commands found
+    0 - every `tren ...` reference in docs/*.md matches a real command
+    1 - one or more references don't match anything the CLI actually has
 """
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-# Directories to scan for markdown files
-DOCS_DIRS = ["site", "modules", "tests", "milestones"]
 
-# Files to skip (generated, vendored, etc.)
-SKIP_PATTERNS = [".venv", "node_modules", "_build", ".git"]
-
-# Known valid commands from tren --help
-# Format: {command_group: [subcommands]}
-VALID_COMMANDS: dict[str, list[str]] = {
-    "setup": [],  # No subcommands
-    "update": [],  # No subcommands
-    "export": [],  # Takes module args, not subcommands
-    "test": [],  # Takes module args, not subcommands
-    "logo": [],  # No subcommands
-    "system": ["info", "health", "jupyter", "update", "logo"],
-    "module": ["start", "view", "resume", "complete", "test", "reset", "status", "list"],
-    "dev": ["test", "export"],
-    "src": ["export", "test"],
-    "package": ["reset", "nbdev"],
-    "milestone": ["list", "run", "info", "status", "timeline", "test", "demo"],
-    "benchmark": ["baseline", "capstone"],
-    "olympics": ["logo", "status"],
-    "grade": ["release", "generate", "collect", "autograde", "manual", "feedback", "export", "setup"],
-}
-
-# Known INVALID commands that should be flagged
-KNOWN_INVALID = {
-    "tren checkpoint": "Use 'tren module status' instead",
-    "tren milestones": "Use 'tren milestone' (singular) instead",
-    "tren system check": "Use 'tren system health' instead",
-    "tren system reset": "Command doesn't exist. Use 'tren module reset' for modules",
-    "tren community join": "Use 'tren community login' instead",
-    "tren community update": "Use 'tren community profile' instead",
-    "tren jupyter": "Use 'tren system jupyter' instead",
-    "tren notebooks": "Command doesn't exist",
-}
+def _project_root() -> Path:
+    # This file lives at platforms/dev_tools/tools/dev/validate_cli_docs.py,
+    # four levels below the repo root.
+    return Path(__file__).resolve().parents[4]
 
 
-def get_valid_command_set() -> set[str]:
-    """Build set of all valid tren commands."""
-    valid = set()
-
-    for group, subcommands in VALID_COMMANDS.items():
-        valid.add(f"tren {group}")
-        for sub in subcommands:
-            valid.add(f"tren {group} {sub}")
-
-    return valid
+# tree[path] is a set of valid next-word subcommand names if `path` is a
+# dispatch level (has its own subparsers), or None if `path` is a leaf
+# that takes ordinary positional args instead (a module number, a
+# milestone id, ...) rather than a further named subcommand.
+CommandTree = dict[str, "set[str] | None"]
 
 
-def extract_tren_commands(filepath: Path) -> list[tuple[int, str]]:
-    """Extract all tren commands from a markdown file.
-
-    Returns list of (line_number, command) tuples.
-    Only extracts commands that look like actual CLI invocations.
-    """
-    commands = []
-
-    try:
-        content = filepath.read_text(encoding="utf-8")
-    except Exception:
-        return commands
-
-    # Pattern matches tren commands in code blocks or inline code
-    # Must start with ` or be at line start (after optional whitespace/comment chars)
-    # Excludes title-case words that are clearly prose (e.g., "TREN CLI Reference")
-    code_block_pattern = r"`tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)"
-    line_start_pattern = r"^(?:#\s*)?tren\s+([a-z][a-z0-9_-]*(?:\s+[a-z][a-z0-9_-]*)?)"
-
-    # Words that indicate prose, not commands (case-insensitive check on following word)
-    PROSE_INDICATORS = {"cli", "command", "commands", "reference", "overview", "guide", "tool", "tools"}
-
-    for i, line in enumerate(content.split("\n"), 1):
-        # Skip lines that are clearly URLs or links
-        if re.search(r"https?://|github\.com/", line, re.IGNORECASE):
-            continue
-
-        # Skip header lines (prose)
-        if (
-            line.strip().startswith("#")
-            and "tren" in line.lower()
-            and any(p in line.lower() for p in PROSE_INDICATORS)
-        ):
-            continue
-
-        # Try code block pattern first (most reliable)
-        for match in re.finditer(code_block_pattern, line):
-            cmd_parts = match.group(1).lower().strip().split()
-            # Skip if first word after tren is a prose indicator
-            if cmd_parts and cmd_parts[0] in PROSE_INDICATORS:
-                continue
-            cmd = f"tren {' '.join(cmd_parts)}"
-            commands.append((i, cmd))
-
-        # Try line-start pattern for bash code blocks
-        for match in re.finditer(line_start_pattern, line.strip()):
-            cmd_parts = match.group(1).lower().strip().split()
-            # Skip if first word after tren is a prose indicator
-            if cmd_parts and cmd_parts[0] in PROSE_INDICATORS:
-                continue
-            cmd = f"tren {' '.join(cmd_parts)}"
-            # Avoid duplicates from the code block pattern
-            if (i, cmd) not in commands:
-                commands.append((i, cmd))
-
-    return commands
+def _collect_subparser_tree(parser: argparse.ArgumentParser, prefix: str, tree: CommandTree) -> None:
+    """Recursively map every `tren <...>` command path a real argparse
+    parser actually accepts, by walking its subparsers. Uses argparse's
+    private `_actions`/`_SubParsersAction` structure -- not public API, but
+    stable enough for a dev-tooling script, and the only way to get ground
+    truth without re-declaring the command tree by hand a second time."""
+    subparsers_action = next((a for a in parser._actions if isinstance(a, argparse._SubParsersAction)), None)
+    if subparsers_action is None:
+        tree[prefix] = None
+        return
+    children = set(subparsers_action.choices.keys())
+    tree[prefix] = children
+    for name, subparser in subparsers_action.choices.items():
+        _collect_subparser_tree(subparser, f"{prefix} {name}", tree)
 
 
-def find_markdown_files(base_dir: Path) -> list[Path]:
-    """Find all markdown files in specified directories."""
-    files = []
+def get_valid_command_tree(project_root: Path) -> CommandTree:
+    """Ground truth: introspect the real, live CLI rather than hand-listing it."""
+    root_str = str(project_root)
+    if root_str not in sys.path:
+        sys.path.insert(0, root_str)
+    from platforms.cli.main import TrenTorchCLI
 
-    for docs_dir in DOCS_DIRS:
-        search_path = base_dir / docs_dir
-        if search_path.exists():
-            for md_file in search_path.rglob("*.md"):
-                # Skip files in ignored directories
-                if any(skip in str(md_file) for skip in SKIP_PATTERNS):
-                    continue
-                files.append(md_file)
+    cli = TrenTorchCLI()
+    parser = cli.create_parser()
 
-    # Also check root-level markdown files
-    for md_file in base_dir.glob("*.md"):
-        files.append(md_file)
-
-    return files
+    subparsers_action = next((a for a in parser._actions if isinstance(a, argparse._SubParsersAction)), None)
+    tree: CommandTree = {"tren": set(subparsers_action.choices.keys()) if subparsers_action else set()}
+    if subparsers_action is None:
+        return tree
+    for name, subparser in subparsers_action.choices.items():
+        _collect_subparser_tree(subparser, f"tren {name}", tree)
+    return tree
 
 
-def validate_command(cmd: str, valid_commands: set[str]) -> tuple[bool, str]:
-    """Check if a command is valid.
+# Matches a `tren <word> [<word>] [<word>]` command inside a backtick code
+# span, or at the start of a (possibly indented) bash code-block line.
+# Only lowercase alphanumeric/hyphen/underscore words count as command
+# path segments -- module numbers, NN placeholders, and similar args
+# naturally fall outside that and just don't extend the match.
+CODE_SPAN_PATTERN = re.compile(r"`(tren(?:\s+[a-z][a-z0-9_-]*){1,3})`")
+BASH_LINE_PATTERN = re.compile(r"^\s*\$?\s*(tren(?:\s+[a-z][a-z0-9_-]*){1,3})\b", re.MULTILINE)
 
-    Returns (is_valid, error_message).
-    """
-    # Check against known invalid patterns first
-    for invalid, suggestion in KNOWN_INVALID.items():
-        if cmd.startswith(invalid):
-            return False, suggestion
 
-    # Check if it's a valid base command
+def extract_commands(text: str) -> list[str]:
+    found = []
+    for pattern in (CODE_SPAN_PATTERN, BASH_LINE_PATTERN):
+        found.extend(m.group(1) for m in pattern.finditer(text))
+    return found
+
+
+def matches_real_command(cmd: str, tree: CommandTree) -> bool:
+    """Walk the reference word by word against the real command tree. At a
+    dispatch level (tree[path] is a set), the next word MUST be one of
+    that level's real subcommands -- an unrecognized word here is a wrong
+    subcommand, not a droppable arg, exactly like real argparse would
+    reject it. At a leaf (tree[path] is None), anything remaining is
+    ordinary positional args (a module number, a milestone id, ...) and
+    the reference is valid regardless of what those words are."""
     parts = cmd.split()
-    if len(parts) < 2:
-        return False, "Invalid command format"
-
-    f"{parts[0]} {parts[1]}"
-
-    # Check if group exists
-    if parts[1] not in VALID_COMMANDS:
-        return False, f"Unknown command group: {parts[1]}"
-
-    # If command has subcommand, validate it
-    if len(parts) >= 3:
-        f"{parts[0]} {parts[1]} {parts[2]}"
-        subcommands = VALID_COMMANDS.get(parts[1], [])
-
-        # If this group has defined subcommands, check them
-        if subcommands and parts[2] not in subcommands:
-            return False, f"Unknown subcommand: {parts[2]}. Valid: {', '.join(subcommands)}"
-
-    return True, ""
+    path = parts[0]
+    if path not in tree:
+        return False
+    for word in parts[1:]:
+        children = tree[path]
+        if children is None:
+            return True  # leaf: remaining words are just positional args
+        if word not in children:
+            return False  # not a real subcommand at this dispatch level
+        path = f"{path} {word}"
+    return True
 
 
-def main():
+def main() -> int:
     verbose = "--verbose" in sys.argv or "-v" in sys.argv
+    root = _project_root()
 
-    # Find trentorch root (script is in trentorch/tools/dev/)
-    script_path = Path(__file__).resolve()
-    trentorch_root = script_path.parent.parent.parent
-
-    # If trentorch_root is not actually trentorch (e.g., we're in a different structure),
-    # try to find it from current working directory
-    if not (trentorch_root / "bin" / "tren").exists():
-        cwd = Path.cwd()
-        if (cwd / "trentorch" / "bin" / "tren").exists():
-            trentorch_root = cwd / "trentorch"
-        elif (cwd / "bin" / "tren").exists():
-            trentorch_root = cwd
-
+    tree = get_valid_command_tree(root)
     if verbose:
-        print(f"Scanning for CLI references in: {trentorch_root}")
+        print(f"Introspected {len(tree)} valid command paths from the real, live CLI.")
 
-    valid_commands = get_valid_command_set()
-    md_files = find_markdown_files(trentorch_root)
+    md_files = sorted((root / "docs").rglob("*.md")) + sorted(root.glob("*.md"))
 
-    if verbose:
-        print(f"Found {len(md_files)} markdown files to check")
+    # Words that mean "this command is being discussed as history, not
+    # claimed as currently working" -- checked in a window around the
+    # reference, not just the exact line, since a doc's framing sentence
+    # ("Upstream had X. This fork inherited it. It has since been
+    # removed.") is often a line or two away from the code span itself.
+    HISTORICAL_MARKERS = re.compile(
+        r"\bremoved\b|\bno longer\b|\bused to (exist|work)\b|\bhas never existed\b|\bdeleted\b",
+        re.IGNORECASE,
+    )
 
-    errors: list[tuple[Path, int, str, str]] = []
+    errors: list[tuple[Path, str]] = []
+    seen_per_file: dict[Path, set[str]] = {}
+
+    # Headings that mark a section as explicitly-disclaimed history of a
+    # *different* repo (design.md's own top-of-section note), not a claim
+    # about this fork's live command set -- skip everything under one
+    # until the next same-or-higher-level heading.
+    NON_CURRENT_SECTION_HEADINGS = {"project history"}
 
     for md_file in md_files:
-        commands = extract_tren_commands(md_file)
+        try:
+            text = md_file.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        lines = text.split("\n")
 
-        for line_num, cmd in commands:
-            is_valid, error_msg = validate_command(cmd, valid_commands)
+        skip_from = None
+        for line_idx, line in enumerate(lines):
+            heading_match = re.match(r"^(#{1,6})\s+(.*)$", line)
+            if heading_match:
+                level, title = len(heading_match.group(1)), heading_match.group(2).strip().lower()
+                if skip_from is not None and level <= skip_from:
+                    skip_from = None
+                if skip_from is None and title in NON_CURRENT_SECTION_HEADINGS:
+                    skip_from = level
+            if skip_from is not None:
+                continue
 
-            if not is_valid:
-                rel_path = md_file.relative_to(trentorch_root)
-                errors.append((rel_path, line_num, cmd, error_msg))
+            for raw_cmd in extract_commands(line):
+                if matches_real_command(raw_cmd, tree):
+                    continue
+                window = "\n".join(lines[max(0, line_idx - 2) : line_idx + 3])
+                if HISTORICAL_MARKERS.search(window):
+                    continue
+                already_flagged = seen_per_file.setdefault(md_file, set())
+                if raw_cmd in already_flagged:
+                    continue
+                already_flagged.add(raw_cmd)
+                errors.append((md_file.relative_to(root), raw_cmd))
 
     if errors:
         print(f"\n{'=' * 60}")
-        print("CLI Documentation Validation FAILED")
+        print("Docs reference a `tren` command that doesn't exist")
         print(f"{'=' * 60}\n")
-        print(f"Found {len(errors)} invalid CLI command reference(s):\n")
-
-        for filepath, line, cmd, msg in errors:
-            print(f"  {filepath}:{line}")
-            print(f"    Command: {cmd}")
-            print(f"    Issue: {msg}")
-            print()
-
-        print("Fix these issues before committing.")
-        print("Run 'tren --help' to see valid commands.\n")
+        for path, cmd in errors:
+            print(f"  {path}: `{cmd}` -- no real command matches this")
+        print(f"\n{len(errors)} reference(s) don't match the real CLI.")
+        print("Run `tren --help` (or the relevant subcommand's --help) to see what actually")
+        print("exists, and fix the docs -- or fix this script's extraction/matching logic if")
+        print("it's what's wrong, not the docs.\n")
         return 1
 
     if verbose:
-        print(f"\n All {len(md_files)} markdown files have valid CLI references!")
-
+        print(f"All `tren ...` references across {len(md_files)} markdown files match a real command.")
     return 0
 
 
