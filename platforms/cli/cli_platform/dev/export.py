@@ -123,7 +123,7 @@ class DevExportCommand(BaseCommand):
                 Panel(
                     "[red]❌ Must specify either module names or --all[/red]\n\n"
                     "[dim]Examples:[/dim]\n"
-                    "[dim]ren dev export 01[/dim]           (shorthand)\n"
+                    "[dim]  tren dev export 01[/dim]           (shorthand)\n"
                     "[dim]  tren dev export 01_tensor[/dim]    (full name)\n"
                     "[dim]  tren dev export 01 02 03[/dim]     (multiple)\n"
                     "[dim]  tren dev export --all[/dim]        (all modules)",
