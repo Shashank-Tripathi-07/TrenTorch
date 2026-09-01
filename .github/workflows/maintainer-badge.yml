@@ -1,0 +1,59 @@
+name: 'Badge Maintainer PRs and Issues'
+
+# GitHub's own comment/PR author badge (author_association) is a fixed
+# set -- OWNER/MEMBER/COLLABORATOR/CONTRIBUTOR/NONE -- with no
+# "Maintainer" option, and that's not something any repo or org setting
+# can change. Labels are the closest real, visible equivalent: this
+# tags every PR/issue opened by someone with Maintain or Admin access
+# with a distinct "Maintainer" label the moment it's opened.
+#
+# Checks live permission via the API rather than a hardcoded username
+# list, so it automatically covers whoever actually holds Maintain/Admin
+# today and stays correct as that list changes, instead of drifting the
+# way a hardcoded list would.
+
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  badge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: github.event.sender.type != 'Bot'
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const LABEL = "Maintainer";
+            const isIssue = !!context.payload.issue;
+            const item = isIssue ? context.payload.issue : context.payload.pull_request;
+            const author = item.user.login;
+            const number = item.number;
+
+            const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: author,
+            });
+
+            const MAINTAINER_LEVELS = new Set(["maintain", "admin"]);
+            if (!MAINTAINER_LEVELS.has(perm.role_name)) {
+              console.log(`${author} has role "${perm.role_name}", not maintain/admin -- skipping.`);
+              return;
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              labels: [LABEL],
+            });
+            console.log(`Labeled #${number} -- ${author} has role "${perm.role_name}".`);
