@@ -13,7 +13,6 @@ import argparse
 import logging
 import os
 import sys
-from pathlib import Path
 
 # Windows opens stdout/stderr with the console's legacy codepage (e.g. cp1252),
 # not UTF-8, so emoji output crashes with UnicodeEncodeError unless the
@@ -59,6 +58,7 @@ from .commands.base import BaseCommand
 from .core.config import CLIConfig, migrate_progress_dir
 from .core.console import Panel, get_console, print_ascii_logo, print_banner, print_error
 from .core.exceptions import TinyTorchCLIError
+from .core.modules import _find_project_root
 from .core.theme import Theme
 from .core.virtual_env_manager import get_venv_path
 
@@ -67,11 +67,14 @@ from .core.virtual_env_manager import get_venv_path
 def _get_version() -> str:
     """Read version from pyproject.toml."""
     try:
-        # Try to find pyproject.toml relative to this file.
-        # This file lives at platforms/cli/main.py, and pyproject.toml is at
-        # the repo root -- two levels up from this file's own directory, not one.
-        cli_dir = Path(__file__).parent
-        pyproject_path = cli_dir.parent.parent / "pyproject.toml"
+        # Reuses the same project-root-finder core/modules.py already
+        # relies on (walks up from this file until it finds a directory
+        # with both pyproject.toml and data/src) instead of a hardcoded
+        # number of .parent calls. A fixed-depth guess is exactly what
+        # broke this before (issue #80: main.py's actual depth is two
+        # levels below the repo root, not one) -- walking up means this
+        # can't silently regress the same way if main.py ever moves.
+        pyproject_path = _find_project_root() / "pyproject.toml"
         if pyproject_path.exists():
             content = pyproject_path.read_text()
             for line in content.splitlines():
