@@ -144,17 +144,38 @@ def test_no_default_part_configured_runs_all_scripts(tmp_path, monkeypatch):
     assert captured["scripts"] == [script_a, script_b]
 
 
-def test_out_of_range_default_part_falls_back_to_all_scripts(tmp_path, monkeypatch):
-    """default_part not None True, but out of range (1 <= x <= len fails)
-    -> the and is False, falls to running every script. Paired with the
-    first baseline: only the range check differs, isolating that half of
-    the and from default_part's mere presence."""
+def test_default_part_above_range_falls_back_to_all_scripts(tmp_path, monkeypatch):
+    """default_part not None True, upper bound violated (default_part <=
+    len(all_scripts) is False) -> the and is False, falls to running
+    every script. Paired with the first baseline: only the upper-bound
+    check differs, isolating that half of the chained comparison."""
     cmd, buf, captured, script_a, script_b = _setup(
         tmp_path,
         monkeypatch,
         lambda a, b: {
             "scripts": [{"name": "A", "script": a}, {"name": "B", "script": b}],
             "default_part": 99,
+        },
+    )
+
+    cmd._handle_run_command(_args(part=None))
+
+    assert captured["scripts"] == [script_a, script_b]
+
+
+def test_default_part_below_range_falls_back_to_all_scripts(tmp_path, monkeypatch):
+    """default_part not None True, lower bound violated (1 <=
+    default_part is False, e.g. 0 or negative) -> the and is False,
+    falls to running every script. Paired with the baseline: only the
+    lower-bound check differs, isolating the other half of the chained
+    comparison -- distinct from the above-range test, which only
+    isolated the upper bound."""
+    cmd, buf, captured, script_a, script_b = _setup(
+        tmp_path,
+        monkeypatch,
+        lambda a, b: {
+            "scripts": [{"name": "A", "script": a}, {"name": "B", "script": b}],
+            "default_part": 0,
         },
     )
 
