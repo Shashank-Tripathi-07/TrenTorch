@@ -282,6 +282,44 @@ def validate_notebook_integrity(notebook_path: Path) -> dict:
         }
 
 
+def check_notebook_solved(notebook_path: Path) -> tuple[bool, list[str]]:
+    """Scan a student's stub notebook for code cells that still raise NotImplementedError.
+
+    `tren module test`'s Phase 1 (data/src/<module>.py) and Phase 2 (pytest against
+    the installed trentorch package) never read this notebook, so both can report
+    a full pass even when every stub here is untouched. This is the check that
+    actually looks at what the student wrote.
+    """
+    try:
+        notebook_data = json.loads(notebook_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        return False, [f"Could not read notebook: {e}"]
+
+    unresolved = []
+    for cell in notebook_data.get("cells", []):
+        if cell.get("cell_type") != "code":
+            continue
+        source = cell.get("source", "")
+        if isinstance(source, list):
+            source = "".join(source)
+
+        for line in source.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("raise NotImplementedError"):
+                first_line = next(
+                    (
+                        s.strip()
+                        for s in source.strip().splitlines()
+                        if s.strip() and not s.strip().startswith("#|")
+                    ),
+                    "(empty cell)",
+                )
+                unresolved.append(first_line[:80])
+                break
+
+    return len(unresolved) == 0, unresolved
+
+
 def _resolve_jupytext_path(venv_path: Path, console) -> str:
     from ..core.virtual_env_manager import get_venv_bin_dir
 
