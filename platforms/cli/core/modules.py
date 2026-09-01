@@ -117,12 +117,23 @@ def normalize_module_number(module_input: str) -> str:
     """
     # If it's a pure number
     if module_input.isdigit():
-        return f"{int(module_input):02d}"
+        # str.isdigit() accepts Unicode digit characters (superscripts,
+        # Devanagari/Tamil/etc. numerals) that int() can't parse -- e.g.
+        # "²" (superscript two) isdigit()s True but int() raises
+        # ValueError. Fall through and treat it as a non-numeric input
+        # instead of crashing.
+        try:
+            return f"{int(module_input):02d}"
+        except ValueError:
+            return module_input
     # If it's a folder name like "15_quantization", extract the number
     if "_" in module_input:
         prefix = module_input.split("_")[0]
         if prefix.isdigit():
-            return f"{int(prefix):02d}"
+            try:
+                return f"{int(prefix):02d}"
+            except ValueError:
+                return module_input
     return module_input
 
 

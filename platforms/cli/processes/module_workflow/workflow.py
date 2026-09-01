@@ -306,10 +306,16 @@ class ModuleWorkflowCommand(BaseCommand):
         if milestone_info:
             mid, mname, required = milestone_info
             if module_num in required:
+                # Reuses the already-fuzz-safe helper rather than a raw
+                # isdigit()+int() pair: str.isdigit() accepts Unicode digit
+                # characters (e.g. superscripts) that int() then raises
+                # ValueError on. completed_modules comes straight from
+                # progress.json, which isn't schema-validated, so a
+                # crafted/corrupted entry there could otherwise crash here.
+                from platforms.cli.processes.milestone import _module_progress_to_int
+
                 completed_nums = {
-                    int(str(module).split("_", 1)[0])
-                    for module in completed
-                    if str(module).split("_", 1)[0].isdigit()
+                    n for n in (_module_progress_to_int(module) for module in completed) if n is not None
                 }
                 # r >= module_num is always true here: the prerequisite
                 # check above already returned 1 if any module before
