@@ -77,9 +77,13 @@ CI (`.github/workflows/validate.yml`) has to be green before a PR merges — see
 
 Security issues should **not** go through a public issue — see [`SECURITY.md`](../SECURITY.md) for the private reporting flow.
 
+**If you're new here**: open the issue first, and ask to be assigned to it before starting work. This avoids two people quietly duplicating the same fix, and lets a maintainer weigh in before you've sunk time into an approach that might not land. (Existing collaborators already coordinating with the team are exempt from this — it's aimed at first PRs, not routine ongoing work.)
+
 ## Opening a pull request
 
-Describe what changed and why, how you tested it, and confirm `ruff check` / `ruff format --check` pass locally. Keep PRs scoped to one thing — a bug fix and an unrelated refactor in the same PR is harder to review and harder to revert if something's wrong.
+Describe what changed and why, how you tested it, and confirm `ruff check` / `ruff format --check` pass locally (a bot also runs these automatically and pushes any straightforward fix directly onto your branch). Keep PRs scoped to one thing — a bug fix and an unrelated refactor in the same PR is harder to review and harder to revert if something's wrong.
+
+If you're a first-time or external contributor, reference the issue you were assigned in the PR description (e.g. `Fixes #123`) — a bot checks for this and will comment/label the PR `needs-linked-issue` if it's missing, though a maintainer still makes the actual call on merging. Every PR also needs at least one approving review from someone other than its author before it can merge.
 
 ## Releases (maintainers)
 

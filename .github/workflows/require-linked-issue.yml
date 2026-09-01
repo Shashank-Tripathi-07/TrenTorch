@@ -1,0 +1,123 @@
+name: 'Require a Linked, Assigned Issue for External PRs'
+
+# Enforces the contribution workflow this repo wants from first-time/
+# external contributors: open an issue describing the problem, get it
+# assigned to you, *then* open a PR that references it (e.g. "Fixes #123"
+# in the description). Known collaborators (author_association OWNER/
+# MEMBER/COLLABORATOR) are exempt -- this targets drive-by PRs from people
+# outside the existing team, not the team's own normal workflow.
+#
+# pull_request_target, not pull_request, matching this repo's other
+# metadata-only bots (pr-auto-assign.yml, welcome.yml): this only reads
+# PR text/author and comments/labels via the API. It never checks out or
+# runs any code from the PR branch itself.
+#
+# Deliberately non-blocking: comments + labels `needs-linked-issue` rather
+# than closing the PR outright, so a maintainer still makes the actual
+# call (a false positive here -- e.g. a legitimate PR that just forgot the
+# magic words -- shouldn't get auto-closed on a first contribution).
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  check-linked-issue:
+    runs-on: ubuntu-latest
+    # Skip the repo's own team and bots (Dependabot, this repo's other
+    # automation) -- this is aimed at contributors the maintainers haven't
+    # already vetted through issue triage, not routine team/bot PRs.
+    if: |
+      github.event.sender.type != 'Bot' &&
+      github.event.pull_request.author_association != 'OWNER' &&
+      github.event.pull_request.author_association != 'MEMBER' &&
+      github.event.pull_request.author_association != 'COLLABORATOR'
+    steps:
+      - name: Check for a linked, assigned issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const LABEL = "needs-linked-issue";
+            const body = context.payload.pull_request.body || "";
+            const author = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+
+            // GitHub's own closing-keyword syntax: Fixes/Closes/Resolves #N
+            // (any tense/number GitHub itself recognizes for auto-close).
+            const closingKeywordRe = /\b(close[sd]?|fixe?[sd]?|resolve[sd]?)\s+#(\d+)\b/gi;
+            const matches = [...body.matchAll(closingKeywordRe)];
+
+            async function flag(message) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: [LABEL],
+              });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: message,
+              });
+            }
+
+            async function unflag() {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  name: LABEL,
+                });
+              } catch (e) {
+                // Label wasn't present -- nothing to remove, not an error.
+              }
+            }
+
+            if (matches.length === 0) {
+              await flag(
+                "👋 Thanks for the PR! TrenTorch asks external contributors to open an issue " +
+                "describing the problem first, get it assigned to you, and *then* open the PR " +
+                "referencing it (e.g. `Fixes #123` in the description) -- that way work doesn't " +
+                "collide with someone else already on it, and maintainers know it's coming.\n\n" +
+                "Could you open an issue for this (if one doesn't exist yet), ask a maintainer to " +
+                "assign it to you, and add `Fixes #<issue-number>` to this PR's description? A " +
+                "maintainer can also link one for you if this is already covered by an existing issue."
+              );
+              return;
+            }
+
+            let assignedToAuthor = false;
+            for (const m of matches) {
+              const issueNumber = parseInt(m[2], 10);
+              try {
+                const { data: issue } = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                });
+                const assignees = (issue.assignees || []).map((a) => a.login);
+                if (assignees.includes(author)) {
+                  assignedToAuthor = true;
+                  break;
+                }
+              } catch (e) {
+                // Referenced issue number doesn't exist -- treat like unlinked.
+              }
+            }
+
+            if (assignedToAuthor) {
+              await unflag();
+              return;
+            }
+
+            await flag(
+              "👋 Thanks for the PR! This references an issue, but it isn't assigned to you yet. " +
+              "TrenTorch asks that the linked issue be assigned to you before review -- comment on " +
+              "the issue asking to be assigned, or a maintainer can do it directly."
+            );
