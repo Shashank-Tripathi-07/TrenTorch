@@ -119,13 +119,14 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         # CodeQL py/http-response-splitting: `origin` is the raw Origin
         # header value, so it must never be echoed back into a response
-        # header without ruling out embedded CR/LF first -- those could
-        # otherwise inject extra headers or a forged response body into
-        # this reply. The hostname check above already restricts *which*
-        # origins get echoed; this restricts *what characters* the echoed
-        # value itself is allowed to carry.
-        if origin and "\r" not in origin and "\n" not in origin and origin_host in self._trusted_hostnames():
-            self.send_header("Access-Control-Allow-Origin", origin)
+        # header without stripping CR/LF first -- those could otherwise
+        # inject extra headers or a forged response body into this reply.
+        # `safe_origin` is what actually gets sent; comparing it back to
+        # `origin` also rejects the request outright when stripping would
+        # have changed it, rather than silently echoing a mangled value.
+        safe_origin = origin.replace("\r", "").replace("\n", "")
+        if origin and safe_origin == origin and origin_host in self._trusted_hostnames():
+            self.send_header("Access-Control-Allow-Origin", safe_origin)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Content-Length", "0")
