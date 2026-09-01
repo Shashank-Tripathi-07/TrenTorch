@@ -26,22 +26,21 @@ repos:
   # CLI DOCUMENTATION VALIDATORS
   # ===========================================================================
 
-  # Disabled: platforms/dev_tools/tools/dev/validate_cli_docs.py predates the
-  # data/ restructuring and the tren->platforms/cli reorg. Its DOCS_DIRS list
-  # (site/modules/tests/milestones) and VALID_COMMANDS table (still lists a
-  # removed `grade` command group, missing `convert`, out of date on
-  # `milestone`'s real subcommands) both need updating to match the current
-  # layout before this is safe to run again. See docs/cli_file_organization.md
-  # for the current, accurate command/file map in the meantime.
-  # - repo: local
-  #   hooks:
-  #     - id: validate-cli-docs
-  #       name: "Validate CLI documentation"
-  #       description: "Ensure tren commands in docs match actual CLI"
-  #       entry: python3 platforms/dev_tools/tools/dev/validate_cli_docs.py
-  #       language: python
-  #       files: \.md$
-  #       pass_filenames: false
+  # Re-enabled: validate_cli_docs.py was rewritten to introspect the real,
+  # live argparse tree instead of a hand-maintained command list that kept
+  # drifting out of sync with the code (which is what got this disabled in
+  # the first place). It walks each dispatch level's actual subcommands,
+  # so a wrong subcommand ("tren module frobnicate") is a real failure,
+  # not silently accepted the way naively trimming trailing words would.
+  - repo: local
+    hooks:
+      - id: validate-cli-docs
+        name: "Validate CLI documentation"
+        description: "Ensure tren commands in docs match actual CLI"
+        entry: python3 platforms/dev_tools/tools/dev/validate_cli_docs.py
+        language: python
+        files: \.md$
+        pass_filenames: false
 
   # ===========================================================================
   # PYTHON CODE QUALITY

@@ -1,0 +1,43 @@
+name: 'Validate CLI Docs'
+
+# Runs platforms/dev_tools/tools/dev/validate_cli_docs.py on every PR: it
+# introspects the real, live CLI's argparse tree and fails if any `tren
+# ...` command referenced in docs/*.md doesn't actually exist. Pure
+# read-only check (exit code only, no comments/pushes), so plain
+# pull_request is fine -- no fork-token concerns the way autofix.yml or
+# check-version-consistency.yml have.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: validate-docs-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate CLI Docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+
+      - name: Install runtime dependencies
+        # The script imports platforms.cli.main to introspect the real
+        # parser, which needs the CLI's own runtime deps importable.
+        run: pip install rich PyYAML
+
+      - name: Validate
+        run: python3 platforms/dev_tools/tools/dev/validate_cli_docs.py --verbose
