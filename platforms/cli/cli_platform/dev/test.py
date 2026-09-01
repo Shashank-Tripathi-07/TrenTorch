@@ -501,8 +501,16 @@ class DevTestCommand(BaseCommand):
                             status = "!"
                         else:
                             status = "-"
-                        # Extract just the test name
-                        test_name = line.split("::")[-1].split()[0] if "::" in line else line
+                        # Extract just the test name. "::" is guaranteed
+                        # present here (the outer if already checked), but
+                        # the part after it being nothing but whitespace
+                        # (so .split() returns []) isn't -- that used to
+                        # raise IndexError here, caught by this method's
+                        # own outer except Exception, which silently
+                        # truncated live CI test-streaming mid-run instead
+                        # of just skipping this one unparseable line.
+                        name_parts = line.split("::")[-1].split()
+                        test_name = name_parts[0] if name_parts else line
                         print(f"  {status} {test_name}")
                         test_count += 1
                     elif line.startswith("ERROR "):
