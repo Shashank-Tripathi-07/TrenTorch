@@ -134,3 +134,59 @@ def test_no_eligible_milestone_leaves_next_milestone_none(tmp_path, monkeypatch)
     status = system.get_milestone_status()
     assert status["milestones"]["1"]["can_unlock"] is False
     assert status["next_milestone"] is None
+
+
+# ---------------------------------------------------------------------------
+# required_complete = all(_is_module_completed(mod) for mod in required_modules)
+#
+# Every other test in this file uses a single-element required_modules
+# list, which makes this all() trivially reduce to checking one module --
+# not a real multi-atom decision. These tests use two required modules
+# specifically so each module's completion can be shown to independently
+# matter, the way MC/DC requires.
+# ---------------------------------------------------------------------------
+
+
+def test_both_required_modules_completed_satisfies_required_complete(tmp_path, monkeypatch):
+    """Baseline: both required modules completed -> required_complete
+    True (observed via can_unlock, since required_complete isn't
+    exposed on its own -- trigger_module left unset so trigger_complete
+    defaults to required_complete's own value, and is_unlocked is
+    False, isolating this decision through can_unlock cleanly)."""
+    system = _system(
+        tmp_path,
+        monkeypatch,
+        {"1": _milestone(required_modules=[1, 2])},
+        completed_modules=["01", "02"],
+    )
+    status = system.get_milestone_status()
+    assert status["milestones"]["1"]["can_unlock"] is True
+
+
+def test_only_the_first_required_module_completed_fails_required_complete(tmp_path, monkeypatch):
+    """Only module 1 of [1, 2] completed -> all() is False. Paired with
+    the baseline: only module 2's completion differs, isolating its
+    independent effect on the all()."""
+    system = _system(
+        tmp_path,
+        monkeypatch,
+        {"1": _milestone(required_modules=[1, 2])},
+        completed_modules=["01"],
+    )
+    status = system.get_milestone_status()
+    assert status["milestones"]["1"]["can_unlock"] is False
+
+
+def test_only_the_second_required_module_completed_fails_required_complete(tmp_path, monkeypatch):
+    """Only module 2 of [1, 2] completed -> all() is False. Paired with
+    the baseline: only module 1's completion differs, isolating its
+    independent effect from module 2's, distinct from the previous
+    test's isolation of module 2."""
+    system = _system(
+        tmp_path,
+        monkeypatch,
+        {"1": _milestone(required_modules=[1, 2])},
+        completed_modules=["02"],
+    )
+    status = system.get_milestone_status()
+    assert status["milestones"]["1"]["can_unlock"] is False

@@ -67,6 +67,28 @@ def test_no_venv_directory_shows_missing_regardless_of_env_vars(tmp_path, monkey
     assert "Missing" in out
 
 
+def test_real_prefix_alone_also_counts_as_in_venv(tmp_path, monkeypatch):
+    """in_venv's own third disjunct (hasattr(sys, "real_prefix")),
+    isolated on its own -- the _run_health helper's in_venv=True path
+    only ever set VIRTUAL_ENV, never exercised this atom independently."""
+    fake_venv = tmp_path / ".venv"
+    fake_venv.mkdir()
+    monkeypatch.setattr(base_module, "get_venv_path", lambda: fake_venv)
+    monkeypatch.delenv("VIRTUAL_ENV", raising=False)
+    monkeypatch.setattr(sys, "prefix", "/fake/same")
+    monkeypatch.setattr(sys, "base_prefix", "/fake/same")
+    monkeypatch.setattr(sys, "real_prefix", "/fake/old-venv", raising=False)
+
+    cmd = HealthCommand(CLIConfig.from_project_root(tmp_path))
+    monkeypatch.setattr(cmd, "_check_jupyter_kernel", lambda: ("[dim]○ Skipped[/dim]", "test"))
+    monkeypatch.setattr(cmd, "_get_kernel_python", lambda: None)
+    buf = StringIO()
+    cmd.console = Console(file=buf, width=300, no_color=True)
+    cmd.run(None)
+
+    assert "Virtual Environment" in buf.getvalue() and "OK" in buf.getvalue()
+
+
 # ---------------------------------------------------------------------------
 # "❌" in kernel_status or "⚠️" in kernel_status
 # ---------------------------------------------------------------------------
