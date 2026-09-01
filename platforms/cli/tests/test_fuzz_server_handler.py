@@ -20,7 +20,7 @@ import urllib.request
 from http.server import ThreadingHTTPServer
 
 import pytest
-from hypothesis import given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from platforms.cli.core.config import CLIConfig
@@ -134,5 +134,70 @@ def test_leading_double_slash_path_is_collapsed_before_reaching_us(running_serve
         # Collapsed to "/[::1/x" by http.server itself -> falls through to
         # the static file server -> a plain 404, not our JSON 400.
         assert response.status == 404
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# do_OPTIONS: HTTP response splitting via the echoed Origin header
+# (CodeQL py/http-response-splitting, Security tab alert #3)
+# ---------------------------------------------------------------------------
+
+
+def test_options_cannot_inject_headers_via_folded_origin(running_server):
+    """A crafted Origin header can carry a trusted hostname (so it passes
+    the trust check) while still smuggling an obsolete-line-folding CRLF
+    later in the same value -- and do_OPTIONS used to echo that whole raw
+    value straight into the Access-Control-Allow-Origin response header.
+
+    Confirmed live against the unfixed code: sending
+    "http://localhost/\\r\\n X-Injected: pwned" as Origin produced a raw
+    response with a genuine extra "X-Injected: pwned" header spliced in,
+    because http.client.putheader (and the server's own header parser)
+    both accept RFC-2822-style folded continuation lines -- this isn't a
+    theoretical CRLF, it's a real, currently-reachable client shape.
+    """
+    host, port = running_server
+    conn = http.client.HTTPConnection(host, port, timeout=5)
+    try:
+        conn.putrequest("OPTIONS", "/api/status", skip_host=True, skip_accept_encoding=True)
+        conn.putheader("Host", f"{host}:{port}")
+        conn.putheader("Origin", "http://localhost/\r\n X-Injected: pwned")
+        conn.endheaders()
+        response = conn.getresponse()
+        raw_headers = response.msg.as_string()
+        assert "X-Injected" not in raw_headers, f"Header injection succeeded: {raw_headers!r}"
+        assert response.getheader("Access-Control-Allow-Origin") is None
+    finally:
+        conn.close()
+
+
+@given(st.text(min_size=1, alphabet=st.characters(blacklist_characters="\r\n")))
+@settings(max_examples=50, suppress_health_check=[HealthCheck.function_scoped_fixture])
+def test_options_still_echoes_clean_trusted_origins(running_server, suffix):
+    """Fuzzed but CR/LF-free suffixes appended to a trusted origin must
+    still round-trip normally through the real server -- the fix must not
+    have overcorrected into rejecting every Origin header, only ones that
+    actually carry a line break."""
+    host, port = running_server
+    origin = f"http://localhost/{suffix}"
+
+    conn = http.client.HTTPConnection(host, port, timeout=5)
+    try:
+        conn.putrequest("OPTIONS", "/api/status", skip_host=True, skip_accept_encoding=True)
+        conn.putheader("Host", f"{host}:{port}")
+        try:
+            conn.putheader("Origin", origin)
+        except ValueError:
+            # A handful of Hypothesis's Unicode text() outputs aren't legal
+            # raw header bytes at all (http.client's own encoder rejects
+            # them before the request is even sent) -- irrelevant to the
+            # CRLF-echo bug this test targets, so just skip those.
+            conn.close()
+            return
+        conn.endheaders()
+        response = conn.getresponse()
+        response.read()
+        assert response.getheader("Access-Control-Allow-Origin") == origin
     finally:
         conn.close()
