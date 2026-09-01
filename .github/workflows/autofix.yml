@@ -59,7 +59,7 @@ jobs:
 
       - name: Install ruff
         if: steps.has-pat.outputs.configured == 'true'
-        run: pip install ruff>=0.6.0
+        run: pip install "ruff>=0.6.0"
 
       - name: Autofix
         if: steps.has-pat.outputs.configured == 'true'

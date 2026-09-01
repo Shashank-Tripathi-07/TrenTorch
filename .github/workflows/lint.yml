@@ -35,7 +35,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install ruff
-        run: pip install ruff>=0.6.0
+        run: pip install "ruff>=0.6.0"
 
       - name: Ruff check (lint)
         run: ruff check .
