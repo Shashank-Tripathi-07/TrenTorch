@@ -1,0 +1,50 @@
+# Config for actions/labeler (auto-label-prs.yml). Maps changed file
+# globs to labels -- reuses existing labels (documentation, dependencies,
+# github_actions) where one already fit, and only the six new ones
+# created alongside this (cli, dev-tools, curriculum, milestones, tests,
+# security) actually needed adding.
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/**'
+
+github_actions:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+cli:
+  - changed-files:
+      - any-glob-to-any-file: 'platforms/cli/**'
+
+dev-tools:
+  - changed-files:
+      - any-glob-to-any-file: 'platforms/dev_tools/**'
+
+curriculum:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'data/src/**'
+          - 'data/modules/**'
+          - 'data/solutions/**'
+
+milestones:
+  - changed-files:
+      - any-glob-to-any-file: 'data/milestones/**'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'tests/**'
+          - 'platforms/cli/tests/**'
+          - 'data/milestones/tests/**'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pyproject.toml'
+          - 'requirements.txt'
+          - 'settings.ini'
+
+security:
+  - changed-files:
+      - any-glob-to-any-file: 'platforms/cli/server/**'

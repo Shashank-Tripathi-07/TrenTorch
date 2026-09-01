@@ -1,0 +1,78 @@
+name: 'Auto-update PR branches behind main'
+
+# Whenever main advances, updates every open, non-draft, same-repo PR
+# that's fallen behind via GitHub's own "update branch" API -- the exact
+# manual-rebase-through-a-CHANGELOG-conflict dance PRs #83, #84, and #88
+# all needed by hand this session. GitHub's update-branch API only
+# succeeds when there's no real conflict; a genuine conflict (like those
+# three hit) still needs a human, this just clears the common case where
+# a PR is simply behind with nothing contentious.
+#
+# Uses AUTOFIX_PAT, not the default token: the resulting merge commit
+# needs to be a real authenticated action that re-triggers the PR's
+# required checks, which a default-GITHUB_TOKEN-driven update wouldn't do
+# (GitHub's anti-recursion rule applies to any GITHUB_TOKEN-driven write,
+# not just literal `git push`). Fork PRs are skipped -- GitHub's
+# update-branch API needs write access to the head branch, which no
+# token this repo holds has for someone else's fork.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  update-behind-prs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check AUTOFIX_PAT is configured
+        id: has-pat
+        run: |
+          if [ -z "${{ secrets.AUTOFIX_PAT }}" ]; then
+            echo "::notice::AUTOFIX_PAT secret isn't set yet -- skipping. PRs behind main still need a manual rebase for now."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update behind PRs
+        if: steps.has-pat.outputs.configured == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ secrets.AUTOFIX_PAT }}
+          script: |
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              base: "main",
+              per_page: 100,
+            });
+
+            for (const pr of prs) {
+              if (pr.draft) continue;
+              if (pr.head.repo?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
+                console.log(`#${pr.number}: fork PR, can't update its branch, skipping.`);
+                continue;
+              }
+              if (pr.mergeable_state === "behind" || pr.mergeable_state === "dirty") {
+                // "dirty" from the list endpoint often just means "not yet
+                // computed"; the update-branch call below is the real,
+                // authoritative check -- it simply fails harmlessly if
+                // there's an actual conflict.
+              }
+              try {
+                await github.rest.pulls.updateBranch({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                });
+                console.log(`#${pr.number}: update-branch requested.`);
+              } catch (e) {
+                console.log(`#${pr.number}: update-branch skipped (${e.status || "error"}: ${e.message}) -- likely already up to date or a real conflict needing a human.`);
+              }
+            }

@@ -1,0 +1,109 @@
+name: 'Backfill CHANGELOG Reviewed-by / Merged-by on Merge'
+
+# maintainer_use/CHANGELOG.md rows a contributor adds in their own PR
+# often leave "TBD | TBD" for the Reviewed-by/Merged-by columns, since
+# they don't know who'll review or merge it yet. This session backfilled
+# three of those by hand after the fact (issues #71/#76/#80's rows) --
+# this does it automatically the moment the PR that introduced the row
+# actually merges.
+#
+# Opens a small PR and merges it, the same pattern update-contributors.yml
+# already uses, rather than pushing straight to main: a direct push (even
+# from an admin-backed token) is a heavier, less-audited action than "one
+# more small reviewable PR", and this repo already deliberately chose
+# that trade-off once (see update-contributors.yml's own comment on why
+# it doesn't push directly). Uses AUTOFIX_PAT so the merge isn't blocked
+# by the 1-approval rule the same way an admin's own merge isn't.
+#
+# Only ever touches the *last* "TBD | TBD" row in the file (the one this
+# specific PR just added), never older ones -- and skips its own
+# previous backfill PRs by title, so it can't loop-attribute an unrelated
+# older TBD row to the wrong reviewer.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  backfill:
+    if: |
+      github.event.pull_request.merged == true &&
+      !startsWith(github.event.pull_request.title, 'docs: backfill CHANGELOG')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check AUTOFIX_PAT is configured
+        id: has-pat
+        run: |
+          if [ -z "${{ secrets.AUTOFIX_PAT }}" ]; then
+            echo "::notice::AUTOFIX_PAT secret isn't set yet -- skipping CHANGELOG backfill. TBD cells still need filling in by hand for now."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout main
+        if: steps.has-pat.outputs.configured == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          token: ${{ secrets.AUTOFIX_PAT }}
+          fetch-depth: 0
+
+      - name: Backfill the newest TBD row and open+merge a small PR
+        if: steps.has-pat.outputs.configured == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.AUTOFIX_PAT }}
+          MERGER: ${{ github.event.pull_request.merged_by.login }}
+          SOURCE_PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -e
+          FILE="maintainer_use/CHANGELOG.md"
+
+          if ! grep -q '| TBD | TBD |' "$FILE"; then
+            echo "No TBD placeholder rows, nothing to backfill."
+            exit 0
+          fi
+
+          # Best-effort reviewer: the last APPROVED review on the source PR,
+          # falling back to the merger if there wasn't a distinct one (e.g.
+          # an admin-bypass merge with no formal review yet).
+          REVIEWER=$(gh api "repos/${{ github.repository }}/pulls/${SOURCE_PR}/reviews" \
+            --jq '[.[] | select(.state == "APPROVED")] | last | .user.login // empty')
+          if [ -z "$REVIEWER" ]; then
+            REVIEWER="$MERGER"
+          fi
+
+          # Only the LAST "TBD | TBD" row -- the one this specific PR just
+          # added -- never an older, unrelated one further up the file.
+          awk -v reviewer="$REVIEWER" -v merger="$MERGER" '
+            { lines[NR] = $0; if ($0 ~ /\| TBD \| TBD \|/) last = NR }
+            END {
+              for (i = 1; i <= NR; i++) {
+                if (i == last) {
+                  gsub(/\| TBD \| TBD \|/, "| " reviewer " | " merger " |", lines[i])
+                }
+                print lines[i]
+              }
+            }
+          ' "$FILE" > "$FILE.tmp"
+          mv "$FILE.tmp" "$FILE"
+
+          git config user.name "trentorch-bot"
+          git config user.email "trentorch-bot@users.noreply.github.com"
+          BRANCH="bot/changelog-backfill-${SOURCE_PR}"
+          git checkout -b "$BRANCH"
+          git add "$FILE"
+          git commit -m "docs: backfill CHANGELOG reviewer/merger for #${SOURCE_PR}"
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "docs: backfill CHANGELOG reviewer/merger for #${SOURCE_PR}" \
+            --body "Automated: fills in the Reviewed-by/Merged-by columns for the CHANGELOG row #${SOURCE_PR} added, now that it's actually merged (reviewer: \`${REVIEWER}\`, merger: \`${MERGER}\`)." \
+            --base main --head "$BRANCH"
+          gh pr merge "$BRANCH" --squash --admin

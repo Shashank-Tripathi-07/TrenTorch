@@ -1,0 +1,66 @@
+name: 'Check settings.ini / pyproject.toml Version Consistency'
+
+# settings.ini and pyproject.toml both declare the package version
+# independently -- a known, documented drift risk (see
+# docs/implementation.md section 9). Nothing enforced they stay in sync
+# before; this comments loudly on any PR that touches either file if
+# they've drifted apart, instead of letting it rot silently again.
+#
+# pull_request_target so the comment works on fork PRs too, but the only
+# thing checked out is the PR's own settings.ini/pyproject.toml text --
+# nothing from the PR is ever executed.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'settings.ini'
+      - 'pyproject.toml'
+
+permissions:
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Compare versions
+        id: compare
+        run: |
+          settings_version=$(grep -oP '^version\s*=\s*\K\S+' settings.ini || echo "unparseable")
+          pyproject_version=$(grep -oP '^version\s*=\s*"\K[^"]+' pyproject.toml || echo "unparseable")
+          echo "settings_version=$settings_version" >> "$GITHUB_OUTPUT"
+          echo "pyproject_version=$pyproject_version" >> "$GITHUB_OUTPUT"
+          if [ "$settings_version" != "$pyproject_version" ]; then
+            echo "mismatch=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "mismatch=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment if mismatched
+        if: steps.compare.outputs.mismatch == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SETTINGS_VERSION: ${{ steps.compare.outputs.settings_version }}
+          PYPROJECT_VERSION: ${{ steps.compare.outputs.pyproject_version }}
+        with:
+          script: |
+            const settingsVersion = process.env.SETTINGS_VERSION;
+            const pyprojectVersion = process.env.PYPROJECT_VERSION;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body:
+                `⚠️ \`settings.ini\` (version \`${settingsVersion}\`) and \`pyproject.toml\` ` +
+                `(version \`${pyprojectVersion}\`) disagree on the package version. These need to ` +
+                `stay in sync -- see docs/implementation.md's "Known-broken or inaccurate" section ` +
+                `for why this is a known drift risk, not a new problem.`,
+            });

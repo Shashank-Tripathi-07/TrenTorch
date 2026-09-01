@@ -1,0 +1,67 @@
+name: 'Open an Issue for New Code Scanning Alerts'
+
+# Alert #3 (the CORS header-injection finding, py/http-response-splitting)
+# sat in the Security tab until someone happened to go look. This opens a
+# tracking issue automatically the moment CodeQL reports a *new* alert
+# that's actually live on main (not a transient finding on someone's PR
+# branch -- those already surface through the PR's own CodeQL check).
+# Dedups against existing open "security" issues so a re-run doesn't spam
+# duplicates for the same alert number.
+
+on:
+  code_scanning_alert:
+    types: [created]
+
+permissions:
+  issues: write
+  security-events: read
+
+jobs:
+  open-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const alert = context.payload.alert;
+            const ref = alert.most_recent_instance?.ref || "";
+            if (!ref.endsWith("/main")) {
+              console.log(`Alert ref is "${ref}", not main -- skipping. PR-branch alerts already show up on that PR's own CodeQL check.`);
+              return;
+            }
+
+            const marker = `CodeQL alert #${alert.number}`;
+            const { data: openIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: "security",
+            });
+            if (openIssues.some((i) => i.title.includes(marker) || (i.body || "").includes(marker))) {
+              console.log("An open issue already tracks this alert, skipping.");
+              return;
+            }
+
+            const rule = alert.rule || {};
+            const loc = alert.most_recent_instance?.location || {};
+            const severity = rule.security_severity_level || rule.severity || "unknown";
+
+            const title = `Security: ${rule.description || rule.id} (${marker})`;
+            const body = [
+              `A new CodeQL code scanning alert appeared on \`main\`.`,
+              ``,
+              `**Rule:** \`${rule.id}\` (severity: ${severity})`,
+              `**Location:** \`${loc.path || "unknown"}\`${loc.start_line ? `:${loc.start_line}` : ""}`,
+              `**Alert:** ${alert.html_url}`,
+              ``,
+              rule.full_description || rule.description || "",
+            ].join("\n");
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ["security"],
+            });
