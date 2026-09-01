@@ -284,9 +284,12 @@ def _parse_test_output(stdout: str, stderr: str, returncode: int) -> list:
             # Tests failed
             # Try to extract error from stderr or stdout
             error_msg = stderr.strip() if stderr.strip() else stdout.strip()
-            # Get just the first few lines of error
+            # A traceback's actual exception type/message is always the last
+            # line, not the first -- the lines before it are just call-stack
+            # frames. Keep the last few lines, not the first few, so the
+            # message survives the truncation.
             error_lines = error_msg.split("\n")
-            concise_error = "\n".join(error_lines[:5]) if error_lines else "Test execution failed"
+            concise_error = "\n".join(error_lines[-5:]) if error_lines else "Test execution failed"
 
             tests.append({"name": "module_execution", "passed": False, "error": concise_error})
 
