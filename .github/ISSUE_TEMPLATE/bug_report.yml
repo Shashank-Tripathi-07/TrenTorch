@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in the CLI, a module, or the curriculum isn't working as expected
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you get instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact `tren` commands (or notebook cells) that trigger it
+      placeholder: |
+        1. tren module start 05
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste the error message or terminal output. This will be auto-formatted as code.
+      render: shell
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: "Windows 11 / Ubuntu 22.04 / macOS 14 (Apple Silicon)"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: TrenTorch / Python version
+      placeholder: "Output of `tren --version` and `python --version`"
+    validations:
+      required: true
