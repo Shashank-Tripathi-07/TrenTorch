@@ -71,6 +71,21 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
     def _trusted_hostnames(self) -> set[str]:
         return LOOPBACK_HOSTS | {h.lower() for h in self.allowed_hosts}
 
+    @staticmethod
+    def _safe_hostname(url: str) -> str:
+        """urlparse(...).hostname, but never raises.
+
+        Found by fuzzing: urlparse() raises ValueError on a malformed IPv6
+        host (e.g. "http://[::1" -- an unclosed bracket), and both callers
+        below feed it directly from the request's own Origin header with no
+        try/except, which is real network-reachable input, not something a
+        client is trusted to format correctly.
+        """
+        try:
+            return urlparse(url).hostname or ""
+        except ValueError:
+            return ""
+
     def _request_is_local(self) -> bool:
         """True only for same-machine requests that no remote page can forge.
 
@@ -85,7 +100,7 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
 
         origin = self.headers.get("Origin")
         if origin:
-            origin_host = urlparse(origin).hostname or ""
+            origin_host = self._safe_hostname(origin)
             if origin_host.lower() not in trusted:
                 return False
 
@@ -100,7 +115,7 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         """Handle CORS pre-flight requests (loopback origins only)."""
         origin = self.headers.get("Origin", "")
-        origin_host = (urlparse(origin).hostname or "").lower()
+        origin_host = self._safe_hostname(origin).lower()
         self.send_response(HTTPStatus.OK)
         if origin and origin_host in self._trusted_hostnames():
             self.send_header("Access-Control-Allow-Origin", origin)
@@ -111,7 +126,15 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         """Handle GET requests for API endpoints and static assets."""
-        parsed = urlparse(self.path)
+        # self.path is the raw request target -- attacker-controlled, same
+        # as the Origin header above. urlparse() raises ValueError on a
+        # malformed IPv6-looking authority (e.g. a request line of
+        # "GET //[::1/x HTTP/1.1"), which a real HTTP client can send.
+        try:
+            parsed = urlparse(self.path)
+        except ValueError:
+            self._send_json({"error": "Malformed request path"}, status=HTTPStatus.BAD_REQUEST)
+            return
         path = parsed.path.rstrip("/")
 
         if path == "/api/status":
@@ -137,7 +160,11 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         """Handle POST requests for actions."""
-        parsed = urlparse(self.path)
+        try:
+            parsed = urlparse(self.path)
+        except ValueError:
+            self._send_json({"error": "Malformed request path"}, status=HTTPStatus.BAD_REQUEST)
+            return
         path = parsed.path.rstrip("/")
 
         if path.startswith("/api/modules/") and path.endswith("/complete"):
