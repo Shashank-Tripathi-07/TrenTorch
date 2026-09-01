@@ -54,7 +54,7 @@ def test_windows_without_trentorch_installed_does_not_skip(tmp_path, monkeypatch
     isolating that half of the and."""
     out = _install_packages(tmp_path, monkeypatch, is_windows=True, trentorch_installed=False)
     assert "skipping reinstall on Windows" not in out
-    assert "Tiny🔥Torch installed" in out
+    assert "Tren⚡️Torch installed" in out
 
 
 def test_non_windows_with_trentorch_installed_does_not_skip(tmp_path, monkeypatch):
@@ -64,7 +64,7 @@ def test_non_windows_with_trentorch_installed_does_not_skip(tmp_path, monkeypatc
     differs, isolating that half of the and."""
     out = _install_packages(tmp_path, monkeypatch, is_windows=False, trentorch_installed=True)
     assert "skipping reinstall on Windows" not in out
-    assert "Tiny🔥Torch installed" in out
+    assert "Tren⚡️Torch installed" in out
 
 
 # ---------------------------------------------------------------------------
