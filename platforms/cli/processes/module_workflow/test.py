@@ -30,6 +30,7 @@ from rich.rule import Rule
 from rich.table import Table
 
 from platforms.cli.commands.base import BaseCommand
+from platforms.cli.commands.export_utils import check_notebook_solved
 from platforms.cli.core.modules import get_module_mapping, normalize_module_number
 
 
@@ -319,6 +320,46 @@ class ModuleTestCommand(BaseCommand):
                 border_style="cyan",
             )
         )
+        console.print()
+
+        # ─────────────────────────────────────────────────────────────
+        # Phase 0: Notebook Solved Check
+        #
+        # Phases 1-3 below run against data/src/<module>.py (which already
+        # contains the solution, interleaved with the stub) and the installed
+        # trentorch package (which ships pre-built). Neither one ever reads
+        # the student's actual notebook, so both can report a full pass with
+        # zero lines written. This phase is the one that actually checks it.
+        # ─────────────────────────────────────────────────────────────
+        console.print(Rule("[bold green]Phase 0: Notebook Solved Check[/bold green]", style="green"))
+        console.print("[dim]Checking your own notebook for unsolved stubs...[/dim]")
+        console.print()
+
+        short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
+        notebook_path = self.config.project_root / "data" / "modules" / module_name / f"{short_name}.ipynb"
+
+        if not notebook_path.exists():
+            console.print(f"[red]✗ Notebook not found: {notebook_path}[/red]")
+            console.print("[dim]Run 'tren module start' first.[/dim]")
+            console.print()
+            return False, f"Notebook not found: {notebook_path}"
+
+        solved, unresolved_cells = check_notebook_solved(notebook_path)
+
+        if not solved:
+            console.print("[red]✗ Phase 0 FAILED: Unsolved stub(s) found in your notebook[/red]")
+            for cell_hint in unresolved_cells:
+                console.print(f"[dim]  • {cell_hint}[/dim]")
+            console.print()
+            console.print(
+                "[yellow]Phases 1-3 check data/src/ and the installed trentorch "
+                "package, not your notebook, so they can pass even with unsolved "
+                "stubs above. Solve them, then re-run.[/yellow]"
+            )
+            console.print()
+            return False, "Unsolved NotImplementedError found in notebook — see cells above"
+
+        console.print("[green]✓ Phase 0 PASSED: No unsolved stubs found[/green]")
         console.print()
 
         # ─────────────────────────────────────────────────────────────
