@@ -1,5 +1,0 @@
-blank_issues_enabled: true
-contact_links:
-  - name: Security vulnerability
-    url: https://github.com/TrenTorch/TrenTorch/security
-    about: Please report security issues through the private advisory flow, not a public issue. See SECURITY.md.
