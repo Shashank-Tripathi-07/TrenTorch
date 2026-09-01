@@ -979,7 +979,15 @@ class ModuleWorkflowCommand(BaseCommand):
     def show_next_steps(self, completed_module: str) -> None:
         """Show next steps after completing a module."""
         module_mapping = get_module_mapping()
-        completed_num = int(completed_module)
+        try:
+            completed_num = int(completed_module)
+        except ValueError:
+            # Not currently reachable from any real call site (every caller
+            # of the complete workflow already validates the module number
+            # via module_mapping before this point), but nothing enforces
+            # that at this function's own boundary, so a non-numeric input
+            # shouldn't be able to crash it.
+            return
         next_num = f"{completed_num + 1:02d}"
 
         if next_num in module_mapping:
