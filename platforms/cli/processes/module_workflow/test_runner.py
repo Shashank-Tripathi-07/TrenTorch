@@ -150,9 +150,17 @@ def run_inline_unit_tests(config, console, module_name: str, verbose: bool) -> d
             color = "green" if test["passed"] else "red"
             console.print(f"   [{color}]{icon} {test['name']}[/{color}]")
             if not test["passed"] and test.get("error"):
-                # Show error on next line with indentation
+                # Show error on next line with indentation. Last 3, not
+                # first 3: test["error"] is already the last-5-lines slice
+                # from _parse_test_output (see that function's own comment),
+                # and the actual exception type/message is always its last
+                # line -- re-slicing the front here just cuts it off again,
+                # which is exactly the bug #76 reported (confirmed live: this
+                # was still reproducible with only the _parse_test_output
+                # fix applied, since this is the code path tren module
+                # complete's Step 1 actually prints through).
                 error_lines = test["error"].split("\n")
-                for error_line in error_lines[:3]:  # Show first 3 lines of error
+                for error_line in error_lines[-3:]:  # Show last 3 lines of error
                     if error_line.strip():
                         console.print(f"      [dim red]{error_line.strip()}[/dim red]")
 
@@ -219,8 +227,12 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> d
         is_no_tests_collected = result.returncode == 5
         is_progressive_export_gate = result.returncode == 4 and "TINYTORCH PACKAGE NOT EXPORTED" in error_msg
         if not is_no_tests_collected and not is_progressive_export_gate:
+            # Last 5 lines, not first 5: same reasoning as
+            # _parse_test_output's concise_error below -- pytest's own
+            # collection-error output (an import error, a syntax error)
+            # ends with the actual exception summary, not starts with it.
             concise_error = (
-                "\n".join(error_msg.split("\n")[:5]) if error_msg else "pytest exited with an error"
+                "\n".join(error_msg.split("\n")[-5:]) if error_msg else "pytest exited with an error"
             )
             tests_run = [
                 {
@@ -236,9 +248,17 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> d
             color = "green" if test["passed"] else "red"
             console.print(f"   [{color}]{icon} {test['name']}[/{color}]")
             if not test["passed"] and test.get("error"):
-                # Show error on next line with indentation
+                # Show error on next line with indentation. Last 3, not
+                # first 3: test["error"] is already the last-5-lines slice
+                # from _parse_test_output (see that function's own comment),
+                # and the actual exception type/message is always its last
+                # line -- re-slicing the front here just cuts it off again,
+                # which is exactly the bug #76 reported (confirmed live: this
+                # was still reproducible with only the _parse_test_output
+                # fix applied, since this is the code path tren module
+                # complete's Step 1 actually prints through).
                 error_lines = test["error"].split("\n")
-                for error_line in error_lines[:3]:  # Show first 3 lines of error
+                for error_line in error_lines[-3:]:  # Show last 3 lines of error
                     if error_line.strip():
                         console.print(f"      [dim red]{error_line.strip()}[/dim red]")
 
