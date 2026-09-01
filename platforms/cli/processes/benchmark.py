@@ -251,12 +251,27 @@ class BenchmarkCommand(BaseCommand):
             )
             return 1
 
-        # Module 20 exports to trentorch/olympics.py, not a
-        # trentorch/competition/submit.py that never existed -- check the
-        # real export target, not the wrong module that always failed.
-        try:
-            from trentorch.olympics import generate_submission  # noqa: F401 -- import-success check
-        except ImportError:
+        # Check whether the student has actually completed Module 20, using
+        # their own recorded progress -- not whether trentorch/olympics.py
+        # can be imported. That file ships pre-built and committed to the
+        # repo (see issue #71), so the import always succeeds even with 0
+        # modules solved, and this check always fell through to the "full"
+        # benchmark path below regardless of real progress.
+        progress_file = Path("user_data") / "progress.json"
+        completed_modules: set[int] = set()
+        if progress_file.exists():
+            try:
+                with open(progress_file) as f:
+                    for module_value in json.load(f).get("completed_modules", []):
+                        prefix = str(module_value).split("_", 1)[0]
+                        try:
+                            completed_modules.add(int(prefix))
+                        except ValueError:
+                            pass
+            except (OSError, json.JSONDecodeError):
+                pass
+
+        if 20 not in completed_modules:
             console.print(
                 Panel(
                     "[yellow]⚠️  Module 20 (Capstone) not complete[/yellow]\n\n"
@@ -274,9 +289,18 @@ class BenchmarkCommand(BaseCommand):
         console.print("[cyan]Running full capstone benchmark suite...[/cyan]")
         console.print("[dim]This may take a few minutes...[/dim]\n")
 
-        # For now, create a placeholder that shows the structure
-        # In production, this would use actual models and Module 19's Benchmark class
+        # STILL a placeholder even on this path: these numbers are fixed and
+        # do not reflect anything about the student's actual framework yet.
+        # In production, this would use actual models and Module 19's
+        # Benchmark class. Labeled explicitly so a real Module-20 completer
+        # isn't misled into thinking this measured their own work.
+        console.print(
+            "[yellow]⚠️  Note: full capstone scoring isn't implemented yet -- "
+            "these numbers are a placeholder, not a real measurement of your "
+            "framework.[/yellow]\n"
+        )
         results = {
+            "placeholder": True,
             "benchmark_type": "capstone",
             "timestamp": datetime.now().isoformat(),
             "system_info": self._get_system_info(),
