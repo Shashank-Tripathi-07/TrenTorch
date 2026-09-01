@@ -1,0 +1,5 @@
+# Default reviewers for anything not matched below.
+# Branch protection doesn't currently require CODEOWNERS approval (0
+# required approving reviews on main), so this only drives automatic
+# review requests, not a merge block.
+* @Shashank-Tripathi-07 @ShivtejG236
