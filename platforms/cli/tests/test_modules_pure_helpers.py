@@ -4,11 +4,7 @@ discovery, display-name derivation, and the tiny hand-rolled YAML-ish
 parser for module.yaml.
 """
 
-from platforms.cli.core.modules import (
-    _find_project_root,
-    _parse_yaml_file,
-    get_module_display_name,
-)
+from platforms.cli.core.modules import _find_project_root, _parse_yaml_file, get_module_display_name
 
 # ---------------------------------------------------------------------------
 # _find_project_root: (current / "pyproject.toml").exists() and

@@ -126,12 +126,7 @@ def load_tinydigits_arrays(project_root=None):
     with open(test_path, "rb") as f:
         test_data = pickle.load(f)
 
-    return (
-        train_data["images"],
-        train_data["labels"],
-        test_data["images"],
-        test_data["labels"],
-    )
+    return (train_data["images"], train_data["labels"], test_data["images"], test_data["labels"])
 
 
 # =============================================================================
@@ -319,10 +314,7 @@ def step_2_quantize(model, param_bytes, Quantizer):
 
     console.print(table)
 
-    return {
-        "quant_result": quant_result,
-        "quant_size": quant_size,
-    }
+    return {"quant_result": quant_result, "quant_size": quant_size}
 
 
 # =============================================================================
@@ -540,10 +532,7 @@ def step_5_accelerate(vectorized_matmul, Tensor):
     console.print(table)
     console.print("  [green]✓[/green] Vectorized operations ready!")
 
-    return {
-        "standard_time": standard_time,
-        "vectorized_time": vectorized_time,
-    }
+    return {"standard_time": standard_time, "vectorized_time": vectorized_time}
 
 
 # =============================================================================

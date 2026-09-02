@@ -1281,10 +1281,7 @@ class Profiler:
             dict with backward_flops and backward_latency_ms
         """
         ### BEGIN SOLUTION
-        return {
-            'backward_flops': forward_flops * 2,
-            'backward_latency_ms': forward_latency_ms * 2
-        }
+        return {'backward_flops': forward_flops * 2, 'backward_latency_ms': forward_latency_ms * 2}
         ### END SOLUTION
 
     def _estimate_optimizer_memory(self, gradient_memory_mb: float) -> Dict[str, float]:
@@ -1309,11 +1306,7 @@ class Profiler:
             dict mapping optimizer name to extra memory in MB
         """
         ### BEGIN SOLUTION
-        return {
-            'sgd': 0,
-            'adam': gradient_memory_mb * 2,
-            'adamw': gradient_memory_mb * 2,
-        }
+        return {'sgd': 0, 'adam': gradient_memory_mb * 2, 'adamw': gradient_memory_mb * 2}
         ### END SOLUTION
 
     def profile_backward_pass(self, model, input_tensor, _loss_fn=None) -> Dict[str, Any]:

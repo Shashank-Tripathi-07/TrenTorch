@@ -50,11 +50,7 @@ MILESTONE_ORDER = sorted(MILESTONES.keys())
 class MilestoneTracker:
     """Tracks module progress and milestone readiness using user_data files."""
 
-    def __init__(
-        self,
-        progress_file: Path | None = None,
-        module_progress_file: Path | None = None,
-    ):
+    def __init__(self, progress_file: Path | None = None, module_progress_file: Path | None = None):
         root = _project_root()
         self.progress_file = progress_file or root / "user_data" / "milestones.json"
         self.module_progress_file = module_progress_file or root / "user_data" / "progress.json"
