@@ -17,7 +17,7 @@ name: 'Autofix (ruff)'
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 concurrency:
   group: autofix-${{ github.event.pull_request.number }}

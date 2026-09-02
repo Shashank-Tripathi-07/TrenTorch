@@ -9,14 +9,14 @@ name: 'OpenSSF Scorecard'
 #
 # Runs on a weekly schedule (Scorecard's own recommendation, matching how
 # infrequently these process-level facts actually change) plus on push to
-# main so a real branch-protection/permissions change gets scored promptly
-# rather than waiting up to a week.
+# main or dev so a real branch-protection/permissions change gets scored
+# promptly rather than waiting up to a week.
 
 on:
   schedule:
     - cron: '24 5 * * 3'  # weekly, Wednesday, minute/hour offset from :00
   push:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch: {}
 
 permissions: read-all

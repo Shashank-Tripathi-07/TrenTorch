@@ -1,6 +1,6 @@
 name: Lint
 
-# Ruff check (style/correctness) + format check, on every push/PR to main.
+# Ruff check (style/correctness) + format check, on every push/PR to main or dev.
 # Deliberately no paths-ignore: unlike validate.yml's test suite, this is
 # fast enough (sub-second) that skipping it for "only touches one file"
 # pushes isn't worth the required-check path-filter footgun (see
@@ -8,9 +8,9 @@ name: Lint
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 concurrency:
   group: lint-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
