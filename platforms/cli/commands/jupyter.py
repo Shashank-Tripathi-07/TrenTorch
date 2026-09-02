@@ -60,8 +60,14 @@ def find_running_jupyter_server(project_root: Path):
     tren's control.
     """
     try:
+        # -m, not a bare "jupyter" command: same PATH-resolution hazard
+        # start_jupyter_server had (see its own docstring) applies here
+        # too -- if some other Python installation's `jupyter` resolves
+        # first on PATH, this would query that installation's own server
+        # list instead of this venv's, missing (or misreporting) the
+        # server this venv's start_jupyter_server actually started.
         result = subprocess.run(
-            ["jupyter", "server", "list"],
+            [sys.executable, "-m", "jupyter", "server", "list"],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -122,21 +128,44 @@ def start_jupyter_server(project_root: Path) -> bool:
         )
         log_dir = project_root / "user_data"
         log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = open(log_dir / "jupyter.log", "w", encoding="utf-8")
-        subprocess.Popen(
-            cmd,
-            cwd=str(project_root),
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
-            **detach_kwargs,
-        )
+        # Opened, handed to the detached child via stdout=, then closed
+        # here in the parent right after Popen() returns: the child gets
+        # its own independent, inherited copy of the same underlying file
+        # (standard daemonizing pattern), so the parent doesn't need to
+        # keep its copy open for the ~20s retry loop below, or leak it
+        # entirely if something after this raises.
+        with open(log_dir / "jupyter.log", "w", encoding="utf-8") as log_file:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=str(project_root),
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                **detach_kwargs,
+            )
     except FileNotFoundError:
         return False
 
-    # 40 tries at 0.5s = 20s, up from 10s: a slow or memory-constrained
-    # machine can genuinely take longer than 10s for Jupyter to finish
-    # starting and register with `jupyter server list`.
-    for _ in range(40):
+    # A missing jupyterlab package doesn't fail Popen() itself the way a
+    # missing `jupyter` executable used to (sys.executable always exists,
+    # so the FileNotFoundError branch above can't catch this case anymore
+    # now that this uses `-m` instead of a bare command) -- it fails
+    # inside the child almost immediately instead ("No module named
+    # jupyterlab" written to jupyter.log, non-zero exit). Without this
+    # check, that failure was invisible here: the loop below would just
+    # burn its entire 20s window, then fall through to the same `return
+    # True` a real success does, and open_jupyter() would show "started
+    # but its URL couldn't be detected" -- wrong (nothing started) and
+    # needlessly slow, instead of the fast, accurate "Jupyter Lab not
+    # found" message a moment of polling now restores.
+    time.sleep(0.5)
+    if proc.poll() is not None and proc.returncode != 0:
+        return False
+
+    # 39 more tries at 0.5s (plus the 0.5s already spent above) = 20s,
+    # up from 10s: a slow or memory-constrained machine can genuinely
+    # take longer than 10s for Jupyter to finish starting and register
+    # with `jupyter server list`.
+    for _ in range(39):
         time.sleep(0.5)
         base_url, _ = find_running_jupyter_server(project_root)
         if base_url is not None:
