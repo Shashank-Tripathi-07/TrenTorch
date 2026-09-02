@@ -339,7 +339,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <br />
         <sub>New to TrenTorch — say hi and add a real intro!</sub>
         <br />
-        <sub>Issues: 8 &middot; PRs: 34</sub>
+        <sub>Issues: 8 &middot; PRs: 35</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="ShivtejG236"/></a>
