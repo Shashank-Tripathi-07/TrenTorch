@@ -120,12 +120,18 @@ jobs:
           key: py-deps-${{ runner.os }}-py3.11-${{ hashFiles('requirements.txt') }}
 
       - name: Install dependencies
-        # OpenSSF Scorecard flags this pip install as unpinned; see
-        # platforms/dev_tools/tools/dev/setup.sh's comment on the same
-        # finding for why that's a deliberate call, not an oversight.
+        # requirements.txt is a pip-compile-generated, hash-pinned lockfile
+        # (see its header, and requirements.in for the source policy);
+        # --require-hashes is what satisfies OpenSSF Scorecard's
+        # Pinned-Dependencies check. pip itself is pinned the same way ruff
+        # is pinned in lint.yml/autofix.yml: exact version + real PyPI
+        # sha256, one line, not a heredoc (a heredoc's closing marker has to
+        # sit at column 0, which doesn't survive an indented YAML block
+        # scalar).
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          printf '%s\n' 'pip==26.2.1 --hash=sha256:71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e --hash=sha256:f6ad667e89a1fe78046c8f13232b247200f5258d7828f3f7883d660878e0813f' > /tmp/pip-pin.txt
+          python -m pip install --require-hashes -r /tmp/pip-pin.txt
+          pip install --require-hashes -r requirements.txt
 
       # actions/upload-artifact strips the shared parent directory (data/)
       # from archived paths when given multiple search paths under it (its
