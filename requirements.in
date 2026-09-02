@@ -1,0 +1,71 @@
+# TrenTorch Course Dependencies (source file)
+# Compatible with Python 3.10-3.13 (see pyproject.toml requires-python)
+#
+# This is the human-edited source of the project's dependency policy
+# (version floors, not exact pins). It is NOT installed directly.
+# requirements.txt is the compiled, hash-pinned lockfile generated from
+# this file via (run under Python 3.11, matching every CI workflow's
+# python-version -- a newer interpreter can resolve package versions
+# that need a newer Python than CI has):
+#   pip-compile --generate-hashes --output-file=requirements.txt requirements.in
+# Every pip install in this repo (setup.sh, CI) installs from
+# requirements.txt with --require-hashes, which is what satisfies OpenSSF
+# Scorecard's Pinned-Dependencies check. Dependabot (see
+# .github/dependabot.yml) watches requirements.txt directly and rewrites
+# both the version and the hash on every automated bump, so routine
+# updates need zero manual pip-compile runs. Only adding, removing, or
+# re-ranging a dependency here requires re-running the command above by
+# hand before committing.
+
+# ============================================================================
+# Core Dependencies (Required)
+# ============================================================================
+
+# Numerical computing - TrenTorch core requirement
+numpy>=2.2.6,<3.0.0
+
+# Terminal UI - Used by CLI and milestone examples
+rich>=15.0.0
+
+# Interactive TUI dashboard - `tren tui` / `tren -i` (optional extra
+# `trentorch[tui]` for end users; installed here so dev + CI exercise it)
+textual>=8.0.0
+
+# Configuration files - Used by the CLI
+PyYAML>=6.0.3
+
+# ============================================================================
+# Testing (Required for development)
+# ============================================================================
+
+pytest>=9.0.3
+pytest-cov>=7.1.0
+pytest-xdist>=3.8.0
+hypothesis>=6.100.0
+
+# ============================================================================
+# Development Tools (Required for tren export)
+# ============================================================================
+
+# Jupytext - Convert .py files to .ipynb for nbdev
+jupytext>=1.19.3
+nbformat>=5.10.4
+
+# ============================================================================
+# Optional Dependencies (Uncomment if needed)
+# ============================================================================
+
+# Visualization for milestone examples and benchmarking (Modules 17, 19, 20)
+# matplotlib>=3.9.0
+
+# Jupyter for interactive development
+jupyter>=1.1.1
+jupyterlab>=4.5.7
+notebook>=7.6.2
+ipykernel>=7.2.0
+nbdev>=3.0.15,<3.3.14
+# Code quality tools
+ruff>=0.16.5
+
+# Type hints for older Python versions
+# typing-extensions>=4.12.0
