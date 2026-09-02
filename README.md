@@ -6,7 +6,7 @@
 
 
 [![Validate](https://github.com/TrenTorch/TrenTorch/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/TrenTorch/TrenTorch/actions/workflows/validate.yml)
-[![Contributors](https://img.shields.io/badge/contributors-3-orange.svg)](docs/CONTRIBUTORS.md)
+[![Contributors](https://img.shields.io/badge/contributors-4-orange.svg)](docs/CONTRIBUTORS.md)
 [![Python](https://img.shields.io/badge/python-3.10+-3776ab?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Built From Scratch](https://img.shields.io/badge/dependencies-just%20NumPy-D4740C?logo=numpy&logoColor=white)](#what-youll-build)
