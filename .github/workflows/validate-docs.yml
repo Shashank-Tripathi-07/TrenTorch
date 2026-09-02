@@ -37,7 +37,11 @@ jobs:
       - name: Install runtime dependencies
         # The script imports platforms.cli.main to introspect the real
         # parser, which needs the CLI's own runtime deps importable.
-        run: pip install rich PyYAML
+        # Exact versions matching this repo's own declared floors
+        # (requirements.txt / pyproject.toml: rich>=15.0.0, PyYAML>=6.0.3)
+        # instead of an unbounded install, per OpenSSF Scorecard's
+        # Pinned-Dependencies check.
+        run: pip install "rich==15.0.0" "PyYAML==6.0.3"
 
       - name: Validate
         run: python3 platforms/dev_tools/tools/dev/validate_cli_docs.py --verbose

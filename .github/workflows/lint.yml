@@ -35,7 +35,13 @@ jobs:
           python-version: '3.11'
 
       - name: Install ruff
-        run: pip install "ruff>=0.6.0"
+        # Exact version, matching .pre-commit-config.yaml's own ruff-pre-commit
+        # `rev: v0.16.4` -- was a floor (>=0.6.0) before, which OpenSSF
+        # Scorecard's Pinned-Dependencies check flags (an unbounded floor
+        # installs whatever's newest on the day CI runs, no one notices a
+        # version change happened). Exact match here also means CI and a
+        # contributor's local pre-commit hook lint identically.
+        run: pip install "ruff==0.16.4"
 
       - name: Ruff check (lint)
         run: ruff check .

@@ -6,9 +6,16 @@ name: 'Check settings.ini / pyproject.toml Version Consistency'
 # before; this comments loudly on any PR that touches either file if
 # they've drifted apart, instead of letting it rot silently again.
 #
-# pull_request_target so the comment works on fork PRs too, but the only
-# thing checked out is the PR's own settings.ini/pyproject.toml text --
-# nothing from the PR is ever executed.
+# pull_request_target so the comment works on fork PRs too. Originally did
+# this via `actions/checkout` at the PR's head SHA, but that's exactly the
+# "untrusted code checkout in a privileged pull_request_target context"
+# pattern OpenSSF Scorecard's Dangerous-Workflow check (rightly) flags,
+# regardless of the fact that nothing in this workflow executes anything
+# from the checkout -- the checked-out files sitting on disk in a
+# privileged job is the risk, not just what this workflow does with them
+# today. Fetches just the two files' text content via the REST API
+# instead: no checkout, no code from the PR ever touches the runner's
+# filesystem, only two small strings returned from GitHub's own API.
 
 on:
   pull_request_target:
@@ -25,24 +32,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Checkout PR head
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: false
-
-      - name: Compare versions
+      - name: Fetch and compare versions
         id: compare
-        run: |
-          settings_version=$(grep -oP '^version\s*=\s*\K\S+' settings.ini || echo "unparseable")
-          pyproject_version=$(grep -oP '^version\s*=\s*"\K[^"]+' pyproject.toml || echo "unparseable")
-          echo "settings_version=$settings_version" >> "$GITHUB_OUTPUT"
-          echo "pyproject_version=$pyproject_version" >> "$GITHUB_OUTPUT"
-          if [ "$settings_version" != "$pyproject_version" ]; then
-            echo "mismatch=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "mismatch=false" >> "$GITHUB_OUTPUT"
-          fi
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            async function getFileText(path) {
+              const { data } = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path,
+                ref: context.payload.pull_request.head.sha,
+              });
+              return Buffer.from(data.content, data.encoding).toString("utf-8");
+            }
+
+            const settingsText = await getFileText("settings.ini");
+            const pyprojectText = await getFileText("pyproject.toml");
+
+            const settingsMatch = settingsText.match(/^version\s*=\s*(\S+)/m);
+            const pyprojectMatch = pyprojectText.match(/^version\s*=\s*"([^"]+)"/m);
+            const settingsVersion = settingsMatch ? settingsMatch[1] : "unparseable";
+            const pyprojectVersion = pyprojectMatch ? pyprojectMatch[1] : "unparseable";
+
+            core.setOutput("settings_version", settingsVersion);
+            core.setOutput("pyproject_version", pyprojectVersion);
+            core.setOutput("mismatch", settingsVersion !== pyprojectVersion ? "true" : "false");
 
       - name: Comment if mismatched
         if: steps.compare.outputs.mismatch == 'true'

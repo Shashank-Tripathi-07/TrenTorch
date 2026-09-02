@@ -59,6 +59,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ inputs.timeout_minutes }}
     continue-on-error: ${{ inputs.advisory_windows == 'true' && contains(matrix.os, 'windows') }}
+    # Only checkout + artifact upload/download, neither of which needs
+    # anything past read access to repo contents (artifact steps use their
+    # own signed-URL storage API, not GITHUB_TOKEN's repo permissions).
+    # No explicit permissions here previously, so this job silently
+    # inherited whatever the repo/org default was rather than declaring
+    # what it actually needs -- OpenSSF Scorecard's Token-Permissions
+    # check flags that as unauditable even when the inherited default
+    # happens to already be safe.
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -105,6 +115,9 @@ jobs:
           key: py-deps-${{ runner.os }}-py3.11-${{ hashFiles('requirements.txt') }}
 
       - name: Install dependencies
+        # OpenSSF Scorecard flags this pip install as unpinned; see
+        # platforms/dev_tools/tools/dev/setup.sh's comment on the same
+        # finding for why that's a deliberate call, not an oversight.
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
