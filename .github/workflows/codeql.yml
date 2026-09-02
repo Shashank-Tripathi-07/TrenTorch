@@ -18,15 +18,21 @@ concurrency:
   group: codeql-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-permissions:
-  contents: read
-  security-events: write
+permissions: {}
 
 jobs:
   analyze:
     name: Analyze (python)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Scoped to the one job that actually needs it, not the whole workflow
+    # (OpenSSF Scorecard's Token-Permissions check flags workflow-level
+    # write access even when there's currently only one job, since a
+    # future job added without its own narrower permissions would
+    # silently inherit it).
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout
