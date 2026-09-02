@@ -234,13 +234,7 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> d
             concise_error = (
                 "\n".join(error_msg.split("\n")[-5:]) if error_msg else "pytest exited with an error"
             )
-            tests_run = [
-                {
-                    "name": "pytest_collection",
-                    "passed": False,
-                    "error": concise_error,
-                }
-            ]
+            tests_run = [{"name": "pytest_collection", "passed": False, "error": concise_error}]
 
     if verbose:
         for test in tests_run:

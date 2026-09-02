@@ -101,10 +101,7 @@ class OlympicsCommand(BaseCommand):
         message.append("tren milestone status\n", style="cyan")
 
         # Combine logo and message
-        content = Group(
-            Align.center(logo),
-            Align.center(message),
-        )
+        content = Group(Align.center(logo), Align.center(message))
 
         console.print(
             Panel(content, title="⚡ TRENTORCH OLYMPICS ⚡", border_style="bright_yellow", padding=(1, 2))

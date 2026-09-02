@@ -42,12 +42,7 @@ class UpdateCommand(BaseCommand):
         "data/datasets",  # Sample datasets
         "bin",  # Entry point scripts
     ]
-    UPDATE_FILES = [
-        "requirements.txt",
-        "pyproject.toml",
-        "README.md",
-        "LICENSE",
-    ]
+    UPDATE_FILES = ["requirements.txt", "pyproject.toml", "README.md", "LICENSE"]
 
     # Directories/files to PRESERVE (never overwrite)
     PRESERVE_DIRS = [

@@ -1206,10 +1206,7 @@ def run_example_benchmark():
 
     # Step 4: Generate submission
     print("\n📝 Step 4: Generating submission...")
-    submission = generate_submission(
-        baseline_report=baseline_report,
-        student_name="TrenTorch Student"
-    )
+    submission = generate_submission(baseline_report=baseline_report, student_name="TrenTorch Student")
 
     # Step 5: Save submission
     print("\n💾 Step 5: Saving submission...")
@@ -1846,11 +1843,7 @@ def test_unit_submission_schema():
     optimized_report = BenchmarkReport(model_name="optimized_model")
     optimized_report.benchmark_model(optimized_model, X_test, y_test, num_runs=10)
 
-    submission_with_opt = generate_submission(
-        report,
-        optimized_report,
-        techniques_applied=["pruning"]
-    )
+    submission_with_opt = generate_submission(report, optimized_report, techniques_applied=["pruning"])
 
     # Validate optimized submission
     assert validate_submission_schema(submission_with_opt), "Optimized submission should pass validation"

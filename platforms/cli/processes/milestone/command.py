@@ -17,11 +17,7 @@ from platforms.cli.commands.base import BaseCommand
 
 from . import display
 from .constants import MILESTONE_ACHIEVEMENT_HIGHLIGHTS, MILESTONE_ALIASES, MILESTONE_SCRIPTS
-from .system import (
-    MilestoneSystem,
-    _module_progress_to_int,
-    _validate_required_exports,
-)
+from .system import MilestoneSystem, _module_progress_to_int, _validate_required_exports
 
 
 class MilestoneCommand(BaseCommand):

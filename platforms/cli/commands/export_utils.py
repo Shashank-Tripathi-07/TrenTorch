@@ -267,19 +267,9 @@ def validate_notebook_integrity(notebook_path: Path) -> dict:
         }
 
     except json.JSONDecodeError as e:
-        return {
-            "valid": False,
-            "issues": [f"Invalid JSON: {str(e)}"],
-            "warnings": [],
-            "stats": {},
-        }
+        return {"valid": False, "issues": [f"Invalid JSON: {str(e)}"], "warnings": [], "stats": {}}
     except Exception as e:
-        return {
-            "valid": False,
-            "issues": [f"Validation error: {str(e)}"],
-            "warnings": [],
-            "stats": {},
-        }
+        return {"valid": False, "issues": [f"Validation error: {str(e)}"], "warnings": [], "stats": {}}
 
 
 def check_notebook_solved(notebook_path: Path) -> tuple[bool, list[str]]:

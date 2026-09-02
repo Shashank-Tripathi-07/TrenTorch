@@ -34,11 +34,7 @@ class ModuleResetCommand(BaseCommand):
         parser.add_argument(
             "module_number", nargs="?", default=None, help="Module number to reset (01, 02, etc.)"
         )
-        parser.add_argument(
-            "--all",
-            action="store_true",
-            help="Reset ALL modules to pristine state",
-        )
+        parser.add_argument("--all", action="store_true", help="Reset ALL modules to pristine state")
         parser.add_argument("--force", action="store_true", help="Skip confirmation prompts")
 
     def _prompt_for_module(self) -> str | None:

@@ -4942,12 +4942,7 @@ def demo_benchmarking():
     x = Tensor(rng.standard_normal((32, 512)))
 
     # Benchmark with proper methodology
-    benchmark = Benchmark(
-        models=[layer],
-        datasets=[(x, None)],
-        warmup_runs=3,
-        measurement_runs=10
-    )
+    benchmark = Benchmark(models=[layer], datasets=[(x, None)], warmup_runs=3, measurement_runs=10)
 
     results = benchmark.run_latency_benchmark(input_shape=(32, 512))
     result = list(results.values())[0]
