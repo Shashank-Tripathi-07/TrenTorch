@@ -2,14 +2,14 @@ name: CodeQL
 
 # Static analysis for real security bugs (injection, unsafe deserialization,
 # path traversal, etc.), not style. Free for public repos, and this repo
-# is public. Runs on every push to main, every PR, and weekly so a query
+# is public. Runs on every push to main or dev, every PR, and weekly so a query
 # pack update can surface something in code that didn't change.
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   schedule:
     - cron: '17 3 * * 1'  # Mondays, off-peak, offset from other scheduled jobs
   workflow_dispatch:
