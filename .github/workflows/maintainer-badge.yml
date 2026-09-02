@@ -1,17 +1,19 @@
-name: 'Badge Maintainer / Core Engineer PRs and Issues'
+name: 'Badge Principal Maintainer / Core Engineer PRs and Issues'
 
 # GitHub's own comment/PR author badge (author_association) is a fixed
 # set -- OWNER/MEMBER/COLLABORATOR/CONTRIBUTOR/NONE -- with no
-# "Maintainer" or "Core Engineer" option, and that's not something any
-# repo or org setting can change. Labels are the closest real, visible
-# equivalent: this tags every PR/issue the moment it's opened with
-# whichever of these two applies to its author.
+# "Principal Maintainer" or "Core Engineer" option, and that's not
+# something any repo or org setting can change. Labels are the closest
+# real, visible equivalent: this tags every PR/issue the moment it's
+# opened with whichever of these two applies to its author.
 #
-# "Maintainer" is permission-derived (checked live via the API, so it
-# automatically covers whoever actually holds Maintain/Admin today and
-# stays correct as that changes). "Core Engineer" is a named-person
-# title, not a permission tier GitHub exposes, so that one is a plain
-# username list -- update CORE_ENGINEERS by hand if that roster changes.
+# "Principal Maintainer" is permission-derived (checked live via the
+# API, so it automatically covers whoever actually holds Maintain/Admin
+# today and stays correct as that changes) -- matches the same title
+# used in README.md's "Team Engineers" table. "Core Engineer" is a
+# named-person title, not a permission tier GitHub exposes, so that one
+# is a plain username list -- update CORE_ENGINEERS by hand if that
+# roster changes.
 
 on:
   pull_request_target:
@@ -33,7 +35,7 @@ jobs:
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const MAINTAINER_LABEL = "Maintainer";
+            const MAINTAINER_LABEL = "Principal Maintainer";
             const CORE_ENGINEER_LABEL = "Core Engineer";
             const CORE_ENGINEERS = new Set(["maanas1234", "yashanand12ssdn-ops"]);
 
