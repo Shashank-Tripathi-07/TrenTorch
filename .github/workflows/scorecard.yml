@@ -1,0 +1,55 @@
+name: 'OpenSSF Scorecard'
+
+# CodeQL (codeql.yml) checks the code itself for bugs; Scorecard checks the
+# *process* around it -- unpinned actions, overly broad token permissions,
+# missing branch protection, binary artifacts committed to the repo, and
+# similar supply-chain risk factors CodeQL doesn't look at at all. Results
+# publish to the same Security tab CodeQL and the codeql-alert-to-issue
+# bot already watch, so nothing new to monitor separately.
+#
+# Runs on a weekly schedule (Scorecard's own recommendation, matching how
+# infrequently these process-level facts actually change) plus on push to
+# main so a real branch-protection/permissions change gets scored promptly
+# rather than waiting up to a week.
+
+on:
+  schedule:
+    - cron: '24 5 * * 3'  # weekly, Wednesday, minute/hour offset from :00
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # to upload SARIF results to the Security tab
+      id-token: write        # to sign/publish results to the public OpenSSF API
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload SARIF results to code scanning
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
+        with:
+          sarif_file: results.sarif
+
+      - name: Upload results as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5

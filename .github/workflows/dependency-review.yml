@@ -1,0 +1,30 @@
+name: 'Dependency Review'
+
+# Dependabot (dependabot.yml) updates existing dependencies after a CVE or
+# new release lands -- this catches the other direction: a PR (from anyone,
+# not just Dependabot) that *introduces* a new dependency with a known
+# vulnerability or a disallowed license, blocked before merge instead of
+# discovered later in an audit. Runs only against what a PR's diff actually
+# changes, so it's fast and has nothing to do on PRs that don't touch a
+# dependency manifest at all.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-2.0, GPL-3.0, AGPL-3.0
