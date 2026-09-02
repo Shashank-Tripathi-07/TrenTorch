@@ -1,28 +1,33 @@
 #!/usr/bin/env python3
 """
-Regenerates CONTRIBUTORS.md from real GitHub data (issues raised, PRs raised)
-for every contributor discovered from the repo's PR and issue history.
-Renders an avatar grid (the good part of the all-contributors
-project's UI) with plain-text stats instead of an emoji contribution-type
-key (the part we're deliberately not copying). Preserves each person's
-existing hand-written intro line; a first-time contributor gets a generic
-placeholder intro instead of a fabricated bio, since nobody should get
-credentials invented for them.
+Regenerates the "Team Engineers" avatar grid directly inside README.md from
+real GitHub data (issues raised, PRs raised) for every contributor
+discovered from the repo's PR and issue history. Renders an avatar grid
+(the good part of the all-contributors project's UI) with plain-text stats
+instead of an emoji contribution-type key (the part we're deliberately not
+copying). Preserves each person's existing hand-written intro line; a
+first-time contributor gets a generic placeholder intro instead of a
+fabricated bio, since nobody should get credentials invented for them.
+
+This used to write a separate docs/CONTRIBUTORS.md, with a hand-maintained
+"Team Engineers" table duplicated (and already drifted -- missing a real
+contributor, no PR/issue counts) directly in README.md alongside it. Two
+places to keep in sync is how it drifted in the first place -- now there's
+one real table, generated, living where people actually look for it.
 
 Run by .github/workflows/update-contributors.yml, authenticated with
 GITHUB_TOKEN via the gh CLI (already configured by actions/checkout /
 the workflow's GH_TOKEN env var).
 """
 
-import json
 import re
 import subprocess
 import sys
+import json
 from pathlib import Path
 
 REPO = "TrenTorch/TrenTorch"
 ROOT = Path(__file__).resolve().parent.parent.parent
-CONTRIBUTORS_FILE = ROOT / "docs" / "CONTRIBUTORS.md"
 README_FILE = ROOT / "README.md"
 DEFAULT_INTRO = "New to TrenTorch — say hi and add a real intro!"
 COLUMNS = 5
@@ -30,10 +35,10 @@ COLUMNS = 5
 # Custom avatar images checked into the repo, used instead of the person's
 # live GitHub avatar URL. Add an entry here (and the image under
 # .github/assets/) for anyone who wants their own picture instead of
-# whatever's on their GitHub profile. Path is relative to CONTRIBUTORS_FILE
-# (docs/), not the repo root -- that's what broke the image before.
+# whatever's on their GitHub profile. Path is relative to README.md (the
+# repo root), since that's the only file this grid renders in now.
 AVATAR_OVERRIDES = {
-    "Shashank-Tripathi-07": "../.github/assets/rocky-avatar.png",
+    "Shashank-Tripathi-07": ".github/assets/rocky-avatar.png",
 }
 
 # Role tag shown right under each person's name. PROJECT_LEAD_LOGIN /
@@ -48,7 +53,7 @@ CORE_ENGINEERS = {"maanas1234", "yashanand12ssdn-ops"}
 
 def resolve_role(login: str) -> str | None:
     if login == PROJECT_LEAD_LOGIN:
-        return "Project Lead"
+        return "Principal Maintainer"
     if login in CORE_ENGINEERS:
         return "Core Engineer"
     try:
@@ -68,9 +73,10 @@ def resolve_role(login: str) -> str | None:
 # badge is a static image whose count this script keeps in sync manually
 # instead. Now public (moved to the TrenTorch org), but left as a static
 # badge rather than switching to a live query, since that's an unrelated
-# behavior change from what this script is here to do.
+# behavior change from what this script is here to do. Links to the
+# in-README section now, not a separate file.
 BADGE_RE = re.compile(
-    r"\[!\[Contributors\]\(https://img\.shields\.io/badge/contributors-\d+-orange\.svg\)\]\(docs/CONTRIBUTORS\.md\)"
+    r"\[!\[Contributors\]\(https://img\.shields\.io/badge/contributors-\d+-orange\.svg\)\]\([^)]*\)"
 )
 
 CELL_RE = re.compile(
@@ -79,6 +85,14 @@ CELL_RE = re.compile(
     r"</a>\s*<br\s*/?>\s*"
     r"<b>([^<]+)</b>\s*<br\s*/?>\s*"
     r"<sub>([^<]*)</sub>",
+    re.DOTALL,
+)
+
+# Replaces everything between the "## Team Engineers" heading and the next
+# "---" divider (README's own section-separator convention, used
+# consistently between every other section in this file).
+SECTION_RE = re.compile(
+    r"(## Team Engineers\n\n).*?(\n\n---)",
     re.DOTALL,
 )
 
@@ -116,13 +130,10 @@ def fetch_counts():
     return counts
 
 
-def parse_existing(path: Path):
+def parse_existing(content: str):
     """Returns {login: (name, intro)} scraped from the current avatar grid,
     so a re-run doesn't clobber hand-written names/intros with placeholders."""
     existing = {}
-    if not path.exists():
-        return existing
-    content = path.read_text(encoding="utf-8")
     for login, _alt, name, intro in CELL_RE.findall(content):
         existing[login] = (name.strip(), intro.strip())
     return existing
@@ -158,56 +169,43 @@ def build_grid(counts: dict, existing: dict) -> str:
         row_cells = "\n".join(cells[i : i + COLUMNS])
         rows.append(f"    <tr>\n{row_cells}\n    </tr>")
 
-    return '<table width="100%" style="width:100%">\n  <tbody>\n' + "\n".join(rows) + "\n  </tbody>\n</table>"
+    table = '<table width="100%" style="width:100%">\n  <tbody>\n' + "\n".join(rows) + "\n  </tbody>\n</table>"
 
-
-def update_readme_badge(count: int) -> bool:
-    """Keeps the static contributor-count badge in README.md in sync.
-    Returns True if the badge changed."""
-    if not README_FILE.exists():
-        return False
-    content = README_FILE.read_text(encoding="utf-8")
-    new_badge = (
-        f"[![Contributors](https://img.shields.io/badge/contributors-{count}-orange.svg)]"
-        f"(docs/CONTRIBUTORS.md)"
+    intro = (
+        "Recomputed nightly from real issue/PR activity via "
+        "[`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml). "
+        "Want to show up here? Open an issue or a PR — the first-contribution bot will say hello, "
+        "and this grid picks you up on the next nightly run.\n\n"
     )
-    new_content, n = BADGE_RE.subn(new_badge, content)
-    if n == 0 or new_content == content:
-        return False
-    README_FILE.write_text(new_content, encoding="utf-8")
-    return True
+
+    return intro + table
 
 
 def main():
+    if not README_FILE.exists():
+        print("README.md not found", file=sys.stderr)
+        return 1
+
+    content = README_FILE.read_text(encoding="utf-8")
     counts = fetch_counts()
-    existing = parse_existing(CONTRIBUTORS_FILE)
+    existing = parse_existing(content)
     grid = build_grid(counts, existing)
-    readme_changed = update_readme_badge(len(counts))
 
-    header = (
-        "# Contributors\n\n"
-        "Thanks to everyone who's helped build TrenTorch. Recomputed nightly "
-        "from real issue/PR activity via "
-        "[`.github/workflows/update-contributors.yml`](../.github/workflows/update-contributors.yml).\n\n"
+    new_content, n = SECTION_RE.subn(lambda m: m.group(1) + grid + m.group(2), content, count=1)
+    if n == 0:
+        print("Could not find the '## Team Engineers' section in README.md", file=sys.stderr)
+        return 1
+
+    new_badge = (
+        f"[![Contributors](https://img.shields.io/badge/contributors-{len(counts)}-orange.svg)]"
+        f"(#team-engineers)"
     )
-    footer = (
-        "\n\n---\n\n"
-        "Want to show up here? Open an issue or a PR — the first-contribution "
-        "bot will say hello, and this grid picks you up on the next nightly run.\n"
-    )
+    new_content, _ = BADGE_RE.subn(new_badge, new_content)
 
-    new_content = header + grid + footer
-
-    old_content = CONTRIBUTORS_FILE.read_text(encoding="utf-8") if CONTRIBUTORS_FILE.exists() else ""
-    contributors_changed = new_content.strip() != old_content.strip()
-    if contributors_changed:
-        CONTRIBUTORS_FILE.write_text(new_content, encoding="utf-8")
-        print("CONTRIBUTORS.md updated")
-
-    if readme_changed:
-        print("README.md badge updated")
-
-    if not contributors_changed and not readme_changed:
+    if new_content.strip() != content.strip():
+        README_FILE.write_text(new_content, encoding="utf-8")
+        print("README.md updated")
+    else:
         print("No changes")
 
     return 0

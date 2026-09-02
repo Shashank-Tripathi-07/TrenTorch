@@ -1,8 +1,9 @@
 name: 'Update Contributors Table'
 
-# Recomputes CONTRIBUTORS.md (issues raised, PRs raised per person) from the
-# real GitHub API once a night, and opens+merges a PR immediately if the
-# result changed. Used to fire on every issue/PR open/close event -- correct,
+# Recomputes README.md's "Team Engineers" avatar grid (issues raised, PRs
+# raised per person) from the real GitHub API once a night, and
+# opens+merges a PR immediately if the result changed. Used to fire on
+# every issue/PR open/close event -- correct,
 # but noisy: a short burst of PR activity (several merges/closes within
 # seconds) could spawn several of these PRs at once needing manual cleanup.
 # The nightly schedule alone fixes that (one run a day, not one per event).
@@ -80,7 +81,7 @@ jobs:
         if: steps.has-pat.outputs.configured == 'true'
         id: diff
         run: |
-          if git diff --quiet -- docs/CONTRIBUTORS.md README.md; then
+          if git diff --quiet -- README.md; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -95,10 +96,10 @@ jobs:
           git config user.name "trentorch-bot"
           git config user.email "trentorch-bot@users.noreply.github.com"
           git checkout -b "$BRANCH"
-          git add docs/CONTRIBUTORS.md README.md
-          git commit -m "Update CONTRIBUTORS.md"
+          git add README.md
+          git commit -m "Update Team Engineers table"
           git push origin "$BRANCH"
-          gh pr create --title "Update CONTRIBUTORS.md" \
+          gh pr create --title "Update Team Engineers table" \
             --body "Automated nightly update from real issue/PR activity. See .github/workflows/update-contributors.yml." \
             --base main --head "$BRANCH"
           gh pr merge "$BRANCH" --squash --admin --delete-branch || \
