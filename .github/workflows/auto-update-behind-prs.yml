@@ -1,7 +1,8 @@
-name: 'Auto-update PR branches behind main'
+name: 'Auto-update PR branches behind their base'
 
-# Whenever main advances, updates every open, non-draft, same-repo PR
-# that's fallen behind via GitHub's own "update branch" API -- the exact
+# Whenever main or dev advances, updates every open, non-draft, same-repo
+# PR targeting that same branch that's fallen behind via GitHub's own
+# "update branch" API -- the exact
 # manual-rebase-through-a-CHANGELOG-conflict dance PRs #83, #84, and #88
 # all needed by hand this session. GitHub's update-branch API only
 # succeeds when there's no real conflict; a genuine conflict (like those
@@ -18,7 +19,7 @@ name: 'Auto-update PR branches behind main'
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
 
 permissions:
   contents: read
@@ -49,7 +50,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: "open",
-              base: "main",
+              base: context.ref.replace("refs/heads/", ""),
               per_page: 100,
             });
 

@@ -30,9 +30,9 @@ jobs:
           issue_message: >
             Thanks for opening your first issue on TrenTorch! 🎉
             Someone will take a look soon. In the meantime, check
-            the [Team Engineers](../blob/main/README.md#team-engineers) table — once this gets
+            the [Team Engineers](../blob/dev/README.md#team-engineers) table — once this gets
             some activity, you'll show up there automatically.
           pr_message: >
             Thanks for contributing to TrenTorch! 🎉 A maintainer will review
             this shortly. Once it merges, you'll be added to the
-            [Team Engineers](../blob/main/README.md#team-engineers) table automatically.
+            [Team Engineers](../blob/dev/README.md#team-engineers) table automatically.

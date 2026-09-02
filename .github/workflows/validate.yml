@@ -37,7 +37,7 @@ name: 'TrenTorch · Validate'
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
     paths-ignore:
       - 'docs/**'
       - 'platforms/dev_tools/etc/**'
