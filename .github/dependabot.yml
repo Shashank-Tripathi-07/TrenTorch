@@ -15,10 +15,17 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    # requirements.txt is the single source of truth for the curriculum's
-    # runtime toolchain (NumPy, Jupyter, Jupytext, nbdev, Rich, PyYAML,
-    # psutil, pytest); pyproject.toml's own dependency list mirrors it.
-    # This is what catches a CVE in either without someone noticing by hand.
+    # requirements.txt is a pip-compile --generate-hashes lockfile compiled
+    # from requirements.in (the human-edited source of version floors:
+    # NumPy, Jupyter, Jupytext, nbdev, Rich, PyYAML, pytest, etc.);
+    # pyproject.toml's own dependency list mirrors requirements.in.
+    # Dependabot's pip support understands hash-pinned requirements files
+    # directly -- it rewrites both the version and the hash in the same PR
+    # when it bumps a dependency, so this is what keeps requirements.txt's
+    # hashes current without anyone hand-running pip-compile for routine
+    # bumps (only adding/removing a dependency in requirements.in needs
+    # that by hand). Also what catches a CVE in either file without
+    # someone noticing by hand.
     commit-message:
       prefix: "deps"
     labels:

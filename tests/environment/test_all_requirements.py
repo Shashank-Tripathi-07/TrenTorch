@@ -61,20 +61,26 @@ def parse_requirements_file(filepath: Path) -> list[tuple[str, str | None, str |
 
 def discover_requirements_files() -> list[Path]:
     """
-    Discover the main requirements.txt file in the project.
+    Discover the requirements source file in the project.
 
-    Only checks the main requirements.txt, not ancillary files like
-    site/requirements.txt which are for different deployment contexts.
+    requirements.txt is now a pip-compile --generate-hashes lockfile: its
+    line-continued "pkg==1.2.3" plus indented "--hash=sha256:..." entries
+    don't fit this module's flat-line parser, and it lists the whole
+    transitive tree (~200 packages), not the handful this suite means to
+    functionality-test. requirements.in is the human-edited source of
+    direct dependencies (see its own header) and is still the flat format
+    this parser expects, so that's what gets validated here. Ancillary
+    files like site/requirements.txt are for different deployment
+    contexts and are still out of scope.
 
     Returns:
         List of Path objects for requirements files
     """
     project_root = Path.cwd()
 
-    # Only check main requirements.txt
     requirements_files = []
 
-    main_req = project_root / "requirements.txt"
+    main_req = project_root / "requirements.in"
     if main_req.exists():
         requirements_files.append(main_req)
 
