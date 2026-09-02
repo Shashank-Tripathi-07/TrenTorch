@@ -39,8 +39,16 @@ jobs:
         # parser, which needs the CLI's own runtime deps importable.
         # Exact versions matching this repo's own declared floors
         # (requirements.txt / pyproject.toml: rich>=15.0.0, PyYAML>=6.0.3)
-        # instead of an unbounded install, per OpenSSF Scorecard's
-        # Pinned-Dependencies check.
+        # instead of an unbounded install -- real hardening (no more
+        # "whatever's newest today"), but note this alone doesn't satisfy
+        # OpenSSF Scorecard's Pinned-Dependencies check, which specifically
+        # wants --hash pinning. rich pulls in its own dependency chain
+        # (markdown-it-py, pygments, mdurl), so hash-pinning it properly
+        # means resolving and pinning that whole chain, not just rich
+        # itself -- left as a documented gap alongside setup.sh's and
+        # run-test-stage.yml's requirements.txt installs, not silently
+        # different from them. ruff (lint.yml, autofix.yml) got the real
+        # hash-pin instead, since it has zero dependencies of its own.
         run: pip install "rich==15.0.0" "PyYAML==6.0.3"
 
       - name: Validate

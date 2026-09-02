@@ -35,13 +35,20 @@ jobs:
           python-version: '3.11'
 
       - name: Install ruff
-        # Exact version, matching .pre-commit-config.yaml's own ruff-pre-commit
-        # `rev: v0.16.4` -- was a floor (>=0.6.0) before, which OpenSSF
-        # Scorecard's Pinned-Dependencies check flags (an unbounded floor
-        # installs whatever's newest on the day CI runs, no one notices a
-        # version change happened). Exact match here also means CI and a
-        # contributor's local pre-commit hook lint identically.
-        run: pip install "ruff==0.16.4"
+        # Hash-pinned, matching .pre-commit-config.yaml's own ruff-pre-commit
+        # `rev: v0.16.4` -- was an unbounded floor (>=0.6.0) before, which
+        # OpenSSF Scorecard's Pinned-Dependencies check flags. ruff has zero
+        # runtime dependencies of its own (checked against PyPI's own
+        # metadata), so this is the actual PyPI-published sha256 for the
+        # exact wheel this job's runner (ubuntu-latest) resolves, not a
+        # made-up value -- `pip install --require-hashes` fails closed if it
+        # ever doesn't match. Only one platform wheel needed since this job
+        # never runs on windows-2022. One line, not a heredoc: a heredoc's
+        # closing marker has to sit at column 0 to be recognized, which
+        # doesn't survive being embedded in an indented YAML block scalar.
+        run: |
+          printf '%s\n' 'ruff==0.16.4 --hash=sha256:f2d812e482f5a7e02eee26cd73d2a37ebbdf47d795ea63ba1b89110ae93e9fb3 --hash=sha256:13171aa9d9af2240ee3504e639de73122c67e74036de5ba2e1d01422cd17e3dc' > /tmp/ruff-pin.txt
+          pip install --require-hashes -r /tmp/ruff-pin.txt
 
       - name: Ruff check (lint)
         run: ruff check .
