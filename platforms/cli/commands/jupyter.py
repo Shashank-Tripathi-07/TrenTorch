@@ -94,12 +94,7 @@ def start_jupyter_server(project_root: Path) -> bool:
     `find_running_jupyter_server` instead of starting another.
     """
     try:
-        cmd = [
-            "jupyter",
-            "lab",
-            "--no-browser",
-            f"--notebook-dir={project_root}",
-        ]
+        cmd = ["jupyter", "lab", "--no-browser", f"--notebook-dir={project_root}"]
         detach_kwargs = (
             {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS}
             if sys.platform == "win32"

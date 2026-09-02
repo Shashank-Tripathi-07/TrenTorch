@@ -758,11 +758,7 @@ def trainer_init(self, model, optimizer, loss_fn, scheduler=None, grad_clip_norm
     self.training_mode = True
 
     # History tracking
-    self.history = {
-        'train_loss': [],
-        'eval_loss': [],
-        'learning_rates': []
-    }
+    self.history = {'train_loss': [], 'eval_loss': [], 'learning_rates': []}
     ### END SOLUTION
 
 Trainer.__init__ = trainer_init
@@ -1210,10 +1206,7 @@ def test_unit_trainer_train_epoch():
 
     trainer = Trainer(model, optimizer, loss_fn)
 
-    dataloader = [
-        (Tensor([[1.0, 0.5]]), Tensor([[2.0]])),
-        (Tensor([[0.5, 1.0]]), Tensor([[1.5]]))
-    ]
+    dataloader = [(Tensor([[1.0, 0.5]]), Tensor([[2.0]])), (Tensor([[0.5, 1.0]]), Tensor([[1.5]]))]
 
     # Train one epoch
     loss = trainer.train_epoch(dataloader)
@@ -1420,10 +1413,7 @@ def test_unit_trainer_evaluate():
     reg_model = RegressionModel()
     reg_trainer = Trainer(reg_model, SGD(reg_model.parameters(), lr=0.01), MSELoss())
 
-    reg_dataloader = [
-        (Tensor([[1.0, 0.5]]), Tensor([[2.0]])),
-        (Tensor([[0.5, 1.0]]), Tensor([[1.5]]))
-    ]
+    reg_dataloader = [(Tensor([[1.0, 0.5]]), Tensor([[2.0]])), (Tensor([[0.5, 1.0]]), Tensor([[1.5]]))]
 
     eval_loss, accuracy = reg_trainer.evaluate(reg_dataloader)
 
@@ -2163,10 +2153,7 @@ def test_module():
     )
 
     # Test data using REAL Tensors
-    data = [
-        (Tensor([[1.0, 0.5]]), Tensor([[0.8]])),
-        (Tensor([[0.5, 1.0]]), Tensor([[0.2]]))
-    ]
+    data = [(Tensor([[1.0, 0.5]]), Tensor([[0.8]])), (Tensor([[0.5, 1.0]]), Tensor([[0.2]]))]
 
     # Test training
     initial_loss = trainer.train_epoch(data)

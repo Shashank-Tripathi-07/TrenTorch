@@ -90,12 +90,7 @@ def test_make_solution_variant_never_crashes_unexpectedly(source):
 # text alone almost never contains "# %%" or the solution tag literal, so
 # it can't reach the pairing logic's real branches.
 _CELL_HEADER = st.sampled_from(
-    [
-        "# %%",
-        '# %% tags=["solution"]',
-        "# %% tags=['solution']",
-        '# %% tags=["solution", "hidden"]',
-    ]
+    ["# %%", '# %% tags=["solution"]', "# %% tags=['solution']", '# %% tags=["solution", "hidden"]']
 )
 _DIRECTIVE_LINE = st.sampled_from(["#| export", "#| default_exp core.tensor", "#| hide"])
 _BODY_LINE = st.text(alphabet=st.characters(blacklist_characters="\n"), max_size=20)

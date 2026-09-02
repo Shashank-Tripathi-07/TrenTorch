@@ -670,13 +670,6 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
                 env=self._subprocess_env(),
             )
             success = res.returncode == 0
-            self._send_json(
-                {
-                    "module": num,
-                    "success": success,
-                    "stdout": res.stdout,
-                    "stderr": res.stderr,
-                }
-            )
+            self._send_json({"module": num, "success": success, "stdout": res.stdout, "stderr": res.stderr})
         except Exception as e:
             self._send_json({"error": str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)

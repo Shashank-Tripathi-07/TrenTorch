@@ -87,10 +87,7 @@ class HealthCommand(BaseCommand):
                 issues.append(f"{display_name} not installed")
 
         # Workflow-critical dependencies (needed for module complete/export)
-        workflow_deps = [
-            ("nbdev (export)", "nbdev"),
-            ("ipykernel (Jupyter)", "ipykernel"),
-        ]
+        workflow_deps = [("nbdev (export)", "nbdev"), ("ipykernel (Jupyter)", "ipykernel")]
         for display_name, import_name in workflow_deps:
             try:
                 __import__(import_name)
@@ -100,10 +97,7 @@ class HealthCommand(BaseCommand):
                 issues.append(f"{display_name} not installed — run: pip install {import_name}")
 
         # Optional dependencies (nice to have, not required for core workflow)
-        optional_deps = [
-            ("JupyterLab", "jupyterlab"),
-            ("Matplotlib", "matplotlib"),
-        ]
+        optional_deps = [("JupyterLab", "jupyterlab"), ("Matplotlib", "matplotlib")]
         for display_name, import_name in optional_deps:
             try:
                 __import__(import_name)

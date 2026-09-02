@@ -12,10 +12,7 @@ import os
 import sys
 
 # Test modules to run
-TEST_MODULES = [
-    "test_conv_linear_dimensions",
-    "test_transformer_reshaping",
-]
+TEST_MODULES = ["test_conv_linear_dimensions", "test_transformer_reshaping"]
 
 
 def run_sandbox_tests():

@@ -188,12 +188,7 @@ def load_tinydigits_arrays(project_root=None):
 # CONFIGURATION
 # =============================================================================
 
-CONFIG = {
-    "batch_size": 32,
-    "train_epochs": 10,
-    "learning_rate": 0.01,
-    "prune_sparsity": 0.5,
-}
+CONFIG = {"batch_size": 32, "train_epochs": 10, "learning_rate": 0.01, "prune_sparsity": 0.5}
 
 
 # =============================================================================

@@ -58,13 +58,7 @@ def test_any_init_file_is_preserved_regardless_of_directory(tmp_path, monkeypatc
 def test_a_mix_removes_only_the_generated_file(tmp_path, monkeypatch):
     """Sanity check combining all three cases in one reset."""
     remaining = _reset_package(
-        tmp_path,
-        monkeypatch,
-        {
-            "core/tensor.py": "x",
-            "export_sanitizer.py": "x",
-            "core/__init__.py": "x",
-        },
+        tmp_path, monkeypatch, {"core/tensor.py": "x", "export_sanitizer.py": "x", "core/__init__.py": "x"}
     )
     assert remaining == {"export_sanitizer.py", "core/__init__.py"}
 

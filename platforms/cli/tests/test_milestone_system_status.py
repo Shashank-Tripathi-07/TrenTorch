@@ -109,10 +109,7 @@ def test_first_eligible_milestone_becomes_next(tmp_path, monkeypatch):
     system = _system(
         tmp_path,
         monkeypatch,
-        {
-            "1": _milestone(required_modules=[1]),
-            "2": _milestone(required_modules=[1]),
-        },
+        {"1": _milestone(required_modules=[1]), "2": _milestone(required_modules=[1])},
         completed_modules=["01"],
     )
     status = system.get_milestone_status()
