@@ -6,7 +6,7 @@
 
 
 [![Validate](https://github.com/TrenTorch/TrenTorch/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/TrenTorch/TrenTorch/actions/workflows/validate.yml)
-[![Contributors](https://img.shields.io/badge/contributors-4-orange.svg)](docs/CONTRIBUTORS.md)
+[![Contributors](https://img.shields.io/badge/contributors-4-orange.svg)](#team-engineers)
 [![Python](https://img.shields.io/badge/python-3.10+-3776ab?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Built From Scratch](https://img.shields.io/badge/dependencies-just%20NumPy-D4740C?logo=numpy&logoColor=white)](#what-youll-build)
@@ -303,29 +303,54 @@ We're addicted to making great software that runs (we're a bit of perfectionists
 
 ## Team Engineers
 
+Recomputed nightly from real issue/PR activity via [`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml). Want to show up here? Open an issue or a PR — the first-contribution bot will say hello, and this grid picks you up on the next nightly run.
+
 <table width="100%" style="width:100%">
   <tbody>
     <tr>
-      <td align="center" valign="top" width="33%">
-        <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" width="90px;" alt="Rocky"/></a>
+      <td align="center" valign="top" width="20.0%">
+        <a href="https://github.com/aadityansha06"><img src="https://avatars.githubusercontent.com/aadityansha06?v=4" width="80px;" alt="aadityansha06"/></a>
         <br />
-        <b>Rocky</b>
+        <b>aadityansha06</b>
         <br />
-        <sub>IIT Guwahati, Debugs autograd for fun, ships before sunrise.</sub>
+        <sub><strong>Maintainer</strong></sub>
+        <br />
+        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <br />
+        <sub>Issues: 0 &middot; PRs: 1</sub>
       </td>
-      <td align="center" valign="top" width="33%">
-        <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="90px;" alt="Shivtej Gaikwad"/></a>
+      <td align="center" valign="top" width="20.0%">
+        <a href="https://github.com/maanas1234"><img src="https://avatars.githubusercontent.com/maanas1234?v=4" width="80px;" alt="maanas1234"/></a>
         <br />
-        <b>Shivtej Gaikwad</b>
+        <b>maanas1234</b>
         <br />
-        <sub>IIT Guwahati. Shows up, ships, moves on to the next thing.</sub>
+        <sub><strong>Core Engineer</strong></sub>
+        <br />
+        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <br />
+        <sub>Issues: 5 &middot; PRs: 5</sub>
       </td>
-      <td align="center" valign="top" width="33%">
-        <a href="https://github.com/aadityansha06"><img src="https://avatars.githubusercontent.com/aadityansha06?v=4" width="90px;" alt="Aadityansha"/></a>
+      <td align="center" valign="top" width="20.0%">
+        <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" width="80px;" alt="Shashank-Tripathi-07"/></a>
         <br />
-        <b>Aadityansha</b>
+        <b>Shashank-Tripathi-07</b>
         <br />
-        <sub>Reducing CPU stalls, one commit at a time.</sub>
+        <sub><strong>Principal Maintainer</strong></sub>
+        <br />
+        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <br />
+        <sub>Issues: 8 &middot; PRs: 34</sub>
+      </td>
+      <td align="center" valign="top" width="20.0%">
+        <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="ShivtejG236"/></a>
+        <br />
+        <b>ShivtejG236</b>
+        <br />
+        <sub><strong>Maintainer</strong></sub>
+        <br />
+        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <br />
+        <sub>Issues: 0 &middot; PRs: 7</sub>
       </td>
     </tr>
   </tbody>
