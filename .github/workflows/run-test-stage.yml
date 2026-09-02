@@ -47,6 +47,11 @@ on:
         type: string
         default: 'true'
 
+# Empty at workflow level (matches codeql.yml / semantic-pr-title.yml's
+# pattern for the same OpenSSF Scorecard finding); the job below declares
+# the one permission it actually needs.
+permissions: {}
+
 env:
   TREN_ALLOW_SYSTEM: "1"
   TRENTORCH_QUIET: "1"
