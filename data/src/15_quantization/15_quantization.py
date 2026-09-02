@@ -2208,11 +2208,7 @@ def analyze_quantization_memory():
     """Analyze memory reduction across different model sizes."""
     print("Analyzing Quantization Memory Reduction")
 
-    model_sizes = [
-        ("Small", 1_000_000),
-        ("Medium", 10_000_000),
-        ("Large", 100_000_000)
-    ]
+    model_sizes = [("Small", 1_000_000), ("Medium", 10_000_000), ("Large", 100_000_000)]
 
     print(f"{'Model':<10} {'FP32 (MB)':<12} {'INT8 (MB)':<12} {'Reduction':<12}")
     print("-" * 50)

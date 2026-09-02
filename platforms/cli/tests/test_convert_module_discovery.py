@@ -88,11 +88,7 @@ def test_plain_file_is_excluded_from_all(tmp_path, monkeypatch):
     """is_dir() False (a regular file) -> excluded regardless of name.
     Paired with the baseline: only is_dir()'s result differs, isolating
     that half of the and."""
-    _, out = _run_convert(
-        tmp_path,
-        monkeypatch,
-        {"01_tensor": "dir_with_src", "readme.txt": "file"},
-    )
+    _, out = _run_convert(tmp_path, monkeypatch, {"01_tensor": "dir_with_src", "readme.txt": "file"})
     assert "Converting 1 module" in out
 
 

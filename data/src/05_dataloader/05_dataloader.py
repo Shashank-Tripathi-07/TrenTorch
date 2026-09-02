@@ -1793,10 +1793,7 @@ def test_unit_augmentation():
 
     # Test 3: Compose pipeline
     print("  Testing Compose...")
-    transforms = Compose([
-        RandomHorizontalFlip(p=0.5),
-        RandomCrop(32, padding=4)
-    ])
+    transforms = Compose([RandomHorizontalFlip(p=0.5), RandomCrop(32, padding=4)])
 
     img = rng.standard_normal((3, 32, 32))
     augmented = transforms(img)

@@ -1894,12 +1894,7 @@ def test_unit_complete_embedding_system():
     print("🧪 Unit Test: Complete Embedding System...")
 
     # Test 1: Learned positional encoding
-    embed_learned = EmbeddingLayer(
-        vocab_size=100,
-        embed_dim=64,
-        max_seq_len=128,
-        pos_encoding='learned'
-    )
+    embed_learned = EmbeddingLayer(vocab_size=100, embed_dim=64, max_seq_len=128, pos_encoding='learned')
 
     tokens = Tensor([[1, 2, 3], [4, 5, 6]])
     output_learned = embed_learned.forward(tokens)
@@ -1907,21 +1902,13 @@ def test_unit_complete_embedding_system():
     assert output_learned.shape == (2, 3, 64), f"Expected shape (2, 3, 64), got {output_learned.shape}"
 
     # Test 2: Sinusoidal positional encoding
-    embed_sin = EmbeddingLayer(
-        vocab_size=100,
-        embed_dim=64,
-        pos_encoding='sinusoidal'
-    )
+    embed_sin = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding='sinusoidal')
 
     output_sin = embed_sin.forward(tokens)
     assert output_sin.shape == (2, 3, 64), "Sinusoidal embedding should have same shape"
 
     # Test 3: No positional encoding
-    embed_none = EmbeddingLayer(
-        vocab_size=100,
-        embed_dim=64,
-        pos_encoding=None
-    )
+    embed_none = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding=None)
 
     output_none = embed_none.forward(tokens)
     assert output_none.shape == (2, 3, 64), "No pos encoding should have same shape"
@@ -1933,12 +1920,7 @@ def test_unit_complete_embedding_system():
     assert output_1d.shape == (3, 64), f"Expected shape (3, 64) for 1D input, got {output_1d.shape}"
 
     # Test 5: Embedding scaling
-    embed_scaled = EmbeddingLayer(
-        vocab_size=100,
-        embed_dim=64,
-        pos_encoding=None,
-        scale_embeddings=True
-    )
+    embed_scaled = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding=None, scale_embeddings=True)
 
     # Use same weights to ensure fair comparison
     embed_scaled.token_embedding.weight = embed_none.token_embedding.weight
@@ -2262,11 +2244,7 @@ def test_module():
 
     # Test all position encoding types
     for pe_type in ['learned', 'sinusoidal', None]:
-        embed_test = EmbeddingLayer(
-            vocab_size=100,
-            embed_dim=64,
-            pos_encoding=pe_type
-        )
+        embed_test = EmbeddingLayer(vocab_size=100, embed_dim=64, pos_encoding=pe_type)
 
         output = embed_test.forward(test_tokens)
         assert output.shape == (1, 5, 64), f"PE type {pe_type} failed shape test"

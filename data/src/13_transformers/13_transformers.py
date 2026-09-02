@@ -2032,13 +2032,7 @@ def demonstrate_transformer_integration():
     print(f"Characters: {''.join(vocab)}")
 
     # Create model
-    model = GPT(
-        vocab_size=vocab_size,
-        embed_dim=64,
-        num_layers=2,
-        num_heads=4,
-        max_seq_len=32
-    )
+    model = GPT(vocab_size=vocab_size, embed_dim=64, num_layers=2, num_heads=4, max_seq_len=32)
 
     # Sample text encoding
     text = "hello world."

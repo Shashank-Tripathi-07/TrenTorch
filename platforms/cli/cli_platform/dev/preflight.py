@@ -322,11 +322,7 @@ class PreflightCommand(BaseCommand):
                 )
 
         # Required files
-        required_files = [
-            "pyproject.toml",
-            "requirements.txt",
-            "README.md",
-        ]
+        required_files = ["pyproject.toml", "requirements.txt", "README.md"]
 
         for file_path in required_files:
             start = time.time()

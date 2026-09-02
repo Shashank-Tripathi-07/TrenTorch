@@ -70,10 +70,7 @@ class SetupCommand(BaseCommand):
 
     def get_existing_venv_path(self) -> Path | None:
         """Return the path to an existing venv, or None if not found."""
-        venv_paths = [
-            self.config.project_root / ".venv",
-            self.config.project_root / "venv",
-        ]
+        venv_paths = [self.config.project_root / ".venv", self.config.project_root / "venv"]
         for venv_path in venv_paths:
             if venv_path.exists():
                 return venv_path

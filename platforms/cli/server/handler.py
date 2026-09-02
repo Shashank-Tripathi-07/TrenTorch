@@ -572,10 +572,7 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
         """Run pytest for a known module and stream output over SSE."""
         num = self._resolve_module(module_input)
         if num is None:
-            self._send_json(
-                {"error": f"Unknown module: {module_input!r}"},
-                status=HTTPStatus.NOT_FOUND,
-            )
+            self._send_json({"error": f"Unknown module: {module_input!r}"}, status=HTTPStatus.NOT_FOUND)
             return
 
         folder = get_module_mapping().get(num, f"{num}_module")
@@ -648,10 +645,7 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
         """Trigger module complete / export for a known module."""
         num = self._resolve_module(module_input)
         if num is None:
-            self._send_json(
-                {"error": f"Unknown module: {module_input!r}"},
-                status=HTTPStatus.NOT_FOUND,
-            )
+            self._send_json({"error": f"Unknown module: {module_input!r}"}, status=HTTPStatus.NOT_FOUND)
             return
 
         # argv is a fixed literal list; `num` is the canonical id from the
@@ -670,13 +664,6 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
                 env=self._subprocess_env(),
             )
             success = res.returncode == 0
-            self._send_json(
-                {
-                    "module": num,
-                    "success": success,
-                    "stdout": res.stdout,
-                    "stderr": res.stderr,
-                }
-            )
+            self._send_json({"module": num, "success": success, "stdout": res.stdout, "stderr": res.stderr})
         except Exception as e:
             self._send_json({"error": str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
