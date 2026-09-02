@@ -36,18 +36,19 @@ AVATAR_OVERRIDES = {
     "Shashank-Tripathi-07": "../.github/assets/rocky-avatar.png",
 }
 
-# Role tag shown right under each person's name. CO / CORE_ENGINEERS mirror
-# maintainer-badge.yml's own hardcoded roster by hand (keep both in sync);
-# everyone else gets "Maintainer" if they hold live Maintain/Admin repo
-# permission, computed fresh each run same as maintainer-badge.yml does,
-# or no role line at all for outside contributors.
-CHIEF_ENGINEER_LOGIN = "Shashank-Tripathi-07"
+# Role tag shown right under each person's name. PROJECT_LEAD_LOGIN /
+# CORE_ENGINEERS mirror maintainer-badge.yml's own hardcoded roster by hand
+# (keep both in sync); everyone else gets "Maintainer" if they hold live
+# Maintain/Admin repo permission, computed fresh each run same as
+# maintainer-badge.yml does, or no role line at all for outside
+# contributors.
+PROJECT_LEAD_LOGIN = "Shashank-Tripathi-07"
 CORE_ENGINEERS = {"maanas1234", "yashanand12ssdn-ops"}
 
 
 def resolve_role(login: str) -> str | None:
-    if login == CHIEF_ENGINEER_LOGIN:
-        return "CO"
+    if login == PROJECT_LEAD_LOGIN:
+        return "Project Lead"
     if login in CORE_ENGINEERS:
         return "Core Engineer"
     try:
