@@ -27,7 +27,7 @@ MILESTONE_SCRIPTS = {
         "script": "data/milestones/01_1958_perceptron/01_rosenblatt_forward.py",
         "required_modules": [1, 2, 3],  # Tensor, Activations, Layers (forward pass only)
         "description": "Build the first neural network (forward pass)",
-        "historical_context": "Rosenblatt's perceptron proved machines could learn",
+        "historical_context": "Rosenblatt's perceptron proved machines could learn. Built on McCulloch & Pitts' 1943 paper 'A Logical Calculus of the Ideas Immanent in Nervous Activity' -- the first mathematical model of an artificial neuron.",
         "emoji": "🧠",
     },
     "02": {
