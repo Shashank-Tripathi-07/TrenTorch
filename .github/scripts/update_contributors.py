@@ -20,10 +20,10 @@ GITHUB_TOKEN via the gh CLI (already configured by actions/checkout /
 the workflow's GH_TOKEN env var).
 """
 
+import json
 import re
 import subprocess
 import sys
-import json
 from pathlib import Path
 
 REPO = "TrenTorch/TrenTorch"
@@ -169,7 +169,9 @@ def build_grid(counts: dict, existing: dict) -> str:
         row_cells = "\n".join(cells[i : i + COLUMNS])
         rows.append(f"    <tr>\n{row_cells}\n    </tr>")
 
-    table = '<table width="100%" style="width:100%">\n  <tbody>\n' + "\n".join(rows) + "\n  </tbody>\n</table>"
+    table = (
+        '<table width="100%" style="width:100%">\n  <tbody>\n' + "\n".join(rows) + "\n  </tbody>\n</table>"
+    )
 
     intro = (
         "Recomputed nightly from real issue/PR activity via "
