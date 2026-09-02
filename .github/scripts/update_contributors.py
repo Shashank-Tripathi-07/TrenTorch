@@ -53,11 +53,14 @@ def resolve_role(login: str) -> str | None:
     try:
         perm = subprocess.run(
             ["gh", "api", f"repos/{REPO}/collaborators/{login}/permission", "--jq", ".role_name"],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
     except subprocess.CalledProcessError:
         return None  # not a collaborator (e.g. left the org) -- no role line
     return "Maintainer" if perm in ("maintain", "admin") else None
+
 
 # The repo was private when this script was first written, so shields.io
 # couldn't query the real GitHub API for a live contributor count -- this
