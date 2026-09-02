@@ -768,9 +768,20 @@ def test_unit_fusion_speedup():
         "Fused and unfused implementations must be numerically equivalent"
 
     # Calculate performance metrics
+    # Either timing can legitimately measure as exactly 0.0 on a fast
+    # machine/small size if its whole timed loop completes within
+    # time.time()'s wall-clock resolution. `speedup` already guarded
+    # against fused_time == 0 for its own division; per-element and
+    # bandwidth below divide by both timings, so both need the same
+    # treatment. A tiny epsilon rather than a fixed fallback like
+    # speedup's `1.0`: these are rate/bandwidth numbers, so
+    # "immeasurably fast" should read as a very large number, not an
+    # arbitrary constant.
+    unfused_time_safe = unfused_time if unfused_time > 0 else 1e-9
+    fused_time_safe = fused_time if fused_time > 0 else 1e-9
     speedup = unfused_time / fused_time if fused_time > 0 else 1.0
-    unfused_per_elem = (unfused_time / timing_iterations) / (size * size) * 1e9  # ns per element
-    fused_per_elem = (fused_time / timing_iterations) / (size * size) * 1e9
+    unfused_per_elem = (unfused_time_safe / timing_iterations) / (size * size) * 1e9  # ns per element
+    fused_per_elem = (fused_time_safe / timing_iterations) / (size * size) * 1e9
 
     print(f"📊 Kernel Fusion Performance Analysis:")
     print(f"   Tensor size: {size}×{size} = {size*size:,} elements")
@@ -784,8 +795,12 @@ def test_unit_fusion_speedup():
     unfused_memory_ops = 7  # 7 intermediate arrays
     fused_memory_ops = 2   # read input, write output
 
-    unfused_bandwidth = (unfused_memory_ops * size * size * bytes_per_elem) / (unfused_time / timing_iterations) / 1e9
-    fused_bandwidth = (fused_memory_ops * size * size * bytes_per_elem) / (fused_time / timing_iterations) / 1e9
+    unfused_bandwidth = (
+        (unfused_memory_ops * size * size * bytes_per_elem) / (unfused_time_safe / timing_iterations) / 1e9
+    )
+    fused_bandwidth = (
+        (fused_memory_ops * size * size * bytes_per_elem) / (fused_time_safe / timing_iterations) / 1e9
+    )
 
     print(f"   Memory efficiency: {unfused_memory_ops}→{fused_memory_ops} memory ops")
     print(f"   Effective bandwidth: {unfused_bandwidth:.1f}→{fused_bandwidth:.1f} GB/s")
