@@ -30,10 +30,34 @@ COLUMNS = 5
 # Custom avatar images checked into the repo, used instead of the person's
 # live GitHub avatar URL. Add an entry here (and the image under
 # .github/assets/) for anyone who wants their own picture instead of
-# whatever's on their GitHub profile.
+# whatever's on their GitHub profile. Path is relative to CONTRIBUTORS_FILE
+# (docs/), not the repo root -- that's what broke the image before.
 AVATAR_OVERRIDES = {
-    "Shashank-Tripathi-07": ".github/assets/rocky-avatar.png",
+    "Shashank-Tripathi-07": "../.github/assets/rocky-avatar.png",
 }
+
+# Role tag shown right under each person's name. CO / CORE_ENGINEERS mirror
+# maintainer-badge.yml's own hardcoded roster by hand (keep both in sync);
+# everyone else gets "Maintainer" if they hold live Maintain/Admin repo
+# permission, computed fresh each run same as maintainer-badge.yml does,
+# or no role line at all for outside contributors.
+CHIEF_ENGINEER_LOGIN = "Shashank-Tripathi-07"
+CORE_ENGINEERS = {"maanas1234", "yashanand12ssdn-ops"}
+
+
+def resolve_role(login: str) -> str | None:
+    if login == CHIEF_ENGINEER_LOGIN:
+        return "CO"
+    if login in CORE_ENGINEERS:
+        return "Core Engineer"
+    try:
+        perm = subprocess.run(
+            ["gh", "api", f"repos/{REPO}/collaborators/{login}/permission", "--jq", ".role_name"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+    except subprocess.CalledProcessError:
+        return None  # not a collaborator (e.g. left the org) -- no role line
+    return "Maintainer" if perm in ("maintain", "admin") else None
 
 # The repo was private when this script was first written, so shields.io
 # couldn't query the real GitHub API for a live contributor count -- this
@@ -109,6 +133,8 @@ def build_grid(counts: dict, existing: dict) -> str:
         name, intro = existing.get(login, (login, DEFAULT_INTRO))
         avatar_src = AVATAR_OVERRIDES.get(login, f"https://avatars.githubusercontent.com/{login}?v=4")
         stats = f"Issues: {c['issues']} &middot; PRs: {c['prs']}"
+        role = resolve_role(login)
+        role_html = f"        <sub><strong>{role}</strong></sub>\n        <br />\n" if role else ""
         cells.append(
             f'      <td align="center" valign="top" width="{width}%">\n'
             f'        <a href="https://github.com/{login}">'
@@ -116,6 +142,7 @@ def build_grid(counts: dict, existing: dict) -> str:
             f"        <br />\n"
             f"        <b>{name}</b>\n"
             f"        <br />\n"
+            f"{role_html}"
             f"        <sub>{intro}</sub>\n"
             f"        <br />\n"
             f"        <sub>{stats}</sub>\n"
