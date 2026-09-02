@@ -1920,7 +1920,13 @@ def test_unit_submission_with_optimization():
     assert 'accuracy_delta' in improvements, "Should have accuracy delta"
 
     # Check improvement values are reasonable
-    assert improvements['speedup'] > 0, "Speedup should be positive"
+    # >= 0, not > 0: speedup is baseline_latency / optimized_latency, and
+    # baseline_latency (the numerator) is itself a raw time.time()
+    # measurement -- if IT measures as exactly 0.0 (coarse timer
+    # resolution, same reasoning as the latency_ms_mean checks above),
+    # speedup legitimately computes as 0.0 too, even though the division
+    # itself is already safely floored against a zero denominator.
+    assert improvements['speedup'] >= 0, "Speedup should be non-negative"
     assert improvements['compression_ratio'] > 0, "Compression ratio should be positive"
     assert -1 <= improvements['accuracy_delta'] <= 1, "Accuracy delta should be in [-1, 1]"
 

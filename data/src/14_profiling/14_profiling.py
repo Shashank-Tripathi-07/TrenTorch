@@ -1349,7 +1349,11 @@ class Profiler:
             'total_flops': total_flops,
             'total_latency_ms': total_latency_ms,
             'total_memory_mb': total_memory_mb,
-            'total_gflops_per_second': (total_flops / 1e9) / (total_latency_ms / 1000.0),
+            # total_latency_ms can legitimately measure as exactly 0.0 on
+            # a fast machine with a coarse timer (~15.6ms resolution on
+            # Windows) -- floored so this stays a large-but-finite number
+            # instead of raising ZeroDivisionError.
+            'total_gflops_per_second': (total_flops / 1e9) / (max(total_latency_ms, 1e-6) / 1000.0),
             'optimizer_memory_estimates': self._estimate_optimizer_memory(gradient_memory_mb),
             'memory_efficiency': fwd['memory_efficiency'],
             'bottleneck': fwd['bottleneck']
@@ -2488,7 +2492,9 @@ def analyze_model_scaling():
         latency = profiler.measure_latency(test_model, dummy_input, warmup=3, iterations=10)
         memory = profiler.measure_memory(test_model, input_shape)
 
-        gflops_per_second = (linear_flops / 1e9) / (latency / 1000)
+        # latency can legitimately measure as exactly 0.0 on a fast
+        # machine with a coarse timer -- floored to avoid ZeroDivisionError.
+        gflops_per_second = (linear_flops / 1e9) / (max(latency, 1e-6) / 1000)
 
         results.append({
             'size': size,
@@ -2544,7 +2550,9 @@ def analyze_batch_size_effects():
         memory = profiler.measure_memory(test_model, input_shape)
 
         # Calculate throughput
-        samples_per_second = (batch_size * 1000) / latency  # samples/second
+        # latency can legitimately measure as exactly 0.0 on a fast
+        # machine with a coarse timer -- floored to avoid ZeroDivisionError.
+        samples_per_second = (batch_size * 1000) / max(latency, 1e-6)  # samples/second
 
         # Calculate efficiency (samples per unit memory)
         efficiency = samples_per_second / max(memory['peak_memory_mb'], 0.001)
@@ -2619,7 +2627,10 @@ def benchmark_operation_efficiency():
         'operation': 'Elementwise',
         'latency_ms': elementwise_latency,
         'flops': elementwise_flops,
-        'gflops_per_second': (elementwise_flops / 1e9) / (elementwise_latency / 1000),
+        # elementwise_latency can legitimately measure as exactly 0.0 on
+        # a fast machine with a coarse timer -- floored to avoid
+        # ZeroDivisionError.
+        'gflops_per_second': (elementwise_flops / 1e9) / (max(elementwise_latency, 1e-6) / 1000),
         'efficiency_class': 'memory-bound',
         'optimization_focus': 'data_locality'
     })
@@ -2634,7 +2645,10 @@ def benchmark_operation_efficiency():
         'operation': 'Matrix Multiply',
         'latency_ms': matrix_latency,
         'flops': matrix_flops,
-        'gflops_per_second': (matrix_flops / 1e9) / (matrix_latency / 1000),
+        # matrix_latency can legitimately measure as exactly 0.0 on a
+        # fast machine with a coarse timer -- floored to avoid
+        # ZeroDivisionError.
+        'gflops_per_second': (matrix_flops / 1e9) / (max(matrix_latency, 1e-6) / 1000),
         'efficiency_class': 'compute-bound',
         'optimization_focus': 'algorithms'
     })
@@ -2652,7 +2666,10 @@ def benchmark_operation_efficiency():
         'operation': 'Reduction',
         'latency_ms': reduction_latency,
         'flops': reduction_flops,
-        'gflops_per_second': (reduction_flops / 1e9) / (reduction_latency / 1000),
+        # reduction_latency can legitimately measure as exactly 0.0 on a
+        # fast machine with a coarse timer -- floored to avoid
+        # ZeroDivisionError.
+        'gflops_per_second': (reduction_flops / 1e9) / (max(reduction_latency, 1e-6) / 1000),
         'efficiency_class': 'memory-bound',
         'optimization_focus': 'parallelization'
     })

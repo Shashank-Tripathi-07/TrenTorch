@@ -17,12 +17,11 @@
 # %% auto #0
 __all__ = ['rng', 'KVCache', 'enable_kv_cache', 'disable_kv_cache']
 
-# %% ../../solutions/18_memoization/memoization.ipynb #972c0ca8
+# %% ../../solutions/18_memoization/memoization.ipynb #afb6c83e
 import os
 import numpy as np
 rng = np.random.default_rng(7)
-import time
-from typing import Tuple, Optional, Dict, List
+from typing import Tuple, Dict
 
 # Import TrenTorch components from previous modules
 from ..core.tensor import Tensor
@@ -31,7 +30,7 @@ from ..core.tensor import Tensor
 _BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 _MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/18_memoization/memoization.ipynb #5dc40b08
+# %% ../../solutions/18_memoization/memoization.ipynb #382ba301
 # Solution
 
 class KVCache:
@@ -320,7 +319,7 @@ class KVCache:
             'total_elements': total_elements
         }
 
-# %% ../../solutions/18_memoization/memoization.ipynb #27fef6d0
+# %% ../../solutions/18_memoization/memoization.ipynb #bdb5e9bc
 def _cached_generation_step(x, attention, cache_obj, layer_idx):
     """
     Execute a single cached generation step for one new token.
@@ -401,7 +400,7 @@ def _cached_generation_step(x, attention, cache_obj, layer_idx):
 
     return attention.out_proj.forward(concat_output)
 
-# %% ../../solutions/18_memoization/memoization.ipynb #2b788f1e
+# %% ../../solutions/18_memoization/memoization.ipynb #0285d7ac
 # Solution
 
 def _create_cache_storage(model):
@@ -468,7 +467,7 @@ def _create_cache_storage(model):
     return cache, head_dim
     ### END SOLUTION
 
-# %% ../../solutions/18_memoization/memoization.ipynb #e9c4f440
+# %% ../../solutions/18_memoization/memoization.ipynb #05d9d1ad
 # Solution
 
 def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
@@ -525,7 +524,7 @@ def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
     return _cached_generation_step(x, block.attention, cache_obj, layer_idx)
     ### END SOLUTION
 
-# %% ../../solutions/18_memoization/memoization.ipynb #e5fc54a3
+# %% ../../solutions/18_memoization/memoization.ipynb #5f1f7874
 # Solution
 
 def enable_kv_cache(model):
@@ -565,7 +564,7 @@ def enable_kv_cache(model):
 
     HINTS:
     - _create_cache_storage handles validation, KVCache creation, and model attachment
-    - Use a factory function (make_cached_forward) to capture layer_idx in closure
+    - Use a factory function (make_cached_forward) to capture block, layer_idx, etc. in closure -- everything the returned closure reads must be a factory parameter, not read from the enclosing loop directly
     - Save original forward as block._original_attention_forward before patching
     - _cached_attention_forward handles the three-path dispatch logic
     """
@@ -580,9 +579,16 @@ def enable_kv_cache(model):
         if not hasattr(block, '_original_attention_forward'):
             block._original_attention_forward = block.attention.forward
 
-        # Create cached version using factory for correct closure binding
-        def make_cached_forward(layer_idx, original_forward, cache_obj):
-            """Factory to create cached forward with correct layer_idx closure."""
+        # Create cached version using factory for correct closure binding.
+        # `block` itself must be threaded through the factory the same way
+        # layer_idx/original_forward/cache_obj are: a closure that instead
+        # reads `block` straight from this enclosing for-loop shares ONE
+        # binding across every layer's cached_forward, so by the time any
+        # of them actually runs (after the loop has finished), they'd all
+        # see whatever block the loop landed on last -- every layer's
+        # cached attention operating on the last layer's state.
+        def make_cached_forward(block, layer_idx, original_forward, cache_obj):
+            """Factory to create cached forward with correct layer_idx (and block) closure."""
             def cached_forward(x, mask=None):
                 return _cached_attention_forward(
                     block, x, cache_obj, layer_idx, original_forward
@@ -590,7 +596,7 @@ def enable_kv_cache(model):
             return cached_forward
 
         block.attention.forward = make_cached_forward(
-            layer_idx, block._original_attention_forward, cache
+            block, layer_idx, block._original_attention_forward, cache
         )
 
     # Step 3: Print confirmation

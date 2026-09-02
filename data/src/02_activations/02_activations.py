@@ -1308,11 +1308,16 @@ def analyze_activation_performance():
         _ = gelu(test_data)
     gelu_time = (time.time() - start) / n_runs * 1000
 
+    # relu_time can legitimately measure as exactly 0.0 on a fast machine
+    # with a coarse timer (~15.6ms resolution on Windows) -- floored so
+    # these stay large-but-finite numbers instead of raising
+    # ZeroDivisionError.
+    relu_time_safe = relu_time if relu_time > 0 else 1e-9
     print("\n🧪 Activation Performance Results:")
     print(f"   ReLU:    {relu_time:.2f}ms (baseline)")
-    print(f"   Sigmoid: {sigmoid_time:.2f}ms ({sigmoid_time/relu_time:.1f}x slower)")
-    print(f"   Tanh:    {tanh_time:.2f}ms ({tanh_time/relu_time:.1f}x slower)")
-    print(f"   GELU:    {gelu_time:.2f}ms ({gelu_time/relu_time:.1f}x slower)")
+    print(f"   Sigmoid: {sigmoid_time:.2f}ms ({sigmoid_time/relu_time_safe:.1f}x slower)")
+    print(f"   Tanh:    {tanh_time:.2f}ms ({tanh_time/relu_time_safe:.1f}x slower)")
+    print(f"   GELU:    {gelu_time:.2f}ms ({gelu_time/relu_time_safe:.1f}x slower)")
 
     print("\n" + "=" * 60)
     print("KEY INSIGHTS:")

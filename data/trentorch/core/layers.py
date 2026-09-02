@@ -18,7 +18,7 @@
 __all__ = ['rng', 'INIT_SCALE_FACTOR', 'HE_SCALE_FACTOR', 'DROPOUT_MIN_PROB', 'DROPOUT_MAX_PROB', 'Layer', 'Linear', 'Dropout',
            'Sequential']
 
-# %% ../../solutions/03_layers/layers.ipynb #7ea222f8
+# %% ../../solutions/03_layers/layers.ipynb #3b8ffb79
 import os
 import numpy as np
 # Module-level RNG is seeded so Linear weight init is deterministic by default.
@@ -42,7 +42,7 @@ HE_SCALE_FACTOR = 2.0  # He initialization uses sqrt(2/fan_in) for ReLU
 DROPOUT_MIN_PROB = 0.0  # Minimum dropout probability (no dropout)
 DROPOUT_MAX_PROB = 1.0  # Maximum dropout probability (drop everything)
 
-# %% ../../solutions/03_layers/layers.ipynb #cf66612a
+# %% ../../solutions/03_layers/layers.ipynb #ce0e57bd
 class Layer:
     """
     Base class for all neural network layers.
@@ -91,7 +91,7 @@ class Layer:
         """String representation of the layer."""
         return f"{self.__class__.__name__}()"
 
-# %% ../../solutions/03_layers/layers.ipynb #5e079870
+# %% ../../solutions/03_layers/layers.ipynb #4ef657d1
 # Solution
 
 class Linear(Layer):
@@ -213,7 +213,7 @@ class Linear(Layer):
         bias_str = f", bias={self.bias is not None}"
         return f"Linear(in_features={self.in_features}, out_features={self.out_features}{bias_str})"
 
-# %% ../../solutions/03_layers/layers.ipynb #0a12e400
+# %% ../../solutions/03_layers/layers.ipynb #37c1da1b
 # Solution
 
 class Dropout(Layer):
@@ -382,7 +382,7 @@ class Dropout(Layer):
     def __repr__(self):
         return f"Dropout(p={self.p})"
 
-# %% ../../solutions/03_layers/layers.ipynb #fe2d52ff
+# %% ../../solutions/03_layers/layers.ipynb #04ac8626
 class Sequential:
     """
     Container that chains layers together sequentially.

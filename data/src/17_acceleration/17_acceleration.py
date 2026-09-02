@@ -1457,7 +1457,12 @@ def explore_acceleration_with_profiler():
 
     print(f"   Latency: {slow_latency:.2f} ms")
     print(f"   FLOPs: {slow_flops:,}")
-    print(f"   Throughput: {slow_flops / (slow_latency / 1000) / 1e9:.2f} GFLOP/s")
+    # These latencies can legitimately measure as exactly 0.0 on a fast
+    # machine with a coarse timer (~15.6ms resolution on Windows) --
+    # floored everywhere they're a divisor so results stay large-but-
+    # finite instead of raising ZeroDivisionError.
+    slow_latency_safe = slow_latency if slow_latency > 0 else 1e-9
+    print(f"   Throughput: {slow_flops / (slow_latency_safe / 1000) / 1e9:.2f} GFLOP/s")
 
     print("\n🚀 AFTER: Vectorized implementation")
     print("-" * 70)
@@ -1465,14 +1470,15 @@ def explore_acceleration_with_profiler():
     # Measure fast model
     fast_latency = profiler.measure_latency(fast_model, input_tensor, warmup=3, iterations=10)
     fast_flops = profiler.count_flops(fast_model, (batch_size, in_features))
+    fast_latency_safe = fast_latency if fast_latency > 0 else 1e-9
 
     print(f"   Latency: {fast_latency:.2f} ms")
     print(f"   FLOPs: {fast_flops:,}")
-    print(f"   Throughput: {fast_flops / (fast_latency / 1000) / 1e9:.2f} GFLOP/s")
+    print(f"   Throughput: {fast_flops / (fast_latency_safe / 1000) / 1e9:.2f} GFLOP/s")
 
     print("\n📈 ACCELERATION GAINS")
     print("=" * 70)
-    speedup = slow_latency / fast_latency
+    speedup = slow_latency / fast_latency_safe
     print(f"   Speedup: {speedup:.1f}x faster")
     print(f"   Time saved: {slow_latency - fast_latency:.2f} ms per inference")
     print(f"   Throughput improvement: {speedup:.1f}x more inferences/second")
