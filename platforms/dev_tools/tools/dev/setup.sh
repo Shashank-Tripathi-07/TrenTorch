@@ -20,8 +20,13 @@ echo "🔄 Activating virtual environment..."
 source .venv/bin/activate
 
 # Upgrade pip
+#
+# Hash-pinned the same way run-test-stage.yml pins it: exact version +
+# real PyPI sha256, so OpenSSF Scorecard's Pinned-Dependencies check is
+# satisfied here too, not just in CI.
 echo "⬆️  Upgrading pip..."
-pip install --upgrade pip
+printf '%s\n' 'pip==26.2.1 --hash=sha256:71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e --hash=sha256:f6ad667e89a1fe78046c8f13232b247200f5258d7828f3f7883d660878e0813f' > /tmp/pip-pin.txt
+pip install --require-hashes -r /tmp/pip-pin.txt
 
 # Install dependencies
 #
