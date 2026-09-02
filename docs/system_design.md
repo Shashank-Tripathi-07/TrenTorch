@@ -120,7 +120,7 @@ Three steps are easy to miss and worth calling out directly. First, `tren module
 ## 6. Error handling
 
 ```
-TinyTorchCLIError (base, platforms/cli/core/exceptions.py)
+TrenTorchCLIError (base, platforms/cli/core/exceptions.py)
     |
     +-- ValidationError
     +-- ExecutionError
@@ -128,7 +128,7 @@ TinyTorchCLIError (base, platforms/cli/core/exceptions.py)
     +-- ModuleNotFoundError
 ```
 
-The class is still named `TinyTorchCLIError`, not `TrenTorchCLIError` &mdash; that's the actual current name in code, not a leftover this doc should paper over. The top-level `run()` loop catches `KeyboardInterrupt` (exits 130), catches `TinyTorchCLIError` and its subclasses for a clean, formatted error panel, and catches bare `Exception` as a last resort, logged as an unexpected error rather than surfaced as a normal CLI failure. This distinction matters for debugging: a `TinyTorchCLIError` is a condition the code anticipated and has a good message for, a bare exception is something nobody planned for.
+The class is still named `TrenTorchCLIError`, not `TrenTorchCLIError` &mdash; that's the actual current name in code, not a leftover this doc should paper over. The top-level `run()` loop catches `KeyboardInterrupt` (exits 130), catches `TrenTorchCLIError` and its subclasses for a clean, formatted error panel, and catches bare `Exception` as a last resort, logged as an unexpected error rather than surfaced as a normal CLI failure. This distinction matters for debugging: a `TrenTorchCLIError` is a condition the code anticipated and has a good message for, a bare exception is something nobody planned for.
 
 The export pipeline itself does not raise on most failures, it returns structured results instead. `validate_notebook_integrity` returns a dict with `valid`, `issues`, `warnings`, and `stats` rather than throwing, and `export_module` catches both a missing-nbdev `ImportError` (with a specific "run `pip install nbdev`" message) and any other exception, returning an integer status rather than propagating.
 

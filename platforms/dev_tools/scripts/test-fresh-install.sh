@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# TinyTorch Fresh Install Test
+# TrenTorch Fresh Install Test
 # =============================================================================
 # Simulates exactly what a student experiences: fresh machine, clone + pip
 # install, run through modules and milestones.
@@ -61,7 +61,7 @@ set -e
 BRANCH="__BRANCH__"
 
 echo "══════════════════════════════════════════════════════════════"
-echo "  TinyTorch Fresh Install Test"
+echo "  TrenTorch Fresh Install Test"
 echo "  Branch: $BRANCH"
 echo "══════════════════════════════════════════════════════════════"
 
@@ -154,7 +154,7 @@ OUTER_EOF
 # Main
 # =============================================================================
 
-echo "Testing TinyTorch installation from branch: $BRANCH"
+echo "Testing TrenTorch installation from branch: $BRANCH"
 
 # Build test script with branch substituted
 TEST_SCRIPT=$(build_test_script | sed "s|__BRANCH__|$BRANCH|g")

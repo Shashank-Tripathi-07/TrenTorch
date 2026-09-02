@@ -9,7 +9,7 @@ import subprocess
 
 import pytest
 
-from platforms.cli.core.status_analyzer import TinyTorchStatusAnalyzer
+from platforms.cli.core.status_analyzer import TrenTorchStatusAnalyzer
 
 
 def _analyze_with_content(tmp_path, monkeypatch, content):
@@ -17,7 +17,7 @@ def _analyze_with_content(tmp_path, monkeypatch, content):
     module_dir.mkdir()
     (module_dir / "01_tensor.py").write_text(content, encoding="utf-8")
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, "SUCCESS", ""))
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     return analyzer.analyze_module(module_dir)
 
 
@@ -93,7 +93,7 @@ def test_check_all_modules_includes_real_module_dirs(tmp_path, monkeypatch):
     """Baseline: is_dir() True, doesn't start with "." True -> included."""
     (tmp_path / "01_tensor").mkdir()
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, "SUCCESS", ""))
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     analyzer.modules_path = tmp_path
     modules = analyzer.check_all_modules()
     assert "01_tensor" in modules
@@ -106,7 +106,7 @@ def test_check_all_modules_skips_dotfiles_and_dotdirs(tmp_path, monkeypatch):
     (tmp_path / "01_tensor").mkdir()
     (tmp_path / ".git").mkdir()
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, "SUCCESS", ""))
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     analyzer.modules_path = tmp_path
     modules = analyzer.check_all_modules()
     assert ".git" not in modules
@@ -119,7 +119,7 @@ def test_check_all_modules_skips_plain_files(tmp_path, monkeypatch):
     (tmp_path / "01_tensor").mkdir()
     (tmp_path / "README.md").write_text("", encoding="utf-8")
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, "SUCCESS", ""))
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     analyzer.modules_path = tmp_path
     modules = analyzer.check_all_modules()
     assert "README.md" not in modules

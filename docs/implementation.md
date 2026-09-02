@@ -110,9 +110,9 @@ Every module directory under `data/src/` has one of these; `tren` reads it (via 
 
 `TrenTorchCLI` builds one `argparse.ArgumentParser` with subparsers, keyed off a single dictionary mapping top-level command names to command classes. Each top-level command is itself a group that registers its own nested subparser (for example, `module` registers `start`, `test`, `complete`, and so on), so effectively every multi-word command in the table below is two levels of `argparse` subcommand.
 
-`run(args)` does some deliberate custom behavior before dispatching: it intercepts `-h`/`--help` to show Rich-formatted help instead of argparse's default, gives a friendlier error for an unrecognized first argument, and (except for `tren setup`) enforces that commands run inside an activated virtual environment unless `TREN_ALLOW_SYSTEM=1` is set (the older `TITO_ALLOW_SYSTEM=1` still works as a backward-compatible alias), since running the course tooling against a system Python is a common source of confusing failures.
+`run(args)` does some deliberate custom behavior before dispatching: it intercepts `-h`/`--help` to show Rich-formatted help instead of argparse's default, gives a friendlier error for an unrecognized first argument, and (except for `tren setup`) enforces that commands run inside an activated virtual environment unless `TREN_ALLOW_SYSTEM=1` is set, since running the course tooling against a system Python is a common source of confusing failures.
 
-Every command class inherits from the abstract `BaseCommand` (`platforms/cli/commands/base.py`), which supplies `config`, a shared Rich `console`, the resolved `venv_path`, and an `execute()` wrapper that catches and formats `TinyTorchCLIError` and generic exceptions consistently. (The exception base class is genuinely still named `TinyTorchCLIError`, not `TrenTorchCLIError` &mdash; see `core/exceptions.py`.)
+Every command class inherits from the abstract `BaseCommand` (`platforms/cli/commands/base.py`), which supplies `config`, a shared Rich `console`, the resolved `venv_path`, and an `execute()` wrapper that catches and formats `TrenTorchCLIError` and generic exceptions consistently.
 
 ### 2.2 Command reference
 
@@ -120,7 +120,7 @@ The two compartments described in [`cli_file_organization.md`](cli_file_organiza
 
 | Command | Class / file | What it actually does |
 |---|---|---|
-| `tren setup` | `SetupCommand`, `cli_platform/setup.py` | Creates `.venv` (with Apple Silicon/Rosetta detection), installs a fixed toolchain plus `pip install -e .`, registers a `tinytorch` Jupyter kernel, creates `~/.tinytorch/profile.json`, and validates the environment. |
+| `tren setup` | `SetupCommand`, `cli_platform/setup.py` | Creates `.venv` (with Apple Silicon/Rosetta detection), installs a fixed toolchain plus `pip install -e .`, registers a `trentorch` Jupyter kernel, creates `~/.trentorch/profile.json`, and validates the environment. |
 | `tren system info / health / jupyter / update / logo / reset` | `cli_platform/system/*.py` | Environment diagnostics, launching a Jupyter server, checking for CLI updates, showing branding, and resetting the local environment to a pristine state. |
 | `tren module start / view / resume / test / complete / reset / status / list / path` | `ModuleWorkflowCommand`, `processes/module_workflow/workflow.py` (~1370 lines) plus `module_workflow/test.py` and `module_workflow/reset.py` | `start` checks sequential prerequisites and opens the module in Jupyter, creating its notebook from `data/src/` if it doesn't exist yet. `complete` runs the pipeline described in section 1.3. `test` runs the four-phase check described below without exporting anything. `reset` regenerates a module's notebook from `data/src/` and clears its progress entries. |
 | `tren dev test / preflight / export / clean` | `cli_platform/dev/*.py` | `test` is the unified pytest runner CI uses, with flags for `--unit`, `--integration`, `--e2e`, `--cli`, `--milestone`, `--all`, `--release`, or a specific `--module NN`. `preflight` runs pre-release verification (project structure, CLI smoke checks, imports, git state, module tests, milestone scripts). `export` rebuilds the entire curriculum (`data/src/` to `data/modules/` to `trentorch`) for all modules or one. `clean` removes build artifacts. |
@@ -137,10 +137,10 @@ The two compartments described in [`cli_file_organization.md`](cli_file_organiza
 |---|---|
 | `config.py` | `CLIConfig`, resolved project paths. Auto-detects the project root by walking up the directory tree looking for `pyproject.toml`, and includes a one-time migration of the legacy `.tren/`/`.tito/` progress directories to `user_data/`. |
 | `console.py` | A shared Rich `Console` singleton plus banner, logo, error, success, warning, and info print helpers used across the whole CLI. |
-| `exceptions.py` | A small exception hierarchy: `TinyTorchCLIError` (base), `ValidationError`, `ExecutionError`, `EnvironmentError`, `ModuleNotFoundError`. |
+| `exceptions.py` | A small exception hierarchy: `TrenTorchCLIError` (base), `ValidationError`, `ExecutionError`, `EnvironmentError`, `ModuleNotFoundError`. |
 | `modules.py` | Module auto-discovery and metadata parsing, described in section 1.4. |
 | `runtime.py` | Distinguishes `is_ci()` from `is_interactive()` as two explicitly separate checks. See "Project history" in the design doc for why this distinction matters. |
-| `status_analyzer.py` | `TinyTorchStatusAnalyzer`, a heavier per-module compliance and health checker (checks for required sections, parses class and function counts, tries importing and running the module) used by dashboards and preflight checks. |
+| `status_analyzer.py` | `TrenTorchStatusAnalyzer`, a heavier per-module compliance and health checker (checks for required sections, parses class and function counts, tries importing and running the module) used by dashboards and preflight checks. |
 | `theme.py` | Centralized Rich color and style constants for consistent CLI theming. |
 | `virtual_env_manager.py` | Resolves the virtual environment path and the correct binary directory for the current OS. |
 
@@ -191,7 +191,7 @@ Each milestone directory (for example `data/milestones/01_1958_perceptron/`) con
 
 ## 5. Documentation site, PDF guide, and community sync: removed
 
-This fork inherited upstream's Quarto-based docs site and PDF guide, its student-progress community dashboard, and the CLI-side login/auth/sync code that talked to it. The dashboard and CLI sync code were client-only: the backend they talked to (a Netlify-hosted login endpoint and a Supabase project) belonged to the original TrenTorch project and was never usable from this fork. The Quarto docs site and PDF guide were never deployed from this fork either, and the hand-authored pages had already drifted from the actual module content since nothing kept the two in sync. All of it has been removed rather than kept as dead code pointing at someone else's infrastructure or an undeployed site; see [`design.md`](design.md#community-dashboard-and-progress-sync-removed) for the fuller history. `docs/` (this file included) is the contributor-facing documentation going forward.
+This fork inherited upstream's Quarto-based docs site and PDF guide, its student-progress community dashboard, and the CLI-side login/auth/sync code that talked to it. The dashboard and CLI sync code were client-only: the backend they talked to (a Netlify-hosted login endpoint and a Supabase project) belonged to the original TinyTorch project and was never usable from this fork. The Quarto docs site and PDF guide were never deployed from this fork either, and the hand-authored pages had already drifted from the actual module content since nothing kept the two in sync. All of it has been removed rather than kept as dead code pointing at someone else's infrastructure or an undeployed site; see [`design.md`](design.md#community-dashboard-and-progress-sync-removed) for the fuller history. `docs/` (this file included) is the contributor-facing documentation going forward.
 
 ---
 

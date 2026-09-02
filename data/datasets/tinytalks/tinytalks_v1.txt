@@ -326,7 +326,7 @@ Q: I am Bob.
 A: Hello Bob, I am TinyBot!
 
 Q: Where are you from?
-A: I was created by the TinyTorch team.
+A: I was created by the TrenTorch team.
 
 Q: What sound does a sheep make?
 A: A sheep baahs.
@@ -785,7 +785,7 @@ Q: Is ice a solid?
 A: Yes, ice is a solid.
 
 Q: When were you made?
-A: I was created as part of the TinyTorch project.
+A: I was created as part of the TrenTorch project.
 
 Q: What is 6 plus 3?
 A: 6 plus 3 equals 9.

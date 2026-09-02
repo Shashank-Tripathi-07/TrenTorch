@@ -1,6 +1,6 @@
 # TrenTorch: Contributor Docs
 
-Technical design and implementation documentation for the codebase in this repo. Adapted from the [`cs249r-docs`](https://github.com/Shashank-Tripathi-07/cs249r-docs) project's `trentorch/` documentation set, which was written for the upstream [`harvard-edge/cs249r_book`](https://github.com/harvard-edge/cs249r_book) monorepo that TrenTorch (and by extension TrenTorch) originates from.
+Technical design and implementation documentation for the codebase in this repo. Adapted from the [`cs249r-docs`](https://github.com/Shashank-Tripathi-07/cs249r-docs) project's `trentorch/` documentation set, which was written for the upstream [`harvard-edge/cs249r_book`](https://github.com/harvard-edge/cs249r_book) monorepo (TinyTorch) that this fork, TrenTorch, originates from.
 
 ## What's here
 
@@ -21,8 +21,8 @@ Two upstream docs were dropped rather than adapted:
 - **`ci-workflows.md`**: covered five GitHub Actions workflows (validate, preview, publish, PDF builds) tied to the `harvard-edge/cs249r_book` repository's own secrets and deploy targets. None of that CI/CD exists in this fork.
 - **`perspective.md`**: recorded the upstream maintainer's governance decisions (what gets accepted into core modules, branch/PR policy for that repo). Specific to that project's own maintainership, not this one.
 
-This fork also inherited a community dashboard, progress-sync path, and `tren community`/`tren login` commands from the codebase we forked from; the backend they talked to (`mlsysbook.ai`, Netlify, Supabase) belonged to the original TrenTorch project, not TrenTorch, so they never worked standalone here. That code, along with the Quarto-based docs site it shipped alongside, has since been removed rather than kept as dead code pointing at someone else's infrastructure. Where the docs below still reference this history, it's marked as removed, not upstream-only.
+This fork also inherited a community dashboard, progress-sync path, and `tren community`/`tren login` commands from the codebase we forked from; the backend they talked to (`mlsysbook.ai`, Netlify, Supabase) belonged to the original TinyTorch project, not TrenTorch, so they never worked standalone here. That code, along with the Quarto-based docs site it shipped alongside, has since been removed rather than kept as dead code pointing at someone else's infrastructure. Where the docs below still reference this history, it's marked as removed, not upstream-only.
 
-## A note on "TinyTorch" in these docs
+## On "TinyTorch" vs "TrenTorch" in these docs
 
-These docs still say "TinyTorch" in places, and that's deliberate, not a leftover to clean up. "TinyTorch" is the framework's own pedagogical name, the founding story behind what a student builds (see `tren system logo`) and it's distinct from "TrenTorch," the name of this project and this repo. The actual package and CLI are named separately again: `import trentorch`, the `tren` command, `trentorch/core/`. Three names, three different things: the course's teaching identity, this fork's project identity, and the installed software's own identity.
+Everything in this fork's own code, CLI output, and docs is TrenTorch now, including the `tren system logo` command's own narrative -- there's no longer a separate in-product "TinyTorch" identity to preserve. "TinyTorch" only appears where a doc is naming the actual upstream project by name (the Harvard course this fork started from, its own repository, tags, or workflows) -- never as this fork's own branding.

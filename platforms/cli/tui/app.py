@@ -532,7 +532,6 @@ class TrenTorchApp(App):
         try:
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
-            env["TITO_ALLOW_SYSTEM"] = "1"
             env["TREN_ALLOW_SYSTEM"] = "1"
 
             process = subprocess.Popen(

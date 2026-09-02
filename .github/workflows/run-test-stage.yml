@@ -48,7 +48,7 @@ on:
         default: 'true'
 
 env:
-  TITO_ALLOW_SYSTEM: "1"
+  TREN_ALLOW_SYSTEM: "1"
   TRENTORCH_QUIET: "1"
   PYTHONIOENCODING: "utf-8"  # Required for Windows emoji support in Rich
   PYTHONUTF8: "1"            # Force UTF-8 for all Python I/O (subprocess pipes)

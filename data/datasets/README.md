@@ -1,6 +1,6 @@
-# TinyTorch Datasets
+# TrenTorch Datasets
 
-This directory contains datasets for TinyTorch milestone examples.
+This directory contains datasets for TrenTorch milestone examples.
 
 ## Directory Structure
 

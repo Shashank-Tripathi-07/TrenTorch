@@ -28,7 +28,7 @@ Tests 50+ environment checks:
 - **Core Dependencies**: NumPy, Matplotlib, pytest, PyYAML, Rich
 - **Jupyter Environment**: Jupyter, JupyterLab, kernels, Jupytext
 - **TrenTorch Package**: Import, core modules, version
-- **Project Structure**: trentorch/, modules/, src/, tests/, TITO CLI
+- **Project Structure**: trentorch/, modules/, src/, tests/, Tren CLI
 - **System Resources**: Disk space, memory
 - **Git Configuration**: Git available, user configured
 

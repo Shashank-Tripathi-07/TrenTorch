@@ -27,7 +27,7 @@ def show_status(config, console, args: Namespace) -> int:
     achievement_progress = (status["total_completed"] / total_milestones) * 100 if total_milestones > 0 else 0
     console.print(
         Panel(
-            f"[bold cyan]🎮 TinyTorch Milestone Progress[/bold cyan]\n\n"
+            f"[bold cyan]🎮 TrenTorch Milestone Progress[/bold cyan]\n\n"
             f"[bold]Capabilities Unlocked:[/bold] {status['total_unlocked']}/{total_milestones} milestones\n"
             f"[bold]Milestones Achieved:[/bold] {status['total_completed']}/{total_milestones} milestones\n"
             f"[bold]Overall Progress:[/bold] {achievement_progress:.0f}%\n\n"
@@ -199,7 +199,7 @@ def _show_tree_timeline(console, status: dict, milestone_system: MilestoneSystem
     )
 
     # Create tree structure
-    tree = Tree("🚀 [bold]TinyTorch Mastery Journey[/bold]")
+    tree = Tree("🚀 [bold]TrenTorch Mastery Journey[/bold]")
 
     for milestone_id in sorted(milestone_system.MILESTONES.keys()):
         milestone = status["milestones"][milestone_id]
@@ -239,7 +239,7 @@ def show_list(config, console, args: Namespace) -> int:
     """Handle milestone list command - show available milestones."""
     console.print(
         Panel(
-            "[bold cyan]🏆 TinyTorch Milestones[/bold cyan]\n\n"
+            "[bold cyan]🏆 TrenTorch Milestones[/bold cyan]\n\n"
             "[dim]Recreate ML history from 1958 to 2018[/dim]",
             title="Available Milestones",
             border_style="bright_cyan",

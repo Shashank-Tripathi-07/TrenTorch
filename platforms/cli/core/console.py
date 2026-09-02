@@ -88,7 +88,7 @@ def print_compact_banner():
 
 
 def print_ascii_logo(compact: bool = False):
-    """Print the clean, minimal ASCII art TinyTorch logo."""
+    """Print the clean, minimal ASCII art TrenTorch logo."""
     console = get_console()
 
     if compact:
@@ -147,7 +147,7 @@ def print_ascii_logo(compact: bool = False):
 
 
 def print_compact_ascii_logo():
-    """Print the compact ASCII art TinyTorch logo - same as main logo now."""
+    """Print the compact ASCII art TrenTorch logo - same as main logo now."""
     # Just use the main logo since it's already compact and clean
     print_ascii_logo(compact=False)
 

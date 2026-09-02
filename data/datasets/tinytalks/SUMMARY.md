@@ -159,7 +159,7 @@ Following "Datasheets for Datasets" (Gebru et al., 2018):
 - Parse Q&A pairs
 - Character tokenization
 - Prepare for transformer
-- TinyTorch integration (pseudocode)
+- TrenTorch integration (pseudocode)
 
 ---
 
@@ -268,6 +268,6 @@ We've created a **professional, citable, educational dataset** that:
 
 ---
 
-*Built with ❤️ by the TinyTorch team*
+*Built with ❤️ by the TrenTorch team*
 
 *"The best way to understand transformers is to see them learn."*

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# TinyTorch Release Script
+# TrenTorch Release Script
 # ============================================================================
 #
 # USAGE
@@ -13,15 +13,15 @@
 #   1. Updates version in pyproject.toml (single source of truth)
 #   2. Updates version in settings.ini (for nbdev compatibility)
 #   3. Creates a git commit with the version bump
-#   4. Creates a git tag: tinytorch-v{VERSION}
+#   4. Creates a git tag: trentorch-v{VERSION}
 #   5. Pushes commit and tag to origin
 #
 # SINGLE SOURCE OF TRUTH
 # ----------------------
 #   pyproject.toml is THE source of truth for version.
 #   Other files read from it at runtime:
-#     - tinytorch/__init__.py  → reads pyproject.toml
-#     - tito/main.py           → reads pyproject.toml
+#     - data/trentorch/__init__.py → reads pyproject.toml
+#     - platforms/cli/main.py  → reads pyproject.toml
 #     - install.sh             → fetches from GitHub tags API
 #     - README.md badge        → dynamic shields.io badge
 #
@@ -96,7 +96,7 @@ fi
 # ============================================================================
 if [ ! -f "pyproject.toml" ]; then
     print_error "pyproject.toml not found"
-    echo "Run this script from the tinytorch/ directory"
+    echo "Run this script from the project root"
     exit 1
 fi
 
@@ -107,13 +107,13 @@ if [ -z "$CURRENT_VERSION" ]; then
     exit 1
 fi
 
-TAG_NAME="tinytorch-v${VERSION}"
+TAG_NAME="trentorch-v${VERSION}"
 
 # ============================================================================
 # Show plan
 # ============================================================================
 echo ""
-echo -e "${BOLD}TinyTorch Release${NC}"
+echo -e "${BOLD}TrenTorch Release${NC}"
 echo ""
 echo "  Current version: ${CURRENT_VERSION}"
 echo "  New version:     ${VERSION}"
@@ -176,15 +176,15 @@ fi
 print_step "Creating git commit..."
 if [ "$DRY_RUN" = false ]; then
     git add pyproject.toml settings.ini
-    git commit -m "release: tinytorch v${VERSION}"
+    git commit -m "release: trentorch v${VERSION}"
     print_success "Created commit"
 else
-    echo "  Would commit: release: tinytorch v${VERSION}"
+    echo "  Would commit: release: trentorch v${VERSION}"
 fi
 
 print_step "Creating git tag ${TAG_NAME}..."
 if [ "$DRY_RUN" = false ]; then
-    git tag -a "$TAG_NAME" -m "TinyTorch v${VERSION}"
+    git tag -a "$TAG_NAME" -m "TrenTorch v${VERSION}"
     print_success "Created tag ${TAG_NAME}"
 else
     echo "  Would create tag: ${TAG_NAME}"
@@ -211,7 +211,7 @@ if [ "$DRY_RUN" = false ]; then
     echo ""
     echo "Next steps:"
     echo "  1. Create GitHub release: https://github.com/harvard-edge/cs249r_book/releases/new?tag=${TAG_NAME}"
-    echo "  2. Students can update: tito system update"
+    echo "  2. Students can update: tren system update"
 else
     print_warning "Dry run complete - no changes made"
 fi

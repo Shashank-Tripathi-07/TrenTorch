@@ -1,6 +1,6 @@
 """IPython magic so `tren` commands run inside a Jupyter cell, in-process.
 
-Registered automatically for the "tinytorch" kernel (see
+Registered automatically for the "trentorch" kernel (see
 tren/platforms/cli_platform/setup.py's kernel registration and the startup script it
 writes under user_data/ipython/). Usage in a notebook cell:
 

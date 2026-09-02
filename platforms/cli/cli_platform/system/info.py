@@ -1,5 +1,5 @@
 """
-Info command for TinyTorch CLI: shows system and environment information.
+Info command for TrenTorch CLI: shows system and environment information.
 """
 
 import json as json_module
@@ -37,9 +37,9 @@ def _gather_system_info(venv_path: Path) -> dict:
     try:
         import trentorch
 
-        tinytorch_version = getattr(trentorch, "__version__", "unknown")
+        trentorch_version = getattr(trentorch, "__version__", "unknown")
     except ImportError:
-        tinytorch_version = "not installed"
+        trentorch_version = "not installed"
 
     # NumPy Version
     try:
@@ -52,7 +52,7 @@ def _gather_system_info(venv_path: Path) -> dict:
     return {
         "python_version": python_version,
         "platform": f"{system_name} {system_release} ({machine})",
-        "tinytorch_version": tinytorch_version,
+        "trentorch_version": trentorch_version,
         "numpy_version": numpy_version,
         "venv_active": in_venv,
     }
@@ -82,7 +82,7 @@ class InfoCommand(BaseCommand):
         console.print()
         console.print(
             Panel(
-                "💻 TinyTorch System & Environment Information",
+                "💻 TrenTorch System & Environment Information",
                 title="System Info",
                 border_style="bright_cyan",
             )
@@ -120,8 +120,8 @@ class InfoCommand(BaseCommand):
             info_table.add_row("  └─ Path", venv_path_str)
 
         # TrenTorch Version
-        if info["tinytorch_version"] != "not installed":
-            info_table.add_row("TrenTorch Version", info["tinytorch_version"])
+        if info["trentorch_version"] != "not installed":
+            info_table.add_row("TrenTorch Version", info["trentorch_version"])
             try:
                 import trentorch
 

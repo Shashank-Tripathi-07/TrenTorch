@@ -8,7 +8,7 @@ errors before export. Used by `tren module complete`'s pipeline.
 
 Note: `tren module test` (commands/module/test.py's ModuleTestCommand)
 has its own, separately-implemented three-phase test runner (inline,
-pytest with the --tinytorch educational-output flag, integration) that
+pytest with the --trentorch educational-output flag, integration) that
 does not call into this file. The two exist in parallel rather than
 sharing one implementation; that's a real duplication worth resolving
 later, not addressed by this file's existence.
@@ -225,7 +225,7 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> d
         # modules mid progressive-build, before later core files exist yet).
         error_msg = (result.stderr or result.stdout).strip()
         is_no_tests_collected = result.returncode == 5
-        is_progressive_export_gate = result.returncode == 4 and "TINYTORCH PACKAGE NOT EXPORTED" in error_msg
+        is_progressive_export_gate = result.returncode == 4 and "TRENTORCH PACKAGE NOT EXPORTED" in error_msg
         if not is_no_tests_collected and not is_progressive_export_gate:
             # Last 5 lines, not first 5: same reasoning as
             # _parse_test_output's concise_error below -- pytest's own

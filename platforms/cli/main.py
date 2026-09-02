@@ -1,5 +1,5 @@
 """
-TinyTorch CLI Main Entry Point
+TrenTorch CLI Main Entry Point
 
 A professional command-line interface with proper architecture:
 - Clean separation of concerns
@@ -39,8 +39,8 @@ if _is_windows(sys.platform, os.name):
         if hasattr(_stream, "reconfigure"):
             _stream.reconfigure(encoding="utf-8", errors="replace")
 
-# Set TINYTORCH_QUIET before any tinytorch imports to suppress autograd messages
-os.environ["TINYTORCH_QUIET"] = "1"
+# Set TRENTORCH_QUIET before any trentorch imports to suppress autograd messages
+os.environ["TRENTORCH_QUIET"] = "1"
 
 from platforms.cli.cli_platform.dev import DevCommand
 from platforms.cli.cli_platform.package import PackageCommand
@@ -57,7 +57,7 @@ from platforms.cli.tui import TUICommand
 from .commands.base import BaseCommand
 from .core.config import CLIConfig, migrate_progress_dir
 from .core.console import Panel, get_console, print_ascii_logo, print_banner, print_error
-from .core.exceptions import TinyTorchCLIError
+from .core.exceptions import TrenTorchCLIError
 from .core.modules import _find_project_root
 from .core.theme import Theme
 from .core.virtual_env_manager import get_venv_path
@@ -191,7 +191,7 @@ class TrenTorchCLI:
         return "\n".join(lines)
 
     def _is_first_run(self) -> bool:
-        """Check if this is the first time running tito."""
+        """Check if this is the first time running tren."""
         return not self._user_data_dir.exists()
 
     def _mark_welcome_shown(self) -> None:
@@ -422,9 +422,7 @@ The best way to learn:
             if parsed_args.command not in ["setup", None]:
                 # Check both sys.prefix (traditional activation) and VIRTUAL_ENV (direnv/PATH-based)
                 in_venv = sys.prefix != sys.base_prefix or os.environ.get("VIRTUAL_ENV") is not None
-                allow_system = (
-                    os.environ.get("TREN_ALLOW_SYSTEM") == "1" or os.environ.get("TITO_ALLOW_SYSTEM") == "1"
-                )
+                allow_system = os.environ.get("TREN_ALLOW_SYSTEM") == "1"
                 if not in_venv and not allow_system:
                     print_error(
                         "TrenTorch must run inside a virtual environment.\n"
@@ -485,7 +483,7 @@ The best way to learn:
         except KeyboardInterrupt:
             self.console.print(f"\n[{Theme.WARNING}]Operation cancelled by user[/{Theme.WARNING}]")
             return 130
-        except TinyTorchCLIError as e:
+        except TrenTorchCLIError as e:
             logger.error(f"CLI error: {e}")
             print_error(str(e))
             return 1

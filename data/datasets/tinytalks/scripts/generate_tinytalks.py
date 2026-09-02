@@ -47,8 +47,8 @@ def generate_level1_greetings():
         ("Bye!", "Bye! See you later!"),
         ("See you later!", "See you! Take care!"),
         # Simple questions about TinyBot
-        ("Where are you from?", "I was created by the TinyTorch team."),
-        ("When were you made?", "I was created as part of the TinyTorch project."),
+        ("Where are you from?", "I was created by the TrenTorch team."),
+        ("When were you made?", "I was created as part of the TrenTorch project."),
         ("Why were you created?", "I was created to help teach transformer models."),
         # Simple confirmations
         ("Are you there?", "Yes, I am here!"),

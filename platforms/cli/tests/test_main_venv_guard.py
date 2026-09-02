@@ -4,19 +4,13 @@ MC/DC coverage for TrenTorchCLI.run()'s virtual-environment guard.
 Every `tren` command other than `setup` (and no-command) is gated by:
 
     in_venv = sys.prefix != sys.base_prefix or os.environ.get("VIRTUAL_ENV") is not None
-    allow_system = (
-        os.environ.get("TREN_ALLOW_SYSTEM") == "1" or os.environ.get("TITO_ALLOW_SYSTEM") == "1"
-    )
+    allow_system = os.environ.get("TREN_ALLOW_SYSTEM") == "1"
     if not in_venv and not allow_system:
         ... return 1
 
-three independent atomic conditions (call them A, B, C -- C being "either
-escape-hatch variable is set to 1"). This is the single highest-traffic
-decision in the whole CLI -- it runs on every invocation of every command.
-
-The escape hatch is spelled `TREN_ALLOW_SYSTEM` after the `tito` -> `tren`
-rename, with the old `TITO_ALLOW_SYSTEM` kept as a backward-compatible
-alias. Both names are pinned below so a future rename has to be deliberate.
+three independent atomic conditions (call them A, B, C). This is the single
+highest-traffic decision in the whole CLI -- it runs on every invocation of
+every command.
 
 Four cases give real MC/DC: a "blocked" baseline (A=F, B=F, C=F) plus each
 condition flipped alone (each flip alone must move the outcome to
@@ -52,9 +46,7 @@ def cli(monkeypatch):
     return app
 
 
-def _set_conditions(
-    monkeypatch, *, differing_prefix, virtual_env_set, allow_system_set, allow_system_var="TREN_ALLOW_SYSTEM"
-):
+def _set_conditions(monkeypatch, *, differing_prefix, virtual_env_set, allow_system_set):
     if differing_prefix:
         monkeypatch.setattr(sys, "prefix", "/fake/venv")
         monkeypatch.setattr(sys, "base_prefix", "/fake/system")
@@ -67,11 +59,9 @@ def _set_conditions(
     else:
         monkeypatch.delenv("VIRTUAL_ENV", raising=False)
 
-    # Both escape-hatch names must be absent for C to be independently False.
     monkeypatch.delenv("TREN_ALLOW_SYSTEM", raising=False)
-    monkeypatch.delenv("TITO_ALLOW_SYSTEM", raising=False)
     if allow_system_set:
-        monkeypatch.setenv(allow_system_var, "1")
+        monkeypatch.setenv("TREN_ALLOW_SYSTEM", "1")
 
 
 def test_no_venv_signal_and_no_override_is_blocked(cli, monkeypatch, capsys):
@@ -101,17 +91,10 @@ def test_virtual_env_var_alone_is_allowed(cli, monkeypatch):
     assert cli.run(["module"]) == 0
 
 
-@pytest.mark.parametrize("allow_system_var", ["TREN_ALLOW_SYSTEM", "TITO_ALLOW_SYSTEM"])
-def test_allow_system_alone_is_allowed(cli, monkeypatch, allow_system_var):
+def test_allow_system_alone_is_allowed(cli, monkeypatch):
     """A=False, B=False, C=True -> allowed. Paired with the baseline: only
-    C differs. Runs once per escape-hatch name (new + legacy alias)."""
-    _set_conditions(
-        monkeypatch,
-        differing_prefix=False,
-        virtual_env_set=False,
-        allow_system_set=True,
-        allow_system_var=allow_system_var,
-    )
+    C differs, isolating TREN_ALLOW_SYSTEM's effect."""
+    _set_conditions(monkeypatch, differing_prefix=False, virtual_env_set=False, allow_system_set=True)
 
     assert cli.run(["module"]) == 0
 
@@ -133,23 +116,17 @@ def test_setup_command_bypasses_the_guard_entirely(monkeypatch):
     monkeypatch.setattr(sys, "base_prefix", "/fake/same")
     monkeypatch.delenv("VIRTUAL_ENV", raising=False)
     monkeypatch.delenv("TREN_ALLOW_SYSTEM", raising=False)
-    monkeypatch.delenv("TITO_ALLOW_SYSTEM", raising=False)
 
     assert app.run(["setup"]) == 0
     assert ran.get("called") is True
 
 
 def test_os_environ_get_matches_the_name_used_everywhere_else():
-    """Pins the literal env var names main.py reads, the same way section 6
-    of docs/testing-strategy.md pins check_tinytorch_package()'s `import
-    tito` regression. After the `tito` -> `tren` rename the guard accepts
-    `TREN_ALLOW_SYSTEM` (primary) and keeps `TITO_ALLOW_SYSTEM` as a
-    backward-compatible alias -- a future rename should have to touch this
-    assertion on purpose."""
+    """Pins the literal env var name main.py reads, so a future rename
+    has to touch this assertion on purpose."""
     import inspect
 
     from platforms.cli import main as main_module
 
     source = inspect.getsource(main_module.TrenTorchCLI.run)
     assert 'os.environ.get("TREN_ALLOW_SYSTEM")' in source
-    assert 'os.environ.get("TITO_ALLOW_SYSTEM")' in source

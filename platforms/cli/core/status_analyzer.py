@@ -1,9 +1,9 @@
 """
-Comprehensive status analysis for TinyTorch modules and environment.
+Comprehensive status analysis for TrenTorch modules and environment.
 
 This module provides detailed analysis of:
 - Environment health
-- Module compliance with TinyTorch standards
+- Module compliance with TrenTorch standards
 - Code quality and functionality
 - Testing status
 """
@@ -25,7 +25,7 @@ from rich.table import Table
 
 @dataclass
 class ModuleStatus:
-    """Complete status information for a TinyTorch module"""
+    """Complete status information for a TrenTorch module"""
 
     name: str
     path: Path
@@ -94,14 +94,14 @@ class ModuleStatus:
         return "BROKEN"
 
 
-class TinyTorchStatusAnalyzer:
-    """Comprehensive TinyTorch system status analyzer"""
+class TrenTorchStatusAnalyzer:
+    """Comprehensive TrenTorch system status analyzer"""
 
     def __init__(self, repo_path: Path | None = None):
         """Initialize the status analyzer.
 
         Args:
-            repo_path: Path to TinyTorch repository. If None, uses current working directory.
+            repo_path: Path to TrenTorch repository. If None, uses current working directory.
         """
         if repo_path is None:
             repo_path = Path.cwd()
@@ -109,7 +109,7 @@ class TinyTorchStatusAnalyzer:
         self.modules_path = self.repo_path / "data" / "modules" / "source"
         self.modules: dict[str, ModuleStatus] = {}
         self.environment_status = {}
-        self.tito_status = {}
+        self.tren_status = {}
 
     def check_environment(self) -> dict[str, Any]:
         """Check Python environment and dependencies"""
@@ -147,9 +147,9 @@ class TinyTorchStatusAnalyzer:
         self.environment_status = env_status
         return env_status
 
-    def check_tito_health(self) -> dict[str, Any]:
+    def check_tren_health(self) -> dict[str, Any]:
         """Check tren CLI system health"""
-        tito_status = {"tito_available": False, "commands_working": {}, "issues": []}
+        tren_status = {"tren_available": False, "commands_working": {}, "issues": []}
 
         try:
             # Check if tren is available
@@ -162,14 +162,14 @@ class TinyTorchStatusAnalyzer:
                 timeout=10,
             )
             if result.returncode == 0:
-                tito_status["tito_available"] = True
+                tren_status["tren_available"] = True
             else:
-                tito_status["issues"].append("Tren command not available")
+                tren_status["issues"].append("Tren command not available")
         except Exception as e:
-            tito_status["issues"].append(f"Tren CLI error: {str(e)}")
+            tren_status["issues"].append(f"Tren CLI error: {str(e)}")
 
         # Test key commands if tren is available
-        if tito_status["tito_available"]:
+        if tren_status["tren_available"]:
             test_commands = ["system info", "module status"]
             for cmd in test_commands:
                 try:
@@ -181,15 +181,15 @@ class TinyTorchStatusAnalyzer:
                         errors="replace",
                         timeout=30,
                     )
-                    tito_status["commands_working"][cmd] = result.returncode == 0
+                    tren_status["commands_working"][cmd] = result.returncode == 0
                     if result.returncode != 0:
-                        tito_status["issues"].append(f"Tren '{cmd}' command failed")
+                        tren_status["issues"].append(f"Tren '{cmd}' command failed")
                 except Exception as e:
-                    tito_status["commands_working"][cmd] = False
-                    tito_status["issues"].append(f"Tren '{cmd}' error: {str(e)}")
+                    tren_status["commands_working"][cmd] = False
+                    tren_status["issues"].append(f"Tren '{cmd}' error: {str(e)}")
 
-        self.tito_status = tito_status
-        return tito_status
+        self.tren_status = tren_status
+        return tren_status
 
     def analyze_module(self, module_path: Path) -> ModuleStatus:
         """Comprehensive analysis of a single module"""
@@ -336,7 +336,7 @@ except Exception as e:
     def generate_comprehensive_report(self, console: Console) -> None:
         """Generate comprehensive status report using rich console"""
         console.print("\n" + "=" * 80, style="bold")
-        console.print("🔥 TINYTORCH COMPREHENSIVE STATUS DASHBOARD", style="bold red", justify="center")
+        console.print("🔥 TRENTORCH COMPREHENSIVE STATUS DASHBOARD", style="bold red", justify="center")
         console.print("=" * 80, style="bold")
 
         # Environment Status Panel
@@ -512,15 +512,15 @@ except Exception as e:
             console.print("\n🎉 [bold green]All systems operational! No critical issues found.[/bold green]")
 
     def run_full_analysis(self) -> dict[str, Any]:
-        """Run complete TinyTorch system analysis"""
+        """Run complete TrenTorch system analysis"""
         # Run all checks
         env_status = self.check_environment()
-        tito_status = self.check_tito_health()
+        tren_status = self.check_tren_health()
         modules_status = self.check_all_modules()
 
         return {
             "environment": env_status,
-            "tito": tito_status,
+            "tren": tren_status,
             "modules": {
                 name: {
                     "status": module.overall_status,
@@ -535,6 +535,6 @@ except Exception as e:
                     1 for m in modules_status.values() if m.overall_status in ["EXCELLENT", "GOOD"]
                 ),
                 "environment_healthy": len(env_status["issues"]) == 0,
-                "tito_working": tito_status["tito_available"],
+                "tren_working": tren_status["tren_available"],
             },
         }

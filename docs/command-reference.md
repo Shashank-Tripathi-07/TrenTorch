@@ -2,7 +2,7 @@
 
 *A complete inventory of every `tren` command, grepped directly from `platforms/cli/main.py` and every file under `platforms/cli/`, not from any existing documentation. Command groups are dict entries in `TrenTorchCLI.commands` (`platforms/cli/main.py`); each group's own `add_arguments` defines its subcommands via `argparse` subparsers. See [`system_design.md`](system_design.md) for how these map onto the underlying module lifecycle.*
 
-There are 12 dict entries (`tui`, `dashboard`, `serve`, `setup`, `system`, `module`, `dev`, `package`, `milestone`, `benchmark`, `olympics`, `convert`) resolving to 10 distinct commands, since `tui` and `dashboard` are both aliases for the same `TUICommand`. This is the single source of truth per `platforms/cli/main.py`'s own comment. A `community` group and standalone `login`/`logout` commands used to exist here, talking to the original TrenTorch project's own hosted backend; they have been removed (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)). An `nbgrader` group also used to exist, wrapping multi-student assignment staging and grading (`nbgrader init/generate/release/collect/autograde/feedback/report/analytics`); it has been removed as dead weight for a self-use install with no other students to grade &mdash; nothing about a solo `tren module start`/`complete` workflow depended on it.
+There are 12 dict entries (`tui`, `dashboard`, `serve`, `setup`, `system`, `module`, `dev`, `package`, `milestone`, `benchmark`, `olympics`, `convert`) resolving to 10 distinct commands, since `tui` and `dashboard` are both aliases for the same `TUICommand`. This is the single source of truth per `platforms/cli/main.py`'s own comment. A `community` group and standalone `login`/`logout` commands used to exist here, talking to the original TinyTorch project's own hosted backend; they have been removed (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)). An `nbgrader` group also used to exist, wrapping multi-student assignment staging and grading (`nbgrader init/generate/release/collect/autograde/feedback/report/analytics`); it has been removed as dead weight for a self-use install with no other students to grade &mdash; nothing about a solo `tren module start`/`complete` workflow depended on it.
 
 ## `tren setup`
 
@@ -12,10 +12,10 @@ First-time environment setup (`platforms/cli/cli_platform/setup.py`). Idempotent
 |---|---|
 | `--skip-venv` | Skip virtual environment creation |
 | `--skip-packages` | Skip package installation |
-| `--skip-profile` | Skip user profile creation (`~/.tinytorch/profile.json`) |
+| `--skip-profile` | Skip user profile creation (`~/.trentorch/profile.json`) |
 | `--force` | Prompt to recreate existing components (venv, profile) instead of silently reusing them |
 
-Runs four steps in order: create `.venv`, install packages (numpy, jupyter, jupyterlab, jupytext, ipykernel, nbdev, rich, pyyaml, psutil, then `pip install -e .` for the project itself), create the user profile, validate the environment. Ends by registering a Jupyter kernel named `tinytorch` (the kernel identifier, kept distinct from the `trentorch` package name and `tren` CLI name; `tren system health` checks for this exact kernel).
+Runs four steps in order: create `.venv`, install packages (numpy, jupyter, jupyterlab, jupytext, ipykernel, nbdev, rich, pyyaml, psutil, then `pip install -e .` for the project itself), create the user profile, validate the environment. Ends by registering a Jupyter kernel named `trentorch` (the kernel identifier, kept distinct from the `trentorch` package name and `tren` CLI name; `tren system health` checks for this exact kernel).
 
 ## `tren tui` / `tren dashboard`
 
@@ -49,7 +49,7 @@ Environment and configuration tooling. Dispatcher: `platforms/cli/cli_platform/s
 | `health` | `system/health.py` | Quick environment health check (status-only table, no version numbers). No arguments. |
 | `jupyter` | `system/jupyter.py` | Start a Jupyter server. `--notebook` (classic) or `--lab` (JupyterLab, otherwise classic notebook is default); `--port N` (default 8888). |
 | `update` | `system/update.py` | Check GitHub for a newer `tinytorch-v*` tag and update in place. `--check` (check only, don't install), `--yes`/`-y` (skip confirmation). Preserves `data/modules/`, `trentorch/core/`, `user_data/`, `.venv/`. **Known issue, bigger than it looks**: `REPO_URL`/`TAG_PREFIX`/`SPARSE_PATH` still point at the upstream `harvard-edge/cs249r_book` repo, not this fork, and the downloaded package is written to `project_root/tinytorch` instead of `data/trentorch` (this fork's actual package location) &mdash; a real run wouldn't just fetch from the wrong upstream, it would drop files somewhere this fork never reads from. See [`cli_file_organization.md`](cli_file_organization.md) and PR #86. |
-| `logo` | `system/logo.py` | Explains the TinyTorch logo's symbolism (the pedagogical/founding-story name, distinct from the `trentorch` package &mdash; see [`README.md`](README.md#a-note-on-tinytorch-in-these-docs)). `--image` shows the path to the actual logo PNG. |
+| `logo` | `system/logo.py` | Explains the TrenTorch logo's symbolism and founding story. `--image` shows the path to the actual logo PNG. |
 | `reset` | `system/reset.py` | Reset TrenTorch to a pristine state: clears `data/modules/` and `trentorch/core/*.py`, optionally resets progress. `--force`/`-f` (skip confirmation), `--keep-progress` (only reset code, not tracking), `--ci` (no prompts, plain-text `RESET OK`/`RESET FAILED` output for automation). |
 
 Running `tren system` with no subcommand prints a summary panel rather than an error.
@@ -198,4 +198,4 @@ Running `tren olympics` with no subcommand shows the coming-soon panel with a pr
 | `--no-color` | Disable colored/Rich output |
 | `--help`/`-h` | Rich-formatted custom help screen (`TrenTorchCLI._show_help`), not argparse's default |
 
-A virtual-environment guard applies to every command except `setup` (and no command at all): `tren` refuses to run unless `sys.prefix != sys.base_prefix` (or `VIRTUAL_ENV` is set), or the escape hatch `TREN_ALLOW_SYSTEM=1` is set in the environment. The older `TITO_ALLOW_SYSTEM=1` (from before the `tito`→`tren` rename) is still accepted as a backward-compatible alias, but `TREN_ALLOW_SYSTEM` is the primary/documented name.
+A virtual-environment guard applies to every command except `setup` (and no command at all): `tren` refuses to run unless `sys.prefix != sys.base_prefix` (or `VIRTUAL_ENV` is set), or the escape hatch `TREN_ALLOW_SYSTEM=1` is set in the environment.

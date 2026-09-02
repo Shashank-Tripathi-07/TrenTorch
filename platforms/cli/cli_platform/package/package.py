@@ -1,5 +1,5 @@
 """
-Package command group for TinyTorch CLI: nbdev integration and package management.
+Package command group for TrenTorch CLI: nbdev integration and package management.
 """
 
 from argparse import ArgumentParser, Namespace
@@ -27,7 +27,7 @@ class PackageCommand(BaseCommand):
         )
 
         # Reset subcommand
-        reset_parser = subparsers.add_parser("reset", help="Reset tinytorch package to clean state")
+        reset_parser = subparsers.add_parser("reset", help="Reset trentorch package to clean state")
         reset_cmd = ResetCommand(self.config)
         reset_cmd.add_arguments(reset_parser)
 

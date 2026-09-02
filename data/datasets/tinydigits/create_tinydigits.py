@@ -4,7 +4,7 @@ Create TinyDigits Dataset
 =========================
 
 Extracts a balanced, curated subset from sklearn's digits dataset (8x8 grayscale).
-This creates a TinyTorch-branded educational dataset optimized for fast iteration.
+This creates a TrenTorch-branded educational dataset optimized for fast iteration.
 
 Following Karpathy's "~1000 samples" philosophy for educational datasets.
 
@@ -108,7 +108,7 @@ def create_tinydigits():
     print(f"   Total: {total_size:.1f} KB")
 
     print("\n🎯 TinyDigits created successfully!")
-    print(f"   Perfect for TinyTorch on RasPi0 - only {total_size:.1f} KB!")
+    print(f"   Perfect for TrenTorch on RasPi0 - only {total_size:.1f} KB!")
 
 
 if __name__ == "__main__":

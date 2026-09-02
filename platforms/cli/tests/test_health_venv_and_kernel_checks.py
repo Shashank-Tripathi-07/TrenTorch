@@ -130,7 +130,7 @@ def test_ok_kernel_status_is_not_recorded_as_an_issue(tmp_path, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# _check_jupyter_kernel: result.returncode == 0 and "tinytorch" in result.stdout
+# _check_jupyter_kernel: result.returncode == 0 and "trentorch" in result.stdout
 # ---------------------------------------------------------------------------
 
 
@@ -143,26 +143,26 @@ def _check_jupyter_kernel(tmp_path, monkeypatch, *, returncode, stdout):
     return cmd._check_jupyter_kernel()
 
 
-def test_kernelspec_success_with_tinytorch_registered(tmp_path, monkeypatch):
-    """Baseline: returncode == 0 True, "tinytorch" in stdout True ->
+def test_kernelspec_success_with_trentorch_registered(tmp_path, monkeypatch):
+    """Baseline: returncode == 0 True, "trentorch" in stdout True ->
     registered."""
-    status, detail = _check_jupyter_kernel(tmp_path, monkeypatch, returncode=0, stdout="python3\ntinytorch\n")
+    status, detail = _check_jupyter_kernel(tmp_path, monkeypatch, returncode=0, stdout="python3\ntrentorch\n")
     assert "Registered" in status
 
 
-def test_kernelspec_success_without_tinytorch(tmp_path, monkeypatch):
-    """returncode == 0 True, "tinytorch" in stdout False -> the and is
-    False, falls to the "no tinytorch kernel" branch. Paired with the
-    baseline: only whether tinytorch is listed differs, isolating that
+def test_kernelspec_success_without_trentorch(tmp_path, monkeypatch):
+    """returncode == 0 True, "trentorch" in stdout False -> the and is
+    False, falls to the "no trentorch kernel" branch. Paired with the
+    baseline: only whether trentorch is listed differs, isolating that
     half of the and."""
     status, detail = _check_jupyter_kernel(tmp_path, monkeypatch, returncode=0, stdout="python3\n")
     assert "Registered" not in status
-    assert "install --user --name tinytorch" in detail
+    assert "install --user --name trentorch" in detail
 
 
 def test_kernelspec_command_itself_fails(tmp_path, monkeypatch):
     """returncode == 0 is False -> the and is False regardless of
     stdout content. Paired with the baseline: only returncode differs,
     isolating that half of the and."""
-    status, detail = _check_jupyter_kernel(tmp_path, monkeypatch, returncode=1, stdout="tinytorch\n")
+    status, detail = _check_jupyter_kernel(tmp_path, monkeypatch, returncode=1, stdout="trentorch\n")
     assert "Registered" not in status

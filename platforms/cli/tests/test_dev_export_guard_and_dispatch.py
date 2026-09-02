@@ -11,7 +11,7 @@ from platforms.cli.cli_platform.dev.export import DevExportCommand
 from platforms.cli.core.config import CLIConfig
 
 # ---------------------------------------------------------------------------
-# is_tinytorch_root = (data/trentorch/__init__.py exists) or
+# is_trentorch_root = (data/trentorch/__init__.py exists) or
 #                      (data/src exists and pyproject.toml exists)
 # ---------------------------------------------------------------------------
 

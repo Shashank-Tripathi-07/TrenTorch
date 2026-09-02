@@ -111,7 +111,7 @@ class PreflightCommand(BaseCommand):
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         self.log_file = log_dir / f"preflight_{timestamp}.log"
         self.log_lines: list[str] = []
-        self._log(f"TinyTorch Preflight - {timestamp}")
+        self._log(f"TrenTorch Preflight - {timestamp}")
         self._log(f"Project root: {project_root}")
         self._log("-" * 60)
 
@@ -143,7 +143,7 @@ class PreflightCommand(BaseCommand):
                     f"[bold cyan]{level_emoji} {level_desc}[/bold cyan]\n\n"
                     f"Running verification checks before {'CI/CD' if is_ci else 'your next step'}...\n"
                     f"[dim]Level: {level} | CI Mode: {is_ci} | Verbose: {verbose}[/dim]",
-                    title="TinyTorch Preflight",
+                    title="TrenTorch Preflight",
                     border_style="bright_cyan",
                 )
             )
@@ -396,11 +396,11 @@ class PreflightCommand(BaseCommand):
         ]
 
         # Use bin/tren wrapper (no pip install required)
-        tito_bin = project_root / "bin" / "tren"
+        tren_bin = project_root / "bin" / "tren"
 
         for args, name in cli_checks:
             start = time.time()
-            cmd = [sys.executable, str(tito_bin)] + args
+            cmd = [sys.executable, str(tren_bin)] + args
             cmd_str = f"./bin/tren {' '.join(args)}"
 
             code, stdout, stderr = self._run_command(cmd, project_root, timeout=30, verbose=verbose)

@@ -1,4 +1,4 @@
-# TinyTorch Makefile
+# TrenTorch Makefile
 # ==================
 # Simple commands for common development tasks.
 #
@@ -17,7 +17,7 @@ PIP ?= $(PYTHON) -m pip
 # Default target
 help:
 	@echo ""
-	@echo "🔥 TinyTorch Development Commands"
+	@echo "🔥 TrenTorch Development Commands"
 	@echo "=================================="
 	@echo ""
 	@echo "Quick Commands:"

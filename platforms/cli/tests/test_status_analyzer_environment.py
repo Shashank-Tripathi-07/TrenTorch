@@ -1,5 +1,5 @@
 """
-MC/DC coverage for TinyTorchStatusAnalyzer.check_environment()'s venv-detection
+MC/DC coverage for TrenTorchStatusAnalyzer.check_environment()'s venv-detection
 decision.
 
 The decision is `hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix")
@@ -21,7 +21,7 @@ it.
 
 import sys
 
-from platforms.cli.core.status_analyzer import TinyTorchStatusAnalyzer
+from platforms.cli.core.status_analyzer import TrenTorchStatusAnalyzer
 
 
 def _virtual_env_active(monkeypatch, tmp_path, *, real_prefix, base_prefix, prefix):
@@ -37,7 +37,7 @@ def _virtual_env_active(monkeypatch, tmp_path, *, real_prefix, base_prefix, pref
 
     monkeypatch.setattr(sys, "prefix", prefix)
 
-    return TinyTorchStatusAnalyzer(repo_path=tmp_path).check_environment()["virtual_env_active"]
+    return TrenTorchStatusAnalyzer(repo_path=tmp_path).check_environment()["virtual_env_active"]
 
 
 def test_real_prefix_alone_drives_true(monkeypatch, tmp_path):

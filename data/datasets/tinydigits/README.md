@@ -129,18 +129,18 @@ TinyDigits serves as the first step in a scaffolded learning path:
 
 ## Citation
 
-TinyDigits is curated from the sklearn digits dataset for educational use in TinyTorch.
+TinyDigits is curated from the sklearn digits dataset for educational use in TrenTorch.
 
 **Original Source**:
 - sklearn.datasets.load_digits()
 - Derived from UCI ML hand-written digits datasets
 - License: BSD 3-Clause (sklearn)
 
-**TinyTorch Curation**:
+**TrenTorch Curation**:
 ```bibtex
 @misc{tinydigits2025,
   title={TinyDigits: Curated Educational Dataset for ML Systems Learning},
-  author={TinyTorch Project},
+  author={TrenTorch Project},
   year={2025},
   note={Balanced subset of sklearn digits optimized for edge deployment}
 }

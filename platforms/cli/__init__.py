@@ -1,7 +1,7 @@
 """
-TinyTorch CLI Package
+TrenTorch CLI Package
 
-A professional command-line interface for the TinyTorch ML system.
+A professional command-line interface for the TrenTorch ML system.
 Organized with clean separation of concerns and proper error handling.
 """
 
@@ -32,4 +32,4 @@ def _get_version() -> str:
 
 
 __version__ = _get_version()
-__author__ = "TinyTorch Team"
+__author__ = "TrenTorch Team"

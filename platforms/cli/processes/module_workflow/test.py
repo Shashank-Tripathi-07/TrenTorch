@@ -1,5 +1,5 @@
 """
-Module Test Command for TinyTorch CLI.
+Module Test Command for TrenTorch CLI.
 
 Provides comprehensive module testing functionality:
 - Run individual module tests with educational output
@@ -525,7 +525,7 @@ class ModuleTestCommand(BaseCommand):
                 Panel(
                     f"[bold green]✅ ALL TESTS PASSED![/bold green]\n\n"
                     f"[green]Passed: {pass_count}/{total} modules[/green]\n\n"
-                    f"[bold]All TinyTorch modules are working correctly![/bold]",
+                    f"[bold]All TrenTorch modules are working correctly![/bold]",
                     title="🎉 Success",
                     border_style="green",
                 )
