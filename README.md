@@ -309,13 +309,13 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
   <tbody>
     <tr>
       <td align="center" valign="top" width="20.0%">
-        <a href="https://github.com/aadityansha06"><img src="https://avatars.githubusercontent.com/aadityansha06?v=4" width="80px;" alt="aadityansha06"/></a>
+        <a href="https://github.com/aadityansha06"><img src="https://avatars.githubusercontent.com/aadityansha06?v=4" width="80px;" alt="Aadityansha"/></a>
         <br />
-        <b>aadityansha06</b>
+        <b>Aadityansha</b>
         <br />
         <sub><strong>Maintainer</strong></sub>
         <br />
-        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <sub>Reducing CPU stalls, one commit at a time.</sub>
         <br />
         <sub>Issues: 0 &middot; PRs: 1</sub>
       </td>
@@ -331,24 +331,24 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <sub>Issues: 5 &middot; PRs: 5</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
-        <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" width="80px;" alt="Shashank-Tripathi-07"/></a>
+        <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" width="80px;" alt="Rocky"/></a>
         <br />
-        <b>Shashank-Tripathi-07</b>
+        <b>Rocky</b>
         <br />
         <sub><strong>Principal Maintainer</strong></sub>
         <br />
-        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <sub>IIT Guwahati, Debugs autograd for fun, ships before sunrise.</sub>
         <br />
-        <sub>Issues: 8 &middot; PRs: 35</sub>
+        <sub>Issues: 8 &middot; PRs: 36</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
-        <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="ShivtejG236"/></a>
+        <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="Shivtej Gaikwad"/></a>
         <br />
-        <b>ShivtejG236</b>
+        <b>Shivtej Gaikwad</b>
         <br />
         <sub><strong>Maintainer</strong></sub>
         <br />
-        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <sub>IIT Guwahati. Shows up, ships, moves on to the next thing.</sub>
         <br />
         <sub>Issues: 0 &middot; PRs: 7</sub>
       </td>
