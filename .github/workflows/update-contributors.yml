@@ -69,6 +69,15 @@ jobs:
           ref: main
           token: ${{ secrets.AUTOFIX_PAT }}
 
+      # Regression guard: this script's regex parser silently wiped every
+      # real name/bio back to raw logins once already (the role line broke
+      # its own "find the existing intro" pattern). Fails loudly here
+      # instead of writing bad data to README.md again.
+      - name: Selftest the parser before touching README.md
+        if: steps.has-pat.outputs.configured == 'true'
+        run: |
+          python3 .github/scripts/update_contributors.py --selftest
+
       - name: Run update script
         if: steps.has-pat.outputs.configured == 'true'
         id: update

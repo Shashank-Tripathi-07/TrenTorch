@@ -84,6 +84,15 @@ CELL_RE = re.compile(
     r'<img[^>]*alt="([^"]*)"\s*/?>'
     r"</a>\s*<br\s*/?>\s*"
     r"<b>([^<]+)</b>\s*<br\s*/?>\s*"
+    # The role line (added after this regex was first written) sits between
+    # the name and the intro now -- <sub><strong>Role</strong></sub>, which
+    # a plain <sub>([^<]*)</sub> can't match through, since <strong> is a
+    # "<" this character class rejects. Skip it first, optionally, so a
+    # contributor without a role line (external, no live permission) still
+    # matches too. This exact bug wiped every real name/bio back to raw
+    # logins on this regex's first run after the role line was added --
+    # confirmed live, not assumed.
+    r"(?:<sub><strong>[^<]*</strong></sub>\s*<br\s*/?>\s*)?"
     r"<sub>([^<]*)</sub>",
     re.DOTALL,
 )
@@ -183,7 +192,37 @@ def build_grid(counts: dict, existing: dict) -> str:
     return intro + table
 
 
+def selftest() -> bool:
+    """Regression check for the bug that shipped once already: CELL_RE
+    failing to match a cell that has a role line, silently wiping the
+    person's real name/bio back to their raw login on the next run.
+    Run via --selftest, and as a pre-flight step in
+    update-contributors.yml before this script touches README.md for
+    real."""
+    sample = (
+        '<a href="https://github.com/octocat"><img src="x.png" alt="Octo Cat"/></a>\n'
+        "<br />\n"
+        "<b>Octo Cat</b>\n"
+        "<br />\n"
+        "<sub><strong>Maintainer</strong></sub>\n"
+        "<br />\n"
+        "<sub>Builds things.</sub>\n"
+        "<br />\n"
+        "<sub>Issues: 1 &middot; PRs: 2</sub>"
+    )
+    found = parse_existing(sample)
+    ok = found.get("octocat") == ("Octo Cat", "Builds things.")
+    if not ok:
+        print(f"selftest FAILED: parse_existing found {found!r}, expected the real name/bio preserved", file=sys.stderr)
+    else:
+        print("selftest passed")
+    return ok
+
+
 def main():
+    if "--selftest" in sys.argv:
+        return 0 if selftest() else 1
+
     if not README_FILE.exists():
         print("README.md not found", file=sys.stderr)
         return 1
