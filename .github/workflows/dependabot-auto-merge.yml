@@ -1,0 +1,77 @@
+name: 'Dependabot Auto-merge'
+
+# Dependabot already opens PRs for outdated actions/pip deps (see
+# dependabot.yml), but they just sat there needing a manual merge even
+# after CI was green -- routine noise for updates that carry basically no
+# risk. This approves and enables auto-merge for patch/minor updates only,
+# the moment their metadata says so; a major-version bump (the kind that
+# actually can break something) is deliberately left alone for a human to
+# look at.
+#
+# "Enable auto-merge" (`gh pr merge --auto`), not an immediate merge: it
+# asks GitHub to merge once the PR's normal requirements (the required
+# Analyze/Ruff/Summary checks) are satisfied on its own, rather than
+# forcing it through early or bypassing branch protection the way the
+# admin-merge bots elsewhere in this repo do. The approval step is what
+# actually clears this repo's 1-review requirement -- needed since
+# Dependabot can't approve its own PR, and using AUTOFIX_PAT's identity
+# (a maintainer, not the PR author) to approve isn't a self-approval.
+#
+# Uses AUTOFIX_PAT: approving/merging both go through the same "Actions
+# can't create or approve PRs with its own token" restriction this repo's
+# other PAT-gated bots already work around (see update-contributors.yml's
+# comment on the exact failure). No-ops cleanly if the secret is unset.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check AUTOFIX_PAT is configured
+        id: has-pat
+        run: |
+          if [ -z "${{ secrets.AUTOFIX_PAT }}" ]; then
+            echo "::notice::AUTOFIX_PAT secret isn't set yet -- skipping. Dependabot PRs still need a manual review/merge for now."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch Dependabot metadata
+        if: steps.has-pat.outputs.configured == 'true'
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.AUTOFIX_PAT }}
+
+      - name: Approve and enable auto-merge (patch/minor only)
+        if: |
+          steps.has-pat.outputs.configured == 'true' &&
+          (steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+           steps.metadata.outputs.update-type == 'version-update:semver-minor')
+        env:
+          GH_TOKEN: ${{ secrets.AUTOFIX_PAT }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr review "$PR_URL" --approve --body "Auto-approved: ${{ steps.metadata.outputs.update-type }} update to \`${{ steps.metadata.outputs.dependency-names }}\`."
+          gh pr merge "$PR_URL" --squash --auto --delete-branch
+
+      - name: Leave a note on major bumps
+        if: |
+          steps.has-pat.outputs.configured == 'true' &&
+          steps.metadata.outputs.update-type == 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.AUTOFIX_PAT }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr comment "$PR_URL" --body "This is a major-version bump (\`${{ steps.metadata.outputs.dependency-names }}\`), left for manual review rather than auto-merged."
