@@ -92,25 +92,51 @@ def start_jupyter_server(project_root: Path) -> bool:
     Detached so it outlives this `tren` process; every subsequent
     `tren module start/view/resume` finds and reuses it via
     `find_running_jupyter_server` instead of starting another.
+
+    Its own stdout/stderr go to user_data/jupyter.log rather than
+    DEVNULL: if find_running_jupyter_server later fails to detect it
+    (slow machine, timing), that log is real, checkable output --
+    unlike DEVNULL, which left an earlier error message pointing at
+    "the terminal output above" that was never actually printed
+    anywhere (issue #139).
+
+    Uses `sys.executable -m jupyterlab`, not a bare "jupyter lab"
+    command: the latter depends on subcommand discovery finding a
+    `jupyter-lab` entry point on PATH, and if some other Python
+    installation's `jupyter` happens to resolve first on PATH (a real,
+    reproduced case, not hypothetical), that other installation's own
+    subcommand discovery runs instead -- silently failing to launch
+    anything at all rather than using this venv's own jupyterlab,
+    which was confirmed installed and working via `python -m
+    jupyterlab` in the same environment where bare `jupyter lab`
+    printed nothing but its own top-level help. `-m` sidesteps PATH
+    resolution entirely: it's tied to the exact interpreter running
+    `tren` itself.
     """
     try:
-        cmd = ["jupyter", "lab", "--no-browser", f"--notebook-dir={project_root}"]
+        cmd = [sys.executable, "-m", "jupyterlab", "--no-browser", f"--notebook-dir={project_root}"]
         detach_kwargs = (
             {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS}
             if sys.platform == "win32"
             else {"start_new_session": True}
         )
+        log_dir = project_root / "user_data"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_file = open(log_dir / "jupyter.log", "w", encoding="utf-8")
         subprocess.Popen(
             cmd,
             cwd=str(project_root),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
             **detach_kwargs,
         )
     except FileNotFoundError:
         return False
 
-    for _ in range(20):
+    # 40 tries at 0.5s = 20s, up from 10s: a slow or memory-constrained
+    # machine can genuinely take longer than 10s for Jupyter to finish
+    # starting and register with `jupyter server list`.
+    for _ in range(40):
         time.sleep(0.5)
         base_url, _ = find_running_jupyter_server(project_root)
         if base_url is not None:
@@ -153,8 +179,9 @@ def open_jupyter(config, console, module_name: str, notebook: bool = False, lab:
             console.print("[cyan]🔗 Reusing the already-running Jupyter Lab server...[/cyan]")
 
         if base_url is None:
+            log_path = config.project_root / "user_data" / "jupyter.log"
             console.print("[yellow]⚠️  Jupyter Lab started but its URL couldn't be detected.[/yellow]")
-            console.print("[dim]Check the terminal output above for the URL and token.[/dim]")
+            console.print(f"[dim]Check {log_path} for the URL and token.[/dim]")
             return 1
 
         # One jupyter_server backend serves both UIs; /tree is the classic
