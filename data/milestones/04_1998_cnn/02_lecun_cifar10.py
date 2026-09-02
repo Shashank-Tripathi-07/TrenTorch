@@ -730,7 +730,9 @@ def main():
     analyze_cnn_systems(model, batch_size=args.batch_size)
 
     print(f"\n⏱️  Training time: {train_time:.1f} seconds")
-    print(f"   Images/sec: {len(train_dataset) * args.epochs / train_time:.0f}")
+    # train_time can legitimately measure as exactly 0.0 on a fast
+    # machine with a coarse timer -- floored to avoid ZeroDivisionError.
+    print(f"   Images/sec: {len(train_dataset) * args.epochs / max(train_time, 1e-9):.0f}")
 
     print("\n✅ SUCCESS! CIFAR-10 CNN Milestone Complete!")
     print("\n🎓 What YOU Accomplished:")

@@ -18,11 +18,11 @@
 __all__ = ['rng', 'DEFAULT_WARMUP_ITERATIONS', 'DEFAULT_TIMING_ITERATIONS', 'BYTES_PER_FLOAT32', 'vectorized_matmul',
            'fused_gelu', 'tiled_matmul']
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #77defefa
+# %% ../../solutions/17_acceleration/acceleration.ipynb #f4dd93ca
 #| default_exp perf.acceleration
 #| export
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #66c62ce7
+# %% ../../solutions/17_acceleration/acceleration.ipynb #d0ea6934
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -35,11 +35,11 @@ DEFAULT_WARMUP_ITERATIONS = 2  # Default warmup iterations for timing
 DEFAULT_TIMING_ITERATIONS = 5  # Default timing iterations for measurement
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #e2bfb7f0
+# %% ../../solutions/17_acceleration/acceleration.ipynb #6e2423d3
 # Import from TrenTorch package (previous modules must be completed and exported)
 from ..core.tensor import Tensor
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #1b850c06
+# %% ../../solutions/17_acceleration/acceleration.ipynb #28dcb747
 # Solution
 
 def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
@@ -112,7 +112,7 @@ def vectorized_matmul(a: Tensor, b: Tensor) -> Tensor:
     return Tensor(result_data)
     ### END SOLUTION
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #5f2144a9
+# %% ../../solutions/17_acceleration/acceleration.ipynb #bc5520ff
 # Solution
 
 def fused_gelu(x: Tensor) -> Tensor:
@@ -175,7 +175,7 @@ def fused_gelu(x: Tensor) -> Tensor:
     return Tensor(result_data)
     ### END SOLUTION
 
-# %% ../../solutions/17_acceleration/acceleration.ipynb #4c66b7c9
+# %% ../../solutions/17_acceleration/acceleration.ipynb #1e9da542
 # Solution
 
 def tiled_matmul(a: Tensor, b: Tensor, tile_size: int = 64) -> Tensor:

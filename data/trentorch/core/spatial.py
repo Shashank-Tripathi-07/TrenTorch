@@ -19,7 +19,7 @@ __all__ = ['rng', 'DEFAULT_KERNEL_SIZE', 'DEFAULT_STRIDE', 'DEFAULT_PADDING', 'B
            'validate_4d_input', 'Conv2dBackward', 'Conv2d', 'MaxPool2dBackward', 'MaxPool2d', 'AvgPool2dBackward',
            'AvgPool2d', 'BatchNorm2d', 'SimpleCNN']
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #08e04b27
+# %% ../../solutions/09_convolutions/convolutions.ipynb #71a8960e
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -41,7 +41,7 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #a2d01f2d
+# %% ../../solutions/09_convolutions/convolutions.ipynb #83051384
 def validate_4d_input(x, layer_name):
     """
     Validate that input tensor is 4D (batch, channels, height, width).
@@ -81,7 +81,7 @@ def validate_4d_input(x, layer_name):
             f"  Reshape your input to 4D with the correct dimensions"
         )
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #d48ca67d
+# %% ../../solutions/09_convolutions/convolutions.ipynb #7c1ebb93
 # Solution
 
 class Conv2dBackward(Function):
@@ -436,7 +436,7 @@ class Conv2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #f56b49e4
+# %% ../../solutions/09_convolutions/convolutions.ipynb #ce88d667
 # Solution
 
 class MaxPool2dBackward(Function):
@@ -690,7 +690,7 @@ class MaxPool2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #2c0990e7
+# %% ../../solutions/09_convolutions/convolutions.ipynb #6d2e132e
 # Solution
 
 class AvgPool2dBackward(Function):
@@ -933,7 +933,7 @@ class AvgPool2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #a33a4dae
+# %% ../../solutions/09_convolutions/convolutions.ipynb #2b67a4ee
 # Solution
 
 class BatchNorm2d:
@@ -1140,7 +1140,7 @@ class BatchNorm2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #ed68e473
+# %% ../../solutions/09_convolutions/convolutions.ipynb #5de4a2e7
 # Solution
 
 class SimpleCNN:

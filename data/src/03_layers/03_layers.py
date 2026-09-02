@@ -1472,7 +1472,10 @@ def analyze_layer_performance():
         elapsed = time.perf_counter() - start
 
         time_per_forward = (elapsed / iterations) * 1000  # Convert to ms
-        throughput = (batch_size * iterations) / elapsed
+        # elapsed can legitimately measure as exactly 0.0 for a small/fast
+        # batch -- floored so throughput stays a large-but-finite number
+        # instead of raising ZeroDivisionError.
+        throughput = (batch_size * iterations) / max(elapsed, 1e-9)
 
         print(f"{batch_size:10d} → {time_per_forward:8.3f} ms → {throughput:12,.0f} samples/sec")
 

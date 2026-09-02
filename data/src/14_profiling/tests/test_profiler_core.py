@@ -112,7 +112,10 @@ class TestLatencyMeasurement:
 
         latency = profiler.measure_latency(model, x, warmup=1, iterations=3)
 
-        assert latency > 0, f"Latency should be positive, got {latency}"
+        # >= 0, not > 0: a raw timer measurement can legitimately be
+        # exactly 0.0 on a fast machine with a coarse timer resolution
+        # (~15.6ms on Windows).
+        assert latency >= 0, f"Latency should be non-negative, got {latency}"
 
 
 if __name__ == "__main__":
