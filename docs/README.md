@@ -13,6 +13,7 @@ Technical design and implementation documentation for the codebase in this repo.
 | [`deep-dive.md`](deep-dive.md) | A first-principles walkthrough of what happens from `pip install -e .` through module export to grading. |
 | [`coding-style.md`](coding-style.md) | The honest answer to "what linter applies here." |
 | [`testing-strategy.md`](testing-strategy.md) | What's tested, why, and where the real risk actually lives, with the export pipeline's known fragility as the central case. |
+| [`Changes.md`](Changes.md) | User-facing log of new features, bots, and rules -- what's new for you, kept short and current. |
 
 ## What's not here, and why
 
