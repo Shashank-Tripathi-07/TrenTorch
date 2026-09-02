@@ -326,7 +326,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <br />
         <sub><strong>Core Engineer</strong></sub>
         <br />
-        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <sub>Catches bugs, builds solutions and ships products</sub>
         <br />
         <sub>Issues: 5 &middot; PRs: 5</sub>
       </td>
