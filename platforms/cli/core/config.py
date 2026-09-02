@@ -1,5 +1,5 @@
 """
-Configuration management for TinyTorch CLI.
+Configuration management for TrenTorch CLI.
 """
 
 import os
@@ -39,9 +39,14 @@ def migrate_progress_dir(project_root: Path) -> None:
             return
 
 
+def get_home_profile_dir() -> Path:
+    """The home-dir community profile directory, ~/.trentorch/."""
+    return Path.home() / ".trentorch"
+
+
 @dataclass
 class CLIConfig:
-    """Configuration for TinyTorch CLI."""
+    """Configuration for TrenTorch CLI."""
 
     # Project paths
     project_root: Path

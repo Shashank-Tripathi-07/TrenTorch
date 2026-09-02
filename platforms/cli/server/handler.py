@@ -566,7 +566,6 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
         env["TREN_ALLOW_SYSTEM"] = "1"
-        env["TITO_ALLOW_SYSTEM"] = "1"
         return env
 
     def _handle_sse_module_test(self, module_input: str):

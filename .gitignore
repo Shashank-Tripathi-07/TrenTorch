@@ -13,7 +13,7 @@ develop-eggs/
 dist/
 downloads/
 # Whitelist the Quarto site downloads directory: this holds shipped PDFs
-# (e.g. 00_tinytorch.pdf) that are referenced from big-picture.qmd's PDF
+# (e.g. 00_trentorch.pdf) that are referenced from big-picture.qmd's PDF
 # viewer. The blanket `downloads/` rule above is from the Python packaging
 # template and shouldn't apply to website assets.
 !quarto/assets/downloads/
@@ -93,13 +93,13 @@ book/_build/
 site/_build/
 docs/_build/
 
-# NBGrader - assignments are dynamically generated via 'tito nbgrader generate'
+# NBGrader - assignments are dynamically generated via 'tren nbgrader generate'
 # Only ignore student submissions and grading outputs, not source/release (for now)
 assignments/autograded/
 assignments/feedback/
 assignments/submitted/
 # Note: assignments/source/ and assignments/release/ are kept in git for now
-# but should be regenerated with 'tito nbgrader generate' when modules change
+# but should be regenerated with 'tren nbgrader generate' when modules change
 .nbgrader_staging/
 
 # Logs
@@ -159,7 +159,7 @@ user_data/
 data/datasets/*
 milestones/datasets/
 
-# BUT: Include TinyTorch's curated educational datasets (tiny, ship-with-repo)
+# BUT: Include TrenTorch's curated educational datasets (tiny, ship-with-repo)
 !data/datasets/tinydigits/
 !data/datasets/tinydigits/**
 !data/datasets/tinytalks/
@@ -226,18 +226,18 @@ site/_build/
 !site/_static/downloads/
 !site/_static/downloads/*.pdf
 
-# Generated tinytorch package (auto-generated from src/ via nbdev_export)
+# Generated trentorch package (auto-generated from src/ via nbdev_export)
 # Single source of truth: src/*/*.py files
 # Track __init__.py files (package structure) but ignore generated implementations
-tinytorch/*
-!tinytorch/__init__.py
-!tinytorch/core/
-tinytorch/core/*
-!tinytorch/core/__init__.py
-!tinytorch/perf/
-tinytorch/perf/*
-!tinytorch/perf/__init__.py
-!tinytorch/README.md
+data/trentorch/*
+!data/trentorch/__init__.py
+!data/trentorch/core/
+data/trentorch/core/*
+!data/trentorch/core/__init__.py
+!data/trentorch/perf/
+data/trentorch/perf/*
+!data/trentorch/perf/__init__.py
+!data/trentorch/README.md
 
 # Generated benchmark outputs (covered by user_data/ above; kept explicit for clarity)
 user_data/benchmarks/

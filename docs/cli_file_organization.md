@@ -89,7 +89,7 @@ import path outside this package changed.
 | `core/config.py` | 138 | `CLIConfig`. Project root resolution, path config. |
 | `core/console.py` | 172 | Rich console singleton, banners, ASCII logo, panel helpers. |
 | `core/theme.py` | 56 | Color palette constants used by `console.py` and throughout the CLI. |
-| `core/exceptions.py` | 23 | `TinyTorchCLIError` and the exception hierarchy every command catches. |
+| `core/exceptions.py` | 23 | `TrenTorchCLIError` and the exception hierarchy every command catches. |
 | `core/modules.py` | 251 | Auto-discovers modules by scanning `data/src/` for `^(\d{2})_(\w+)$` directories, reads each `module.yaml`. Nothing about the module list is hardcoded. |
 | `core/runtime.py` | 65 | `is_interactive()` / `is_ci()`. Single source of truth for whether it's safe to prompt. |
 | `core/status_analyzer.py` | 499 | Comprehensive module/environment compliance analysis (used by `preflight.py` and others). |

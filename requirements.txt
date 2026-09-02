@@ -1,11 +1,11 @@
-# TinyTorch Course Dependencies
+# TrenTorch Course Dependencies
 # Compatible with Python 3.10-3.13 (see pyproject.toml requires-python)
 
 # ============================================================================
 # Core Dependencies (Required)
 # ============================================================================
 
-# Numerical computing - TinyTorch core requirement
+# Numerical computing - TrenTorch core requirement
 numpy>=2.2.6,<3.0.0
 
 # Terminal UI - Used by CLI and milestone examples
@@ -28,7 +28,7 @@ pytest-xdist>=3.8.0
 hypothesis>=6.100.0
 
 # ============================================================================
-# Development Tools (Required for tito export)
+# Development Tools (Required for tren export)
 # ============================================================================
 
 # Jupytext - Convert .py files to .ipynb for nbdev

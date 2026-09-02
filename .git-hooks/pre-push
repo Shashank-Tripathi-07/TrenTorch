@@ -1,6 +1,6 @@
 #!/bin/bash
-# TinyTorch Pre-Push Hook
-# Prevents accidental pushes to the main TinyTorch repository
+# TrenTorch Pre-Push Hook
+# Prevents accidental pushes to the upstream TinyTorch repository
 
 UPSTREAM_REPO="github.com/harvard-edge/cs249r_book"
 PROTECTED_BRANCHES="main dev master"

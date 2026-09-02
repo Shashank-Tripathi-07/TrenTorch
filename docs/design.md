@@ -81,7 +81,7 @@ Top-level command groups:
 
 | Command | What it's for |
 |---|---|
-| `tren setup` | First-time environment setup: creates a virtual environment, installs the fixed toolchain (NumPy, Jupyter, Jupytext, nbdev, Rich, PyYAML, psutil), registers a `tinytorch` Jupyter kernel, and prompts to create a local profile. |
+| `tren setup` | First-time environment setup: creates a virtual environment, installs the fixed toolchain (NumPy, Jupyter, Jupytext, nbdev, Rich, PyYAML, psutil), registers a `trentorch` Jupyter kernel, and prompts to create a local profile. |
 | `tren system` | Environment tools: `info`, `health`, `jupyter` (launch a notebook/lab server), `update`, `logo`, `reset`. |
 | `tren module` | The core student workflow: `start`, `view`, `resume`, `test`, `complete`, `reset`, `status`, `list`, `path`. This is what a student runs on nearly every module. |
 | `tren dev` | Developer and CI tooling, gated behind the `dev` group: `test` (the unified pytest runner used by CI), `preflight` (pre-release verification), `export` (rebuild the whole curriculum from `data/src/`), `clean`. |

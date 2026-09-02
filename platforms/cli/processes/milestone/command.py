@@ -510,7 +510,7 @@ class MilestoneCommand(BaseCommand):
             for module_num in required_modules:
                 console.print(f"  [green]✓[/green] Module {module_num:02d} exports available")
 
-            console.print("\n[green]✅ YOUR Tiny🔥Torch is ready![/green]\n")
+            console.print("\n[green]✅ YOUR Tren⚡️Torch is ready![/green]\n")
 
         # Show milestone banner
         scripts_info = ""
@@ -540,7 +540,7 @@ class MilestoneCommand(BaseCommand):
                 f"[bold]🎯 What You'll Do:[/bold]\n"
                 f"{milestone['description']}\n\n"
                 f"{scripts_info}\n\n"
-                f"[dim]All code uses YOUR Tiny🔥Torch implementations![/dim]",
+                f"[dim]All code uses YOUR Tren⚡️Torch implementations![/dim]",
                 title=f"🏆 Milestone {milestone_id} ({milestone['year']})",
                 border_style="bright_magenta",
                 padding=(1, 2),

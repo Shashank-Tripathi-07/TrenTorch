@@ -1,5 +1,5 @@
 """
-Base command class for TinyTorch CLI.
+Base command class for TrenTorch CLI.
 """
 
 import logging
@@ -12,7 +12,7 @@ from pathlib import Path
 
 from ..core.config import CLIConfig
 from ..core.console import get_console
-from ..core.exceptions import TinyTorchCLIError
+from ..core.exceptions import TrenTorchCLIError
 from ..core.virtual_env_manager import get_venv_path
 
 logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ class BaseCommand(ABC):
         try:
             self.validate_args(args)
             return self.run(args)
-        except TinyTorchCLIError as e:
+        except TrenTorchCLIError as e:
             logger.error(f"Command failed: {e}")
             self.console.print(f"[red]❌ {e}[/red]")
             return 1

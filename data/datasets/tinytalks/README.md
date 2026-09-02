@@ -18,7 +18,7 @@
 ✅ **Verifiable Learning** - Clear success metrics (correct vs. incorrect answers)
 ✅ **Progressive Difficulty** - 5 levels from greetings to reasoning
 ✅ **Educational Focus** - Designed for "aha!" moments, not benchmarks
-✅ **Zero Dependencies** - Ships with TinyTorch, no downloads needed
+✅ **Zero Dependencies** - Ships with TrenTorch, no downloads needed
 ✅ **Reproducible** - Deterministic generation, versioned releases
 
 ---
@@ -167,8 +167,8 @@ with open("datasets/tinytalks/splits/train.txt", "r") as f:
 
 ```python
 # See milestones/05_2017_transformer/tinybot_demo.py for full example
-from tinytorch.models.transformer import GPT
-from tinytorch.text.tokenization import CharTokenizer
+from trentorch.models.transformer import GPT
+from trentorch.text.tokenization import CharTokenizer
 
 # Initialize model
 tokenizer = CharTokenizer()
@@ -217,7 +217,7 @@ A: [Next answer]
 
 ### Generation Process
 
-1. **Manual Curation** - All Q&A pairs hand-written by TinyTorch maintainers
+1. **Manual Curation** - All Q&A pairs hand-written by TrenTorch maintainers
 2. **Diversity Sampling** - Systematic coverage of topics within each level
 3. **Quality Control** - Each pair reviewed for grammar, factual accuracy, appropriateness
 4. **Balance Verification** - Ensured even distribution across levels
@@ -268,7 +268,7 @@ Output:
 
 ### Primary Use: Module 13 (Transformers)
 
-TinyTalks is designed as the **canonical dataset** for TinyTorch's Transformer milestone:
+TinyTalks is designed as the **canonical dataset** for TrenTorch's Transformer milestone:
 
 - **milestones/05_2017_transformer/tinybot_demo.py** - Main training demo
 - Students see their first transformer learn in < 5 minutes
@@ -309,7 +309,7 @@ If you use TinyTalks in your work, please cite:
 ```bibtex
 @dataset{tinytalks2025,
   title={TinyTalks: A Conversational Q\&A Dataset for Educational Transformers},
-  author={TinyTorch Contributors},
+  author={TrenTorch Contributors},
   year={2025},
   publisher={GitHub},
   url={https://github.com/harvard-edge/cs249r_book/tree/main/tinytorch/datasets/tinytalks},
@@ -318,7 +318,7 @@ If you use TinyTalks in your work, please cite:
 ```
 
 **Text citation:**
-TinyTorch Contributors. (2025). TinyTalks: A Conversational Q&A Dataset for Educational Transformers (Version 1.0.0). https://github.com/harvard-edge/cs249r_book/tree/main/tinytorch/datasets/tinytalks
+TrenTorch Contributors. (2025). TinyTalks: A Conversational Q&A Dataset for Educational Transformers (Version 1.0.0). https://github.com/harvard-edge/cs249r_book/tree/main/tinytorch/datasets/tinytalks
 
 ---
 
@@ -372,7 +372,7 @@ See [CONTRIBUTING.md](../../docs/CONTRIBUTING.md) for details.
 - bAbI Dataset (Facebook AI Research) - Reasoning tasks
 - SQuAD - Question answering format
 - TinyStories - Simplicity philosophy
-- TinyTorch Community - Feedback and testing
+- TrenTorch Community - Feedback and testing
 
 **Created for:**
 - Students learning transformer architectures
@@ -398,10 +398,10 @@ The name embodies our philosophy:
 - **Talks** - Conversational, accessible, human-like
 - **Educational** - Designed for learning, not leaderboards
 
-Just like TinyTorch makes deep learning accessible, TinyTalks makes conversational AI **immediate and tangible**.
+Just like TrenTorch makes deep learning accessible, TinyTalks makes conversational AI **immediate and tangible**.
 
 ---
 
-*Built with ❤️ by the TinyTorch community*
+*Built with ❤️ by the TrenTorch community*
 
 *"The best way to understand transformers is to see them learn."*

@@ -6,7 +6,7 @@ venv-detection decision.
 
 import subprocess
 
-from platforms.cli.core.status_analyzer import ModuleStatus, TinyTorchStatusAnalyzer
+from platforms.cli.core.status_analyzer import ModuleStatus, TrenTorchStatusAnalyzer
 
 # ---------------------------------------------------------------------------
 # ModuleStatus.overall_status: two threshold-and-flag decisions
@@ -91,7 +91,7 @@ def test_dev_file_found_at_exact_module_name(tmp_path, monkeypatch):
     (module_dir / "01_tensor.py").write_text("x = 1\n", encoding="utf-8")
 
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, "SUCCESS", ""))
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     status = analyzer.analyze_module(module_dir)
 
     assert status.has_dev_file is True
@@ -108,7 +108,7 @@ def test_dev_file_none_candidate_is_skipped_without_crashing(tmp_path, monkeypat
     (module_dir / "orphan.py").write_text("x = 1\n", encoding="utf-8")
 
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, "SUCCESS", ""))
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     status = analyzer.analyze_module(module_dir)
 
     assert status.has_dev_file is True
@@ -123,7 +123,7 @@ def test_no_matching_dev_file_falls_back_to_any_py_file(tmp_path, monkeypatch):
     (module_dir / "some_other_name.py").write_text("x = 1\n", encoding="utf-8")
 
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, "SUCCESS", ""))
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     status = analyzer.analyze_module(module_dir)
 
     assert status.has_dev_file is True
@@ -142,7 +142,7 @@ def _analyze_with_fake_subprocess(tmp_path, monkeypatch, stdout, stderr, returnc
     monkeypatch.setattr(
         subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, returncode, stdout, stderr)
     )
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     return analyzer.analyze_module(module_dir)
 
 
@@ -184,7 +184,7 @@ def _render_code_health(tmp_path, imports_successfully: bool, runs_without_error
 
     from rich.console import Console
 
-    analyzer = TinyTorchStatusAnalyzer(repo_path=tmp_path)
+    analyzer = TrenTorchStatusAnalyzer(repo_path=tmp_path)
     analyzer.modules = {
         "01_tensor": ModuleStatus(
             name="01_tensor",

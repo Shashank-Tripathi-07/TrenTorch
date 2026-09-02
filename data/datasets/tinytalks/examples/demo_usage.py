@@ -157,18 +157,18 @@ def example5_prepare_for_transformer():
     return train_text, vocab, char_to_idx
 
 
-def example6_using_with_tinytorch():
-    """Example 6: Using with TinyTorch (pseudocode)"""
+def example6_using_with_trentorch():
+    """Example 6: Using with TrenTorch (pseudocode)"""
     print("\n" + "=" * 60)
-    print("Example 6: Using with TinyTorch (Pseudocode)")
+    print("Example 6: Using with TrenTorch (Pseudocode)")
     print("=" * 60)
 
     print("""
-  # Import TinyTorch components
-  from tinytorch.models.transformer import GPT
-  from tinytorch.text.tokenization import CharTokenizer
-  from tinytorch.core.optimizers import Adam
-  from tinytorch.core.losses import CrossEntropyLoss
+  # Import TrenTorch components
+  from trentorch.models.transformer import GPT
+  from trentorch.text.tokenization import CharTokenizer
+  from trentorch.core.optimizers import Adam
+  from trentorch.core.losses import CrossEntropyLoss
 
   # Load dataset
   with open('datasets/tinytalks/splits/train.txt', 'r') as f:
@@ -223,7 +223,7 @@ def main():
     example3_parse_qa_pairs()
     vocab, char_to_idx, idx_to_char = example4_character_tokenization()
     train_text, vocab, char_to_idx = example5_prepare_for_transformer()
-    example6_using_with_tinytorch()
+    example6_using_with_trentorch()
 
     print("\n" + "=" * 60)
     print("  ✅ All examples completed successfully!")

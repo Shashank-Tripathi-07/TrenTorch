@@ -78,7 +78,7 @@ def _run_info(tmp_path, monkeypatch, *, venv_exists, in_venv):
         lambda venv_path: {
             "python_version": "3.x",
             "platform": "test",
-            "tinytorch_version": "test",
+            "trentorch_version": "test",
             "numpy_version": "test",
             "venv_active": in_venv,
         },

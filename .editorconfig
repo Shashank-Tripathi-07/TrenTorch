@@ -12,6 +12,6 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 
 # Mark generated files with special rules (some editors respect this)
-[tinytorch/core/*.py]
+[data/trentorch/core/*.py]
 # Some editors show warnings for files in generated directories
 generated = true

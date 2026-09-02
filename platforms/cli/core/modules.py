@@ -1,5 +1,5 @@
 """
-Module definitions for TinyTorch CLI.
+Module definitions for TrenTorch CLI.
 
 Auto-discovers modules from the src/ directory structure.
 This ensures the CLI is always in sync with actual module folders.
@@ -25,7 +25,7 @@ REQUIRED_METADATA_FIELDS = {"title", "subtitle", "description"}
 
 
 def _find_project_root() -> Path:
-    """Find the TinyTorch project root directory."""
+    """Find the TrenTorch project root directory."""
     # Start from this file's location and walk up
     current = Path(__file__).resolve().parent
     while current != current.parent:

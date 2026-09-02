@@ -190,7 +190,7 @@ class HealthCommand(BaseCommand):
                 )
                 issues.append(
                     "Jupyter kernel uses a different Python than tren — "
-                    "run: python -m ipykernel install --user --name=tinytorch --display-name 'Python (TrenTorch)'"
+                    "run: python -m ipykernel install --user --name=trentorch --display-name 'Python (TrenTorch)'"
                 )
         else:
             nb_table.add_row(
@@ -267,13 +267,13 @@ class HealthCommand(BaseCommand):
                 errors="replace",
                 timeout=10,
             )
-            if result.returncode == 0 and "tinytorch" in result.stdout:
-                return "[green]✅ Registered[/green]", "tinytorch kernel found"
+            if result.returncode == 0 and "trentorch" in result.stdout:
+                return "[green]✅ Registered[/green]", "trentorch kernel found"
             elif result.returncode == 0:
-                # Jupyter works but no tinytorch kernel
+                # Jupyter works but no trentorch kernel
                 return (
-                    "[yellow]⚠️  No tinytorch kernel[/yellow]",
-                    "run: python -m ipykernel install --user --name tinytorch",
+                    "[yellow]⚠️  No trentorch kernel[/yellow]",
+                    "run: python -m ipykernel install --user --name trentorch",
                 )
             else:
                 return "[yellow]⚠️  Cannot list[/yellow]", "jupyter kernelspec list failed"
@@ -283,12 +283,12 @@ class HealthCommand(BaseCommand):
             return "[dim]○ Skipped[/dim]", "could not check"
 
     def _get_kernel_python(self):
-        """Get the Python executable path used by the default or tinytorch Jupyter kernel."""
+        """Get the Python executable path used by the default or trentorch Jupyter kernel."""
         try:
             import json
 
-            # Try tinytorch kernel first, then python3 default
-            for kernel_name in ("tinytorch", "python3"):
+            # Try trentorch kernel first, then python3 default
+            for kernel_name in ("trentorch", "python3"):
                 result = subprocess.run(
                     [sys.executable, "-m", "jupyter", "kernelspec", "list", "--json"],
                     capture_output=True,

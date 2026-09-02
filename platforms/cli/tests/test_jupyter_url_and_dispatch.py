@@ -74,7 +74,7 @@ def test_olympics_command_logo_shows_the_logo_panel(olympics_command):
     panel is shown, not the coming-soon message."""
     cmd, buf = olympics_command
     cmd.run(Namespace(olympics_command="logo"))
-    assert "TINYTORCH OLYMPICS" in buf.getvalue()
+    assert "TRENTORCH OLYMPICS" in buf.getvalue()
     assert "COMING SOON" not in buf.getvalue()
 
 

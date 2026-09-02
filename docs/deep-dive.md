@@ -241,7 +241,7 @@ This is the loop a student repeats 20 times (once per module). Each module is in
 
 ### 3.3 Jupyter server lifecycle: one shared server, not one per launch
 
-This used to be a real gap: every `tren module start/resume/view` call spawned a brand-new `jupyter lab` subprocess with no tracking, so five calls in one session meant five separate servers, none of which `tren` would ever stop. Fixed 2026-08-23: `platforms/cli/commands/jupyter.py`'s `find_running_jupyter_server()` reads live state from `jupyter server list` (not a PID `tren` tracks itself, so it self-heals if the server was closed outside `tren`'s control) and `open_jupyter()` reuses that server if one is already rooted at the project root, only calling `start_jupyter_server()` to spawn one when none exists. The same file also owns `resolve_jupyter_ui()` (the Notebook-or-Lab prompt) and `register_jupyter_magic()` (scoping the `%tren` magic to the `tinytorch` kernel, called from `tren setup`) — the whole Jupyter component's process logic lives in this one file rather than being split across `processes/module_workflow/workflow.py`, `cli_platform/setup.py`, and `jupyter_magic.py` the way it originally grew.
+This used to be a real gap: every `tren module start/resume/view` call spawned a brand-new `jupyter lab` subprocess with no tracking, so five calls in one session meant five separate servers, none of which `tren` would ever stop. Fixed 2026-08-23: `platforms/cli/commands/jupyter.py`'s `find_running_jupyter_server()` reads live state from `jupyter server list` (not a PID `tren` tracks itself, so it self-heals if the server was closed outside `tren`'s control) and `open_jupyter()` reuses that server if one is already rooted at the project root, only calling `start_jupyter_server()` to spawn one when none exists. The same file also owns `resolve_jupyter_ui()` (the Notebook-or-Lab prompt) and `register_jupyter_magic()` (scoping the `%tren` magic to the `trentorch` kernel, called from `tren setup`) — the whole Jupyter component's process logic lives in this one file rather than being split across `processes/module_workflow/workflow.py`, `cli_platform/setup.py`, and `jupyter_magic.py` the way it originally grew.
 
 ### 3.4 What Jupyter Lab actually costs, once it's running
 
@@ -436,7 +436,7 @@ Every place in the codebase that makes an outbound network request, and exactly 
 └────────────────────┴──────────────────────────────┴───────────────────────────────┘
 ```
 
-**Every module in the normal 20-module student loop is 100% offline.** This fork previously had an optional `tren community login` / progress-sync path (a browser-based login plus a POST to a hosted backend after completing a module or milestone); it talked to the original TrenTorch project's own infrastructure, was never usable from this fork, and has since been removed along with the rest of the community/docs-site code (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)). The table above no longer includes it.
+**Every module in the normal 20-module student loop is 100% offline.** This fork previously had an optional `tren community login` / progress-sync path (a browser-based login plus a POST to a hosted backend after completing a module or milestone); it talked to the original TinyTorch project's own infrastructure, was never usable from this fork, and has since been removed along with the rest of the community/docs-site code (see [`design.md`](design.md#community-dashboard-and-progress-sync-removed)). The table above no longer includes it.
 
 ---
 

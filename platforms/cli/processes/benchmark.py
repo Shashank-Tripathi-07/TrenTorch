@@ -1,5 +1,5 @@
 """
-Tiny🔥Torch Benchmark Commands
+Tren⚡️Torch Benchmark Commands
 
 Run baseline and capstone benchmarks, with automatic submission prompts.
 """
@@ -588,10 +588,10 @@ class BenchmarkCommand(BaseCommand):
             console.print("\n[dim]Submission cancelled.[/dim]")
 
     def _get_community_data(self) -> dict[str, Any] | None:
-        """Get user's community profile from ~/.tinytorch (flat structure)."""
-        from pathlib import Path
+        """Get user's community profile from ~/.trentorch (flat structure)."""
+        from platforms.cli.core.config import get_home_profile_dir
 
-        profile_file = Path.home() / ".tinytorch" / "profile.json"
+        profile_file = get_home_profile_dir() / "profile.json"
         if profile_file.exists():
             try:
                 with open(profile_file) as f:
@@ -602,11 +602,11 @@ class BenchmarkCommand(BaseCommand):
 
     def _get_config(self) -> dict[str, Any]:
         """Get community configuration."""
-        config_file = self.config.project_root / ".tinytorch" / "config.json"
+        config_file = self.config.project_root / ".trentorch" / "config.json"
         default_config = {
             "website": {
-                "base_url": "https://tinytorch.ai",
-                "community_map_url": "https://tinytorch.ai/map",
+                "base_url": "https://trentorch.ai",
+                "community_map_url": "https://trentorch.ai/map",
                 "api_url": None,  # Set when API is available
                 "enabled": False,  # Set to True when website integration is ready
             },

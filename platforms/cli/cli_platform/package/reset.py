@@ -1,5 +1,5 @@
 """
-Reset command for TinyTorch CLI: resets package and user data.
+Reset command for TrenTorch CLI: resets package and user data.
 """
 
 import json
@@ -30,7 +30,7 @@ class ResetCommand(BaseCommand):
 
         # Package reset (original functionality)
         package_parser = subparsers.add_parser(
-            "package", help="Reset tinytorch package to clean state (remove exported files)"
+            "package", help="Reset trentorch package to clean state (remove exported files)"
         )
         package_parser.add_argument("--force", action="store_true", help="Skip confirmation prompt")
 
@@ -63,7 +63,7 @@ class ResetCommand(BaseCommand):
                 Panel(
                     "[bold cyan]Reset Commands[/bold cyan]\n\n"
                     "Available subcommands:\n"
-                    "  • [bold]package[/bold]     - Reset tinytorch package (remove exported files)\n"
+                    "  • [bold]package[/bold]     - Reset trentorch package (remove exported files)\n"
                     "  • [bold]all[/bold]         - Reset all user progress (modules + milestones + config)\n"
                     "  • [bold]progress[/bold]    - Reset module completion tracking only\n"
                     "  • [bold]milestones[/bold]  - Reset milestone achievements only\n"
@@ -97,16 +97,16 @@ class ResetCommand(BaseCommand):
             return 1
 
     def _reset_package(self, args: Namespace) -> int:
-        """Reset tinytorch package (original functionality)."""
+        """Reset trentorch package (original functionality)."""
         console = self.console
 
         console.print(
-            Panel("🔄 Resetting TinyTorch Package", title="Package Reset", border_style="bright_yellow")
+            Panel("🔄 Resetting TrenTorch Package", title="Package Reset", border_style="bright_yellow")
         )
 
-        tinytorch_path = Path("data") / "trentorch"
+        trentorch_path = Path("data") / "trentorch"
 
-        if not tinytorch_path.exists():
+        if not trentorch_path.exists():
             console.print(
                 Panel(
                     "[yellow]⚠️  TrenTorch package directory not found. Nothing to reset.[/yellow]",
@@ -121,7 +121,7 @@ class ResetCommand(BaseCommand):
             console.print()
             console.print(
                 Panel(
-                    "[yellow]This will remove all exported Python files from the tinytorch package.[/yellow]\n"
+                    "[yellow]This will remove all exported Python files from the trentorch package.[/yellow]\n"
                     "[yellow]Notebooks in modules will be preserved.[/yellow]",
                     title="Warning",
                     border_style="yellow",
@@ -147,8 +147,8 @@ class ResetCommand(BaseCommand):
         # and hand-written, non-generated files (platform.py, export_sanitizer.py)
         NON_GENERATED = {"__init__.py", "core/platform.py", "export_sanitizer.py"}
         files_removed = 0
-        for py_file in tinytorch_path.rglob("*.py"):
-            rel_path = py_file.relative_to(tinytorch_path)
+        for py_file in trentorch_path.rglob("*.py"):
+            rel_path = py_file.relative_to(trentorch_path)
             if str(rel_path).replace("\\", "/") not in NON_GENERATED and py_file.name != "__init__.py":
                 try:
                     reset_text.append(f"  🗑️  trentorch/{rel_path}\n", style="red")
@@ -158,7 +158,7 @@ class ResetCommand(BaseCommand):
                     reset_text.append(f"  ❌ Failed to remove {py_file}: {e}\n", style="red")
 
         # Remove __pycache__ directories
-        for pycache in tinytorch_path.rglob("__pycache__"):
+        for pycache in trentorch_path.rglob("__pycache__"):
             if pycache.is_dir():
                 reset_text.append(f"  🗑️  {pycache}/\n", style="red")
                 shutil.rmtree(pycache)

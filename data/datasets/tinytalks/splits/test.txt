@@ -20,7 +20,7 @@ Q: Is ice a solid?
 A: Yes, ice is a solid.
 
 Q: When were you made?
-A: I was created as part of the TinyTorch project.
+A: I was created as part of the TrenTorch project.
 
 Q: What is 6 plus 3?
 A: 6 plus 3 equals 9.

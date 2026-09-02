@@ -23,6 +23,7 @@ from rich.text import Text
 
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.commands.jupyter import register_jupyter_magic
+from platforms.cli.core.config import get_home_profile_dir
 
 
 def _print_file_update(console, file_path: Path) -> None:
@@ -57,7 +58,7 @@ class SetupCommand(BaseCommand):
             "Steps performed:\n"
             "  1. Create virtual environment (.venv)\n"
             "  2. Install required packages (numpy, jupyter, etc.)\n"
-            "  3. Create user profile (~/.tinytorch/profile.json)\n"
+            "  3. Create user profile (~/.trentorch/profile.json)\n"
             "  4. Validate environment"
         )
         parser.add_argument("--skip-venv", action="store_true", help="Skip virtual environment creation")
@@ -72,7 +73,6 @@ class SetupCommand(BaseCommand):
         venv_paths = [
             self.config.project_root / ".venv",
             self.config.project_root / "venv",
-            self.config.project_root / "tinytorch-env",
         ]
         for venv_path in venv_paths:
             if venv_path.exists():
@@ -81,7 +81,7 @@ class SetupCommand(BaseCommand):
 
     def get_profile_path(self) -> Path:
         """Return the path to the profile file."""
-        return Path.home() / ".tinytorch" / "profile.json"
+        return get_home_profile_dir() / "profile.json"
 
     def check_existing_setup(self) -> dict[str, Any]:
         """Check what parts of setup already exist.
@@ -235,9 +235,9 @@ class SetupCommand(BaseCommand):
                     "install",
                     "--user",
                     "--name",
-                    "tinytorch",
+                    "trentorch",
                     "--display-name",
-                    "TinyTorch (Python 3)",
+                    "TrenTorch (Python 3)",
                 ],
                 capture_output=True,
                 text=True,
@@ -247,7 +247,7 @@ class SetupCommand(BaseCommand):
             )
 
             if result.returncode == 0:
-                self.console.print("[green]✅ Jupyter kernel 'tinytorch' registered[/green]")
+                self.console.print("[green]✅ Jupyter kernel 'trentorch' registered[/green]")
                 self.console.print("[dim]   Notebooks will use this Python environment[/dim]")
                 register_jupyter_magic(self.config, self.console)
             else:
@@ -255,7 +255,7 @@ class SetupCommand(BaseCommand):
                 self.console.print(f"[dim]   {result.stderr.strip()}[/dim]")
                 self.console.print(
                     "[yellow]   Fix: pip install ipykernel && "
-                    "python -m ipykernel install --user --name tinytorch[/yellow]"
+                    "python -m ipykernel install --user --name trentorch[/yellow]"
                 )
                 return False
         except FileNotFoundError:
@@ -390,10 +390,10 @@ class SetupCommand(BaseCommand):
         Args:
             force: If True, prompt to update existing profile.
         """
-        # Use .tinytorch directory (flat structure, not nested under community/)
-        tinytorch_dir = Path.home() / ".tinytorch"
-        tinytorch_dir.mkdir(parents=True, exist_ok=True)
-        profile_path = tinytorch_dir / "profile.json"
+        # Use .trentorch directory (flat structure, not nested under community/)
+        trentorch_dir = get_home_profile_dir()
+        trentorch_dir.mkdir(parents=True, exist_ok=True)
+        profile_path = trentorch_dir / "profile.json"
 
         if profile_path.exists():
             import json
@@ -417,7 +417,7 @@ class SetupCommand(BaseCommand):
 
         # Collect user information
         name = Prompt.ask("Your name", default="Tren⚡️Torch Developer")
-        email = Prompt.ask("Your email (optional)", default="dev@tinytorch.local")
+        email = Prompt.ask("Your email (optional)", default="dev@trentorch.local")
         affiliation = Prompt.ask("Your affiliation (university, company, etc.)", default="Independent")
 
         # Create profile
@@ -449,7 +449,7 @@ class SetupCommand(BaseCommand):
             ("Python version (≥3.10)", self.check_python_version),
             ("NumPy", self.check_numpy),
             ("Jupyter", self.check_jupyter),
-            ("Jupyter kernel (tinytorch)", self.check_jupyter_kernel),
+            ("Jupyter kernel (trentorch)", self.check_jupyter_kernel),
             ("TrenTorch package", self.check_trentorch_package),
         ]
 
@@ -510,7 +510,7 @@ class SetupCommand(BaseCommand):
             return False
 
     def check_jupyter_kernel(self) -> bool:
-        """Check if a TinyTorch Jupyter kernel is registered."""
+        """Check if a TrenTorch Jupyter kernel is registered."""
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "jupyter", "kernelspec", "list"],
@@ -520,7 +520,7 @@ class SetupCommand(BaseCommand):
                 errors="replace",
                 timeout=10,
             )
-            return result.returncode == 0 and "tinytorch" in result.stdout
+            return result.returncode == 0 and "trentorch" in result.stdout
         except Exception:
             return False
 

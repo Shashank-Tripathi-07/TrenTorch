@@ -318,7 +318,7 @@ def test_progressive_export_gate_is_not_treated_as_a_failure(tmp_path, monkeypat
         monkeypatch,
         returncode=4,
         stdout="",
-        stderr="TINYTORCH PACKAGE NOT EXPORTED yet, run tren module complete first",
+        stderr="TRENTORCH PACKAGE NOT EXPORTED yet, run tren module complete first",
     )
     assert result["tests"] == []
     assert result["failed"] == 0

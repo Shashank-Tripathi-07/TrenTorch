@@ -10,7 +10,7 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}🌐 Building TinyTorch website documentation...${NC}"
+echo -e "${BLUE}🌐 Building TrenTorch website documentation...${NC}"
 
 # Check if docs/_build exists
 if [ ! -d "docs/_build" ]; then

@@ -89,7 +89,7 @@ Issues = "https://github.com/TrenTorch/TrenTorch/issues"
 # import statement.
 [tool.setuptools.packages.find]
 where = [".", "data"]
-include = ["tinytorch*", "platforms*", "trentorch*"]
+include = ["platforms*", "trentorch*"]
 exclude = ["tests*", "data*", "site*", "docs*", "assignments*"]
 
 # Formatting/linting. Kept deliberately permissive for an educational
@@ -172,7 +172,7 @@ ignore = [
 # files, which are ordinary Python and don't have that problem.)
 "data/src/**/*.py" = ["F401", "F403"]
 
-# TinyTorch-specific pytest configuration (overrides parent pyproject.toml)
+# TrenTorch-specific pytest configuration (overrides parent pyproject.toml)
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["data/src", "data/milestones", "platforms", "tests"]

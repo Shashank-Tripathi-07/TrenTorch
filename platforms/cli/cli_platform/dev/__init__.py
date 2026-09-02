@@ -1,4 +1,4 @@
-"""Developer command group for TinyTorch CLI."""
+"""Developer command group for TrenTorch CLI."""
 
 from .clean import DevCleanCommand
 from .dev import DevCommand

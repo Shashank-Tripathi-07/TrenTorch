@@ -1,5 +1,5 @@
 """
-Runtime environment detection for the TinyTorch CLI.
+Runtime environment detection for the TrenTorch CLI.
 
 Single source of truth for two *separate* questions that the rest of the CLI
 must never conflate:

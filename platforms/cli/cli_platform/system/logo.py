@@ -1,5 +1,5 @@
 """
-Logo command for TinyTorch CLI: explains the symbolism and meaning behind TinyTorch.
+Logo command for TrenTorch CLI: explains the symbolism and meaning behind TrenTorch.
 """
 
 from argparse import ArgumentParser, Namespace
@@ -18,7 +18,7 @@ class LogoCommand(BaseCommand):
 
     @property
     def description(self) -> str:
-        return "Learn about the TinyTorch logo and its meaning"
+        return "Learn about the TrenTorch logo and its meaning"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--image", action="store_true", help="Show path to the actual logo image file")
@@ -35,14 +35,14 @@ class LogoCommand(BaseCommand):
         explanation = Text()
 
         # Title
-        explanation.append("\n🔥 The TinyTorch Story\n\n", style="bold yellow")
+        explanation.append("\n🔥 The TrenTorch Story\n\n", style="bold yellow")
 
         # The flame and sparks
         explanation.append("The Flame 🔥\n", style="bold orange1")
         explanation.append(
             "The flame represents the spark of understanding - how learning ML systems "
             "starts with a small flame that can grow into mastery. Just as a torch "
-            "lights the way in darkness, TinyTorch illuminates the path to understanding "
+            "lights the way in darkness, TrenTorch illuminates the path to understanding "
             "neural networks from first principles.\n\n",
             style="dim",
         )
@@ -72,7 +72,7 @@ class LogoCommand(BaseCommand):
         explanation.append(
             "A tribute to PyTorch, the framework that revolutionized deep learning. "
             "While PyTorch is powerful, its complexity can overwhelm beginners. "
-            "TinyTorch distills those same concepts into their essence, letting you "
+            "TrenTorch distills those same concepts into their essence, letting you "
             "build and understand every component. You're not just using a framework - "
             "you're building one.\n\n",
             style="dim",
@@ -91,7 +91,7 @@ class LogoCommand(BaseCommand):
         # The philosophy
         explanation.append("The Philosophy 💡\n", style="bold yellow")
         explanation.append(
-            "TinyTorch embodies the belief that anyone can understand ML systems by building them. "
+            "TrenTorch embodies the belief that anyone can understand ML systems by building them. "
             "Start small, understand deeply, build everything. What begins as a tiny flame of "
             "curiosity becomes the torch that lights your path to ML engineering mastery.\n\n",
             style="dim",
@@ -104,10 +104,10 @@ class LogoCommand(BaseCommand):
 
         # Personal message - flows naturally, only the tagline pops
         explanation.append(
-            "TinyTorch grew from the TinyML movement that started at Harvard in CS 249R. As I taught "
+            "TrenTorch grew from the TinyML movement that started at Harvard in CS 249R. As I taught "
             "thousands of students, both online and in person, I realized something was missing: there "
             "was no way to truly engineer ML systems from the ground up. So that's why I built "
-            "TinyTorch—a hands-on companion to ",
+            "TrenTorch—a hands-on companion to ",
             style="italic dim",
         )
         explanation.append("www.mlsysbook.ai", style="italic magenta")
@@ -125,7 +125,7 @@ class LogoCommand(BaseCommand):
         console.print(
             Panel(
                 explanation,
-                title="[bold]About the TinyTorch Logo[/bold]",
+                title="[bold]About the TrenTorch Logo[/bold]",
                 border_style="orange1",
                 padding=(1, 2),
             )

@@ -1,8 +1,8 @@
 """
-Developer clean command for TinyTorch CLI.
+Developer clean command for TrenTorch CLI.
 
 Wraps the project's make-based clean target so tools can call
-Tito instead of raw make commands.
+Tren instead of raw make commands.
 
 Usage:
     tren dev clean          Clean all generated files (project root)

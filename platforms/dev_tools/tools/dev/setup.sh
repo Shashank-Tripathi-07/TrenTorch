@@ -1,10 +1,10 @@
 #!/bin/bash
-# TinyTorch Development Environment Setup
-# This script sets up the development environment for TinyTorch
+# TrenTorch Development Environment Setup
+# This script sets up the development environment for TrenTorch
 
 set -e  # Exit on error
 
-echo "🔥 Setting up TinyTorch development environment..."
+echo "🔥 Setting up TrenTorch development environment..."
 
 # Check if virtual environment exists, create if not
 if [ ! -d ".venv" ]; then
@@ -29,8 +29,8 @@ pip install -r requirements.txt || {
     echo "⚠️  Some dependencies failed - continuing with essential packages"
 }
 
-# Install TinyTorch in development mode
-echo "🔧 Installing TinyTorch in development mode..."
+# Install TrenTorch in development mode
+echo "🔧 Installing TrenTorch in development mode..."
 pip install -e . || {
     echo "⚠️  Development install had issues - continuing"
 }

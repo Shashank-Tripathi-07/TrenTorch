@@ -1,5 +1,5 @@
 """
-Enhanced Module Workflow for TinyTorch CLI.
+Enhanced Module Workflow for TrenTorch CLI.
 
 Implements the natural workflow:
 1. tren module start 01 → Opens module 01 in Jupyter
@@ -376,7 +376,7 @@ class ModuleWorkflowCommand(BaseCommand):
         """Create a module in data/modules/ by converting from src/.
 
         Uses the same conversion logic as 'tren dev export' but only creates
-        the student-facing notebook, without exporting to the tinytorch package.
+        the student-facing notebook, without exporting to the trentorch package.
         Full `src/` (including `### BEGIN SOLUTION` ... `### END SOLUTION` blocks) is
         passed through to jupytext so notebooks match the source-of-truth and exports
         remain consistent for `tren module complete` and CI user-journey.
@@ -547,7 +547,7 @@ class ModuleWorkflowCommand(BaseCommand):
                 "[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]"
             )
             self.console.print()
-            self.console.print("[bold cyan] Step 2/4: Exporting to TinyTorch Package[/bold cyan]")
+            self.console.print("[bold cyan] Step 2/4: Exporting to TrenTorch Package[/bold cyan]")
             self.console.print()
 
             _t0 = time.time()
@@ -567,7 +567,7 @@ class ModuleWorkflowCommand(BaseCommand):
                     f"   [dim]Your {export_label} implementation is now part of the framework![/dim]"
                 )
 
-        # Step 3: Run INTEGRATION tests (AFTER export, since they import from tinytorch.core.*)
+        # Step 3: Run INTEGRATION tests (AFTER export, since they import from trentorch.core.*)
         if not skip_tests:
             self.console.print()
             self.console.print(
@@ -799,7 +799,7 @@ class ModuleWorkflowCommand(BaseCommand):
         return 0
 
     def export_module(self, module_name: str) -> int:
-        """Export student's notebook to the TinyTorch package.
+        """Export student's notebook to the TrenTorch package.
 
         This only runs nbdev_export on the existing notebook.
         It does NOT convert from data/src/*.py (that would overwrite student work).
@@ -825,7 +825,7 @@ class ModuleWorkflowCommand(BaseCommand):
 
             if not notebook_path.exists():
                 self.console.print(f"[red]❌ Notebook not found: {notebook_path}[/red]")
-                self.console.print("[dim]Make sure you're in the TinyTorch project root.[/dim]")
+                self.console.print("[dim]Make sure you're in the TrenTorch project root.[/dim]")
                 return 1
 
             # Ensure target file is writable
@@ -872,7 +872,7 @@ class ModuleWorkflowCommand(BaseCommand):
                     )
                     return 1
 
-            self.console.print("[dim]✅ Your code is now part of the tinytorch package![/dim]")
+            self.console.print("[dim]✅ Your code is now part of the trentorch package![/dim]")
             return 0
 
         except ImportError:
@@ -1056,7 +1056,7 @@ class ModuleWorkflowCommand(BaseCommand):
         from rich.table import Table
 
         table = Table(
-            title="📚 Tiny🔥Torch Modules", box=box.ROUNDED, show_header=True, header_style="bold blue"
+            title="📚 Tren⚡️Torch Modules", box=box.ROUNDED, show_header=True, header_style="bold blue"
         )
         table.add_column("#", style="cyan", width=3)
         table.add_column("Module", style="bold", no_wrap=True)

@@ -4,7 +4,7 @@ Core CLI functionality and shared utilities.
 
 from .config import CLIConfig
 from .console import get_console
-from .exceptions import ExecutionError, TinyTorchCLIError, ValidationError
+from .exceptions import ExecutionError, TrenTorchCLIError, ValidationError
 from .modules import (
     clear_cache,
     get_module_display_name,
@@ -18,7 +18,7 @@ from .modules import (
 
 __all__ = [
     "get_console",
-    "TinyTorchCLIError",
+    "TrenTorchCLIError",
     "ValidationError",
     "ExecutionError",
     "CLIConfig",

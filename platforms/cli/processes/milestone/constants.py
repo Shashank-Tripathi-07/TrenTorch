@@ -6,7 +6,7 @@ dev/test.py, which reach in for MILESTONE_SCRIPTS directly) can import from
 here without pulling in MilestoneSystem or MilestoneCommand.
 """
 
-# Name aliases for milestone IDs (allows `tito milestone run perceptron`)
+# Name aliases for milestone IDs (allows `tren milestone run perceptron`)
 MILESTONE_ALIASES = {
     "perceptron": "01",
     "xor": "02",
@@ -17,7 +17,7 @@ MILESTONE_ALIASES = {
     "olympics": "06",
 }
 
-# Milestone-to-script mapping for tito milestone run command
+# Milestone-to-script mapping for tren milestone run command
 MILESTONE_SCRIPTS = {
     "01": {
         "id": "01",

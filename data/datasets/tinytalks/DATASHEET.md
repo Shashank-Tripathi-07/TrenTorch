@@ -12,11 +12,11 @@ TinyTalks was created to provide an educational, lightweight conversational Q&A 
 
 ### 2. Who created the dataset and on behalf of which entity?
 
-TinyTalks was created by the TinyTorch Contributors as part of the TinyTorch educational deep learning framework. It was developed specifically for the Transformer milestone (Module 13 / Milestone 05) of the TinyTorch curriculum.
+TinyTalks was created by the TrenTorch Contributors as part of the TrenTorch educational deep learning framework. It was developed specifically for the Transformer milestone (Module 13 / Milestone 05) of the TrenTorch curriculum.
 
 ### 3. Who funded the creation of the dataset?
 
-This dataset was created as an open-source educational resource without specific funding. It is part of the broader TinyTorch project.
+This dataset was created as an open-source educational resource without specific funding. It is part of the broader TrenTorch project.
 
 ---
 
@@ -107,7 +107,7 @@ No. The dataset was explicitly designed to be:
 
 ### 16. How was the data associated with each instance acquired?
 
-All Q&A pairs were **manually authored** by TinyTorch contributors. No scraping, crowdsourcing, or automated generation was used for v1.0.
+All Q&A pairs were **manually authored** by TrenTorch contributors. No scraping, crowdsourcing, or automated generation was used for v1.0.
 
 ### 17. What mechanisms or procedures were used to collect the data?
 
@@ -122,7 +122,7 @@ Not applicable. This is an original curated dataset, not a sample from a larger 
 
 ### 19. Who was involved in the data collection process and how were they compensated?
 
-TinyTorch contributors (open-source volunteers). No monetary compensation. Contributors are acknowledged in project documentation.
+TrenTorch contributors (open-source volunteers). No monetary compensation. Contributors are acknowledged in project documentation.
 
 ### 20. Over what timeframe was the data collected?
 
@@ -130,7 +130,7 @@ December 2024 - January 2025 (v1.0 release)
 
 ### 21. Were any ethical review processes conducted?
 
-Informal ethical review by TinyTorch maintainers, focusing on:
+Informal ethical review by TrenTorch maintainers, focusing on:
 - Appropriateness for educational use
 - Absence of bias and offensive content
 - Privacy considerations (no PII)
@@ -175,7 +175,7 @@ All scripts are open-source (MIT license) and included in the repository.
 Yes, the primary use case:
 - **Task**: Autoregressive language modeling (transformer training)
 - **Model**: TinyGPT (small GPT-style transformer)
-- **Milestone**: TinyTorch Module 13 - Transformers
+- **Milestone**: TrenTorch Module 13 - Transformers
 - **Performance**: Achieves ~80% accuracy on Level 1-2 questions after 3-5 minutes of training
 
 ### 26. Is there a repository that links to any or all papers or systems that use the dataset?
@@ -233,7 +233,7 @@ Yes. TinyTalks is **open-source** and freely available to everyone under CC BY 4
 ### 31. How will the dataset be distributed?
 
 - **GitHub repository**: https://github.com/harvard-edge/cs249r_book/tree/main/tinytorch/datasets/tinytalks
-- **Included with TinyTorch**: Ships with the framework (no download required)
+- **Included with TrenTorch**: Ships with the framework (no download required)
 - **Format**: Plain text files (.txt)
 
 ### 32. When will the dataset be distributed?
@@ -264,7 +264,7 @@ No export controls or regulatory restrictions apply.
 
 ### 36. Who will be supporting/hosting/maintaining the dataset?
 
-**TinyTorch Contributors** (maintainers of the TinyTorch project)
+**TrenTorch Contributors** (maintainers of the TrenTorch project)
 
 Primary maintainer: VJ (@profvjreddi on GitHub)
 

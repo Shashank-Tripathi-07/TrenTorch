@@ -3,7 +3,7 @@
 Everything `tren` does with Jupyter lives here: choosing Notebook vs
 Lab, finding or starting the one shared server a project uses, opening
 a module's notebook in it, and scoping the `%tren` magic to the
-`tinytorch` kernel. This used to be split three ways (server lifecycle
+`trentorch` kernel. This used to be split three ways (server lifecycle
 in module/workflow.py, magic registration in commands/setup.py, the
 magic itself in jupyter_magic.py) purely because each piece got added
 at a different time; the component is one thing, so its process logic
@@ -193,7 +193,7 @@ def open_jupyter(config, console, module_name: str, notebook: bool = False, lab:
 
 
 def register_jupyter_magic(config, console) -> None:
-    """Scope-load the %tren magic for the 'tinytorch' kernel only.
+    """Scope-load the %tren magic for the 'trentorch' kernel only.
 
     Points that kernel's IPYTHONDIR at a project-local directory
     (instead of the user's global ~/.ipython) and drops a startup
@@ -211,7 +211,7 @@ def register_jupyter_magic(config, console) -> None:
         )
         if result.returncode != 0:
             return
-        kernel_json_path = Path(result.stdout.strip()) / "kernels" / "tinytorch" / "kernel.json"
+        kernel_json_path = Path(result.stdout.strip()) / "kernels" / "trentorch" / "kernel.json"
         if not kernel_json_path.exists():
             return
 
@@ -231,7 +231,7 @@ def register_jupyter_magic(config, console) -> None:
         spec.setdefault("env", {})["IPYTHONDIR"] = str(ipython_dir)
         kernel_json_path.write_text(json.dumps(spec, indent=1), encoding="utf-8")
 
-        console.print("[green]✅ %tren magic registered for the 'tinytorch' kernel[/green]")
+        console.print("[green]✅ %tren magic registered for the 'trentorch' kernel[/green]")
         console.print("[dim]   Run tren commands from inside Jupyter: %tren module complete 01[/dim]")
     except Exception as e:
         console.print(f"[yellow]⚠️  Could not register %tren magic: {e}[/yellow]")

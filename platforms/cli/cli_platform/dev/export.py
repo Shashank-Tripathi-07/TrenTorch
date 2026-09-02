@@ -92,12 +92,12 @@ class DevExportCommand(BaseCommand):
         # Guard: Ensure we're in the correct directory (trentorch project root)
         # Check for key files that indicate we're in the right place
         cwd = Path.cwd()
-        is_tinytorch_root = (
+        is_trentorch_root = (
             (cwd / "data" / "trentorch" / "__init__.py").exists()  # Running from repo root
             or (cwd / "data" / "src").exists()
             and (cwd / "pyproject.toml").exists()  # Already in trentorch/
         )
-        if not is_tinytorch_root:
+        if not is_trentorch_root:
             console.print(
                 Panel(
                     "[red]❌ Must run from TrenTorch project directory[/red]\n\n"
@@ -188,7 +188,7 @@ class DevExportCommand(BaseCommand):
             solution_notebooks.append(str(solution_notebook))
 
         # Step 2: Export the solution (ground-truth) notebooks to the package
-        logger.info(f"Exporting {len(solution_notebooks)} notebooks to tinytorch package")
+        logger.info(f"Exporting {len(solution_notebooks)} notebooks to trentorch package")
         return self._run_nbdev_export(solution_notebooks, console)
 
     def _export_all_modules(self, console) -> int:

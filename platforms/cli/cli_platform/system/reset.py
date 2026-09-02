@@ -1,9 +1,9 @@
 """
-System Reset Command for TinyTorch CLI.
+System Reset Command for TrenTorch CLI.
 
-Resets the TinyTorch development environment to a pristine state:
+Resets the TrenTorch development environment to a pristine state:
 - Clears data/modules/ directory (student notebooks)
-- Clears tinytorch/core/ (exported package code)
+- Clears data/trentorch/core/ (exported package code)
 - Optionally resets progress tracking
 
 This is useful for:
@@ -22,7 +22,7 @@ from platforms.cli.core.modules import get_module_mapping
 
 
 class SystemResetCommand(BaseCommand):
-    """Command to reset TinyTorch to pristine state."""
+    """Command to reset TrenTorch to pristine state."""
 
     @property
     def name(self) -> str:
@@ -30,7 +30,7 @@ class SystemResetCommand(BaseCommand):
 
     @property
     def description(self) -> str:
-        return "Reset TinyTorch to pristine state"
+        return "Reset TrenTorch to pristine state"
 
     def add_arguments(self, parser: ArgumentParser) -> None:
         """Add reset command arguments."""
@@ -53,7 +53,7 @@ class SystemResetCommand(BaseCommand):
                     "[bold red]⚠️  SYSTEM RESET[/bold red]\n\n"
                     "This will remove:\n"
                     "  • [bold]data/modules/[/bold] - All student notebooks (01_tensor/, 02_activations/, etc.)\n"
-                    "  • [bold]tinytorch/core/[/bold] - All exported module code\n"
+                    "  • [bold]data/trentorch/core/[/bold] - All exported module code\n"
                     + (
                         ""
                         if args.keep_progress
