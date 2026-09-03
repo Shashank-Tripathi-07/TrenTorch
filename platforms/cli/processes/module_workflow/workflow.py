@@ -18,6 +18,7 @@ from rich.text import Text
 
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.commands.jupyter import open_jupyter
+from platforms.cli.core.atomic_io import atomic_write_json
 from platforms.cli.core.modules import (
     get_all_module_metadata,
     get_module_display_name,
@@ -912,13 +913,11 @@ class ModuleWorkflowCommand(BaseCommand):
         progress_file = user_data_dir / "progress.json"
 
         try:
-            import json
             from datetime import datetime
 
             progress["last_updated"] = datetime.now().isoformat()
 
-            with open(progress_file, "w") as f:
-                json.dump(progress, f, indent=2)
+            atomic_write_json(progress_file, progress)
         except Exception as e:
             self.console.print(f"[yellow]⚠️  Could not save progress: {e}[/yellow]")
 
