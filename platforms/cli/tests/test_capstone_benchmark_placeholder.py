@@ -39,7 +39,7 @@ def _run_capstone(tmp_path, monkeypatch, completed_modules):
     cmd = BenchmarkCommand(config)
     cmd.console = Console(file=StringIO(), width=120, no_color=True)
 
-    args = Namespace(track="all", skip_submit=True)
+    args = Namespace(track="all")
     cmd._run_capstone(args)
     return cmd.console.file.getvalue(), user_data / "benchmarks"
 
