@@ -2199,7 +2199,11 @@ def analyze_dataloader_performance():
     batches_shuffle = list(loader_shuffle)
     time_shuffle = time.time() - start_time
 
-    shuffle_overhead = ((time_shuffle - time_no_shuffle) / time_no_shuffle) * 100
+    # >= 1e-9, not a plain division: a raw timer measurement can
+    # legitimately be exactly 0.0 on a fast machine with a coarse timer
+    # resolution (~15.6ms on Windows).
+    time_no_shuffle_safe = time_no_shuffle if time_no_shuffle > 0 else 1e-9
+    shuffle_overhead = ((time_shuffle - time_no_shuffle) / time_no_shuffle_safe) * 100
 
     print(f"  No shuffle: {time_no_shuffle:.3f}s")
     print(f"  With shuffle: {time_shuffle:.3f}s")
