@@ -36,9 +36,7 @@ def _load_completed_module_numbers() -> set:
     progress_file = Path("user_data") / "progress.json"
     completed = set()
 
-    progress_data = read_json_or_warn(
-        progress_file, {}, console=get_console(), label="Your saved progress"
-    )
+    progress_data = read_json_or_warn(progress_file, {}, console=get_console(), label="Your saved progress")
     for module_value in progress_data.get("completed_modules", []):
         module_num = _module_progress_to_int(module_value)
         if module_num is not None:
@@ -269,9 +267,7 @@ class MilestoneSystem:
             progress_file, {}, console=self.console, label="Your saved progress"
         )
         module_num = _module_progress_to_int(module_name)
-        completed_nums = {
-            _module_progress_to_int(mod) for mod in progress_data.get("completed_modules", [])
-        }
+        completed_nums = {_module_progress_to_int(mod) for mod in progress_data.get("completed_modules", [])}
         return module_num in completed_nums
 
     def _get_milestone_progress_data(self) -> dict:
