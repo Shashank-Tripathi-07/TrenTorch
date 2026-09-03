@@ -721,6 +721,8 @@ class DevTestCommand(BaseCommand):
                     failed_module = f"{module_num}:export_exception:{str(e)[:50]}"
                     if ci_mode:
                         print(f"✗ EXPORT ERROR: {str(e)[:200]}")
+                    else:
+                        console.print(f"  [red]✗ EXPORT ERROR: {str(e)[:200]}[/red]")
                     break
                 if ci_mode and os.environ.get("TREN_PROFILE") == "1":
                     print(
@@ -728,14 +730,27 @@ class DevTestCommand(BaseCommand):
                     )
                 if export_rc != 0:
                     failed_module = f"{module_num}:export"
+                    # The buffered output is the only place the real reason
+                    # for the failure lives (quiet_console wrote it there
+                    # instead of the real console). Show it either way, not
+                    # only under --ci -- a local, non-CI run that hits this
+                    # used to get nothing but "Failed at NN:export" with no
+                    # way to self-diagnose (issue #158).
+                    buf = quiet_buffer.getvalue()
                     if ci_mode:
                         print("✗ EXPORT FAILED")
-                        buf = quiet_buffer.getvalue()
                         if buf:
                             print("      Output (last 500 chars):")
                             for line in buf[-500:].split("\n")[-10:]:
                                 if line.strip():
                                     print(f"        {line}")
+                    else:
+                        console.print("  [red]✗ EXPORT FAILED[/red]")
+                        if buf:
+                            console.print("  [dim]Output (last 500 chars):[/dim]")
+                            for line in buf[-500:].split("\n")[-10:]:
+                                if line.strip():
+                                    console.print(f"    [dim]{line}[/dim]")
                     break
 
                 quiet_buffer.seek(0)
