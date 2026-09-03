@@ -2,7 +2,6 @@
 TrenTorch Interactive Textual Terminal User Interface (TUI).
 """
 
-import json
 import os
 import subprocess
 import sys
@@ -27,7 +26,9 @@ from textual.widgets import (
 )
 from textual.worker import get_current_worker
 
+from platforms.cli.core.atomic_io import read_json_or_warn
 from platforms.cli.core.config import CLIConfig
+from platforms.cli.core.console import get_console
 from platforms.cli.core.modules import get_all_module_metadata, get_module_mapping, normalize_module_number
 from platforms.cli.processes.milestone.constants import MILESTONE_SCRIPTS
 
@@ -236,18 +237,16 @@ class TrenTorchApp(App):
     def _load_progress(self) -> dict[str, Any]:
         """Load progress.json data."""
         p_file = self.config.project_root / "user_data" / "progress.json"
-        if p_file.exists():
-            try:
-                with open(p_file) as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        return {
+        default = {
             "started_modules": [],
             "completed_modules": [],
             "last_worked": None,
             "last_completed": None,
         }
+        # Called from __init__, before Textual's run() takes over the
+        # screen -- printing straight to the real console here is still
+        # safe, unlike anywhere after compose().
+        return read_json_or_warn(p_file, default, console=get_console(), label="Your saved progress")
 
     def compose(self) -> ComposeResult:
         """Compose the main layout."""
