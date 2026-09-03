@@ -29,6 +29,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from platforms.cli import __version__
+from platforms.cli.core.atomic_io import read_json_or_warn
 from platforms.cli.core.config import CLIConfig
 from platforms.cli.core.modules import (
     get_all_module_metadata,
@@ -213,19 +214,18 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
     def _load_progress(self) -> dict[str, Any]:
         """Load user progress from progress.json."""
         p_file = self.config.project_root / "user_data" / "progress.json"
-        if p_file.exists():
-            try:
-                with open(p_file) as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        return {
+        default = {
             "started_modules": [],
             "completed_modules": [],
             "last_worked": None,
             "last_completed": None,
             "last_updated": None,
         }
+        # No Rich console here (this runs per-HTTP-request, not on a
+        # terminal); console=None makes read_json_or_warn print straight
+        # to stderr instead, which lands in the same place `tren serve`'s
+        # own request log already goes.
+        return read_json_or_warn(p_file, default, label="Your saved progress")
 
     def _send_json(self, data: Any, status: HTTPStatus = HTTPStatus.OK):
         """Helper to send JSON response."""

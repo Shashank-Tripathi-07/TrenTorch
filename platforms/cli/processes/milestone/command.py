@@ -3,7 +3,6 @@ subcommands (run/test/demo). Status/timeline/list/info rendering lives in
 display.py; unlock state and prerequisite checks live in system.py.
 """
 
-import json
 import subprocess
 import sys
 from argparse import ArgumentParser, Namespace
@@ -14,6 +13,7 @@ from rich.cells import cell_len
 from rich.panel import Panel
 
 from platforms.cli.commands.base import BaseCommand
+from platforms.cli.core.atomic_io import read_json_or_warn
 
 from . import display
 from .constants import MILESTONE_ACHIEVEMENT_HIGHLIGHTS, MILESTONE_ALIASES, MILESTONE_SCRIPTS
@@ -642,16 +642,13 @@ class MilestoneCommand(BaseCommand):
                 # Get completed modules for checking next milestone
                 progress_file = Path("user_data") / "progress.json"
                 completed_modules = []
-                if progress_file.exists():
+                progress_data = read_json_or_warn(
+                    progress_file, {}, console=console, label="Your saved progress"
+                )
+                for mod in progress_data.get("completed_modules", []):
                     try:
-                        with open(progress_file) as f:
-                            progress_data = json.load(f)
-                            for mod in progress_data.get("completed_modules", []):
-                                try:
-                                    completed_modules.append(int(mod.split("_")[0]))
-                                except (ValueError, IndexError):
-                                    pass
-                    except (OSError, json.JSONDecodeError):
+                        completed_modules.append(int(mod.split("_")[0]))
+                    except (ValueError, IndexError):
                         pass
 
                 # Check if unlocked
