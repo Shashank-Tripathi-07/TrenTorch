@@ -172,7 +172,6 @@ def test_rosetta_venv_creation_uses_argv_list_not_shell_string(tmp_path, monkeyp
     assert captured["shell"] is not True, "venv creation must not go through shell=True"
     assert isinstance(captured["cmd_args"], list), "venv creation must pass a real argv list"
     assert expected_venv_path in captured["cmd_args"], (
-        "the spaced venv path must survive as a single argv element, "
-        f"got: {captured['cmd_args']}"
+        f"the spaced venv path must survive as a single argv element, got: {captured['cmd_args']}"
     )
     assert captured["cmd_args"][:2] == ["arch", "-arm64"]
