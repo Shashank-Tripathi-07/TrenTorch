@@ -15,6 +15,7 @@ from rich.table import Table
 
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.commands.export_utils import convert_py_to_notebook
+from platforms.cli.core.atomic_io import atomic_write_json
 from platforms.cli.core.modules import get_module_mapping, normalize_module_number
 
 
@@ -223,8 +224,7 @@ class ModuleResetCommand(BaseCommand):
 
                 progress["last_updated"] = datetime.now().isoformat()
 
-                with open(progress_file, "w") as f:
-                    json.dump(progress, f, indent=2)
+                atomic_write_json(progress_file, progress)
             except Exception as e:
                 console.print(f"[dim]Could not update progress: {e}[/dim]")
 
