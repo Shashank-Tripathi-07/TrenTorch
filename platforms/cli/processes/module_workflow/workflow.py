@@ -18,7 +18,7 @@ from rich.text import Text
 
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.commands.jupyter import open_jupyter
-from platforms.cli.core.atomic_io import atomic_write_json
+from platforms.cli.core.atomic_io import atomic_write_json, read_json_or_warn
 from platforms.cli.core.modules import (
     get_all_module_metadata,
     get_module_display_name,
@@ -889,22 +889,14 @@ class ModuleWorkflowCommand(BaseCommand):
         user_data_dir = self.config.project_root / "user_data"
         progress_file = user_data_dir / "progress.json"
 
-        try:
-            import json
-
-            if progress_file.exists():
-                with open(progress_file) as f:
-                    return json.load(f)
-        except Exception:
-            pass
-
-        return {
+        default = {
             "started_modules": [],
             "completed_modules": [],
             "last_worked": None,
             "last_completed": None,
             "last_updated": None,
         }
+        return read_json_or_warn(progress_file, default, console=self.console, label="Your saved progress")
 
     def save_progress_data(self, progress: dict) -> None:
         """Save progress data to user_data/progress.json."""
@@ -1241,8 +1233,6 @@ class ModuleWorkflowCommand(BaseCommand):
         so module status, milestone list, and milestone run share one set of
         prerequisites.
         """
-        import json
-
         from platforms.cli.processes.milestone import (
             MILESTONE_SCRIPTS,
             _module_progress_to_int,
@@ -1251,14 +1241,10 @@ class ModuleWorkflowCommand(BaseCommand):
 
         # Check which milestones have been run successfully.
         milestones_file = self.config.project_root / "user_data" / "milestones.json"
-        completed_milestones = []
-        if milestones_file.exists():
-            try:
-                with open(milestones_file) as f:
-                    data = json.load(f)
-                    completed_milestones = data.get("completed_milestones", [])
-            except Exception:
-                pass
+        milestones_data = read_json_or_warn(
+            milestones_file, {}, console=self.console, label="Your saved milestone progress"
+        )
+        completed_milestones = milestones_data.get("completed_milestones", [])
 
         completed_set = {
             module_num

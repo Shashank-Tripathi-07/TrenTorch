@@ -18,7 +18,7 @@ from rich.prompt import Confirm
 from rich.table import Table
 
 from platforms.cli.commands.base import BaseCommand
-from platforms.cli.core.atomic_io import atomic_write_json
+from platforms.cli.core.atomic_io import atomic_write_json, read_json_or_warn
 
 
 class BenchmarkCommand(BaseCommand):
@@ -259,16 +259,12 @@ class BenchmarkCommand(BaseCommand):
         # benchmark path below regardless of real progress.
         progress_file = Path("user_data") / "progress.json"
         completed_modules: set[int] = set()
-        if progress_file.exists():
+        progress_data = read_json_or_warn(progress_file, {}, console=console, label="Your saved progress")
+        for module_value in progress_data.get("completed_modules", []):
+            prefix = str(module_value).split("_", 1)[0]
             try:
-                with open(progress_file) as f:
-                    for module_value in json.load(f).get("completed_modules", []):
-                        prefix = str(module_value).split("_", 1)[0]
-                        try:
-                            completed_modules.add(int(prefix))
-                        except ValueError:
-                            pass
-            except (OSError, json.JSONDecodeError):
+                completed_modules.add(int(prefix))
+            except ValueError:
                 pass
 
         if 20 not in completed_modules:
