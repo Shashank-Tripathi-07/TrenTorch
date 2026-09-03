@@ -13,6 +13,7 @@ from pathlib import Path
 from rich import box
 from rich.panel import Panel
 
+from platforms.cli.core.atomic_io import atomic_write_json
 from platforms.cli.core.console import get_console
 
 from .constants import MILESTONE_SCRIPTS, MODULE_EXPORT_CHECKS
@@ -314,8 +315,7 @@ class MilestoneSystem:
         progress_dir.mkdir(exist_ok=True)
 
         try:
-            with open(progress_file, "w") as f:
-                json.dump(milestone_data, f, indent=2)
+            atomic_write_json(progress_file, milestone_data)
         except OSError:
             pass
 
@@ -382,8 +382,7 @@ def check_and_run_milestone_unlocks(config, console) -> None:
         milestone_progress["total_unlocked"] = len(unlocked)
         milestone_progress.setdefault("achievements", [])
 
-        with open(milestones_file, "w") as f:
-            json.dump(milestone_progress, f, indent=2)
+        atomic_write_json(milestones_file, milestone_progress)
 
         for milestone_id, milestone in newly_unlocked:
             console.print()
