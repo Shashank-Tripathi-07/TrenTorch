@@ -279,12 +279,18 @@ class TrenTorchStatusAnalyzer:
             try:
                 # Create a temporary file to test import
                 with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as temp_file:
-                    # Write a minimal test to check if the module can be imported
+                    # Write a minimal test to check if the module can be imported.
+                    # repr() (not an f-string's raw str()) round-trips both paths
+                    # as proper Python string literals: a plain f-string here
+                    # previously corrupted any Windows path whose backslash was
+                    # followed by an octal-escape-looking digit (e.g.
+                    # "...src\\02_activations" -> "...src\x02activations"),
+                    # silently pointing sys.path at a path that doesn't exist.
                     test_code = f"""
 import sys
-sys.path.insert(0, '{module_path}')
+sys.path.insert(0, {str(module_path)!r})
 try:
-    exec(open('{dev_file}').read())
+    exec(open({str(dev_file)!r}).read())
     print("SUCCESS: Module imports and runs")
 except Exception as e:
     print(f"ERROR: {{e}}")
