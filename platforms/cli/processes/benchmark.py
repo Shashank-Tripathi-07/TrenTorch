@@ -18,6 +18,7 @@ from rich.prompt import Confirm
 from rich.table import Table
 
 from platforms.cli.commands.base import BaseCommand
+from platforms.cli.core.atomic_io import atomic_write_json
 
 
 class BenchmarkCommand(BaseCommand):
@@ -200,8 +201,7 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"baseline_{timestamp_str}.json"
 
-        with open(results_file, "w") as f:
-            json.dump(results, f, indent=2)
+        atomic_write_json(results_file, results)
 
         console.print(f"\n[green]✅ Results saved to: {results_file}[/green]")
 
@@ -320,8 +320,7 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_{timestamp_str}.json"
 
-        with open(results_file, "w") as f:
-            json.dump(results, f, indent=2)
+        atomic_write_json(results_file, results)
 
         # Display results
         self._display_capstone_results(results)
@@ -375,8 +374,7 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_simplified_{timestamp_str}.json"
 
-        with open(results_file, "w") as f:
-            json.dump(results, f, indent=2)
+        atomic_write_json(results_file, results)
 
         console.print(f"\n[green]✅ Results saved to: {results_file}[/green]")
         console.print("[yellow]💡 Complete Module 20 for full capstone benchmarks[/yellow]")
@@ -569,8 +567,7 @@ class BenchmarkCommand(BaseCommand):
                 timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
                 submission_file = submission_dir / f"{benchmark_type}_submission_{timestamp_str}.json"
 
-                with open(submission_file, "w") as f:
-                    json.dump(submission, f, indent=2)
+                atomic_write_json(submission_file, submission)
 
                 console.print(f"\n[green]✅ Submission prepared: {submission_file}[/green]")
 
@@ -627,9 +624,8 @@ class BenchmarkCommand(BaseCommand):
                 pass
 
         # Create default config if it doesn't exist
-        config_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(config_file, "w") as f:
-            json.dump(default_config, f, indent=2)
+        # atomic_write_json already creates the parent directory
+        atomic_write_json(config_file, default_config)
 
         return default_config
 
