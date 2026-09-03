@@ -896,9 +896,7 @@ class ModuleWorkflowCommand(BaseCommand):
             "last_completed": None,
             "last_updated": None,
         }
-        return read_json_or_warn(
-            progress_file, default, console=self.console, label="Your saved progress"
-        )
+        return read_json_or_warn(progress_file, default, console=self.console, label="Your saved progress")
 
     def save_progress_data(self, progress: dict) -> None:
         """Save progress data to user_data/progress.json."""
