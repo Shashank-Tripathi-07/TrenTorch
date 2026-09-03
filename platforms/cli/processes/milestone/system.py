@@ -6,14 +6,13 @@ home, separate from command dispatch (command.py) and display (display.py).
 """
 
 import importlib
-import json
 from datetime import datetime
 from pathlib import Path
 
 from rich import box
 from rich.panel import Panel
 
-from platforms.cli.core.atomic_io import atomic_write_json
+from platforms.cli.core.atomic_io import atomic_write_json, read_json_or_warn
 from platforms.cli.core.console import get_console
 
 from .constants import MILESTONE_SCRIPTS, MODULE_EXPORT_CHECKS
@@ -36,15 +35,10 @@ def _load_completed_module_numbers() -> set:
     """Read completed module numbers from the canonical user_data progress file."""
     progress_file = Path("user_data") / "progress.json"
     completed = set()
-    if not progress_file.exists():
-        return completed
 
-    try:
-        with open(progress_file) as f:
-            progress_data = json.load(f)
-    except (OSError, json.JSONDecodeError):
-        return completed
-
+    progress_data = read_json_or_warn(
+        progress_file, {}, console=get_console(), label="Your saved progress"
+    )
     for module_value in progress_data.get("completed_modules", []):
         module_num = _module_progress_to_int(module_value)
         if module_num is not None:
@@ -271,18 +265,14 @@ class MilestoneSystem:
         """Check if a module has been completed."""
         # Check module progress file
         progress_file = Path("user_data") / "progress.json"
-        if progress_file.exists():
-            try:
-                with open(progress_file) as f:
-                    progress_data = json.load(f)
-                    module_num = _module_progress_to_int(module_name)
-                    completed_nums = {
-                        _module_progress_to_int(mod) for mod in progress_data.get("completed_modules", [])
-                    }
-                    return module_num in completed_nums
-            except (OSError, json.JSONDecodeError):
-                pass
-        return False
+        progress_data = read_json_or_warn(
+            progress_file, {}, console=self.console, label="Your saved progress"
+        )
+        module_num = _module_progress_to_int(module_name)
+        completed_nums = {
+            _module_progress_to_int(mod) for mod in progress_data.get("completed_modules", [])
+        }
+        return module_num in completed_nums
 
     def _get_milestone_progress_data(self) -> dict:
         """Get or create milestone progress data."""
@@ -291,14 +281,7 @@ class MilestoneSystem:
 
         progress_dir.mkdir(exist_ok=True)
 
-        if progress_file.exists():
-            try:
-                with open(progress_file) as f:
-                    return json.load(f)
-            except (OSError, json.JSONDecodeError):
-                pass
-
-        return {
+        default = {
             "completed_milestones": [],
             "completion_dates": {},
             "unlocked_milestones": [],
@@ -306,6 +289,9 @@ class MilestoneSystem:
             "total_unlocked": 0,
             "achievements": [],
         }
+        return read_json_or_warn(
+            progress_file, default, console=self.console, label="Your saved milestone progress"
+        )
 
     def _save_milestone_progress_data(self, milestone_data: dict) -> None:
         """Save milestone progress data."""
@@ -337,11 +323,7 @@ def check_and_run_milestone_unlocks(config, console) -> None:
     """
     try:
         progress_file = config.project_root / "user_data" / "progress.json"
-        try:
-            with open(progress_file) as f:
-                progress = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            progress = {}
+        progress = read_json_or_warn(progress_file, {}, console=console, label="Your saved progress")
         completed = {
             module_num
             for module_num in (_module_progress_to_int(m) for m in progress.get("completed_modules", []))
@@ -350,14 +332,9 @@ def check_and_run_milestone_unlocks(config, console) -> None:
 
         milestones_file = config.project_root / "user_data" / "milestones.json"
         milestones_file.parent.mkdir(parents=True, exist_ok=True)
-        if milestones_file.exists():
-            try:
-                with open(milestones_file) as f:
-                    milestone_progress = json.load(f)
-            except Exception:
-                milestone_progress = {}
-        else:
-            milestone_progress = {}
+        milestone_progress = read_json_or_warn(
+            milestones_file, {}, console=console, label="Your saved milestone progress"
+        )
 
         unlocked = set(milestone_progress.get("unlocked_milestones", []))
         completed_milestones = set(milestone_progress.get("completed_milestones", []))
