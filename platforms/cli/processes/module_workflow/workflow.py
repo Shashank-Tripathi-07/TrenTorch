@@ -949,6 +949,14 @@ class ModuleWorkflowCommand(BaseCommand):
 
     def update_progress(self, module_number: str, module_name: str) -> None:
         """Update user progress tracking."""
+        if os.environ.get("TREN_DEV_VERIFY_SOLUTION") == "1":
+            # This run is verifying the reference solution (tren dev test
+            # --inline), not real student work -- complete_module() still
+            # calls this on that path. Writing here would let anyone run
+            # that command themselves and instantly mark real progress
+            # complete, and unlock every milestone, without solving
+            # anything (issue #168).
+            return
         progress = self.get_progress_data()
 
         # Update completed modules
