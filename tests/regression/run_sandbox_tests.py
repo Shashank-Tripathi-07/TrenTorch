@@ -43,7 +43,6 @@ def run_sandbox_tests():
                 for func_name in test_funcs:
                     func = getattr(module, func_name)
                     func()
-                True
 
             results.append((test_module, True, "PASSED"))
             print(f"  ✅ {test_module}: PASSED\n")
