@@ -305,6 +305,7 @@ def demonstrate_crisis():
     console.print("[bold cyan]Trying 100 Random Configurations...[/bold cyan]")
 
     random_best = 0
+    random_best_config = None
     for _ in range(100):
         w1 = rng.standard_normal() * 5
         w2 = rng.standard_normal() * 5
@@ -313,11 +314,14 @@ def demonstrate_crisis():
         accuracy, _ = evaluate_on_xor(model)
         if accuracy > random_best:
             random_best = accuracy
+            random_best_config = (w1, w2, b)
             if accuracy > best_accuracy:
                 best_accuracy = accuracy
-                (w1, w2, b, "Random")
 
     console.print(f"  Best from random search: [yellow]{random_best:.0%}[/yellow]")
+    if random_best_config is not None:
+        rw1, rw2, rb = random_best_config
+        console.print(f"  [dim](w1={rw1:.2f}, w2={rw2:.2f}, b={rb:.2f})[/dim]")
     press_enter_to_continue()
 
     # Show the conclusion
