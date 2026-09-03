@@ -23,6 +23,7 @@ from rich.text import Text
 
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.commands.jupyter import register_jupyter_magic
+from platforms.cli.core.atomic_io import atomic_write_json
 from platforms.cli.core.config import get_home_profile_dir
 
 
@@ -432,10 +433,7 @@ class SetupCommand(BaseCommand):
         }
 
         # Save profile
-        import json
-
-        with open(profile_path, "w") as f:
-            json.dump(profile, f, indent=2)
+        atomic_write_json(profile_path, profile)
 
         _print_file_update(self.console, profile_path)
         self.console.print(f"✅ Profile created for {profile['name']}")
