@@ -2110,10 +2110,15 @@ def analyze_memory_layout():
     print(f"   Access pattern: Strided (jumps {size * BYTES_PER_FLOAT32} bytes per element)")
 
     # Calculate slowdown
-    slowdown = col_time / row_time
+    # row_time can legitimately measure as exactly 0.0 on a fast machine
+    # with a coarse timer (~15.6ms resolution on Windows) -- floored so
+    # this stays a large-but-finite number instead of raising
+    # ZeroDivisionError.
+    row_time_safe = row_time if row_time > 0 else 1e-9
+    slowdown = col_time / row_time_safe
     print("\n" + "=" * 60)
     print("📊 PERFORMANCE IMPACT:")
-    print(f"   Slowdown factor: {slowdown:.2f}× ({col_time/row_time:.1f}× slower)")
+    print(f"   Slowdown factor: {slowdown:.2f}× ({col_time/row_time_safe:.1f}× slower)")
     print(f"   Cache misses cause {(slowdown-1)*100:.0f}% performance loss")
 
     # Educational insights

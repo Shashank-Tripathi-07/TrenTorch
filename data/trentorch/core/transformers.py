@@ -18,11 +18,11 @@
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'MB_TO_BYTES', 'TinyGPT', 'create_causal_mask', 'LayerNorm', 'MLP', 'TransformerBlock',
            'GPT']
 
-# %% ../../solutions/13_transformers/transformers.ipynb #11395085
+# %% ../../solutions/13_transformers/transformers.ipynb #50443491
 #| default_exp core.transformers
 #| export
 
-# %% ../../solutions/13_transformers/transformers.ipynb #036992e7
+# %% ../../solutions/13_transformers/transformers.ipynb #e186fc7b
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -72,7 +72,7 @@ def create_causal_mask(seq_len: int) -> Tensor:
     mask = np.tril(np.ones((seq_len, seq_len), dtype=np.float32))
     return Tensor(mask[np.newaxis, :, :])  # Add batch dimension
 
-# %% ../../solutions/13_transformers/transformers.ipynb #6cf92179
+# %% ../../solutions/13_transformers/transformers.ipynb #70d85b41
 # Solution
 
 
@@ -217,7 +217,7 @@ class LayerNorm:
         """Return learnable parameters."""
         return [self.gamma, self.beta]
 
-# %% ../../solutions/13_transformers/transformers.ipynb #865fcd74
+# %% ../../solutions/13_transformers/transformers.ipynb #9630b900
 # Solution
 
 class MLP:
@@ -300,7 +300,7 @@ class MLP:
         params.extend(self.linear2.parameters())
         return params
 
-# %% ../../solutions/13_transformers/transformers.ipynb #63635070
+# %% ../../solutions/13_transformers/transformers.ipynb #a8daca43
 # Solution
 
 class TransformerBlock:
@@ -409,7 +409,7 @@ class TransformerBlock:
         params.extend(self.mlp.parameters())
         return params
 
-# %% ../../solutions/13_transformers/transformers.ipynb #f8dd3d61
+# %% ../../solutions/13_transformers/transformers.ipynb #e2f87e0b
 # Solution
 
 class GPT:
@@ -614,6 +614,6 @@ class GPT:
 
         return params
 
-# %% ../../solutions/13_transformers/transformers.ipynb #e3dacb4d
+# %% ../../solutions/13_transformers/transformers.ipynb #0b1b9db9
 # Alias for backward compatibility with tests
 TinyGPT = GPT

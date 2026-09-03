@@ -325,8 +325,10 @@ def compare_batch_sizes(train_images, train_labels, test_images, test_labels):
         final_acc, _ = evaluate_accuracy(model, test_images, test_labels)
 
         # Calculate throughput
+        # elapsed can legitimately measure as exactly 0.0 on a fast
+        # machine with a coarse timer -- floored to avoid ZeroDivisionError.
         total_samples = len(train_dataset) * epochs
-        samples_per_sec = total_samples / elapsed
+        samples_per_sec = total_samples / max(elapsed, 1e-9)
         updates = len(train_loader) * epochs
 
         results.append(

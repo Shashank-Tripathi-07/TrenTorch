@@ -2050,7 +2050,11 @@ def analyze_embedding_performance():
             total_time = end_time - start_time
             avg_time_ms = (total_time / iterations) * 1000
             total_tokens = batch_size * seq_len * iterations
-            throughput = total_tokens / total_time
+            # total_time can legitimately measure as exactly 0.0 on a fast
+            # machine with a coarse timer (~15.6ms resolution on Windows)
+            # -- floored so throughput stays a large-but-finite number
+            # instead of raising ZeroDivisionError.
+            throughput = total_tokens / max(total_time, 1e-9)
 
             print(f"{vocab_size:<12,} {batch_size:<12} {avg_time_ms:<18.2f} {throughput:<20,.0f}")
 

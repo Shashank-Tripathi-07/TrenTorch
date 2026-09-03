@@ -97,7 +97,10 @@ class TestProfilingCore:
                 x @ x.transpose()
             elapsed = timer.stop()
 
-            assert elapsed > 0, "Timer should measure positive time"
+            # >= 0, not > 0: a raw timer measurement can legitimately be
+            # exactly 0.0 on a fast machine with a coarse timer resolution
+            # (~15.6ms on Windows).
+            assert elapsed >= 0, "Timer should measure non-negative time"
 
         except ImportError:
             assert True, "Timer not implemented yet"

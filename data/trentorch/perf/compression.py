@@ -18,7 +18,7 @@
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'MB_TO_BYTES', 'measure_sparsity', 'magnitude_prune', 'structured_prune',
            'low_rank_approximate', 'KnowledgeDistillation', 'Compressor', 'verify_pruning_works']
 
-# %% ../../solutions/16_compression/compression.ipynb #26d4e68a
+# %% ../../solutions/16_compression/compression.ipynb #a500178c
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -37,7 +37,7 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
 # Sequential provides model container with .layers and .parameters()
 
-# %% ../../solutions/16_compression/compression.ipynb #16425fe6
+# %% ../../solutions/16_compression/compression.ipynb #6adbe062
 # Solution
 
 def measure_sparsity(model) -> float:
@@ -86,7 +86,7 @@ def measure_sparsity(model) -> float:
     return (zero_params / total_params) * 100.0
     ### END SOLUTION
 
-# %% ../../solutions/16_compression/compression.ipynb #f4887305
+# %% ../../solutions/16_compression/compression.ipynb #4044b8f2
 # Solution
 
 def magnitude_prune(model, sparsity=0.9):
@@ -143,7 +143,7 @@ def magnitude_prune(model, sparsity=0.9):
     return model
     ### END SOLUTION
 
-# %% ../../solutions/16_compression/compression.ipynb #2f873b47
+# %% ../../solutions/16_compression/compression.ipynb #f65381ce
 # Solution
 
 def structured_prune(model, prune_ratio=0.5):
@@ -202,7 +202,7 @@ def structured_prune(model, prune_ratio=0.5):
     return model
     ### END SOLUTION
 
-# %% ../../solutions/16_compression/compression.ipynb #fbfc0a87
+# %% ../../solutions/16_compression/compression.ipynb #e7198529
 # Solution
 
 def low_rank_approximate(weight_matrix, rank_ratio=0.5):
@@ -246,7 +246,7 @@ def low_rank_approximate(weight_matrix, rank_ratio=0.5):
     return U_truncated, S_truncated, V_truncated
     ### END SOLUTION
 
-# %% ../../solutions/16_compression/compression.ipynb #14255d42
+# %% ../../solutions/16_compression/compression.ipynb #def2c82a
 # Solution
 
 class KnowledgeDistillation:
@@ -365,7 +365,7 @@ class KnowledgeDistillation:
         else:
             return -np.mean(np.sum(labels * np.log(predictions + 1e-8), axis=1))
 
-# %% ../../solutions/16_compression/compression.ipynb #a8101288
+# %% ../../solutions/16_compression/compression.ipynb #8be6f65c
 class Compressor:
     """
     Complete compression system for milestone use.
@@ -433,7 +433,7 @@ class Compressor:
 # Note: measure_sparsity, magnitude_prune, structured_prune are defined earlier in this module.
 # The Compressor class above delegates to those functions, providing an OOP interface for milestones.
 
-# %% ../../solutions/16_compression/compression.ipynb #b058cddf
+# %% ../../solutions/16_compression/compression.ipynb #e8bc484f
 def verify_pruning_works(model, target_sparsity=0.8):
     """
     Verify pruning actually creates zeros using real zero counting.

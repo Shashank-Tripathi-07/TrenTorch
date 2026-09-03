@@ -3380,7 +3380,12 @@ def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
         'p90_latency_ms': float(np.percentile(latencies, 90)),
         'p99_latency_ms': float(np.percentile(latencies, 99)),
         'max_latency_ms': float(np.max(latencies)),
-        'throughput_fps': float(1000 / mean_latency),
+        # time.time()'s resolution is coarse enough (~15.6ms on Windows)
+        # that a fast forward pass can measure exactly 0.0ms mean latency;
+        # floor the denominator so throughput stays a large-but-finite
+        # positive number instead of raising ZeroDivisionError (same
+        # pattern as BenchmarkReport.benchmark_model in 20_capstone.py).
+        'throughput_fps': float(1000 / max(mean_latency, 1e-6)),
         'target_accuracy': float(config['target_accuracy']),
         'target_latency_ms': float(config['max_latency_ms']),
         'accuracy_met': accuracy_met,
@@ -3450,7 +3455,7 @@ def test_unit_mlperf_run():
                      'accuracy_met', 'latency_met', 'p50_latency_ms', 'p99_latency_ms']
     assert all(key in result for key in required_keys)
     assert 0 <= result['accuracy'] <= 1
-    assert result['mean_latency_ms'] > 0
+    assert result['mean_latency_ms'] >= 0  # a fast machine's coarse time.time() resolution can legitimately measure 0.0ms
     assert result['throughput_fps'] > 0
     assert isinstance(result['compliant'], bool)
 
@@ -3878,7 +3883,7 @@ def test_unit_mlperf():
     required_keys = ['accuracy', 'mean_latency_ms', 'throughput_fps', 'compliant']
     assert all(key in result for key in required_keys)
     assert 0 <= result['accuracy'] <= 1
-    assert result['mean_latency_ms'] > 0
+    assert result['mean_latency_ms'] >= 0  # a fast machine's coarse time.time() resolution can legitimately measure 0.0ms
     assert result['throughput_fps'] > 0
 
     # Test full benchmark suite (with fewer runs for speed)
@@ -4841,7 +4846,7 @@ def test_module():
     required_keys = ['accuracy', 'mean_latency_ms', 'compliant', 'target_accuracy']
     assert all(key in perf_results for key in required_keys)
     assert 0 <= perf_results['accuracy'] <= 1
-    assert perf_results['mean_latency_ms'] > 0
+    assert perf_results['mean_latency_ms'] >= 0  # see the matching comment on the other copies of this check
 
     # Test 5: Optimization comparison
     print("  Testing optimization comparison...")
