@@ -783,9 +783,15 @@ class DevTestCommand(BaseCommand):
                         console.print("    [green]✓[/green] Passed")
                 else:
                     failed_module = f"{module_num}:{module_name}"
+                    # Same gap as the export-failure branch above: the
+                    # buffered output is the only place the real test
+                    # failure lives (quiet_console wrote it there instead
+                    # of the real console). Show it either way, not only
+                    # under --ci -- a local, non-CI run used to get nothing
+                    # but "Failed" with no way to self-diagnose.
+                    buf = quiet_buffer.getvalue()
                     if ci_mode:
                         print("✗ FAILED")
-                        buf = quiet_buffer.getvalue()
                         if buf:
                             print("      Error output:")
                             for line in buf.split("\n")[-15:]:
@@ -793,6 +799,11 @@ class DevTestCommand(BaseCommand):
                                     print(f"        {line}")
                     else:
                         console.print("    [red]✗[/red] Failed")
+                        if buf:
+                            console.print("  [dim]Error output:[/dim]")
+                            for line in buf.split("\n")[-15:]:
+                                if line.strip():
+                                    console.print(f"    [dim]{line}[/dim]")
                     break
         finally:
             if prev_verify is None:
