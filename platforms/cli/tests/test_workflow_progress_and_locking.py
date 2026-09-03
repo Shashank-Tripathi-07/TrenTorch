@@ -258,3 +258,87 @@ def test_complete_module_verify_solution_env_skips_milestone_check(workflow, mon
 
     assert result == 0
     assert "called" not in milestone_calls
+
+
+# ---------------------------------------------------------------------------
+# Regression coverage for PR #169 / issue #168: `tren dev test --inline`
+# (TREN_DEV_VERIFY_SOLUTION=1) was silently marking real student progress
+# complete, because update_progress() ran unconditionally on that path.
+# Any student could run the maintainer-only verification command
+# themselves and instantly unlock the whole course with zero code written.
+# The fix gated update_progress() on the same env var, and a same-PR
+# follow-up then had to skip complete_module()'s sequential-completion
+# gate in that mode too, since that gate reads completed_modules from the
+# exact file update_progress() had just stopped writing to. Without the
+# skip, module 02 immediately failed with "you must complete module 01
+# first" even right after module 01 itself verified clean (caught live by
+# CI's own Stage 1 build). Both PR #169 commits were verified only by a
+# manual before/after run described in their commit messages; these tests
+# are the automated coverage neither commit had, so a future change to
+# either update_progress() or the sequential gate can't silently reopen
+# the loophole or reintroduce the regression without a test failing first.
+# ---------------------------------------------------------------------------
+
+
+def test_complete_module_verify_solution_mode_does_not_write_progress(workflow, monkeypatch):
+    """The actual loophole: TREN_DEV_VERIFY_SOLUTION=1 must leave
+    progress.json completely untouched, not just "01" missing from it.
+    Seeding it with unrelated existing progress and asserting the whole
+    file is byte-for-byte unchanged proves update_progress() never wrote
+    at all, rather than merely writing something that happens not to
+    include "01"."""
+    from io import StringIO
+
+    from rich.console import Console
+
+    seed = {"completed_modules": ["05"], "started_modules": ["06"]}
+    workflow.save_progress_data(seed)
+    before = workflow.get_progress_data()
+
+    monkeypatch.setenv("TREN_DEV_VERIFY_SOLUTION", "1")
+    monkeypatch.setattr(workflow, "export_module", lambda module_name: 0)
+    _mock_complete_module_dependencies(monkeypatch, milestone_unlocks_called={})
+    workflow.console = Console(file=StringIO(), width=120, no_color=True)
+
+    result = workflow.run(
+        Namespace(module_command="complete", module_number="01", skip_tests=True, skip_export=False)
+    )
+
+    assert result == 0
+    after = workflow.get_progress_data()
+    assert after == before, f"progress.json changed in verify-solution mode: {before} -> {after}"
+
+
+def test_complete_module_verify_solution_mode_does_not_block_on_sequential_gate(workflow, monkeypatch):
+    """The follow-up fix's regression: since update_progress() now
+    correctly no-ops in verify-solution mode, completed_modules never
+    gains "01", so completing module "02" right after must not hit the
+    sequential-completion gate ("you must complete module 01 first"),
+    which reads from that same never-updated file. Runs 01 then 02 in the
+    same sequence CI's own Stage 1 build hit this in."""
+    from io import StringIO
+
+    from rich.console import Console
+
+    monkeypatch.setenv("TREN_DEV_VERIFY_SOLUTION", "1")
+    monkeypatch.setattr(workflow, "export_module", lambda module_name: 0)
+    _mock_complete_module_dependencies(monkeypatch, milestone_unlocks_called={})
+    workflow.console = Console(file=StringIO(), width=120, no_color=True)
+
+    result_01 = workflow.run(
+        Namespace(module_command="complete", module_number="01", skip_tests=True, skip_export=False)
+    )
+    result_02 = workflow.run(
+        Namespace(module_command="complete", module_number="02", skip_tests=True, skip_export=False)
+    )
+
+    assert result_01 == 0
+    assert result_02 == 0, "module 02 was blocked by the sequential gate in verify-solution mode"
+    # And the loophole fix still holds across both calls.
+    assert workflow.get_progress_data() == {
+        "started_modules": [],
+        "completed_modules": [],
+        "last_worked": None,
+        "last_completed": None,
+        "last_updated": None,
+    }
