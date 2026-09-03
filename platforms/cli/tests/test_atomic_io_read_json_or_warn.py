@@ -67,6 +67,29 @@ def test_corrupted_file_warns_and_returns_default(tmp_path):
     assert "Your saved progress" in out
     assert "couldn't be read" in out
     assert str(target) in out
+
+
+def test_corrupted_file_path_is_not_word_wrapped(tmp_path):
+    """A long enough path must not get reflowed mid-word to fit the
+    console's width. Found live in CI: a Windows runner's deeply nested
+    temp directory pushed 'File: <path>' past a default-width console,
+    and Rich wrapped it right through the middle of the filename --
+    corrupting the one piece of information (where's the broken file?)
+    this whole warning exists to hand the user. Forcing a narrow console
+    width here reproduces that deterministically, independent of however
+    long any given OS's actual temp path happens to be."""
+    nested = tmp_path / "a_deeply" / "nested" / "temp" / "directory" / "structure" / "like_ci_uses"
+    nested.mkdir(parents=True)
+    target = nested / "progress.json"
+    target.write_text('{"a": 1', encoding="utf-8")  # truncated JSON
+
+    buf = StringIO()
+    console = Console(file=buf, width=40, no_color=True)  # narrow enough to force a wrap
+
+    read_json_or_warn(target, {}, console=console, label="Your saved progress")
+    out = buf.getvalue()
+
+    assert str(target) in out, f"path got wrapped/split across lines:\n{out}"
     # The user needs to know what to actually do, not just that
     # something went wrong.
     assert "back it up" in out.lower()
