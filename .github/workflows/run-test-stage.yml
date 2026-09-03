@@ -139,27 +139,37 @@ jobs:
       # trentorch/... and modules/..., not data/trentorch/... and
       # data/modules/.... Extracting explicitly into data/ here undoes
       # that stripping so the files land back where they actually live.
+      #
+      # Unsuffixed name (not built-package-${{ matrix.os }}): the built
+      # package (data/trentorch/, data/modules/) is pure Python source with
+      # nothing OS-specific in it, so validate.yml's Stage 1 now produces
+      # exactly one canonical artifact from its Ubuntu leg -- the one every
+      # downstream OS leg downloads, Windows included. Stage 1's own
+      # Windows leg still builds and tests everything for coverage, it just
+      # doesn't upload an artifact anyone consumes (see upload step below).
       - name: Download built package from Stage 1
         if: inputs.download_package == 'true'
         continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: built-package-${{ matrix.os }}
+          name: built-package
           path: data
 
       - name: Run tests
         run: ./bin/tren dev test ${{ inputs.test_flag }} --ci
 
-      # Only Stage 1 sets this: Stages 2-5 each need the exported package
-      # present to skip their own redundant `tren dev export --all` (see
+      # Only Stage 1's Ubuntu leg sets upload_package: 'true' (see
+      # validate.yml): Stages 2-5 each need the exported package present to
+      # skip their own redundant `tren dev export --all` (see
       # platforms/cli/cli_platform/dev/test.py's _check_imports/_build_package). Sharing
-      # Stage 1's already-built output cuts that duplicated work to zero
-      # without skipping or altering any test.
+      # that one build's output cuts the duplicated work to zero without
+      # skipping or altering any test. Unsuffixed name -- see the matching
+      # comment on the download step above.
       - name: Upload built package
         if: inputs.upload_package == 'true' && success()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: built-package-${{ matrix.os }}
+          name: built-package
           path: |
             data/trentorch/
             data/modules/
