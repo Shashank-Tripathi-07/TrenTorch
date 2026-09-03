@@ -484,9 +484,17 @@ class ModuleWorkflowCommand(BaseCommand):
 
         module_name = module_mapping[normalized]
 
-        # Validate sequential completion: all previous modules must be completed
+        # Validate sequential completion: all previous modules must be completed.
+        # Skipped in maintainer-verification mode (TREN_DEV_VERIFY_SOLUTION=1):
+        # that mode's caller (dev/test.py's _run_inline_tests) already enforces
+        # its own 01->20 order externally, and since update_progress() now
+        # correctly no-ops in this mode (issue #168), completed_modules never
+        # gets populated during a verify-solution run -- this check would
+        # otherwise block module 02 on "complete module 01 first" even
+        # immediately after module 01 itself just verified clean.
         module_num = int(normalized)
-        if module_num > 1:
+        verify_solution = os.environ.get("TREN_DEV_VERIFY_SOLUTION") == "1"
+        if module_num > 1 and not verify_solution:
             progress = self.get_progress_data()
             completed = progress.get("completed_modules", [])
             prev_num = f"{module_num - 1:02d}"
@@ -949,6 +957,14 @@ class ModuleWorkflowCommand(BaseCommand):
 
     def update_progress(self, module_number: str, module_name: str) -> None:
         """Update user progress tracking."""
+        if os.environ.get("TREN_DEV_VERIFY_SOLUTION") == "1":
+            # This run is verifying the reference solution (tren dev test
+            # --inline), not real student work -- complete_module() still
+            # calls this on that path. Writing here would let anyone run
+            # that command themselves and instantly mark real progress
+            # complete, and unlock every milestone, without solving
+            # anything (issue #168).
+            return
         progress = self.get_progress_data()
 
         # Update completed modules
