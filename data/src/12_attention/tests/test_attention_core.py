@@ -113,8 +113,6 @@ class TestScaledDotProductAttention:
 
         This is a semantic test - does attention do what it's supposed to?
         """
-        4
-
         # Query vector
         Q = Tensor(np.array([[[1.0, 0.0, 0.0, 0.0]]]))  # (1, 1, 4)
 
