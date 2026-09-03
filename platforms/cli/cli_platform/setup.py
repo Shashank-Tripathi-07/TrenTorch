@@ -306,7 +306,15 @@ class SetupCommand(BaseCommand):
         try:
             # Detect Apple Silicon and force arm64 if needed
             arch = platform.machine()
-            python_exe = sys.executable
+            # python_argv is a list of argv words, not a shell string --
+            # venv_path (or any arg) never needs quoting for a shell that
+            # never runs. A prior version built this as an
+            # f"arch -arm64 {python_exe}" string and ran it via
+            # subprocess.run(..., shell=True): a venv_path containing a
+            # space (a real-world path, e.g. under "OneDrive - Company")
+            # silently split into multiple shell tokens instead of one
+            # path, breaking venv creation.
+            python_argv = [sys.executable]
 
             if platform.system() == "Darwin" and arch == "x86_64":
                 # Check if we're on Apple Silicon but running Rosetta
@@ -329,28 +337,21 @@ class SetupCommand(BaseCommand):
                             "[cyan]🔧 Creating arm64 native environment for better performance...[/cyan]"
                         )
                         # Force arm64 Python
-                        python_exe = f"arch -arm64 {python_exe}"
+                        python_argv = ["arch", "-arm64", sys.executable]
                 except Exception:
                     pass
 
-            # Create virtual environment (potentially with arch prefix)
-            if "arch -arm64" in python_exe:
-                result = subprocess.run(
-                    f"{python_exe} -m venv {venv_path}",
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                )
-            else:
-                result = subprocess.run(
-                    [python_exe, "-m", "venv", str(venv_path)],
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                )
+            # Create virtual environment (potentially with arch prefix).
+            # Always a real argv list, never shell=True: venv_path is
+            # passed as its own list element regardless of what
+            # characters it contains.
+            result = subprocess.run(
+                [*python_argv, "-m", "venv", str(venv_path)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
 
             if result.returncode != 0:
                 self.console.print(f"[red]Failed to create virtual environment: {result.stderr}[/red]")
