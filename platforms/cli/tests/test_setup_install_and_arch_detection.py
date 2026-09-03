@@ -128,3 +128,50 @@ def test_non_darwin_skips_rosetta_check_regardless_of_arch(tmp_path, monkeypatch
     baseline: only the platform differs, isolating that half of the and."""
     out = _create_venv_arch_check(tmp_path, monkeypatch, system="Linux", arch="x86_64")
     assert "Creating virtual environment" in out
+
+
+# ---------------------------------------------------------------------------
+# Rosetta re-targeting must build a real argv list, never a shell=True
+# string: a prior version built f"arch -arm64 {python_exe} -m venv
+# {venv_path}" and ran it with shell=True, so a venv_path containing a
+# space (a real path, e.g. under "OneDrive - Company") silently split
+# into multiple shell tokens instead of staying one argument.
+# ---------------------------------------------------------------------------
+
+
+def test_rosetta_venv_creation_uses_argv_list_not_shell_string(tmp_path, monkeypatch):
+    monkeypatch.setattr(platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(platform, "machine", lambda: "x86_64")
+
+    # A spaced project root means create_virtual_environment's own
+    # `project_root / ".venv"` (its actual venv_path, not a
+    # dependency-injectable path) contains a space too.
+    project_root = tmp_path / "my project"
+    project_root.mkdir()
+    expected_venv_path = str(project_root / ".venv")
+
+    captured = {}
+
+    def fake_run(cmd_args, **kwargs):
+        if isinstance(cmd_args, list) and cmd_args and cmd_args[0] == "sysctl":
+            return subprocess.CompletedProcess(cmd_args, returncode=0, stdout="Apple M1\n")
+        captured["cmd_args"] = cmd_args
+        captured["shell"] = kwargs.get("shell", False)
+        return subprocess.CompletedProcess(cmd_args, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    cmd = SetupCommand(CLIConfig.from_project_root(project_root))
+    from io import StringIO
+
+    from rich.console import Console
+
+    cmd.console = Console(file=StringIO(), width=120, no_color=True)
+    cmd.create_virtual_environment(force=False)
+
+    assert captured["shell"] is not True, "venv creation must not go through shell=True"
+    assert isinstance(captured["cmd_args"], list), "venv creation must pass a real argv list"
+    assert expected_venv_path in captured["cmd_args"], (
+        f"the spaced venv path must survive as a single argv element, got: {captured['cmd_args']}"
+    )
+    assert captured["cmd_args"][:2] == ["arch", "-arm64"]
