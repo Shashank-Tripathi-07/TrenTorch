@@ -113,7 +113,12 @@ def read_json_or_warn(
             # "[...]" inside that text be parsed as (possibly malformed)
             # Rich markup instead of shown as plain text.
             for text, style in lines:
-                console.print(text, style=style)
+                # soft_wrap=True: a file path or error message shouldn't
+                # get reflowed mid-word to fit the console width -- found
+                # via CI, where a long enough temp-dir path wrapped right
+                # through the middle of the filename, corrupting both the
+                # displayed path and the split into two useless fragments.
+                console.print(text, style=style, soft_wrap=True)
         else:
             for text, _style in lines:
                 print(text, file=sys.stderr)
