@@ -78,6 +78,29 @@ INT8_MAX_VALUE = 127
 INT8_RANGE = 256  # Number of possible INT8 values (from -128 to 127 inclusive)
 EPSILON = 1e-8  # Small value for numerical stability (constant tensor detection)
 
+def _affine_qparams(min_val: float, max_val: float) -> Tuple[float, int]:
+    """Compute (scale, zero_point) for standard (non-constant) affine INT8 quantization.
+
+    Zero must be exactly representable by an affine quantization scheme, or the
+    mapping breaks whenever zero_point ends up outside [-128, 127] and gets
+    clamped. Clamping a raw zero_point without adjusting scale to compensate
+    silently corrupts the mapping (values near max_val/min_val no longer
+    round-trip correctly).
+
+    The standard fix is to extend [min_val, max_val] to include 0 BEFORE
+    computing scale. That guarantees the zero_point this formula produces
+    already falls inside [-128, 127], so the mapping never needs a lossy
+    clamp to begin with.
+    """
+    min_val = min(min_val, 0.0)
+    max_val = max(max_val, 0.0)
+    scale = (max_val - min_val) / (INT8_RANGE - 1)
+    zero_point = int(np.round(INT8_MIN_VALUE - min_val / scale))
+    # By construction zero_point is already within range; clip only as a
+    # numerical-precision safety net, not as the primary correctness mechanism.
+    zero_point = int(np.clip(zero_point, INT8_MIN_VALUE, INT8_MAX_VALUE))
+    return scale, zero_point
+
 # Constants for memory calculations
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 BYTES_PER_INT8 = 1  # INT8 size in bytes
@@ -534,27 +557,27 @@ def quantize_int8(tensor: Tensor) -> Tuple[Tensor, float, int]:
     # the constant via (0 - zero_point) * scale = c.
     if abs(max_val - min_val) < EPSILON:
         c = min_val
-        if abs(c) <= INT8_MAX_VALUE:
-            # |c| fits the INT8 range: scale=1.0 and zero_point = -round(c).
+        if c == 0.0:
+            # True zero: any scale works, use 1.0 to avoid a zero scale elsewhere.
             scale = 1.0
-            zero_point = int(np.round(-c))
+            zero_point = 0
         else:
-            # |c| exceeds the INT8 range. Keeping scale=1.0 would force
-            # zero_point = -c, which np.clip would saturate to +-128 and
-            # silently corrupt the value. Use zero_point = +-1 and scale = |c|
-            # instead, so (0 - zero_point) * scale = c holds without clamping.
+            # scale = |c| with zero_point = -+1 gives EXACT recovery for any
+            # magnitude of c (integer or not), unlike hardcoding scale=1.0 and
+            # zero_point=round(-c), which can only encode the nearest integer
+            # to c and silently destroys precision for non-integer constants
+            # (e.g. c=0.1 would dequantize to 0.0). It also never needs the
+            # zero_point clamp, so it can't be corrupted for |c| > 127 either.
             zero_point = -1 if c > 0 else 1
             scale = abs(c)
         quantized_data = np.zeros_like(data, dtype=np.int8)
         return Tensor(quantized_data), scale, zero_point
 
-    # Step 3: Calculate scale and zero_point for standard quantization
-    # Map [min_val, max_val] to [INT8_MIN_VALUE, INT8_MAX_VALUE] (INT8 range)
-    scale = (max_val - min_val) / (INT8_RANGE - 1)
-    zero_point = int(np.round(INT8_MIN_VALUE - min_val / scale))
-
-    # Clamp zero_point to valid INT8 range
-    zero_point = int(np.clip(zero_point, INT8_MIN_VALUE, INT8_MAX_VALUE))
+    # Step 3: Calculate scale and zero_point for standard quantization.
+    # Map [min_val, max_val] to [INT8_MIN_VALUE, INT8_MAX_VALUE] (INT8 range).
+    # See _affine_qparams: extending the range to include 0 before computing
+    # scale keeps zero exactly representable without a lossy zero_point clamp.
+    scale, zero_point = _affine_qparams(min_val, max_val)
 
     # Step 4: Apply quantization formula: q = (x / scale) + zero_point
     quantized_data = np.round(data / scale + zero_point)
@@ -604,7 +627,10 @@ def test_unit_quantize_int8():
     # for every element regardless of what the constant was.
     constant_tensor = Tensor([[2.0, 2.0], [2.0, 2.0]])
     q_const, scale_const, zp_const = quantize_int8(constant_tensor)
-    assert scale_const == 1.0
+    # scale is derived from the constant itself (scale=abs(c)), not hardcoded
+    # to 1.0 -- what matters is that dequantizing recovers the real value,
+    # checked below. A literal scale_const == 1.0 assertion here is only
+    # true by coincidence when the constant happens to be +/-1.0.
     restored_const = (q_const.data.astype(np.float32) - zp_const) * scale_const
     assert np.allclose(restored_const, 2.0), (
         f"Constant tensor dequantized to {restored_const} instead of 2.0. "
@@ -1097,9 +1123,10 @@ class QuantizedLinear:
             self.input_scale = 1.0
             self.input_zero_point = 0
         else:
-            self.input_scale = (max_val - min_val) / (INT8_RANGE - 1)
-            self.input_zero_point = int(np.round(INT8_MIN_VALUE - min_val / self.input_scale))
-            self.input_zero_point = np.clip(self.input_zero_point, INT8_MIN_VALUE, INT8_MAX_VALUE)
+            # Same standard affine formula as quantize_int8(): extend the range
+            # to include 0 before computing scale so zero_point is guaranteed
+            # to land inside [-128, 127] without a lossy, unadjusted clamp.
+            self.input_scale, self.input_zero_point = _affine_qparams(min_val, max_val)
         ### END SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:

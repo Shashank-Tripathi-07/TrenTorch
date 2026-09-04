@@ -434,8 +434,15 @@ class BPETokenizer(Tokenizer):
         if vocab_size:
             self.vocab_size = vocab_size
 
-        # Count word frequencies and initialize character vocabulary
-        word_freq = Counter(corpus)
+        # Split each corpus entry into whitespace-separated words before
+        # counting, the same way encode() splits text before tokenizing.
+        # Without this, a multi-word corpus entry like "hello world" gets
+        # treated as one 12-character "word" including the space, so
+        # training can learn merges that span a space character. Those
+        # merges can never fire at encode time, since encode() operates on
+        # already-split words, which never contain a space.
+        words = [w for text in corpus for w in text.split()]
+        word_freq = Counter(words)
         vocab = set()
         word_tokens = {}
 

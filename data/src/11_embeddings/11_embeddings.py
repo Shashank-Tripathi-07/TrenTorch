@@ -1803,6 +1803,15 @@ def emblayer_forward(self, tokens: Tensor) -> Tensor:
     elif self.pos_encoding_type == 'sinusoidal':
         # Use fixed sinusoidal encoding (not learnable)
         batch_size, seq_len, embed_dim = token_embeds.shape
+
+        if seq_len > self.max_seq_len:
+            raise ValueError(
+                f"Sequence length exceeds maximum: {seq_len} > {self.max_seq_len}\n"
+                f"  ❌ Input sequence has {seq_len} positions, but max_seq_len is {self.max_seq_len}\n"
+                f"  💡 Sinusoidal positional encodings have a fixed table sized at construction\n"
+                f"  🔧 Increase max_seq_len when constructing EmbeddingLayer, or truncate input to {self.max_seq_len} tokens"
+            )
+
         pos_embeddings = self.pos_encoding[:seq_len]  # Slice using Tensor slicing
 
         # Reshape to add batch dimension

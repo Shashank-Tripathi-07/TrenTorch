@@ -121,7 +121,7 @@ console = Console()
 # │ Module 06: Autograd │ .backward() computes gradients │ Gradients flow through      │
 # │                     │ for BOTH layers automatically  │ hidden layer to inputs!     │
 # │                     │                                │                             │
-# │ Module 06: SGD      │ Updates 13 parameters          │ Adjusts weights to minimize │
+# │ Module 06: SGD      │ Updates 17 parameters          │ Adjusts weights to minimize │
 # │                     │ (2×4 + 4 + 4×1 + 1)            │ loss function               │
 # └─────────────────────┴────────────────────────────────┴─────────────────────────────┘
 #
@@ -134,7 +134,7 @@ console = Console()
 # │ Single Linear layer          │ + Hidden Linear layer (2→4)                  │
 # │ Only Sigmoid activation      │ + ReLU activation (non-linearity!)           │
 # │ No training (random weights) │ + YOUR Autograd trains the hidden layer      │
-# │ No optimizer                 │ + YOUR SGD updates 13 parameters             │
+# │ No optimizer                 │ + YOUR SGD updates 17 parameters             │
 # │ Max 75% accuracy             │ + 95-100% accuracy (problem SOLVED!)         │
 # └──────────────────────────────┴──────────────────────────────────────────────┘
 #
@@ -311,13 +311,19 @@ def evaluate_and_celebrate(model, X, y, history):
 
     predictions = model(X)
     pred_classes = (predictions.data > 0.5).astype(int)
-    (pred_classes == y.data).mean()
+    final_accuracy_check = (pred_classes == y.data).mean()
 
     # Get metrics
     initial_loss = history["loss"][0]
     final_loss = history["loss"][-1]
     initial_acc = history["accuracy"][0]
     final_acc = history["accuracy"][-1]
+
+    # Sanity check: recomputed accuracy on the full dataset should match the
+    # last recorded training-history accuracy.
+    assert abs(final_accuracy_check - final_acc) < 1e-6, (
+        f"Recomputed accuracy {final_accuracy_check:.4f} does not match history accuracy {final_acc:.4f}"
+    )
 
     console.print("[bold]📊 The Results:[/bold]\n")
 

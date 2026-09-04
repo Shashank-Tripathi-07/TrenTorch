@@ -278,9 +278,23 @@ def test_chain_rule_linear_relu():
     loss = MSELoss()(y, y_true)
 
     loss.backward()
-    # ReLU should only backprop where input > 0
+    # ReLU should only backprop where input > 0: z.grad must be exactly
+    # zero everywhere z.data <= 0. This was previously computed
+    # (`z.data > 0`) and discarded, never actually asserted.
     assert hasattr(z, "data"), "z should have data attribute"
-    z.data > 0
+    assert z.grad is not None, "z should have a gradient after backward()"
+    # z.grad may be a raw numpy array or a Tensor depending on which
+    # backward path populated it; numpy's own .data on an ndarray is a
+    # memoryview, not an array, so only unwrap .data for the Tensor case.
+    z_grad = z.grad.data if hasattr(z.grad, "data") and not isinstance(z.grad, np.ndarray) else z.grad
+    blocked = z.data <= 0
+    assert np.allclose(z_grad[blocked], 0), (
+        "ReLU should block all gradient at positions where its input was <= 0"
+    )
+    if np.any(~blocked):
+        assert not np.allclose(z_grad[~blocked], 0), (
+            "ReLU should pass gradient through where its input was > 0"
+        )
     # Gradient should exist
     assert linear.weight.grad is not None, "Chain rule broken - no gradient"
 

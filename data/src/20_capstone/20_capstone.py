@@ -154,6 +154,7 @@ import numpy as np
 rng = np.random.default_rng(7)
 import time
 import json
+import tempfile
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import platform
@@ -1012,7 +1013,7 @@ def generate_submission(
             # See the matching guard in benchmark_model: time.time()'s coarse
             # resolution can measure a fast model's latency as exactly 0.0.
             'speedup': float(baseline_latency / max(optimized_latency, 1e-6)),
-            'compression_ratio': float(baseline_size / optimized_size),
+            'compression_ratio': float(baseline_size / max(optimized_size, 1e-6)),
             'accuracy_delta': float(
                 optimized_report.metrics['accuracy'] - baseline_report.metrics['accuracy']
             )
@@ -2001,6 +2002,65 @@ if __name__ == "__main__":
 
 # %% [markdown]
 """
+### 🧪 Unit Test: Zero-Size Optimized Model
+
+This test validates generate_submission() survives a degenerate optimized
+model reporting 0 MB (e.g. a model with 0 parameters).
+
+**What we're testing**: compression_ratio's denominator is floored the
+same way speedup's is, so a zero-size optimized model doesn't raise
+**Why it matters**: An unguarded division here would crash every
+submission for a maximally-compressed (e.g. pruned-to-nothing) model
+**Expected**: No ZeroDivisionError, compression_ratio is a large but
+finite positive number
+"""
+
+# %% nbgrader={"grade": true, "grade_id": "test-zero-optimized-size", "locked": true, "points": 10}
+def test_unit_submission_zero_optimized_size():
+    """🧪 Test generate_submission() doesn't crash when optimized_size is 0."""
+    print("🧪 Unit Test: Zero-Size Optimized Model...")
+
+    baseline_report = BenchmarkReport(model_name="baseline")
+    baseline_report.metrics = {
+        'parameter_count': 1000,
+        'model_size_mb': 4.0,
+        'accuracy': 0.80,
+        'latency_ms_mean': 10.0,
+        'latency_ms_std': 1.0,
+        'throughput_samples_per_sec': 100.0
+    }
+    baseline_report.timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+    baseline_report.system_info = {'platform': 'test', 'python_version': '3.9', 'numpy_version': '1.20'}
+
+    # Degenerate optimized model: reports 0 parameters, hence 0 MB size
+    # (e.g. a model whose count_parameters() legitimately returns 0)
+    optimized_report = BenchmarkReport(model_name="optimized")
+    optimized_report.metrics = {
+        'parameter_count': 0,
+        'model_size_mb': 0.0,
+        'accuracy': 0.75,
+        'latency_ms_mean': 5.0,
+        'latency_ms_std': 0.5,
+        'throughput_samples_per_sec': 200.0
+    }
+    optimized_report.timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+    optimized_report.system_info = baseline_report.system_info
+
+    # Should not raise ZeroDivisionError
+    submission = generate_submission(baseline_report, optimized_report)
+
+    compression_ratio = submission['improvements']['compression_ratio']
+    assert compression_ratio > 0, "Compression ratio should be a positive number"
+    assert compression_ratio < float('inf'), "Compression ratio should be finite, not inf"
+
+    print("✅ Zero-size optimized model handled correctly!")
+
+# Run test immediately when developing
+if __name__ == "__main__":
+    test_unit_submission_zero_optimized_size()
+
+# %% [markdown]
+"""
 ### 🧪 Unit Test: JSON Serialization
 
 This test validates save_submission() creates valid, round-trip compatible JSON.
@@ -2026,33 +2086,33 @@ def test_unit_json_serialization():
 
     submission = generate_submission(report, student_name="Test Student")
 
-    # Save to file
-    test_file = "/tmp/test_submission_unit.json"
-    filepath = save_submission(submission, test_file)
+    # Save to file in a fresh temp directory (portable across platforms:
+    # a hardcoded "/tmp/..." path resolves relative to the current drive's
+    # root on Windows and fails with FileNotFoundError/WinError 3)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        test_file = str(Path(tmp_dir) / "test_submission_unit.json")
+        filepath = save_submission(submission, test_file)
 
-    # Check file exists
-    assert Path(filepath).exists(), "Submission file should exist"
+        # Check file exists
+        assert Path(filepath).exists(), "Submission file should exist"
 
-    # Load and verify JSON is valid
-    loaded_json = json.loads(Path(test_file).read_text(encoding="utf-8"))
+        # Load and verify JSON is valid
+        loaded_json = json.loads(Path(test_file).read_text(encoding="utf-8"))
 
-    # Verify structure is preserved
-    assert loaded_json['trentorch_version'] == submission['trentorch_version'], "Version should match"
-    assert loaded_json['student_name'] == submission['student_name'], "Student name should match"
-    assert loaded_json['baseline']['model_name'] == submission['baseline']['model_name'], "Model name should match"
+        # Verify structure is preserved
+        assert loaded_json['trentorch_version'] == submission['trentorch_version'], "Version should match"
+        assert loaded_json['student_name'] == submission['student_name'], "Student name should match"
+        assert loaded_json['baseline']['model_name'] == submission['baseline']['model_name'], "Model name should match"
 
-    # Verify metrics are preserved
-    baseline_metrics = loaded_json['baseline']['metrics']
-    original_metrics = submission['baseline']['metrics']
-    assert baseline_metrics['accuracy'] == original_metrics['accuracy'], "Accuracy should match"
-    assert baseline_metrics['parameter_count'] == original_metrics['parameter_count'], "Parameter count should match"
+        # Verify metrics are preserved
+        baseline_metrics = loaded_json['baseline']['metrics']
+        original_metrics = submission['baseline']['metrics']
+        assert baseline_metrics['accuracy'] == original_metrics['accuracy'], "Accuracy should match"
+        assert baseline_metrics['parameter_count'] == original_metrics['parameter_count'], "Parameter count should match"
 
-    # Verify JSON can be dumped again (round-trip test)
-    round_trip = json.dumps(loaded_json, indent=2)
-    assert len(round_trip) > 0, "JSON should serialize again"
-
-    # Clean up
-    Path(test_file).unlink()
+        # Verify JSON can be dumped again (round-trip test)
+        round_trip = json.dumps(loaded_json, indent=2)
+        assert len(round_trip) > 0, "JSON should serialize again"
 
     print("✅ JSON serialization works correctly!")
 

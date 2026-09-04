@@ -175,22 +175,20 @@ class Trainer:
                 param.data = state[i].copy()
 
     def _get_optimizer_state(self):
-        """Extract optimizer state for checkpointing."""
-        state = {}
-        state['lr'] = self.optimizer.lr
-        if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
-            momentum_state = self.optimizer.get_momentum_state()
-            if momentum_state is not None:
-                state['momentum_buffers'] = momentum_state
-        return state
+        """Extract optimizer state for checkpointing.
+
+        Uses the uniform get_state() interface every optimizer implements,
+        so momentum buffers (SGD) and moment buffers/step count (Adam,
+        AdamW) are all captured without special-casing any one type.
+        """
+        return self.optimizer.get_state()
 
     def _set_optimizer_state(self, state):
-        """Restore optimizer state from checkpoint."""
-        if 'lr' in state:
-            self.optimizer.lr = state['lr']
-        if 'momentum_buffers' in state:
-            if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
-                self.optimizer.set_momentum_state(state['momentum_buffers'])
+        """Restore optimizer state from checkpoint.
+
+        Uses the uniform set_state() interface every optimizer implements.
+        """
+        self.optimizer.set_state(state)
 
     def _get_scheduler_state(self):
         """Extract scheduler state for checkpointing."""
@@ -373,23 +371,36 @@ def trainer_train_epoch(self, dataloader, accumulation_steps=1):
     total_loss = 0.0
     num_batches = 0
     accumulated_loss = 0.0
+    batches_since_update = 0
 
     for batch_idx, (inputs, targets) in enumerate(dataloader):
         accumulated_loss += self._process_batch(inputs, targets, accumulation_steps)
+        batches_since_update += 1
 
         # Update parameters every accumulation_steps
         if (batch_idx + 1) % accumulation_steps == 0:
             self._optimizer_update()
             total_loss += accumulated_loss
             accumulated_loss = 0.0
+            batches_since_update = 0
             num_batches += 1
             self.step += 1
 
-    # Handle remaining accumulated gradients
-    if accumulated_loss > 0:
+    # Handle remaining accumulated gradients. Use a batch counter rather than
+    # checking accumulated_loss > 0: a trailing partial group whose average
+    # scaled loss is exactly 0.0 (e.g. predictions matching targets exactly)
+    # would otherwise skip the optimizer update and leave stale gradients for
+    # the next epoch. Each batch's loss was pre-scaled by 1/accumulation_steps
+    # (correct only for a full window), so a leftover window with fewer
+    # batches must be rescaled by the actual count, or the average loss is
+    # understated; the optimizer update it performs also counts as a real
+    # step, same as every full-window update above.
+    if batches_since_update > 0:
+        accumulated_loss = accumulated_loss * accumulation_steps / batches_since_update
         self._optimizer_update()
         total_loss += accumulated_loss
         num_batches += 1
+        self.step += 1
 
     avg_loss = total_loss / max(num_batches, 1)
     self.history['train_loss'].append(avg_loss)
