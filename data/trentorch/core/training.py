@@ -373,20 +373,27 @@ def trainer_train_epoch(self, dataloader, accumulation_steps=1):
     total_loss = 0.0
     num_batches = 0
     accumulated_loss = 0.0
+    batches_since_update = 0
 
     for batch_idx, (inputs, targets) in enumerate(dataloader):
         accumulated_loss += self._process_batch(inputs, targets, accumulation_steps)
+        batches_since_update += 1
 
         # Update parameters every accumulation_steps
         if (batch_idx + 1) % accumulation_steps == 0:
             self._optimizer_update()
             total_loss += accumulated_loss
             accumulated_loss = 0.0
+            batches_since_update = 0
             num_batches += 1
             self.step += 1
 
-    # Handle remaining accumulated gradients
-    if accumulated_loss > 0:
+    # Handle remaining accumulated gradients. Use a batch counter rather than
+    # checking accumulated_loss > 0: a trailing partial group whose average
+    # scaled loss is exactly 0.0 (e.g. predictions matching targets exactly)
+    # would otherwise skip the optimizer update and leave stale gradients for
+    # the next epoch.
+    if batches_since_update > 0:
         self._optimizer_update()
         total_loss += accumulated_loss
         num_batches += 1
