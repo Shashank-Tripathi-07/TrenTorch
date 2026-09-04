@@ -102,6 +102,8 @@ def test_python_dash_m_invocation_works_for_real(real_module_name):
         [sys.executable, "-m", real_module_name, "--version"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=30,
     )
     assert result.returncode == 0, f"python -m {real_module_name} --version failed: {result.stderr[:500]}"

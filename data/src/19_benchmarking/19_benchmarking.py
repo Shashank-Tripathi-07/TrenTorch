@@ -4055,10 +4055,14 @@ def test_unit_collect_base_metrics():
     """🧪 Test _collect_base_metrics helper."""
     print("🧪 Unit Test: _collect_base_metrics...")
 
-    # Simulate benchmark results
+    # Simulate benchmark results. Real callers key each metric-type dict by
+    # model_name (the same name across every metric type, e.g. "base"), not
+    # by a metric-specific string -- match that shape here, since
+    # _collect_base_metrics does an exact model_name == base_name match
+    # (a substring match would let overlapping names cross-match).
     mock_results = {
-        'latency': {'base_latency_ms': BenchmarkResult('base_latency_ms', [10.0, 11.0, 12.0])},
-        'accuracy': {'base_accuracy': BenchmarkResult('base_accuracy', [0.9, 0.91, 0.89])},
+        'latency': {'base': BenchmarkResult('base', [10.0, 11.0, 12.0])},
+        'accuracy': {'base': BenchmarkResult('base', [0.9, 0.91, 0.89])},
     }
 
     metrics = _collect_base_metrics('base', mock_results)
