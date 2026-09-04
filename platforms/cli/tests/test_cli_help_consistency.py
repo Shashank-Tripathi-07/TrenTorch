@@ -47,8 +47,13 @@ class TestHelpConsistency:
             help_text = self.get_command_help(cmd)
             assert "tren" in help_text.lower(), f"Command '{cmd}' help doesn't mention 'tren'"
 
-    def test_bare_tren_and_help_are_different(self):
-        """Verify bare 'tren' and 'tren -h' show different but related content."""
+    def test_bare_tren_and_help_are_different(self, force_first_run):
+        """Verify bare 'tren' and 'tren -h' show different but related content.
+
+        force_first_run: bare `tren` after the first-ever run now launches
+        the TUI directly instead of printing this welcome text, which
+        would hang this subprocess call waiting for terminal input.
+        """
         # Get bare tren output
         bare_result = subprocess.run(
             [sys.executable, "-m", "platforms.cli.main"],
@@ -57,6 +62,7 @@ class TestHelpConsistency:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=30,
         )
 
         # Get help output
@@ -177,8 +183,13 @@ class TestWelcomeScreen:
         """Set up test fixtures."""
         self.project_root = Path(__file__).parent.parent.parent.parent
 
-    def test_welcome_screen_shows_quick_start(self):
-        """Verify welcome screen has quick start section."""
+    def test_welcome_screen_shows_quick_start(self, force_first_run):
+        """Verify welcome screen has quick start section.
+
+        force_first_run: bare `tren` after the first-ever run now launches
+        the TUI directly instead of showing this welcome screen, which
+        would hang this subprocess call waiting for terminal input.
+        """
         result = subprocess.run(
             [sys.executable, "-m", "platforms.cli.main"],
             cwd=self.project_root,
@@ -186,6 +197,7 @@ class TestWelcomeScreen:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=30,
         )
 
         output = result.stdout
@@ -193,7 +205,7 @@ class TestWelcomeScreen:
             "Welcome screen should have Quick Start section"
         )
 
-    def test_welcome_screen_shows_command_groups(self):
+    def test_welcome_screen_shows_command_groups(self, force_first_run):
         """Verify welcome screen organizes commands into groups."""
         result = subprocess.run(
             [sys.executable, "-m", "platforms.cli.main"],
@@ -202,6 +214,7 @@ class TestWelcomeScreen:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=30,
         )
 
         output = result.stdout
@@ -209,7 +222,7 @@ class TestWelcomeScreen:
             "Welcome screen should show quick start or commands"
         )
 
-    def test_welcome_screen_has_examples(self):
+    def test_welcome_screen_has_examples(self, force_first_run):
         """Verify welcome screen shows example commands."""
         result = subprocess.run(
             [sys.executable, "-m", "platforms.cli.main"],
@@ -218,6 +231,7 @@ class TestWelcomeScreen:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=30,
         )
 
         output = result.stdout
@@ -236,8 +250,13 @@ class TestCommandDocumentation:
         self.project_root = Path(__file__).parent.parent.parent.parent
         self.cli = TrenTorchCLI()
 
-    def test_all_registered_commands_in_welcome_or_help(self):
-        """Verify all registered commands appear in welcome screen or help."""
+    def test_all_registered_commands_in_welcome_or_help(self, force_first_run):
+        """Verify all registered commands appear in welcome screen or help.
+
+        force_first_run: bare `tren` after the first-ever run now launches
+        the TUI directly instead of showing this welcome screen, which
+        would hang this subprocess call waiting for terminal input.
+        """
         # Get welcome screen
         welcome_result = subprocess.run(
             [sys.executable, "-m", "platforms.cli.main"],
@@ -246,6 +265,7 @@ class TestCommandDocumentation:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=30,
         )
 
         # Get help
@@ -269,7 +289,7 @@ class TestCommandDocumentation:
             f"Commands registered but not documented: {missing}\nAdd them to welcome screen or help text"
         )
 
-    def test_milestone_properly_documented(self):
+    def test_milestone_properly_documented(self, force_first_run):
         """Specifically test that milestone command is documented."""
         # This addresses the user's concern about progress tracking
         welcome_result = subprocess.run(
@@ -279,6 +299,7 @@ class TestCommandDocumentation:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=30,
         )
 
         help_result = subprocess.run(

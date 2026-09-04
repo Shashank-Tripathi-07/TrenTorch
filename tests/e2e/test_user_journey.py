@@ -62,12 +62,40 @@ def run_python_script(script_path: Path, timeout: int = 120) -> tuple[int, str, 
     return result.returncode, result.stdout, result.stderr
 
 
+@pytest.fixture
+def force_first_run():
+    """Deterministically force bare `tren`'s "first run" state for the
+    duration of a test.
+
+    Bare `tren` now launches the TUI directly once user_data/ exists (see
+    main.py's --tui shortcut routing), which would hang this subprocess
+    call waiting on the TUI's interactive event loop. Moving the real
+    user_data/ aside forces the one-time welcome screen instead,
+    regardless of whatever state other commands left behind in this
+    checkout.
+    """
+    user_data_dir = PROJECT_ROOT / "user_data"
+    backup_dir = PROJECT_ROOT / "user_data.test_backup"
+    moved_aside = False
+    if user_data_dir.exists():
+        user_data_dir.rename(backup_dir)
+        moved_aside = True
+
+    try:
+        yield
+    finally:
+        if user_data_dir.exists():
+            shutil.rmtree(user_data_dir)
+        if moved_aside:
+            backup_dir.rename(user_data_dir)
+
+
 class TestQuickVerification:
     """Quick tests to verify CLI and structure (~30 seconds total)."""
 
     @pytest.mark.quick
-    def test_tren_bare_command_works(self):
-        """Bare 'tren' shows welcome screen."""
+    def test_tren_bare_command_works(self, force_first_run):
+        """Bare 'tren' shows welcome screen on a student's first-ever run."""
         code, stdout, stderr = run_tren([])
         assert code == 0, f"Bare tren failed: {stderr}"
         assert "Welcome" in stdout or "Quick Start" in stdout

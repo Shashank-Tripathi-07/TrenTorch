@@ -414,8 +414,14 @@ The best way to learn:
 
             # --tui / -i is a shortcut for the `tui` subcommand. Route it
             # through the normal command path so it gets the same venv guard,
-            # environment validation, and banner as `tren tui`.
-            if getattr(parsed_args, "tui", False) and not parsed_args.command:
+            # environment validation, and banner as `tren tui`. Bare `tren`
+            # (no command, no flags) does the same once the student is past
+            # their first-ever run -- first run instead falls through to the
+            # "no command" branch below, which shows the one-time welcome
+            # panel (learning approach, quick-start commands) so a brand-new
+            # student gets oriented before being dropped into a full-screen
+            # TUI with no explanation.
+            if not parsed_args.command and (getattr(parsed_args, "tui", False) or not self._is_first_run()):
                 parsed_args.command = "tui"
 
             # Guard against running outside a virtual environment unless explicitly allowed
