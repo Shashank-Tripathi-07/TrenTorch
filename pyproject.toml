@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trentorch"
-version = "0.0.1"
+version = "1.0.0"
 description = "TrenTorch - Machine Learning Systems Engineering Framework from Scratch"
 readme = "README.md"
 requires-python = ">=3.10"
