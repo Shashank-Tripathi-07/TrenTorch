@@ -61,6 +61,7 @@ from trentorch.core.activations import ReLU, Sigmoid  # Module 02 - intelligence
 #| default_exp core.layers
 #| export
 
+import inspect
 import os
 import numpy as np
 # Module-level RNG is seeded so Linear weight init is deterministic by default.
@@ -1081,9 +1082,20 @@ def test_unit_generate_dropout_mask():
     """🧪 Test _generate_dropout_mask output properties."""
     print("🧪 Unit Test: Dropout Mask Generation...")
 
+    # _generate_dropout_mask draws from the module-level `rng`, not an
+    # instance/local one, so seeding a local `rng` here would never reach
+    # the code under test. `global` rebinds the actual name it uses.
+    global rng
+
     d = Dropout(0.5)
     rng = np.random.default_rng(7)
     mask = d._generate_dropout_mask((1000,))
+
+    # Reproducibility check: same seed must produce the identical mask.
+    rng = np.random.default_rng(7)
+    mask_repeat = d._generate_dropout_mask((1000,))
+    assert np.array_equal(mask.data, mask_repeat.data), \
+        "Same seed should produce an identical dropout mask"
 
     # Shape must match the requested shape
     assert mask.shape == (1000,), f"Expected shape (1000,), got {mask.shape}"
@@ -1173,11 +1185,19 @@ class Sequential:
 
             output = model.forward(x, training=False)   # eval: Dropout disabled
             output = model.forward(x, training=True)    # train: Dropout active
+
+        Whether a layer supports the training kwarg is decided up front by
+        inspecting its forward() signature, not by calling it and catching
+        the TypeError that a signature mismatch would raise. Catching
+        TypeError here would also swallow any unrelated TypeError raised
+        from inside a layer's own forward() logic, silently masking real
+        bugs instead of letting them propagate.
         """
         for layer in self.layers:
-            try:
+            params = inspect.signature(layer.forward).parameters
+            if "training" in params:
                 x = layer.forward(x, training=training)
-            except TypeError:
+            else:
                 x = layer.forward(x)
         return x
 
@@ -1212,6 +1232,10 @@ This test validates our Dropout layer implementation works correctly.
 def test_unit_dropout_layer():
     """🧪 Test Dropout layer implementation."""
     print("🧪 Unit Test: Dropout Layer...")
+
+    # Dropout draws from the module-level `rng`; `global` makes seeding
+    # below actually reach the code under test instead of shadowing it.
+    global rng
 
     # Test dropout creation
     dropout = Dropout(0.5)
