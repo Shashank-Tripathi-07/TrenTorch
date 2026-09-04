@@ -411,10 +411,10 @@ class TestSharedNonLeafGradientAccumulation:
 
     def test_diamond_graph_sums_both_branches(self):
         x = Tensor(np.array([2.0]), requires_grad=True)
-        y = x * 3          # non-leaf, consumed by both a and b below
+        y = x * 3  # non-leaf, consumed by both a and b below
         a = y * 2
         b = y * 5
-        c = a + b          # c = 2y + 5y = 7y = 21x
+        c = a + b  # c = 2y + 5y = 7y = 21x
         c.backward()
 
         assert np.isclose(x.grad[0], 21.0), (
@@ -427,9 +427,7 @@ class TestSharedNonLeafGradientAccumulation:
         out = y + y + y  # out = 3x^2, d(out)/dx = 6x
         out.backward()
 
-        assert np.isclose(x.grad[0], 6.0), (
-            f"Expected d(3x^2)/dx=6x=6 at x=1, got {x.grad[0]}"
-        )
+        assert np.isclose(x.grad[0], 6.0), f"Expected d(3x^2)/dx=6x=6 at x=1, got {x.grad[0]}"
 
 
 if __name__ == "__main__":
