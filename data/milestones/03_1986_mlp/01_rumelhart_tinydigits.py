@@ -61,7 +61,7 @@ can
 📊 EXPECTED RESULTS:
 - Training time: ~1-2 minutes
 - Accuracy: 75-85% (decent for 8×8 images without spatial features!)
-- Parameters: 2,378 (64×32 + 32 + 32×10 + 10)
+- Parameters: 2,410 (64×32 + 32 + 32×10 + 10)
 - 📌 BASELINE: CNN (Milestone 04) will show improvement by using spatial structure!
 """
 
@@ -547,8 +547,12 @@ def train_mlp():
     table.add_column("Value", style="green", width=20)
     table.add_column("Status", style="magenta", width=20)
 
-    table.add_row("Train Accuracy", f"{final_train_acc:.1f}%", f"↑ +{final_train_acc - initial_acc:.1f}%")
-    table.add_row("Test Accuracy", f"{final_test_acc:.1f}%", f"↑ +{final_test_acc - initial_acc:.1f}%")
+    train_delta = final_train_acc - initial_acc
+    test_delta = final_test_acc - initial_acc
+    train_arrow = "↑" if train_delta >= 0 else "↓"
+    test_arrow = "↑" if test_delta >= 0 else "↓"
+    table.add_row("Train Accuracy", f"{final_train_acc:.1f}%", f"{train_arrow} {train_delta:+.1f}%")
+    table.add_row("Test Accuracy", f"{final_test_acc:.1f}%", f"{test_arrow} {test_delta:+.1f}%")
     table.add_row(
         "Overfitting Gap", f"{overfitting_gap:.1f}%", "✓ Healthy" if overfitting_gap < 10 else "⚠️ Overfitting"
     )
