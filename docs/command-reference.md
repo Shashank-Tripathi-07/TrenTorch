@@ -169,14 +169,14 @@ Achievement/capability-unlock tracking, gated on completed modules. `platforms/c
 
 ## `tren benchmark`
 
-Baseline and capstone performance benchmarks, with an optional submission prompt. `platforms/cli/processes/benchmark.py`.
+Baseline and capstone performance benchmarks. `platforms/cli/processes/benchmark.py`.
 
 | Subcommand | Arguments | Purpose |
 |---|---|---|
-| `baseline` | `--skip-submit` | Lightweight setup-validation benchmark (tensor ops, matmul, forward pass), normalized to a reference-system score out of 100 |
-| `capstone` | `--track {speed,compression,accuracy,efficiency,all}` (default `all`); `--skip-submit` | Full Module 20 performance evaluation. Falls back to a simplified benchmark if Module 20's `trentorch.olympics.generate_submission` isn't importable yet (i.e. Module 20 not completed) |
+| `baseline` | (none) | Lightweight setup-validation benchmark (tensor ops, matmul, forward pass), normalized to a reference-system score out of 100 |
+| `capstone` | `--track {speed,compression,accuracy,efficiency,all}` (default `all`) | Full Module 20 performance evaluation. Falls back to a simplified benchmark if Module 20's `trentorch.olympics.generate_submission` isn't importable yet (i.e. Module 20 not completed) |
 
-Both save JSON results under `user_data/benchmarks/`, and (unless `--skip-submit`) interactively offer to save a submission under `user_data/submissions/`; actual website submission is a stubbed no-op pending a live API.
+Both save JSON results under `user_data/benchmarks/`.
 
 ## `tren olympics`
 
