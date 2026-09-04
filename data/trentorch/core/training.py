@@ -175,22 +175,20 @@ class Trainer:
                 param.data = state[i].copy()
 
     def _get_optimizer_state(self):
-        """Extract optimizer state for checkpointing."""
-        state = {}
-        state['lr'] = self.optimizer.lr
-        if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
-            momentum_state = self.optimizer.get_momentum_state()
-            if momentum_state is not None:
-                state['momentum_buffers'] = momentum_state
-        return state
+        """Extract optimizer state for checkpointing.
+
+        Uses the uniform get_state() interface every optimizer implements,
+        so momentum buffers (SGD) and moment buffers/step count (Adam,
+        AdamW) are all captured without special-casing any one type.
+        """
+        return self.optimizer.get_state()
 
     def _set_optimizer_state(self, state):
-        """Restore optimizer state from checkpoint."""
-        if 'lr' in state:
-            self.optimizer.lr = state['lr']
-        if 'momentum_buffers' in state:
-            if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
-                self.optimizer.set_momentum_state(state['momentum_buffers'])
+        """Restore optimizer state from checkpoint.
+
+        Uses the uniform set_state() interface every optimizer implements.
+        """
+        self.optimizer.set_state(state)
 
     def _get_scheduler_state(self):
         """Extract scheduler state for checkpointing."""
