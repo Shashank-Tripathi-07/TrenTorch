@@ -189,7 +189,7 @@ def build_grid(counts: dict, existing: dict) -> str:
     intro = (
         "Recomputed nightly from real issue/PR activity via "
         "[`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml). "
-        "Want to show up here? Open an issue or a PR — the first-contribution bot will say hello, "
+        "Want to show up here? Open an issue or a PR: the first-contribution bot will say hello, "
         "and this grid picks you up on the next nightly run.\n\n"
     )
 
