@@ -4020,43 +4020,102 @@ def enable_autograd(quiet=False):
                     f"  Fix: Call backward(gradient) with the gradient tensor from the loss function."
                 )
 
-        # Initialize or accumulate gradient
-        if self.grad is None:
-            self.grad = np.zeros_like(self.data)
+        def _fix_broadcast_shape(node, grad):
+            """
+            Sum a gradient back down to node's own data shape.
 
-        # Handle broadcasting: sum gradient to match self.data shape
-        # This happens when operations broadcast tensors (e.g., adding bias to batch)
-        if gradient.shape != self.grad.shape:
+            Mirrors how the forward pass broadcasts (e.g. adding a bias to
+            a batch), so the gradient flowing back must be summed over the
+            dimensions that got broadcast out.
+            """
+            target_shape = node.data.shape
+
             # Step 1: Remove extra leading dimensions added during forward pass
-            # Example: gradient (batch_size, features) → self.grad (features,)
-            while gradient.ndim > self.grad.ndim:
-                gradient = gradient.sum(axis=0)
+            # Example: gradient (batch_size, features) -> node shape (features,)
+            while grad.ndim > len(target_shape):
+                grad = grad.sum(axis=0)
 
             # Step 2: Sum over dimensions that were size-1 in original tensor
             # Example: bias with shape (1,) broadcast to (batch_size,) during forward
-            for i in range(gradient.ndim):
-                if self.grad.shape[i] == 1 and gradient.shape[i] != 1:
-                    gradient = gradient.sum(axis=i, keepdims=True)
+            for i in range(grad.ndim):
+                if target_shape[i] == 1 and grad.shape[i] != 1:
+                    grad = grad.sum(axis=i, keepdims=True)
 
-        self.grad += gradient
+            return grad
 
-        # Propagate gradients through computation graph
-        # _grad_fn is set by autograd enhancement when tensor is created from an operation
-        grad_fn = getattr(self, '_grad_fn', None)
-        if grad_fn is not None:
-            grads = grad_fn.apply(gradient)
+        # --- Phase 1: discover the reachable subgraph and count, for every
+        # node in it, how many gradient contributions it should expect
+        # during this backward pass.
+        #
+        # This is the fix for a bug where a non-leaf tensor consumed by
+        # multiple downstream operations (residual connections, shared
+        # Q/K/V projections, weight reuse, ...) would only ever propagate
+        # to its own inputs using the FIRST contribution it received: once
+        # _grad_fn had fired (and been cleared) for the first caller, later
+        # callers accumulated into .grad but silently skipped
+        # re-propagation, so upstream ancestors never saw the other
+        # branches' contributions. The fix is the standard topological-sort
+        # / pending-dependency-count approach real autograd engines use: a
+        # node is only expanded through its _grad_fn once ALL of its
+        # expected incoming contributions for this pass have arrived.
+        dependencies = {}  # id(node) -> number of contributions still expected
+        visited = set()
 
-            # Recursively call backward on parent tensors
-            for tensor, grad in zip(grad_fn.saved_tensors, grads):
-                if isinstance(tensor, Tensor) and tensor.requires_grad and grad is not None:
-                    tensor.backward(grad, retain_graph=retain_graph)
+        def _discover(node):
+            node_id = id(node)
+            if node_id in visited:
+                return
+            visited.add(node_id)
+            grad_fn = getattr(node, '_grad_fn', None)
+            if grad_fn is None:
+                return
+            for parent in grad_fn.saved_tensors:
+                if isinstance(parent, Tensor) and _get_requires_grad(parent):
+                    dependencies[id(parent)] = dependencies.get(id(parent), 0) + 1
+                    _discover(parent)
 
-            # Release computation graph to free memory (matches PyTorch's default)
-            # Why: The graph stores references to all intermediate tensors. Without
-            # cleanup, these references prevent garbage collection, causing memory
-            # to grow linearly with the number of training steps.
-            if not retain_graph:
-                self._grad_fn = None
+        _discover(self)
+
+        # --- Phase 2: process nodes in topological order (Kahn's
+        # algorithm). A node is only pushed onto `ready` once every
+        # contribution counted for it in Phase 1 has actually arrived
+        # (or been ruled out), guaranteeing every consumer's gradient is
+        # summed in before the node propagates to its own inputs.
+        pending_grad = {id(self): gradient}
+        ready = [self]
+
+        while ready:
+            node = ready.pop()
+            node_id = id(node)
+            grad = _fix_broadcast_shape(node, pending_grad.pop(node_id))
+
+            _ensure_grad_attrs(node)
+            if node.grad is None:
+                node.grad = np.zeros_like(node.data)
+            node.grad += grad
+
+            grad_fn = getattr(node, '_grad_fn', None)
+            if grad_fn is not None:
+                grads = grad_fn.apply(grad)
+
+                for parent, parent_grad in zip(grad_fn.saved_tensors, grads):
+                    if isinstance(parent, Tensor) and _get_requires_grad(parent):
+                        parent_id = id(parent)
+                        dependencies[parent_id] -= 1
+                        if parent_grad is not None:
+                            if parent_id in pending_grad:
+                                pending_grad[parent_id] = pending_grad[parent_id] + parent_grad
+                            else:
+                                pending_grad[parent_id] = parent_grad
+                        if dependencies[parent_id] == 0 and parent_id in pending_grad:
+                            ready.append(parent)
+
+                # Release computation graph to free memory (matches PyTorch's default)
+                # Why: The graph stores references to all intermediate tensors. Without
+                # cleanup, these references prevent garbage collection, causing memory
+                # to grow linearly with the number of training steps.
+                if not retain_graph:
+                    node._grad_fn = None
 
     def zero_grad(self):
         """
