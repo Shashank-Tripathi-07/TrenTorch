@@ -10,8 +10,6 @@ location (_find_project_root(), which walks up from that file's real
 path) instead.
 """
 
-from pathlib import Path
-
 from platforms.cli.core.config import CLIConfig
 
 
