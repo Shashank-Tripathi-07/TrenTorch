@@ -14,7 +14,7 @@
 
 **Most people learn ML frameworks by importing them. We built ours by hand, then made it hit harder.**
 
-[The Vision](#why-trentorch) · [20 Modules](#-20-progressive-modules) · [Milestones](#-historical-milestones)
+[Quick Start](#quick-start) · [The Vision](#why-trentorch) · [20 Modules](#-20-progressive-modules) · [Milestones](#-historical-milestones)
 
 </div>
 
@@ -22,6 +22,23 @@
 
 > [!NOTE]
 > **This is our implementation of [TinyTorch](https://mlsysbook.ai/tinytorch)** (Harvard CS249r), rebuilt in our own style and pushed further. Same bones, more muscle.
+
+---
+
+## Quick Start
+
+```bash
+git clone https://github.com/TrenTorch/TrenTorch.git
+cd TrenTorch
+python3 -m venv .venv
+source .venv/bin/activate   # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+pip install -e .
+tren setup
+tren
+```
+
+`tren setup` will ask to add `tren` to your PATH — say yes, and every terminal after that just needs `tren`, from any directory, with no activating first.
 
 ---
 
