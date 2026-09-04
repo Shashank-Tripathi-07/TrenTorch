@@ -21,7 +21,6 @@ const State = {
   milestones: [],
   systemStatus: null,
   activeTestStream: null,
-  digitGrid: Array(28 * 28).fill(0),
   isDrawing: false,
 };
 

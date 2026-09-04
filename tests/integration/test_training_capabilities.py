@@ -52,16 +52,21 @@ class TrainingTester:
         self.failed = []
 
     def test(self, name, func):
-        """Run a test and track results."""
+        """Run a test and track results.
+
+        Test functions now assert their conditions (instead of returning a
+        bool), so success is "no exception raised" rather than a truthy
+        return value.
+        """
         try:
-            result = func()
-            if result:
-                self.passed.append(name)
-                print(f"✅ {name}")
-            else:
-                self.failed.append((name, "Did not converge"))
-                print(f"⚠️  {name}: Did not converge")
-            return result
+            func()
+            self.passed.append(name)
+            print(f"✅ {name}")
+            return True
+        except AssertionError as e:
+            self.failed.append((name, str(e) or "Did not converge"))
+            print(f"⚠️  {name}: {e or 'Did not converge'}")
+            return False
         except Exception as e:
             self.failed.append((name, str(e)))
             print(f"❌ {name}: {e}")
@@ -118,10 +123,12 @@ def test_linear_regression():
             pass
 
     # Check if loss decreased
-    if initial_loss and final_loss:
-        improved = final_loss < initial_loss * 0.5  # Loss should drop by at least 50%
-        return improved
-    return False
+    assert initial_loss and final_loss, "Loss was never recorded during training"
+    improved = final_loss < initial_loss * 0.5  # Loss should drop by at least 50%
+    assert improved, (
+        f"Linear regression did not converge: initial_loss={initial_loss}, final_loss={final_loss} "
+        f"(expected final_loss < {initial_loss * 0.5})"
+    )
 
 
 def test_xor_learning():
@@ -160,11 +167,10 @@ def test_xor_learning():
             pass
 
     # Check convergence
-    if initial_loss and final_loss:
-        # For XOR, we should get very low loss if learning works
-        converged = final_loss < 0.1  # Should be close to 0
-        return converged
-    return False
+    assert initial_loss and final_loss, "Loss was never recorded during training"
+    # For XOR, we should get very low loss if learning works
+    converged = final_loss < 0.1  # Should be close to 0
+    assert converged, f"XOR did not converge: final_loss={final_loss} (expected < 0.1)"
 
 
 def test_multiclass_classification():
@@ -220,10 +226,12 @@ def test_multiclass_classification():
             pass
 
     # Check if loss decreased significantly
-    if initial_loss and final_loss:
-        improved = final_loss < initial_loss * 0.3
-        return improved
-    return False
+    assert initial_loss and final_loss, "Loss was never recorded during training"
+    improved = final_loss < initial_loss * 0.3
+    assert improved, (
+        f"Multiclass classification did not converge: initial_loss={initial_loss}, "
+        f"final_loss={final_loss} (expected final_loss < {initial_loss * 0.3})"
+    )
 
 
 def test_gradient_flow():
@@ -246,6 +254,12 @@ def test_gradient_flow():
 
     model = Sequential(layers)
 
+    # An optimizer must be created to register the model's parameters for
+    # gradient tracking (Optimizer.__init__ sets requires_grad=True on each
+    # param); without it, requires_grad stays False and no gradient ever
+    # populates, regardless of whether backprop itself is correct.
+    optimizer = SGD(model.parameters(), lr=0.01)
+
     # Test data
     X = Tensor(rng.standard_normal((10, 2)).astype(np.float32))
     y = Tensor(rng.standard_normal((10, 1)).astype(np.float32))
@@ -253,22 +267,21 @@ def test_gradient_flow():
     criterion = MeanSquaredError()
 
     # Forward and backward
-    try:
-        y_pred = model(X)
-        loss = criterion(y_pred, y)
-        loss.backward()
+    optimizer.zero_grad()
+    y_pred = model(X)
+    loss = criterion(y_pred, y)
+    loss.backward()
 
-        # Check if gradients exist in all layers
-        gradients_exist = True
-        for layer in model.layers:
-            if hasattr(layer, "weight"):
-                if layer.weight.grad is None:
-                    gradients_exist = False
-                    break
+    # Check if gradients exist in all layers
+    gradients_exist = True
+    missing_layers = []
+    for i, layer in enumerate(model.layers):
+        if hasattr(layer, "weight"):
+            if layer.weight.grad is None:
+                gradients_exist = False
+                missing_layers.append(i)
 
-        return gradients_exist
-    except Exception:
-        return False
+    assert gradients_exist, f"Gradients missing on layers at indices {missing_layers}"
 
 
 def test_optimizer_updates():
@@ -285,21 +298,18 @@ def test_optimizer_updates():
 
     criterion = MeanSquaredError()
 
-    try:
-        # Forward
-        y_pred = model(X)
-        loss = criterion(y_pred, y_true)
+    # Forward
+    y_pred = model(X)
+    loss = criterion(y_pred, y_true)
 
-        # Backward
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+    # Backward
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
 
-        # Check if weights changed
-        weights_changed = not np.allclose(initial_weights, model.weight.data)
-        return weights_changed
-    except Exception:
-        return False
+    # Check if weights changed
+    weights_changed = not np.allclose(initial_weights, model.weight.data)
+    assert weights_changed, "Optimizer step did not change model weights"
 
 
 def test_learning_rate_effect():
@@ -336,7 +346,10 @@ def test_learning_rate_effect():
 
     # Medium LR should converge better than too small or too large
     optimal_lr = (loss_medium_lr < loss_small_lr) or (loss_medium_lr < loss_large_lr)
-    return optimal_lr
+    assert optimal_lr, (
+        f"Learning rate had no effect on convergence: loss_small_lr={loss_small_lr}, "
+        f"loss_medium_lr={loss_medium_lr}, loss_large_lr={loss_large_lr}"
+    )
 
 
 def test_adam_vs_sgd():
@@ -372,7 +385,10 @@ def test_adam_vs_sgd():
 
     # Adam should generally converge to lower loss
     adam_better = adam_loss < sgd_loss * 1.2  # Allow some tolerance
-    return adam_better
+    assert adam_better, (
+        f"Adam did not converge competitively with SGD: adam_loss={adam_loss}, "
+        f"sgd_loss={sgd_loss} (expected adam_loss < {sgd_loss * 1.2})"
+    )
 
 
 def run_all_training_tests():
