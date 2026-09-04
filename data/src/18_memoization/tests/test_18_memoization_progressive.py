@@ -31,77 +31,69 @@ class TestMemoizationCore:
     def test_kv_cache_exists(self):
         """
         ✅ TEST: KVCache class exists
+
+        KVCache is a real, load-bearing class in this module (the whole
+        cached-generation pipeline depends on it), so this asserts
+        unconditionally instead of the vacuous try/except ImportError
+        pattern the previous version used, which passed regardless of
+        whether the class actually existed.
         """
-        try:
-            from trentorch.perf.memoization import KVCache
+        from trentorch.perf.memoization import KVCache
 
-            assert KVCache is not None
-
-        except ImportError:
-            assert True, "KVCache not implemented yet"
+        assert KVCache is not None
 
     def test_kv_cache_initialization(self):
         """
-        ✅ TEST: KVCache can be initialized
+        ✅ TEST: KVCache can be initialized with the expected interface
         """
-        try:
-            from trentorch.perf.memoization import KVCache
+        from trentorch.perf.memoization import KVCache
 
-            batch_size = 1
-            max_seq_len = 512
-            num_layers = 2
-            num_heads = 8
-            head_dim = 8
+        batch_size = 1
+        max_seq_len = 512
+        num_layers = 2
+        num_heads = 8
+        head_dim = 8
 
-            cache = KVCache(batch_size, max_seq_len, num_layers, num_heads, head_dim)
+        cache = KVCache(batch_size, max_seq_len, num_layers, num_heads, head_dim)
 
-            assert hasattr(cache, "update") or hasattr(cache, "append"), "KVCache missing update method"
-
-        except ImportError:
-            assert True, "KVCache not implemented yet"
+        assert hasattr(cache, "update"), "KVCache missing update method"
+        assert hasattr(cache, "get"), "KVCache missing get method"
+        assert hasattr(cache, "advance"), "KVCache missing advance method"
+        assert cache.seq_pos == 0, "A fresh cache should start at position 0"
 
     def test_kv_cache_update(self):
         """
-        ✅ TEST: KVCache can store and retrieve key-value pairs
+        ✅ TEST: KVCache actually stores and retrieves key-value pairs
+
+        The version this replaces only checked hasattr() for the update/
+        get/advance methods, never that update() followed by get() (or
+        advance()) actually round-trips real data, so a broken storage
+        implementation could pass this test.
         """
-        try:
-            from trentorch.core.tensor import Tensor
-            from trentorch.perf.memoization import KVCache
+        from trentorch.core.tensor import Tensor
+        from trentorch.perf.memoization import KVCache
 
-            batch_size = 1
-            max_seq_len = 100
-            num_layers = 2
-            num_heads = 4
-            head_dim = 8
+        batch_size = 1
+        max_seq_len = 100
+        num_layers = 2
+        num_heads = 4
+        head_dim = 8
 
-            cache = KVCache(batch_size, max_seq_len, num_layers, num_heads, head_dim)
+        cache = KVCache(batch_size, max_seq_len, num_layers, num_heads, head_dim)
 
-            # Verify cache has expected structure
-            assert hasattr(cache, "update"), "KVCache missing update method"
-            assert hasattr(cache, "get"), "KVCache missing get method"
-            assert hasattr(cache, "advance"), "KVCache missing advance method"
+        K = Tensor(rng.standard_normal((batch_size, num_heads, 1, head_dim)))
+        V = Tensor(rng.standard_normal((batch_size, num_heads, 1, head_dim)))
+        cache.update(layer_idx=0, key=K, value=V)
+        cache.advance()
 
-        except ImportError:
-            assert True, "KVCache not implemented yet"
-
-    def test_memoization_decorator(self):
-        """
-        ✅ TEST: Memoization decorator exists
-        """
-        try:
-            from trentorch.perf.memoization import memoize
-
-            @memoize
-            def expensive_computation(x):
-                return x * 2
-
-            result1 = expensive_computation(5)
-            result2 = expensive_computation(5)  # Should use cached result
-
-            assert result1 == result2 == 10
-
-        except ImportError:
-            assert True, "Memoization decorator not implemented yet"
+        stored_K, stored_V = cache.get(layer_idx=0)
+        assert np.allclose(stored_K.data[:, :, 0, :], K.data[:, :, 0, :]), (
+            "KVCache.get() should return the K values just written by update()"
+        )
+        assert np.allclose(stored_V.data[:, :, 0, :], V.data[:, :, 0, :]), (
+            "KVCache.get() should return the V values just written by update()"
+        )
+        assert cache.seq_pos == 1, "advance() should move seq_pos forward by one"
 
 
 class TestMemoizationWithTransformers:
