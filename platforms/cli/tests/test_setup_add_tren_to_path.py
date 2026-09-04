@@ -15,7 +15,9 @@ from platforms.cli.cli_platform.setup import SetupCommand
 from platforms.cli.core.config import CLIConfig
 
 
-def _make_cmd(tmp_path, monkeypatch, *, venv_exists, already_on_path, confirm_answer=None, add_result=(True, "ok")):
+def _make_cmd(
+    tmp_path, monkeypatch, *, venv_exists, already_on_path, confirm_answer=None, add_result=(True, "ok")
+):
     """Build a SetupCommand with everything about PATH state controlled
     by the caller, and self.console swapped for a headless one."""
     project_root = tmp_path / "project"
