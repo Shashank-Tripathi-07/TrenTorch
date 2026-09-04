@@ -1528,11 +1528,16 @@ def compress_model(model, compression_config):
     >>> config = {
     ...     'magnitude_prune': 0.8,
     ...     'structured_prune': 0.3,
-    ...     'low_rank': 0.5
     ... }
     >>> stats = compress_model(model, config)
     >>> print(f"Final sparsity: {stats['sparsity']:.1f}%")
     Final sparsity: 85.0%
+
+    NOTE: 'low_rank' is intentionally not shown here. It raises
+    NotImplementedError, applying it would require restructuring each
+    Linear layer into a factored low-rank pair, which compress_model does
+    not do; use low_rank_approximate() directly on individual weight
+    matrices instead.
 
     HINT: Apply techniques sequentially and measure results
     """
@@ -1559,11 +1564,16 @@ def compress_model(model, compression_config):
     >>> config = {
     ...     'magnitude_prune': 0.8,
     ...     'structured_prune': 0.3,
-    ...     'low_rank': 0.5
     ... }
     >>> stats = compress_model(model, config)
     >>> print(f"Final sparsity: {stats['sparsity']:.1f}%")
     Final sparsity: 85.0%
+
+    NOTE: 'low_rank' is intentionally not shown here. It raises
+    NotImplementedError, applying it would require restructuring each
+    Linear layer into a factored low-rank pair, which compress_model does
+    not do; use low_rank_approximate() directly on individual weight
+    matrices instead.
 
     HINT: Apply techniques sequentially and measure results
     """
@@ -1589,11 +1599,27 @@ def compress_model(model, compression_config):
         structured_prune(model, prune_ratio=ratio)
         stats['applied_techniques'].append(f'structured_prune_{ratio}')
 
-    # Apply low-rank approximation (conceptually - would need architecture changes)
+    # Apply low-rank approximation
     if 'low_rank' in compression_config:
         ratio = compression_config['low_rank']
-        # For demo, we'll just record that it would be applied
-        stats['applied_techniques'].append(f'low_rank_{ratio}')
+        # Low-rank compression requires replacing each Linear layer's weight
+        # matrix with a factored pair of smaller matrices (an architecture
+        # change: the layer's forward pass and parameter count both change),
+        # not just reconstructing an approximated same-shape matrix in place.
+        # low_rank_approximate() above provides the SVD math for that, but
+        # wiring it into Linear/Sequential is out of scope for this fix.
+        # Raise instead of silently no-opping and reporting success: the
+        # previous behavior appended 'low_rank_{ratio}' to applied_techniques
+        # without touching the model at all, which falsely claimed the
+        # technique had been applied.
+        raise NotImplementedError(
+            "compress_model: 'low_rank' compression is not implemented. "
+            "Applying it would require restructuring each Linear layer into "
+            "a factored low-rank pair (see low_rank_approximate() for the "
+            "underlying SVD approximation), not just adjusting statistics. "
+            "Remove 'low_rank' from compression_config, or apply "
+            "low_rank_approximate() directly to individual weight matrices."
+        )
 
     # Final measurements
     final_sparsity = measure_sparsity(model)
