@@ -279,21 +279,22 @@ class TestTensorMemory:
 
         STUDENT LEARNING: TrenTorch should copy data by default for safety.
         """
-        original_data = np.array([1, 2, 3])
+        # Use float32 so the array's dtype already matches Tensor's internal
+        # dtype: a dtype mismatch would force a copy regardless of whether
+        # Tensor.__init__ copies defensively, masking the bug this test targets.
+        original_data = np.array([1, 2, 3], dtype=np.float32)
         t1 = Tensor(original_data)
-        t2 = Tensor(original_data.copy())
 
-        # Should have same values but independent data
-        assert np.array_equal(t1.data, t2.data)
+        # Should have same values as the source array right after construction
+        assert np.array_equal(t1.data, original_data)
 
-        # Modifying original shouldn't affect t2
+        # Modifying the original array shouldn't affect t1
         original_data[0] = 999
-        if not np.shares_memory(t2.data, original_data):
-            assert t2.data[0] == 1, (
-                "Tensor should not share memory with input!\n"
-                "Modifying the original array changed the tensor.\n"
-                "This can cause hard-to-debug issues."
-            )
+        assert t1.data[0] == 1, (
+            "Tensor should not share memory with input!\n"
+            "Modifying the original array changed the tensor.\n"
+            "This can cause hard-to-debug issues."
+        )
 
     def test_tensor_memory_efficiency(self):
         """
