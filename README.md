@@ -28,10 +28,23 @@
 ## Quick Start
 
 ```bash
+# macOS / Linux
 git clone https://github.com/TrenTorch/TrenTorch.git
 cd TrenTorch
 python3 -m venv .venv
-source .venv/bin/activate   # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+tren setup
+tren
+```
+
+```powershell
+# Windows (PowerShell)
+git clone https://github.com/TrenTorch/TrenTorch.git
+cd TrenTorch
+python -m venv .venv
+.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 pip install -e .
 tren setup
