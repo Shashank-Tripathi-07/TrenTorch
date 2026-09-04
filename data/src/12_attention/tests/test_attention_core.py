@@ -259,9 +259,7 @@ class TestMultiHeadAttention:
             # suggestion ("or num_heads=N"). Match the suggestion
             # specifically, not the first (diagnostic) occurrence.
             match = re.search(r"or num_heads=(\d+)", message)
-            assert match, (
-                f"Error message should suggest a num_heads value, got: {message}"
-            )
+            assert match, f"Error message should suggest a num_heads value, got: {message}"
             suggested_num_heads = int(match.group(1))
 
             assert suggested_num_heads != num_heads, (
@@ -270,8 +268,7 @@ class TestMultiHeadAttention:
                 f"actual fix (embed_dim={embed_dim})"
             )
             assert embed_dim % suggested_num_heads == 0, (
-                f"Suggested num_heads={suggested_num_heads} does not evenly "
-                f"divide embed_dim={embed_dim}"
+                f"Suggested num_heads={suggested_num_heads} does not evenly divide embed_dim={embed_dim}"
             )
 
 
