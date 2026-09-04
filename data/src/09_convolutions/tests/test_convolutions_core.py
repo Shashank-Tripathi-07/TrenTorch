@@ -191,32 +191,38 @@ class TestPoolingLayers:
         """
         pool = MaxPool2d(kernel_size=2, stride=2)
 
-        # Simple 4x4 input with known values
+        # Simple 4x4 image with known values. This module's tensors are
+        # NCHW: (batch, channels, height, width). A single-channel 4x4
+        # image is (1, 1, 4, 4), not (1, 4, 4, 1) (that shape was
+        # channels=4, width=1, which the 2x2 pool can't even slide over).
         x = Tensor(
             np.array(
                 [
                     [
-                        [[1], [2], [5], [6]],
-                        [[3], [4], [7], [8]],
-                        [[9], [10], [13], [14]],
-                        [[11], [12], [15], [16]],
+                        [
+                            [1, 2, 5, 6],
+                            [3, 4, 7, 8],
+                            [9, 10, 13, 14],
+                            [11, 12, 15, 16],
+                        ]
                     ]
                 ]
             )
-        )  # (1, 4, 4, 1)
+        )  # (1, 1, 4, 4)
 
         output = pool(x)
+
+        assert output.shape == (1, 1, 2, 2), f"Expected shape (1, 1, 2, 2), got {output.shape}"
 
         # 2x2 pooling should give max of each 2x2 region
         # Top-left: max(1,2,3,4) = 4
         # Top-right: max(5,6,7,8) = 8
         # etc.
-        expected = np.array([[[[4], [8]], [[12], [16]]]])
+        expected = np.array([[[[4, 8], [12, 16]]]])
 
-        if output.shape == (1, 2, 2, 1):
-            assert np.array_equal(output.data, expected), (
-                f"MaxPool values wrong.\n  Expected: {expected.squeeze()}\n  Got: {output.data.squeeze()}"
-            )
+        assert np.array_equal(output.data, expected), (
+            f"MaxPool values wrong.\n  Expected: {expected.squeeze()}\n  Got: {output.data.squeeze()}"
+        )
 
     def test_avgpool2d_forward(self):
         """
@@ -231,14 +237,15 @@ class TestPoolingLayers:
         """
         pool = AvgPool2d(kernel_size=2, stride=2)
 
-        # All-ones input - average should be 1
-        x = Tensor(np.ones((1, 4, 4, 1)))
+        # All-ones NCHW image (batch=1, channels=1, height=4, width=4) -
+        # average should be 1.
+        x = Tensor(np.ones((1, 1, 4, 4)))
         output = pool(x)
 
-        if output.shape == (1, 2, 2, 1):
-            assert np.allclose(output.data, 1.0), (
-                f"AvgPool of all-ones should be 1.0\n  Got: {output.data[0, 0, 0, 0]}"
-            )
+        assert output.shape == (1, 1, 2, 2), f"Expected shape (1, 1, 2, 2), got {output.shape}"
+        assert np.allclose(output.data, 1.0), (
+            f"AvgPool of all-ones should be 1.0\n  Got: {output.data[0, 0, 0, 0]}"
+        )
 
 
 class TestConvOutputShapes:
