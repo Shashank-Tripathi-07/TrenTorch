@@ -30,6 +30,8 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import platform
 import sys
+from trentorch.core.layers import Linear
+from trentorch.core.activations import ReLU
 
 # %% ../solutions/20_capstone/capstone.ipynb #f32ecdd6
 # Solution
