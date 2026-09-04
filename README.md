@@ -369,7 +369,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <br />
         <sub>IIT Guwahati, Debugs autograd for fun, ships before sunrise.</sub>
         <br />
-        <sub>Issues: 9 &middot; PRs: 73</sub>
+        <sub>Issues: 10 &middot; PRs: 102</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" class="contributor-avatar" width="80px;" alt="Shivtej Gaikwad"/></a>
