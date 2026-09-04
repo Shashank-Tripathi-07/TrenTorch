@@ -3350,9 +3350,10 @@ def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
     # Generate standardized test inputs (as Tensors for TrenTorch model compatibility)
     input_shape = config['input_shape']
     test_inputs = []
+    # Seed once before the loop so each run draws a fresh sample from the
+    # same generator (reproducible across calls, but not identical across runs)
+    rng = np.random.default_rng(7)
     for i in range(num_runs):
-        # Use deterministic random generation for reproducibility
-        rng = np.random.default_rng(7)
         if len(input_shape) == 2:  # Audio/sequence data (keyword_spotting, anomaly_detection)
             arr = rng.standard_normal(input_shape).astype(np.float32)
         else:  # Image data (visual_wake_words, image_classification) - use CHW for Conv2d
@@ -4031,7 +4032,10 @@ def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, 
     base_metrics = {}
     for metric_type, results in benchmark_results.items():
         for model_name, result in results.items():
-            if base_name in model_name:
+            # Exact match only: substring containment would let overlapping
+            # names (e.g. "model" vs "model_v2") cross-match depending on
+            # dict iteration order, silently corrupting downstream metrics.
+            if model_name == base_name:
                 base_metrics[metric_type] = result.mean
                 break
     return base_metrics
@@ -4447,7 +4451,9 @@ def analyze_optimization_techniques(base_model: Any, optimized_models: List[Any]
         opt_metrics = {}
         for metric_type, results in benchmark_results.items():
             for model_name, result in results.items():
-                if opt_name in model_name:
+                # Exact match only: see _collect_base_metrics for why substring
+                # containment is unsafe with overlapping model names.
+                if model_name == opt_name:
                     opt_metrics[metric_type] = result.mean
                     break
 
