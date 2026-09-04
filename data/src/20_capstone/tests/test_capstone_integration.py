@@ -59,7 +59,14 @@ def test_capstone_integration():
     assert improvements["compression_ratio"] > 1.0, (
         "A model with fewer parameters should report compression_ratio > 1"
     )
-    assert improvements["speedup"] > 0, "Speedup should be a positive number"
+    # >= 0, not > 0: speedup is baseline_latency / optimized_latency, and
+    # baseline_latency is itself a raw wall-clock measurement over only
+    # num_runs=5 iterations -- on a noisy or coarse-resolution timer
+    # (observed on Windows CI), it can legitimately measure as 0.0, making
+    # speedup 0.0 too, even though the division is already floored against
+    # a zero denominator. See generate_submission's own test for the same
+    # reasoning.
+    assert improvements["speedup"] >= 0, "Speedup should be non-negative"
     assert isinstance(improvements["accuracy_delta"], float)
 
 
