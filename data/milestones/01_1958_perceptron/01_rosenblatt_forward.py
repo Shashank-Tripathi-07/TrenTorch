@@ -378,7 +378,8 @@ def main():
     b = model.linear.bias.data[0]
 
     # Calculate z values (linear output before sigmoid)
-    X @ np.array([[w1], [w2]]) + b
+    z_values = (X @ np.array([[w1], [w2]]) + b).flatten()
+    z_str = " ".join([f"{z:.3f}" for z in z_values])
 
     # Show visualization with predictions AND decision boundary
     pred_viz = visualize_data_points(X, y, pred_classes, weights=(w1, w2, b))
@@ -401,7 +402,8 @@ def main():
         f"  w₂ = [yellow]{w2:7.4f}[/yellow]\n"
         f"  b  = [yellow]{b:7.4f}[/yellow]\n\n"
         f"[bold]Linear Function:[/bold]\n"
-        f"  {decision_eq}\n\n"
+        f"  {decision_eq}\n"
+        f"  [dim]z per sample: [{z_str}][/dim]\n\n"
         f"[bold]Decision Line:[/bold]\n"
         f"  {boundary_eq}\n"
         f"  [dim](Everything above line → Class 1, below → Class 0)[/dim]"

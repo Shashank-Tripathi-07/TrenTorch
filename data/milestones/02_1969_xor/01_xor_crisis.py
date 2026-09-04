@@ -268,6 +268,7 @@ def demonstrate_crisis():
     results_table.add_column("b", justify="right")
     results_table.add_column("Accuracy", justify="center")
     results_table.add_column("Predictions", style="dim")
+    results_table.add_column("Decision Boundary", style="dim")
 
     best_accuracy = 0
 
@@ -277,6 +278,7 @@ def demonstrate_crisis():
 
         # Format predictions
         pred_str = " ".join([f"{int(p)}" for p in (preds > 0.5).astype(int)])
+        boundary_str = describe_decision_boundary(w1, w2, b)
 
         # Color accuracy based on value
         if accuracy == 1.0:
@@ -293,6 +295,7 @@ def demonstrate_crisis():
             f"{b:.1f}",
             acc_style.format(accuracy) if "{" in acc_style else acc_style,
             pred_str,
+            boundary_str,
         )
 
         if accuracy > best_accuracy:
