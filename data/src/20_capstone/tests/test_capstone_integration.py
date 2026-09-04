@@ -20,9 +20,7 @@ from trentorch.core.tensor import Tensor
 # unlike every earlier numbered module. Load its solution content directly
 # from the source file, the same way this module's own test_module()
 # harness does.
-_spec = importlib.util.spec_from_file_location(
-    "capstone_20", Path(__file__).parent.parent / "20_capstone.py"
-)
+_spec = importlib.util.spec_from_file_location("capstone_20", Path(__file__).parent.parent / "20_capstone.py")
 _capstone = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_capstone)
 BenchmarkReport = _capstone.BenchmarkReport

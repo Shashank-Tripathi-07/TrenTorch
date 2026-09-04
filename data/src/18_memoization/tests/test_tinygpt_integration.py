@@ -42,9 +42,7 @@ def test_tinygpt_integration():
 
     prompt = Tensor(np.array([encoded]))
     logits = model.forward(prompt)
-    assert logits.shape == (1, len(encoded), tokenizer.vocab_size), (
-        f"Unexpected logits shape: {logits.shape}"
-    )
+    assert logits.shape == (1, len(encoded), tokenizer.vocab_size), f"Unexpected logits shape: {logits.shape}"
 
     total_params = sum(p.data.size for p in model.parameters())
     assert total_params > 0, "GPT model should have trainable parameters"
