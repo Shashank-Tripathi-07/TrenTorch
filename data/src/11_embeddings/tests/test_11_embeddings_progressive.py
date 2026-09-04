@@ -88,25 +88,48 @@ class TestEmbeddingCore:
 
     def test_positional_embedding(self):
         """
-        ✅ TEST: Positional embedding exists (if implemented)
+        ✅ TEST: PositionalEncoding adds position-aware information to embeddings
         """
+        from trentorch.core.embeddings import PositionalEncoding
+        from trentorch.core.tensor import Tensor
+
+        max_len = 512
+        embed_dim = 64
+        seq_len = 10
+        batch_size = 2
+
+        pos_encoding = PositionalEncoding(max_len, embed_dim)
+
+        # Positional encoding is added to token embeddings, not raw token ids:
+        # input is (batch, seq_len, embed_dim) embedding vectors.
+        token_embeds = Tensor(rng.normal(size=(batch_size, seq_len, embed_dim)))
+
+        output = pos_encoding(token_embeds)
+
+        # Output shape must match input shape
+        assert output.shape == (batch_size, seq_len, embed_dim), (
+            f"PositionalEncoding output shape wrong: {output.shape}"
+        )
+
+        # The output should actually differ from the input (positions were added),
+        # and the added component should match the stored position embeddings.
+        assert not np.allclose(output.data, token_embeds.data), (
+            "PositionalEncoding output is identical to input; positions were not added"
+        )
+
+        expected_pos = pos_encoding.position_embeddings.data[:seq_len][np.newaxis, :, :]
+        assert np.allclose(output.data, token_embeds.data + expected_pos), (
+            "PositionalEncoding output does not equal input + position_embeddings"
+        )
+
+        # Sequences longer than max_seq_len must raise a clear ValueError, not
+        # silently slice into a broadcast-shape mismatch.
+        too_long = Tensor(rng.normal(size=(batch_size, max_len + 1, embed_dim)))
         try:
-            from trentorch.core.embeddings import PositionalEmbedding
-            from trentorch.core.tensor import Tensor
-
-            max_len = 512
-            embed_dim = 64
-
-            pos_embed = PositionalEmbedding(max_len, embed_dim)
-
-            # Should produce position-aware vectors
-            positions = Tensor(np.arange(10).reshape(1, 10))  # (1, seq_len=10)
-            output = pos_embed(positions)
-
-            assert output.shape[-1] == embed_dim, "Positional embedding dim wrong"
-
-        except ImportError:
-            assert True, "PositionalEmbedding not implemented yet"
+            pos_encoding(too_long)
+            assert False, "Expected ValueError for seq_len > max_seq_len"
+        except ValueError as e:
+            assert "max_seq_len" in str(e) or "maximum" in str(e).lower()
 
 
 class TestEmbeddingWithTokenization:
