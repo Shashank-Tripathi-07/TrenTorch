@@ -202,6 +202,7 @@ def test_attention_kv_cache_shapes():
         print(f"  Token {t} output: {output_t.shape}")
 
     print("✅ Attention shape handling works correctly!")
+    return True
 
 
 def test_embedding_dimension_compatibility():
