@@ -1001,11 +1001,18 @@ class MultiHeadAttention:
         """
         ### BEGIN SOLUTION
         if embed_dim % num_heads != 0:
+            # Find the largest divisor of embed_dim that is <= num_heads (guaranteed
+            # to terminate at 1, and guaranteed to differ from the invalid num_heads
+            # since num_heads itself does not divide embed_dim).
+            suggested_num_heads = next(
+                candidate for candidate in range(min(num_heads, embed_dim), 0, -1)
+                if embed_dim % candidate == 0
+            )
             raise ValueError(
                 f"Multi-head attention dimension mismatch\n"
                 f"  ❌ embed_dim={embed_dim} is not divisible by num_heads={num_heads} (remainder={embed_dim % num_heads})\n"
                 f"  💡 Multi-head attention splits embed_dim equally among heads, so embed_dim must be a multiple of num_heads\n"
-                f"  🔧 Try: embed_dim={num_heads * (embed_dim // num_heads + 1)} (next valid size) or num_heads={embed_dim // (embed_dim // num_heads)} (fewer heads)"
+                f"  🔧 Try: embed_dim={num_heads * (embed_dim // num_heads + 1)} (next valid size) or num_heads={suggested_num_heads} (divides embed_dim={embed_dim} evenly)"
             )
 
         self.embed_dim = embed_dim
@@ -1455,10 +1462,15 @@ def analyze_attention_memory_overhead():
         # Optimizer state (Adam: +2× for momentum and velocity, incremental)
         optimizer_memory_mb = 2 * attention_matrix_mb
 
-        # Total = forward + gradients + optimizer state
-        total_memory_mb = attention_matrix_mb + backward_memory_mb + optimizer_memory_mb
+        # Running cumulative totals, matching the "Forward | + Gradients | +
+        # Optimizer | Total Memory" header: each column is the running sum up
+        # to that stage, not just that stage's own increment.
+        cumulative_forward_mb = attention_matrix_mb
+        cumulative_gradients_mb = cumulative_forward_mb + backward_memory_mb
+        cumulative_optimizer_mb = cumulative_gradients_mb + optimizer_memory_mb
+        total_memory_mb = cumulative_optimizer_mb
 
-        print(f"{seq_len:7d} | {attention_matrix_mb:6.2f}MB | {backward_memory_mb:10.2f}MB | {optimizer_memory_mb:10.2f}MB | {total_memory_mb:11.2f}MB")
+        print(f"{seq_len:7d} | {cumulative_forward_mb:6.2f}MB | {cumulative_gradients_mb:10.2f}MB | {cumulative_optimizer_mb:10.2f}MB | {total_memory_mb:11.2f}MB")
 
     print(f"\n💡 KEY INSIGHT: Training requires ~4x memory of inference (1x forward + 1x gradients + 2x optimizer state)")
     print(f"🚀 For GPT-3 (96 layers, 2048 context): ~6GB just for attention gradients!")

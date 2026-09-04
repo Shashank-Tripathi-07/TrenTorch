@@ -88,14 +88,31 @@ def test_embedding_sparse_gradients():
     loss = output.sum()
     loss.backward()
 
-    # Check that gradient exists (sparse gradient behavior validated in milestone tests)
+    # Check that gradient exists
     assert embed.weight.grad is not None, "Embedding weight should have gradient"
-    assert not np.allclose(embed.weight.grad.data, 0), "Embedding weight gradient should be non-zero"
 
-    # Note: Detailed sparse gradient checking depends on EmbeddingBackward implementation
-    # The milestone tests validate end-to-end sparse behavior
+    # embed.weight.grad may be a raw numpy array or a Tensor depending on
+    # which backward path populated it; numpy's own .data on an ndarray is
+    # a memoryview, not an array, so only unwrap .data for the Tensor case.
+    raw_grad = embed.weight.grad
+    grad = raw_grad.data if hasattr(raw_grad, "data") and not isinstance(raw_grad, np.ndarray) else raw_grad
+    accessed_set = set(accessed_indices)
+    unaccessed_indices = [i for i in range(vocab_size) if i not in accessed_set]
 
-    print("✅ Embedding sparse gradients: gradient flows correctly")
+    # Rows for indices that were NEVER looked up must receive exactly zero gradient
+    unaccessed_grads = grad[unaccessed_indices]
+    assert np.allclose(unaccessed_grads, 0), (
+        "Rows for unaccessed vocabulary indices should have zero gradient, "
+        f"but found non-zero values (max abs = {np.abs(unaccessed_grads).max():.6f})"
+    )
+
+    # Rows for indices that WERE looked up must receive non-zero gradient
+    for idx in accessed_indices:
+        assert not np.allclose(grad[idx], 0), (
+            f"Accessed index {idx} should have non-zero gradient, but got all zeros"
+        )
+
+    print("✅ Embedding sparse gradients: only accessed rows receive gradients")
 
 
 def test_embedding_batch_gradient_flow():
