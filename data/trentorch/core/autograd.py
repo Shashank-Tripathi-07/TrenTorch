@@ -20,7 +20,7 @@ __all__ = ['rng', 'EPSILON', 'Function', 'AddBackward', 'MulBackward', 'SubBackw
            'SigmoidBackward', 'TanhBackward', 'SoftmaxBackward', 'GELUBackward', 'MSEBackward', 'BCEBackward',
            'CrossEntropyBackward', 'is_grad_enabled', 'no_grad', 'enable_autograd']
 
-# %% ../../solutions/06_autograd/autograd.ipynb #b1ca52f6
+# %% ../../solutions/06_autograd/autograd.ipynb #937eda3c
 import numpy as np
 rng = np.random.default_rng(7)
 from typing import Optional, List, Tuple
@@ -32,7 +32,7 @@ from .tensor import Tensor
 # Constants for numerical differentiation
 EPSILON = 1e-7  # Small perturbation for numerical gradient computation
 
-# %% ../../solutions/06_autograd/autograd.ipynb #08722680
+# %% ../../solutions/06_autograd/autograd.ipynb #48753026
 class Function:
     """
     Base class for differentiable operations.
@@ -76,7 +76,7 @@ class Function:
         """
         raise NotImplementedError("Each Function must implement apply() method")
 
-# %% ../../solutions/06_autograd/autograd.ipynb #32d0faa5
+# %% ../../solutions/06_autograd/autograd.ipynb #6edfbeff
 # Solution
 
 def _reduce_broadcast_grad(grad, original_shape):
@@ -117,7 +117,7 @@ def _reduce_broadcast_grad(grad, original_shape):
     return grad
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #76842b2f
+# %% ../../solutions/06_autograd/autograd.ipynb #2c073d1a
 # Solution
 
 class AddBackward(Function):
@@ -200,7 +200,7 @@ class AddBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #201ed5be
+# %% ../../solutions/06_autograd/autograd.ipynb #8887f893
 # Solution
 
 class MulBackward(Function):
@@ -280,7 +280,7 @@ class MulBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #c9552597
+# %% ../../solutions/06_autograd/autograd.ipynb #7f26213d
 # Solution
 
 class SubBackward(Function):
@@ -340,7 +340,7 @@ class SubBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #617b9e2d
+# %% ../../solutions/06_autograd/autograd.ipynb #d715e202
 # Solution
 
 class DivBackward(Function):
@@ -409,7 +409,7 @@ class DivBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #5667bdc4
+# %% ../../solutions/06_autograd/autograd.ipynb #7b83c79a
 # Solution
 
 class MatmulBackward(Function):
@@ -500,7 +500,7 @@ class MatmulBackward(Function):
         return grad_a, grad_b
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #b464a43f
+# %% ../../solutions/06_autograd/autograd.ipynb #3a8879c2
 # Solution
 
 class TransposeBackward(Function):
@@ -588,7 +588,7 @@ class TransposeBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #36a376d9
+# %% ../../solutions/06_autograd/autograd.ipynb #8786dcf5
 # Solution
 
 class PermuteBackward(Function):
@@ -659,7 +659,7 @@ class PermuteBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #05836313
+# %% ../../solutions/06_autograd/autograd.ipynb #e080f5dc
 # Solution
 
 class SliceBackward(Function):
@@ -751,7 +751,7 @@ class SliceBackward(Function):
         return (grad_input,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #1285a182
+# %% ../../solutions/06_autograd/autograd.ipynb #19c4e5b1
 # Solution
 
 class ReshapeBackward(Function):
@@ -824,7 +824,7 @@ class ReshapeBackward(Function):
         return (grad_x,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #292a8bb9
+# %% ../../solutions/06_autograd/autograd.ipynb #65726382
 # Solution
 
 class SumBackward(Function):
@@ -892,7 +892,7 @@ class SumBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #6bfa70cc
+# %% ../../solutions/06_autograd/autograd.ipynb #0c70a3c0
 # Solution
 
 class ReLUBackward(Function):
@@ -943,7 +943,7 @@ class ReLUBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #4c65b933
+# %% ../../solutions/06_autograd/autograd.ipynb #93824d2d
 # Solution
 
 class SigmoidBackward(Function):
@@ -1002,7 +1002,7 @@ class SigmoidBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #b89bf26e
+# %% ../../solutions/06_autograd/autograd.ipynb #dd942cc5
 # Solution
 
 class TanhBackward(Function):
@@ -1061,7 +1061,7 @@ class TanhBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #e3ff338f
+# %% ../../solutions/06_autograd/autograd.ipynb #64efe779
 # Solution
 
 class SoftmaxBackward(Function):
@@ -1137,7 +1137,7 @@ class SoftmaxBackward(Function):
         return (None,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #a9470850
+# %% ../../solutions/06_autograd/autograd.ipynb #d70227a7
 # Solution
 
 class GELUBackward(Function):
@@ -1195,7 +1195,7 @@ class GELUBackward(Function):
         return (None,)
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #9bfdc8b2
+# %% ../../solutions/06_autograd/autograd.ipynb #b82f384d
 # Solution
 
 class MSEBackward(Function):
@@ -1250,7 +1250,7 @@ class MSEBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #69331c24
+# %% ../../solutions/06_autograd/autograd.ipynb #12a96518
 # Solution
 
 class BCEBackward(Function):
@@ -1309,7 +1309,7 @@ class BCEBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #b38d5b68
+# %% ../../solutions/06_autograd/autograd.ipynb #e4c0334e
 # Solution
 
 def _stable_softmax(logits_data):
@@ -1346,7 +1346,7 @@ def _stable_softmax(logits_data):
     return exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #dbab3e73
+# %% ../../solutions/06_autograd/autograd.ipynb #328e33db
 # Solution
 
 def _one_hot_encode(targets, batch_size, num_classes):
@@ -1381,7 +1381,7 @@ def _one_hot_encode(targets, batch_size, num_classes):
     return one_hot
     ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #5e38f7be
+# %% ../../solutions/06_autograd/autograd.ipynb #38e7cbd4
 # Solution
 
 class CrossEntropyBackward(Function):
@@ -1453,7 +1453,7 @@ class CrossEntropyBackward(Function):
         return None,
         ### END SOLUTION
 
-# %% ../../solutions/06_autograd/autograd.ipynb #e0e1ffda
+# %% ../../solutions/06_autograd/autograd.ipynb #a0b7143d
 # ===== Global Gradient Tracking Flag =====
 # Why this exists: During inference or parameter updates, we don't need to build
 # computation graphs. Skipping graph construction saves memory and time.
@@ -1518,7 +1518,7 @@ class no_grad:
         _GRAD_TRACKING_ENABLED = self._prev_state
         return False  # Don't suppress exceptions
 
-# %% ../../solutions/06_autograd/autograd.ipynb #95ef63ac
+# %% ../../solutions/06_autograd/autograd.ipynb #6516a0de
 def enable_autograd(quiet=False):
     """
     Enable gradient tracking for all Tensor operations.
@@ -1953,43 +1953,102 @@ def enable_autograd(quiet=False):
                     f"  Fix: Call backward(gradient) with the gradient tensor from the loss function."
                 )
 
-        # Initialize or accumulate gradient
-        if self.grad is None:
-            self.grad = np.zeros_like(self.data)
+        def _fix_broadcast_shape(node, grad):
+            """
+            Sum a gradient back down to node's own data shape.
 
-        # Handle broadcasting: sum gradient to match self.data shape
-        # This happens when operations broadcast tensors (e.g., adding bias to batch)
-        if gradient.shape != self.grad.shape:
+            Mirrors how the forward pass broadcasts (e.g. adding a bias to
+            a batch), so the gradient flowing back must be summed over the
+            dimensions that got broadcast out.
+            """
+            target_shape = node.data.shape
+
             # Step 1: Remove extra leading dimensions added during forward pass
-            # Example: gradient (batch_size, features) → self.grad (features,)
-            while gradient.ndim > self.grad.ndim:
-                gradient = gradient.sum(axis=0)
+            # Example: gradient (batch_size, features) -> node shape (features,)
+            while grad.ndim > len(target_shape):
+                grad = grad.sum(axis=0)
 
             # Step 2: Sum over dimensions that were size-1 in original tensor
             # Example: bias with shape (1,) broadcast to (batch_size,) during forward
-            for i in range(gradient.ndim):
-                if self.grad.shape[i] == 1 and gradient.shape[i] != 1:
-                    gradient = gradient.sum(axis=i, keepdims=True)
+            for i in range(grad.ndim):
+                if target_shape[i] == 1 and grad.shape[i] != 1:
+                    grad = grad.sum(axis=i, keepdims=True)
 
-        self.grad += gradient
+            return grad
 
-        # Propagate gradients through computation graph
-        # _grad_fn is set by autograd enhancement when tensor is created from an operation
-        grad_fn = getattr(self, '_grad_fn', None)
-        if grad_fn is not None:
-            grads = grad_fn.apply(gradient)
+        # --- Phase 1: discover the reachable subgraph and count, for every
+        # node in it, how many gradient contributions it should expect
+        # during this backward pass.
+        #
+        # This is the fix for a bug where a non-leaf tensor consumed by
+        # multiple downstream operations (residual connections, shared
+        # Q/K/V projections, weight reuse, ...) would only ever propagate
+        # to its own inputs using the FIRST contribution it received: once
+        # _grad_fn had fired (and been cleared) for the first caller, later
+        # callers accumulated into .grad but silently skipped
+        # re-propagation, so upstream ancestors never saw the other
+        # branches' contributions. The fix is the standard topological-sort
+        # / pending-dependency-count approach real autograd engines use: a
+        # node is only expanded through its _grad_fn once ALL of its
+        # expected incoming contributions for this pass have arrived.
+        dependencies = {}  # id(node) -> number of contributions still expected
+        visited = set()
 
-            # Recursively call backward on parent tensors
-            for tensor, grad in zip(grad_fn.saved_tensors, grads):
-                if isinstance(tensor, Tensor) and tensor.requires_grad and grad is not None:
-                    tensor.backward(grad, retain_graph=retain_graph)
+        def _discover(node):
+            node_id = id(node)
+            if node_id in visited:
+                return
+            visited.add(node_id)
+            grad_fn = getattr(node, '_grad_fn', None)
+            if grad_fn is None:
+                return
+            for parent in grad_fn.saved_tensors:
+                if isinstance(parent, Tensor) and _get_requires_grad(parent):
+                    dependencies[id(parent)] = dependencies.get(id(parent), 0) + 1
+                    _discover(parent)
 
-            # Release computation graph to free memory (matches PyTorch's default)
-            # Why: The graph stores references to all intermediate tensors. Without
-            # cleanup, these references prevent garbage collection, causing memory
-            # to grow linearly with the number of training steps.
-            if not retain_graph:
-                self._grad_fn = None
+        _discover(self)
+
+        # --- Phase 2: process nodes in topological order (Kahn's
+        # algorithm). A node is only pushed onto `ready` once every
+        # contribution counted for it in Phase 1 has actually arrived
+        # (or been ruled out), guaranteeing every consumer's gradient is
+        # summed in before the node propagates to its own inputs.
+        pending_grad = {id(self): gradient}
+        ready = [self]
+
+        while ready:
+            node = ready.pop()
+            node_id = id(node)
+            grad = _fix_broadcast_shape(node, pending_grad.pop(node_id))
+
+            _ensure_grad_attrs(node)
+            if node.grad is None:
+                node.grad = np.zeros_like(node.data)
+            node.grad += grad
+
+            grad_fn = getattr(node, '_grad_fn', None)
+            if grad_fn is not None:
+                grads = grad_fn.apply(grad)
+
+                for parent, parent_grad in zip(grad_fn.saved_tensors, grads):
+                    if isinstance(parent, Tensor) and _get_requires_grad(parent):
+                        parent_id = id(parent)
+                        dependencies[parent_id] -= 1
+                        if parent_grad is not None:
+                            if parent_id in pending_grad:
+                                pending_grad[parent_id] = pending_grad[parent_id] + parent_grad
+                            else:
+                                pending_grad[parent_id] = parent_grad
+                        if dependencies[parent_id] == 0 and parent_id in pending_grad:
+                            ready.append(parent)
+
+                # Release computation graph to free memory (matches PyTorch's default)
+                # Why: The graph stores references to all intermediate tensors. Without
+                # cleanup, these references prevent garbage collection, causing memory
+                # to grow linearly with the number of training steps.
+                if not retain_graph:
+                    node._grad_fn = None
 
     def zero_grad(self):
         """

@@ -398,5 +398,37 @@ class TestNoGradContext:
         assert y.requires_grad, "Tensor created outside no_grad() should still require gradients"
 
 
+class TestSharedNonLeafGradientAccumulation:
+    """A non-leaf tensor consumed by more than one downstream op (residual
+    connections, shared Q/K/V, weight reuse) must accumulate gradient
+    contributions from every branch before propagating to its own inputs,
+    not just the first branch to call backward().
+
+    Regression test for a bug where backward() cleared a tensor's
+    _grad_fn after its first invocation, so later branches accumulated
+    into .grad but silently stopped propagating further upstream.
+    """
+
+    def test_diamond_graph_sums_both_branches(self):
+        x = Tensor(np.array([2.0]), requires_grad=True)
+        y = x * 3  # non-leaf, consumed by both a and b below
+        a = y * 2
+        b = y * 5
+        c = a + b  # c = 2y + 5y = 7y = 21x
+        c.backward()
+
+        assert np.isclose(x.grad[0], 21.0), (
+            f"Expected dc/dx=21 (both branches through y must contribute), got {x.grad[0]}"
+        )
+
+    def test_three_way_shared_node(self):
+        x = Tensor(np.array([1.0]), requires_grad=True)
+        y = x * x  # y = x^2, three consumers below
+        out = y + y + y  # out = 3x^2, d(out)/dx = 6x
+        out.backward()
+
+        assert np.isclose(x.grad[0], 6.0), f"Expected d(3x^2)/dx=6x=6 at x=1, got {x.grad[0]}"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
