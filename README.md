@@ -51,7 +51,7 @@ tren setup
 tren
 ```
 
-`tren setup` will ask to add `tren` to your PATH — say yes, and every terminal after that just needs `tren`, from any directory, with no activating first.
+`tren setup` will ask to add `tren` to your PATH: say yes, and every terminal after that just needs `tren`, from any directory, with no activating first.
 
 ---
 
@@ -283,7 +283,7 @@ TrenTorch/
 │   │   ├── 19_benchmarking/     # Module 19: Performance measurement
 │   │   └── 20_capstone/         # Module 20: Complete ML systems
 │   │
-│   ├── modules/                 # 📓 Generated notebooks (learn here -- stub-only)
+│   ├── modules/                 # 📓 Generated notebooks (learn here, stub-only)
 │   │   └── ...                  # (20 module directories)
 │   ├── solutions/                # 🔒 Reference implementations (maintainer/CI-only)
 │   ├── datasets/                 # 🗂️ Curated training data (tinydigits, tinytalks)
@@ -333,7 +333,7 @@ We're addicted to making great software that runs (we're a bit of perfectionists
 
 ## Team Engineers
 
-Recomputed nightly from real issue/PR activity via [`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml). Want to show up here? Open an issue or a PR — the first-contribution bot will say hello, and this grid picks you up on the next nightly run.
+Recomputed nightly from real issue/PR activity via [`.github/workflows/update-contributors.yml`](.github/workflows/update-contributors.yml). Want to show up here? Open an issue or a PR: the first-contribution bot will say hello, and this grid picks you up on the next nightly run.
 
 <table width="100%" style="width:100%">
   <tbody>
