@@ -162,6 +162,26 @@ class _ExtractGradientMixin:
 # Attach _extract_gradient to Optimizer so all subclasses inherit it
 Optimizer._extract_gradient = _ExtractGradientMixin._extract_gradient
 
+
+def _optimizer_get_state(self) -> dict:
+    """Get optimizer state for checkpointing.
+
+    Uniform state-checkpointing interface shared by every optimizer, so
+    checkpointing code never needs hasattr() special-casing to decide
+    whether an optimizer has extra state (momentum, moment buffers, ...).
+    """
+    return {'lr': self.lr}
+
+
+def _optimizer_set_state(self, state: dict) -> None:
+    """Restore optimizer state from checkpointing."""
+    if 'lr' in state:
+        self.lr = state['lr']
+
+
+Optimizer.get_state = _optimizer_get_state
+Optimizer.set_state = _optimizer_set_state
+
 # %% ../../solutions/07_optimizers/optimizers.ipynb #a38f5467
 # Solution
 
@@ -275,6 +295,23 @@ class SGD(Optimizer):
         for i, buf in enumerate(state):
             if buf is not None:
                 self.momentum_buffers[i] = buf.copy()
+
+    def get_state(self) -> dict:
+        """Get optimizer state for checkpointing.
+
+        Extends the base state (lr) with momentum buffers when momentum
+        is enabled, using the uniform get_state()/set_state() interface.
+        """
+        state = super().get_state()
+        if self.has_momentum():
+            state['momentum_buffers'] = self.get_momentum_state()
+        return state
+
+    def set_state(self, state: dict) -> None:
+        """Restore optimizer state (lr and momentum buffers) from checkpointing."""
+        super().set_state(state)
+        if 'momentum_buffers' in state:
+            self.set_momentum_state(state['momentum_buffers'])
 
     def step(self):
         """
@@ -430,6 +467,37 @@ class _AdamUpdateMomentsMixin:
 # Attach _update_moments to Adam
 Adam._update_moments = _AdamUpdateMomentsMixin._update_moments
 
+
+def _adam_get_state(self) -> dict:
+    """Get optimizer state for checkpointing.
+
+    Adam has no simple momentum flag, so it extends the base state (lr)
+    with its first/second moment buffers and step count via the same
+    uniform get_state()/set_state() interface every optimizer implements.
+    This is what lets checkpointing code restore Adam's m/v buffers and
+    step count instead of silently dropping them.
+    """
+    state = Optimizer.get_state(self)
+    state['step_count'] = self.step_count
+    state['m_buffers'] = [buf.copy() if buf is not None else None for buf in self.m_buffers]
+    state['v_buffers'] = [buf.copy() if buf is not None else None for buf in self.v_buffers]
+    return state
+
+
+def _adam_set_state(self, state: dict) -> None:
+    """Restore optimizer state (lr, step count, m/v buffers) from checkpointing."""
+    Optimizer.set_state(self, state)
+    if 'step_count' in state:
+        self.step_count = state['step_count']
+    if 'm_buffers' in state:
+        self.m_buffers = [buf.copy() if buf is not None else None for buf in state['m_buffers']]
+    if 'v_buffers' in state:
+        self.v_buffers = [buf.copy() if buf is not None else None for buf in state['v_buffers']]
+
+
+Adam.get_state = _adam_get_state
+Adam.set_state = _adam_set_state
+
 # %% ../../solutions/07_optimizers/optimizers.ipynb #aa2408fa
 # Solution
 
@@ -577,6 +645,34 @@ class _AdamWUpdateMomentsMixin:
 
 # Attach _update_moments to AdamW
 AdamW._update_moments = _AdamWUpdateMomentsMixin._update_moments
+
+
+def _adamw_get_state(self) -> dict:
+    """Get optimizer state for checkpointing.
+
+    Same uniform interface as Adam: extends the base state (lr) with
+    first/second moment buffers and step count.
+    """
+    state = Optimizer.get_state(self)
+    state['step_count'] = self.step_count
+    state['m_buffers'] = [buf.copy() if buf is not None else None for buf in self.m_buffers]
+    state['v_buffers'] = [buf.copy() if buf is not None else None for buf in self.v_buffers]
+    return state
+
+
+def _adamw_set_state(self, state: dict) -> None:
+    """Restore optimizer state (lr, step count, m/v buffers) from checkpointing."""
+    Optimizer.set_state(self, state)
+    if 'step_count' in state:
+        self.step_count = state['step_count']
+    if 'm_buffers' in state:
+        self.m_buffers = [buf.copy() if buf is not None else None for buf in state['m_buffers']]
+    if 'v_buffers' in state:
+        self.v_buffers = [buf.copy() if buf is not None else None for buf in state['v_buffers']]
+
+
+AdamW.get_state = _adamw_get_state
+AdamW.set_state = _adamw_set_state
 
 # %% ../../solutions/07_optimizers/optimizers.ipynb #bb933aaa
 # Solution

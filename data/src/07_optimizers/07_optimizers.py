@@ -290,6 +290,39 @@ class Optimizer:
             f"                  param.data -= self.lr * param.grad.data"
         )
 
+    def get_state(self) -> dict:
+        """
+        Get optimizer state for checkpointing.
+
+        This is the uniform state-checkpointing interface shared by every
+        optimizer, so checkpointing code (Module 08) never needs hasattr()
+        special-casing to decide whether an optimizer has extra state.
+
+        Returns:
+            dict: At minimum contains 'lr'. Subclasses extend this with
+                  their own buffers (momentum, moment estimates, etc.).
+
+        EXAMPLE:
+            >>> optimizer = SGD(params, lr=0.01, momentum=0.9)
+            >>> state = optimizer.get_state()
+            >>> # Later: new_optimizer.set_state(state)
+        """
+        return {'lr': self.lr}
+
+    def set_state(self, state: dict) -> None:
+        """
+        Restore optimizer state from checkpointing.
+
+        Args:
+            state: dict previously produced by get_state()
+
+        EXAMPLE:
+            >>> state = optimizer.get_state()
+            >>> new_optimizer.set_state(state)
+        """
+        if 'lr' in state:
+            self.lr = state['lr']
+
 # %% tags=["solution"]
 #| export
 # Solution
@@ -373,6 +406,39 @@ class Optimizer:
             f"              if param.grad is not None:\n"
             f"                  param.data -= self.lr * param.grad.data"
         )
+
+    def get_state(self) -> dict:
+        """
+        Get optimizer state for checkpointing.
+
+        This is the uniform state-checkpointing interface shared by every
+        optimizer, so checkpointing code (Module 08) never needs hasattr()
+        special-casing to decide whether an optimizer has extra state.
+
+        Returns:
+            dict: At minimum contains 'lr'. Subclasses extend this with
+                  their own buffers (momentum, moment estimates, etc.).
+
+        EXAMPLE:
+            >>> optimizer = SGD(params, lr=0.01, momentum=0.9)
+            >>> state = optimizer.get_state()
+            >>> # Later: new_optimizer.set_state(state)
+        """
+        return {'lr': self.lr}
+
+    def set_state(self, state: dict) -> None:
+        """
+        Restore optimizer state from checkpointing.
+
+        Args:
+            state: dict previously produced by get_state()
+
+        EXAMPLE:
+            >>> state = optimizer.get_state()
+            >>> new_optimizer.set_state(state)
+        """
+        if 'lr' in state:
+            self.lr = state['lr']
 
 # %% [markdown]
 """
@@ -746,6 +812,27 @@ class SGD(Optimizer):
             if buf is not None:
                 self.momentum_buffers[i] = buf.copy()
 
+    def get_state(self) -> dict:
+        """
+        Get optimizer state for checkpointing.
+
+        Extends the base state (lr) with momentum buffers when momentum
+        is enabled, using the uniform get_state()/set_state() interface.
+
+        Returns:
+            dict: 'lr' plus 'momentum_buffers' when momentum > 0
+        """
+        state = super().get_state()
+        if self.has_momentum():
+            state['momentum_buffers'] = self.get_momentum_state()
+        return state
+
+    def set_state(self, state: dict) -> None:
+        """Restore optimizer state (lr and momentum buffers) from checkpointing."""
+        super().set_state(state)
+        if 'momentum_buffers' in state:
+            self.set_momentum_state(state['momentum_buffers'])
+
     def step(self):
         """
         Perform SGD update step with momentum.
@@ -887,6 +974,27 @@ class SGD(Optimizer):
         for i, buf in enumerate(state):
             if buf is not None:
                 self.momentum_buffers[i] = buf.copy()
+
+    def get_state(self) -> dict:
+        """
+        Get optimizer state for checkpointing.
+
+        Extends the base state (lr) with momentum buffers when momentum
+        is enabled, using the uniform get_state()/set_state() interface.
+
+        Returns:
+            dict: 'lr' plus 'momentum_buffers' when momentum > 0
+        """
+        state = super().get_state()
+        if self.has_momentum():
+            state['momentum_buffers'] = self.get_momentum_state()
+        return state
+
+    def set_state(self, state: dict) -> None:
+        """Restore optimizer state (lr and momentum buffers) from checkpointing."""
+        super().set_state(state)
+        if 'momentum_buffers' in state:
+            self.set_momentum_state(state['momentum_buffers'])
 
     def step(self):
         """
@@ -1152,6 +1260,35 @@ class Adam(Optimizer):
         self.m_buffers = [None for _ in self.params]  # First moment (mean)
         self.v_buffers = [None for _ in self.params]  # Second moment (variance)
         ### END SOLUTION
+
+    def get_state(self) -> dict:
+        """
+        Get optimizer state for checkpointing.
+
+        Adam has no simple momentum flag, so it extends the base state
+        (lr) with its first/second moment buffers and step count via the
+        same uniform get_state()/set_state() interface every optimizer
+        implements. This is what lets checkpointing code restore Adam's
+        m/v buffers and step count instead of silently dropping them.
+
+        Returns:
+            dict: 'lr', 'step_count', 'm_buffers', 'v_buffers'
+        """
+        state = super().get_state()
+        state['step_count'] = self.step_count
+        state['m_buffers'] = [buf.copy() if buf is not None else None for buf in self.m_buffers]
+        state['v_buffers'] = [buf.copy() if buf is not None else None for buf in self.v_buffers]
+        return state
+
+    def set_state(self, state: dict) -> None:
+        """Restore optimizer state (lr, step count, m/v buffers) from checkpointing."""
+        super().set_state(state)
+        if 'step_count' in state:
+            self.step_count = state['step_count']
+        if 'm_buffers' in state:
+            self.m_buffers = [buf.copy() if buf is not None else None for buf in state['m_buffers']]
+        if 'v_buffers' in state:
+            self.v_buffers = [buf.copy() if buf is not None else None for buf in state['v_buffers']]
 
 # %% [markdown]
 """
@@ -1652,6 +1789,32 @@ class AdamW(Optimizer):
         self.m_buffers = [None for _ in self.params]
         self.v_buffers = [None for _ in self.params]
         ### END SOLUTION
+
+    def get_state(self) -> dict:
+        """
+        Get optimizer state for checkpointing.
+
+        Same uniform interface as Adam: extends the base state (lr) with
+        first/second moment buffers and step count.
+
+        Returns:
+            dict: 'lr', 'step_count', 'm_buffers', 'v_buffers'
+        """
+        state = super().get_state()
+        state['step_count'] = self.step_count
+        state['m_buffers'] = [buf.copy() if buf is not None else None for buf in self.m_buffers]
+        state['v_buffers'] = [buf.copy() if buf is not None else None for buf in self.v_buffers]
+        return state
+
+    def set_state(self, state: dict) -> None:
+        """Restore optimizer state (lr, step count, m/v buffers) from checkpointing."""
+        super().set_state(state)
+        if 'step_count' in state:
+            self.step_count = state['step_count']
+        if 'm_buffers' in state:
+            self.m_buffers = [buf.copy() if buf is not None else None for buf in state['m_buffers']]
+        if 'v_buffers' in state:
+            self.v_buffers = [buf.copy() if buf is not None else None for buf in state['v_buffers']]
 
 # %% [markdown]
 """

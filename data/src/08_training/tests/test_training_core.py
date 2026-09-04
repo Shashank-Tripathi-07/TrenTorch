@@ -248,5 +248,95 @@ class TestTrainingUtilities:
         assert np.allclose(accuracy, 0.0), "Accuracy should be 0.0 for non class outputs."
 
 
+class TestOptimizerCheckpointAndAccumulationLeftover:
+    """Regression tests for two bugs found during a full pre-release bug
+    sweep (#179): Adam/AdamW checkpoint state being silently dropped, and
+    a trailing partial accumulation window leaking gradients into the
+    next epoch when its scaled loss happened to be exactly zero.
+    """
+
+    def test_adamw_checkpoint_state_round_trips(self):
+        """AdamW's m/v moment buffers and step count must survive a
+        checkpoint save/restore, not silently reset to zero."""
+        from trentorch.core.autograd import enable_autograd
+        from trentorch.core.layers import Linear
+        from trentorch.core.optimizers import AdamW
+        from trentorch.core.tensor import Tensor
+
+        enable_autograd()
+
+        model = Linear(2, 1)
+        optimizer = AdamW(model.parameters(), lr=0.01)
+
+        for _ in range(3):
+            x = Tensor(np.ones((4, 2), dtype=np.float32), requires_grad=True)
+            y = model.forward(x)
+            loss = (y * y).sum()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        state = optimizer.get_state()
+        assert "m_buffers" in state and "v_buffers" in state and "step_count" in state, (
+            "AdamW.get_state() must capture moment buffers and step count, "
+            "not just lr, or checkpointing silently drops them."
+        )
+
+        restored_model = Linear(2, 1)
+        restored_optimizer = AdamW(restored_model.parameters(), lr=0.01)
+        restored_optimizer.set_state(state)
+
+        assert restored_optimizer.step_count == optimizer.step_count
+        for restored_buf, original_buf in zip(restored_optimizer.m_buffers, optimizer.m_buffers):
+            if original_buf is not None:
+                assert np.allclose(restored_buf, original_buf)
+
+    def test_trailing_zero_loss_batch_does_not_leak_gradients(self):
+        """A leftover accumulation-window batch whose true loss is exactly
+        0.0 must still trigger the optimizer update (which zeros
+        gradients), or those gradients leak into the next epoch's
+        accumulation."""
+        from trentorch.core.autograd import enable_autograd
+        from trentorch.core.layers import Linear
+        from trentorch.core.losses import MSELoss
+        from trentorch.core.optimizers import SGD
+        from trentorch.core.tensor import Tensor
+        from trentorch.core.training import Trainer
+
+        enable_autograd()
+
+        model = Linear(1, 1)
+        model.weight.data = np.array([[2.0]], dtype=np.float32)
+        model.bias.data = np.array([0.0], dtype=np.float32)
+        optimizer = SGD(model.parameters(), lr=0.1)
+        trainer = Trainer(model, optimizer, MSELoss())
+
+        # A single batch where the prediction exactly matches the target,
+        # so this batch's true loss is exactly 0.0.
+        x = Tensor([[1.0]])
+        y = Tensor([[2.0]])
+        zero_loss_batch = [(x, y)]
+
+        trainer.train_epoch(zero_loss_batch, accumulation_steps=2)
+
+        assert optimizer.step_count == 1, (
+            "The leftover window's optimizer update must count as a real "
+            "step even when its loss is exactly 0.0."
+        )
+
+        # A second epoch with a real gradient must not be corrupted by any
+        # gradient left un-zeroed from the first epoch's zero-loss batch.
+        x2 = Tensor([[1.0]])
+        y2 = Tensor([[5.0]])
+        trainer.train_epoch([(x2, y2)], accumulation_steps=2)
+
+        # The real guarantee this test locks in: the leftover-window
+        # optimizer update (and the zero_grad() inside it) fires every
+        # time, regardless of whether that window's loss happened to be
+        # exactly 0.0, so no epoch's leftover gradients survive into the
+        # next epoch's accumulation.
+        assert optimizer.step_count == 2
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

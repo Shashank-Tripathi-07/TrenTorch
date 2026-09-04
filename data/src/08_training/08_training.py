@@ -602,22 +602,24 @@ class Trainer:
                 param.data = state[i].copy()
 
     def _get_optimizer_state(self):
-        """Extract optimizer state for checkpointing."""
-        state = {}
-        state['lr'] = self.optimizer.lr
-        if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
-            momentum_state = self.optimizer.get_momentum_state()
-            if momentum_state is not None:
-                state['momentum_buffers'] = momentum_state
-        return state
+        """Extract optimizer state for checkpointing.
+
+        Uses the uniform get_state() interface every optimizer implements
+        (Module 07), so momentum buffers (SGD) and moment buffers/step
+        count (Adam, AdamW) are all captured without special-casing any
+        one optimizer type.
+        """
+        return self.optimizer.get_state()
 
     def _set_optimizer_state(self, state):
-        """Restore optimizer state from checkpoint."""
-        if 'lr' in state:
-            self.optimizer.lr = state['lr']
-        if 'momentum_buffers' in state:
-            if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
-                self.optimizer.set_momentum_state(state['momentum_buffers'])
+        """Restore optimizer state from checkpoint.
+
+        Uses the uniform set_state() interface every optimizer implements
+        (Module 07), so this restores whatever get_state() captured (lr,
+        momentum buffers, moment buffers, step count, ...) regardless of
+        optimizer type.
+        """
+        self.optimizer.set_state(state)
 
     def _get_scheduler_state(self):
         """Extract scheduler state for checkpointing."""
@@ -1058,23 +1060,35 @@ def trainer_train_epoch(self, dataloader, accumulation_steps=1):
     total_loss = 0.0
     num_batches = 0
     accumulated_loss = 0.0
+    accumulated_count = 0
 
     for batch_idx, (inputs, targets) in enumerate(dataloader):
         accumulated_loss += self._process_batch(inputs, targets, accumulation_steps)
+        accumulated_count += 1
 
         # Update parameters every accumulation_steps
         if (batch_idx + 1) % accumulation_steps == 0:
             self._optimizer_update()
             total_loss += accumulated_loss
             accumulated_loss = 0.0
+            accumulated_count = 0
             num_batches += 1
             self.step += 1
 
-    # Handle remaining accumulated gradients
-    if accumulated_loss > 0:
+    # Handle remaining accumulated gradients. Track whether there are
+    # unflushed batches with an explicit counter (not a loss-value
+    # comparison): each batch's loss was scaled by 1/accumulation_steps,
+    # so a leftover window that happens to have a true loss of exactly
+    # 0.0 must still trigger the optimizer update (it still zeros
+    # gradients), and its scaled loss must be rescaled by the actual
+    # number of batches in the leftover window, not the full
+    # accumulation_steps, or the average loss is understated.
+    if accumulated_count > 0:
+        accumulated_loss = accumulated_loss * accumulation_steps / accumulated_count
         self._optimizer_update()
         total_loss += accumulated_loss
         num_batches += 1
+        self.step += 1
 
     avg_loss = total_loss / max(num_batches, 1)
     self.history['train_loss'].append(avg_loss)
