@@ -166,7 +166,7 @@ def build_grid(counts: dict, existing: dict) -> str:
         cells.append(
             f'      <td align="center" valign="top" width="{width}%">\n'
             f'        <a href="https://github.com/{login}">'
-            f'<img src="{avatar_src}" width="80px;" alt="{name}"/></a>\n'
+            f'<img src="{avatar_src}" class="contributor-avatar" width="80px;" alt="{name}"/></a>\n'
             f"        <br />\n"
             f"        <b>{name}</b>\n"
             f"        <br />\n"

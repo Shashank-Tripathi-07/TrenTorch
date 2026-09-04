@@ -339,7 +339,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
   <tbody>
     <tr>
       <td align="center" valign="top" width="20.0%">
-        <a href="https://github.com/aadityansha06"><img src="https://avatars.githubusercontent.com/aadityansha06?v=4" width="80px;" alt="Aadityansha"/></a>
+        <a href="https://github.com/aadityansha06"><img src="https://avatars.githubusercontent.com/aadityansha06?v=4" class="contributor-avatar" width="80px;" alt="Aadityansha"/></a>
         <br />
         <b>Aadityansha</b>
         <br />
@@ -350,7 +350,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <sub>Issues: 0 &middot; PRs: 1</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
-        <a href="https://github.com/maanas1234"><img src="https://avatars.githubusercontent.com/maanas1234?v=4" width="80px;" alt="maanas1234"/></a>
+        <a href="https://github.com/maanas1234"><img src="https://avatars.githubusercontent.com/maanas1234?v=4" class="contributor-avatar" width="80px;" alt="maanas1234"/></a>
         <br />
         <b>maanas1234</b>
         <br />
@@ -361,7 +361,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <sub>Issues: 11 &middot; PRs: 12</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
-        <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" width="80px;" alt="Rocky"/></a>
+        <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" class="contributor-avatar" width="80px;" alt="Rocky"/></a>
         <br />
         <b>Rocky</b>
         <br />
@@ -372,7 +372,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <sub>Issues: 9 &middot; PRs: 73</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
-        <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="Shivtej Gaikwad"/></a>
+        <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" class="contributor-avatar" width="80px;" alt="Shivtej Gaikwad"/></a>
         <br />
         <b>Shivtej Gaikwad</b>
         <br />
