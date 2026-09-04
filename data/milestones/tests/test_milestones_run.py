@@ -61,6 +61,12 @@ def run_milestone(milestone_id: str, part: int = None, timeout: int = 300) -> tu
         cwd=TRENTORCH_ROOT,
         capture_output=True,
         text=True,
+        # Milestone scripts print an emoji banner (UTF-8), so decoding with
+        # the platform default (cp1252 on Windows) raises UnicodeDecodeError
+        # here exactly like the tui/app.py bug fixed in PR #176 -- same
+        # root cause, different subprocess call.
+        encoding="utf-8",
+        errors="replace",
         timeout=timeout,
         env=env,
         input="n\nn\nn\n",  # Answer 'n' to any prompts
