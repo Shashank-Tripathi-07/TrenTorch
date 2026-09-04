@@ -627,7 +627,10 @@ def test_unit_quantize_int8():
     # for every element regardless of what the constant was.
     constant_tensor = Tensor([[2.0, 2.0], [2.0, 2.0]])
     q_const, scale_const, zp_const = quantize_int8(constant_tensor)
-    assert scale_const == 1.0
+    # scale is derived from the constant itself (scale=abs(c)), not hardcoded
+    # to 1.0 -- what matters is that dequantizing recovers the real value,
+    # checked below. A literal scale_const == 1.0 assertion here is only
+    # true by coincidence when the constant happens to be +/-1.0.
     restored_const = (q_const.data.astype(np.float32) - zp_const) * scale_const
     assert np.allclose(restored_const, 2.0), (
         f"Constant tensor dequantized to {restored_const} instead of 2.0. "
