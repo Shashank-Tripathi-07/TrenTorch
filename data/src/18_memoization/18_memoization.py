@@ -1505,9 +1505,33 @@ def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
         return original_forward(x, None)
 
     # PATH 2: FIRST TOKEN (cache empty)
-    # Nothing to retrieve yet - use original attention
+    # Nothing to retrieve yet, so attention itself still uses the original
+    # (unpatched) forward. But we must still populate the cache with this
+    # token's real K,V, otherwise position 0 stays all-zeros forever and
+    # every later PATH 3 step silently attends to a fake first token.
     if cache_obj.seq_pos == 0:
-        return original_forward(x, None)
+        output = original_forward(x, None)
+
+        import numpy as np
+        from trentorch.core.tensor import Tensor
+
+        batch_size = x.shape[0]
+        num_heads = block.attention.num_heads
+        head_dim = block.attention.head_dim
+
+        K_new = block.attention.k_proj.forward(x)
+        V_new = block.attention.v_proj.forward(x)
+
+        K_heads = Tensor(np.transpose(
+            K_new.reshape(batch_size, seq_len, num_heads, head_dim).data, (0, 2, 1, 3)
+        ))
+        V_heads = Tensor(np.transpose(
+            V_new.reshape(batch_size, seq_len, num_heads, head_dim).data, (0, 2, 1, 3)
+        ))
+
+        cache_obj.update(layer_idx, K_heads, V_heads)
+
+        return output
 
     # PATH 3: CACHED GENERATION
     # Use helper function for the O(n) cached computation
@@ -1531,9 +1555,20 @@ def test_unit_cached_attention_forward():
     # Track which path was taken
     path_taken = []
 
+    class MockLinear:
+        def forward(self, x):
+            return x
+
     class MockBlock:
         def __init__(self):
             self.attention = self
+            # PATH 2 now writes K,V into the cache for the first token, so
+            # the mock attention needs real-enough k_proj/v_proj/num_heads/
+            # head_dim for that reshape+cache.update() to succeed.
+            self.num_heads = 4
+            self.head_dim = 32
+            self.k_proj = MockLinear()
+            self.v_proj = MockLinear()
 
     block = MockBlock()
 
@@ -1704,10 +1739,9 @@ def _cached_generate(model, prompt_tokens, max_new_tokens, temperature, cache):
     # Phase 1: PREFILL - process prompt tokens one at a time to populate cache
     # We feed each token individually so the patched attention dispatches
     # through PATH 3 (_cached_generation_step) for tokens after the first,
-    # which writes their K,V into the cache.  The first token (seq_pos==0)
-    # goes through PATH 2 (original forward) -- its K,V slot stays zero,
-    # but subsequent generation tokens still attend to the rest of the
-    # populated cache, which is far better than an entirely empty cache.
+    # which writes their K,V into the cache. The first token (seq_pos==0)
+    # goes through PATH 2 (original forward), which now also writes its
+    # real K,V into the cache, so no cache position is ever left as zeros.
     for i in range(len(prompt_tokens)):
         token_tensor = Tensor(np.array([[prompt_tokens[i]]]))  # (1, 1)
         logits = model.forward(token_tensor)
@@ -2194,7 +2228,7 @@ def analyze_kvcache_memory():
 
         # Model parameter memory (approximate)
         params_per_layer = embed_dim * embed_dim * _BYTES_PER_FLOAT32  # QKV projections
-        model_memory = params_per_layer * num_layers * _BYTES_PER_FLOAT32 / _MB_TO_BYTES
+        model_memory = params_per_layer * num_layers / _MB_TO_BYTES
 
         overhead_pct = (total_memory / model_memory) * 100 if model_memory > 0 else 0
 
