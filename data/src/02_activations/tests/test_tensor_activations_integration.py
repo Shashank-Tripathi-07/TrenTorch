@@ -194,15 +194,14 @@ class TestActivationTensorSystemIntegration:
         """Test activation error handling with edge case Tensors."""
         relu = ReLU()
 
-        # Test with empty tensor
-        try:
-            empty_tensor = Tensor(np.array([]))
-            result = relu(empty_tensor)
-            assert isinstance(result, Tensor), "Should handle empty tensor gracefully"
-            assert result.shape == empty_tensor.shape, "Should preserve empty shape"
-        except (ValueError, TypeError) as e:
-            # Expected behavior - should fail gracefully
-            assert isinstance(e, (ValueError, TypeError)), "Should fail gracefully with empty tensor"
+        # Test with empty tensor: an empty tensor is valid input for an
+        # element-wise activation, so ReLU should handle it gracefully
+        # (return an empty result) rather than raising.
+        empty_tensor = Tensor(np.array([]))
+        result = relu(empty_tensor)
+        assert isinstance(result, Tensor), "Should handle empty tensor gracefully"
+        assert result.shape == empty_tensor.shape, "Should preserve empty shape"
+        assert result.data.size == 0, "Result should still contain no elements"
 
         # Test with single element
         single_tensor = Tensor([5.0])
@@ -239,7 +238,8 @@ class TestActivationInterfaceCompatibility:
         """Test Softmax special interface requirements."""
         softmax = Softmax()
 
-        # Softmax needs 2D input for proper operation
+        # Softmax also supports batched (2D) input: it should apply row-wise
+        # along the last dimension and preserve the original 2D shape.
         x_2d = Tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
         result = softmax(x_2d)
 

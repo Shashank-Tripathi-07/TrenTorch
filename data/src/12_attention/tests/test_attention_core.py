@@ -27,6 +27,8 @@ CONNECTION TO OTHER MODULES:
 - Enables Transformers (Module 13) - attention is the core component
 """
 
+import re
+
 import numpy as np
 import pytest
 
@@ -234,6 +236,40 @@ class TestMultiHeadAttention:
         with pytest.raises((ValueError, AssertionError)):
             # 64 is not divisible by 5
             MultiHeadAttention(embed_dim=64, num_heads=5)
+
+    def test_multihead_invalid_config_suggests_valid_num_heads(self):
+        """
+        WHAT: Verify the error message's suggested num_heads is actually valid.
+
+        WHY: A previous bug re-computed the exact same invalid num_heads the
+        user just passed (embed_dim // (embed_dim // num_heads) always equals
+        num_heads), so the "fix" in the message was never actually a fix.
+        The suggested num_heads must differ from the invalid input and must
+        actually divide embed_dim evenly.
+        """
+        invalid_configs = [(64, 5), (17, 5), (100, 9), (50, 8)]
+
+        for embed_dim, num_heads in invalid_configs:
+            with pytest.raises(ValueError) as exc_info:
+                MultiHeadAttention(embed_dim=embed_dim, num_heads=num_heads)
+
+            message = str(exc_info.value)
+            # The message mentions num_heads twice: once in the diagnostic
+            # ("is not divisible by num_heads=N") and once in the actual
+            # suggestion ("or num_heads=N"). Match the suggestion
+            # specifically, not the first (diagnostic) occurrence.
+            match = re.search(r"or num_heads=(\d+)", message)
+            assert match, f"Error message should suggest a num_heads value, got: {message}"
+            suggested_num_heads = int(match.group(1))
+
+            assert suggested_num_heads != num_heads, (
+                f"Suggested num_heads={suggested_num_heads} is identical to the "
+                f"invalid input num_heads={num_heads}; the message suggests no "
+                f"actual fix (embed_dim={embed_dim})"
+            )
+            assert embed_dim % suggested_num_heads == 0, (
+                f"Suggested num_heads={suggested_num_heads} does not evenly divide embed_dim={embed_dim}"
+            )
 
 
 class TestAttentionGradientFlow:

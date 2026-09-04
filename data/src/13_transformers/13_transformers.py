@@ -1333,9 +1333,26 @@ def test_unit_transformer_block():
     assert output.shape == (batch_size, seq_len, embed_dim)
 
     # Test with causal mask (for autoregressive generation)
-    mask = Tensor(np.triu(np.ones((seq_len, seq_len)) * -np.inf, k=1))
+    # NOTE: mask must follow the binary 1=allow/0=block convention documented in
+    # GPT._create_causal_mask (_apply_mask computes adder = (1-mask) * MASK_VALUE,
+    # so an additive -inf/0 mask here would produce -inf even at allowed positions).
+    mask = create_causal_mask(seq_len)
     masked_output = block.forward(x, mask)
     assert masked_output.shape == (batch_size, seq_len, embed_dim)
+
+    # Verify the mask actually blocks future positions in the attention weights,
+    # not just that shapes come out right.
+    from trentorch.core.attention import scaled_dot_product_attention
+    Q = Tensor(rng.standard_normal((batch_size, seq_len, embed_dim)))
+    K = Tensor(rng.standard_normal((batch_size, seq_len, embed_dim)))
+    V = Tensor(rng.standard_normal((batch_size, seq_len, embed_dim)))
+    _, attn_weights = scaled_dot_product_attention(Q, K, V, mask=mask)
+    future_weights = np.triu(attn_weights.data, k=1)
+    assert np.allclose(future_weights, 0.0, atol=1e-6), \
+        "Masked (future) positions should get ~0 attention weight, not garbage from an additive -inf mask"
+    allowed_weights_sum = attn_weights.data.sum(axis=-1)
+    assert np.allclose(allowed_weights_sum, 1.0, atol=1e-6), \
+        "Attention weights over allowed positions should still sum to 1 after masking"
 
     # Test parameter counting
     params = block.parameters()

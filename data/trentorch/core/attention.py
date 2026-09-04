@@ -202,11 +202,18 @@ class MultiHeadAttention:
         """
         ### BEGIN SOLUTION
         if embed_dim % num_heads != 0:
+            # Find the largest divisor of embed_dim that is <= num_heads (guaranteed
+            # to terminate at 1, and guaranteed to differ from the invalid num_heads
+            # since num_heads itself does not divide embed_dim).
+            suggested_num_heads = next(
+                candidate for candidate in range(min(num_heads, embed_dim), 0, -1)
+                if embed_dim % candidate == 0
+            )
             raise ValueError(
                 f"Multi-head attention dimension mismatch\n"
                 f"  ❌ embed_dim={embed_dim} is not divisible by num_heads={num_heads} (remainder={embed_dim % num_heads})\n"
                 f"  💡 Multi-head attention splits embed_dim equally among heads, so embed_dim must be a multiple of num_heads\n"
-                f"  🔧 Try: embed_dim={num_heads * (embed_dim // num_heads + 1)} (next valid size) or num_heads={embed_dim // (embed_dim // num_heads)} (fewer heads)"
+                f"  🔧 Try: embed_dim={num_heads * (embed_dim // num_heads + 1)} (next valid size) or num_heads={suggested_num_heads} (divides embed_dim={embed_dim} evenly)"
             )
 
         self.embed_dim = embed_dim

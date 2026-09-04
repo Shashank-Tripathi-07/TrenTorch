@@ -61,6 +61,8 @@ def resolve_role(login: str) -> str | None:
             ["gh", "api", f"repos/{REPO}/collaborators/{login}/permission", "--jq", ".role_name"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=True,
         ).stdout.strip()
     except subprocess.CalledProcessError:
@@ -107,7 +109,9 @@ SECTION_RE = re.compile(
 
 
 def gh_json(args):
-    result = subprocess.run(["gh"] + args, capture_output=True, text=True, check=True)
+    result = subprocess.run(
+        ["gh"] + args, capture_output=True, text=True, encoding="utf-8", errors="replace", check=True
+    )
     return json.loads(result.stdout)
 
 

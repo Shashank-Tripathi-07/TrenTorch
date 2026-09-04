@@ -65,45 +65,46 @@ class TestProfilingCore:
     def test_memory_profiling(self):
         """
         ✅ TEST: Memory profiling capability
+
+        The real API is Profiler.measure_memory(model, input_shape), not
+        the MemoryProfiler/profile_memory names this test used to import
+        (neither exists anywhere in the module, so this test previously
+        vacuously passed via a caught ImportError regardless of whether
+        memory profiling actually worked).
         """
-        try:
-            from trentorch.core.tensor import Tensor
-            from trentorch.perf.profiling import MemoryProfiler, profile_memory
+        from trentorch.core.layers import Linear
+        from trentorch.perf.profiling import Profiler
 
-            # Profile memory usage
-            with MemoryProfiler() as mp:
-                [Tensor(rng.standard_normal(1000)) for _ in range(10)]
+        model = Linear(64, 32)
+        profiler = Profiler()
+        memory = profiler.measure_memory(model, (8, 64))
 
-            if hasattr(mp, "peak_memory"):
-                assert mp.peak_memory > 0, "Memory profiling not working"
-
-        except ImportError:
-            assert True, "Memory profiling not implemented yet"
+        assert memory["parameter_memory_mb"] > 0, "Parameter memory should be measured"
+        assert memory["peak_memory_mb"] > 0, "Peak memory should be measured"
+        assert 0.0 < memory["memory_efficiency"] <= 1.0, (
+            f"Memory efficiency should be a ratio in (0, 1], got {memory['memory_efficiency']}"
+        )
 
     def test_execution_timing(self):
         """
         ✅ TEST: Execution timing works
+
+        The real API is Profiler used as a context manager (it records
+        elapsed time in milliseconds on __exit__), not the `Timer` class
+        this test used to import (doesn't exist anywhere in the module).
         """
-        try:
-            from trentorch.core.tensor import Tensor
-            from trentorch.perf.profiling import Timer
+        from trentorch.core.tensor import Tensor
+        from trentorch.perf.profiling import Profiler
 
-            timer = Timer()
-
-            timer.start()
-            # Some computation
+        with Profiler() as profiler:
             for _ in range(100):
                 x = Tensor(rng.standard_normal((50, 50)))
                 x @ x.transpose()
-            elapsed = timer.stop()
 
-            # >= 0, not > 0: a raw timer measurement can legitimately be
-            # exactly 0.0 on a fast machine with a coarse timer resolution
-            # (~15.6ms on Windows).
-            assert elapsed >= 0, "Timer should measure non-negative time"
-
-        except ImportError:
-            assert True, "Timer not implemented yet"
+        # >= 0, not > 0: a raw timer measurement can legitimately be
+        # exactly 0.0 on a fast machine with a coarse timer resolution
+        # (~15.6ms on Windows).
+        assert profiler.elapsed >= 0, "Profiler should measure non-negative elapsed time"
 
 
 class TestProfilingWithModels:

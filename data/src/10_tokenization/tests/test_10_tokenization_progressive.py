@@ -618,3 +618,78 @@ class TestRegressionPrevention:
 
         except ImportError:
             pass  # Not implemented yet
+
+
+class TestModule10TokenizationActuallyTested:
+    """The tests above this class never import or exercise tokenization at
+    all (confirmed by audit: not one of them touches CharTokenizer,
+    BPETokenizer, or trentorch.core.tokenization), despite this file's own
+    header claiming to test Module 10. This class fills that coverage gap
+    with the module's actual public API.
+    """
+
+    def test_char_tokenizer_round_trip(self):
+        from trentorch.core.tokenization import CharTokenizer
+
+        tokenizer = CharTokenizer()
+        tokenizer.build_vocab(["hello world"])
+
+        text = "hello world"
+        encoded = tokenizer.encode(text)
+        decoded = tokenizer.decode(encoded)
+
+        assert decoded == text, f"Round trip failed: {text!r} -> {encoded} -> {decoded!r}"
+
+    def test_char_tokenizer_unknown_character(self):
+        from trentorch.core.tokenization import CharTokenizer
+
+        tokenizer = CharTokenizer()
+        tokenizer.build_vocab(["abc"])
+
+        # 'z' was never seen during build_vocab, must map to the <UNK> id
+        # instead of raising or silently corrupting the sequence.
+        encoded = tokenizer.encode("abz")
+        assert encoded[-1] == tokenizer.unk_id, "Unseen character should encode to <UNK>"
+
+    def test_bpe_tokenizer_learns_merges_and_encodes(self):
+        from trentorch.core.tokenization import BPETokenizer
+
+        tokenizer = BPETokenizer(vocab_size=30)
+        tokenizer.train(["low", "lower", "lowest", "newest", "widest"])
+
+        assert len(tokenizer.merges) > 0, "BPE training should learn at least one merge"
+        assert len(tokenizer.vocab) <= 30
+
+        encoded = tokenizer.encode("lowest")
+        assert isinstance(encoded, list) and len(encoded) > 0
+        assert all(isinstance(t, int) for t in encoded)
+
+    def test_bpe_merges_never_span_a_space(self):
+        """Regression test: train() used to build word frequencies from
+        raw corpus strings without splitting on whitespace, so a
+        multi-word entry like "hello world" was treated as one word
+        including the space character, and BPE could learn a merge like
+        ('o', ' '). That merge can never fire during encode() (which
+        splits on whitespace first, so no word ever contains a space),
+        wasting vocabulary capacity on a dead merge."""
+        from trentorch.core.tokenization import BPETokenizer
+
+        tokenizer = BPETokenizer(vocab_size=50)
+        tokenizer.train(["hello world", "hello there", "hello friend"])
+
+        for left, right in tokenizer.merges:
+            assert " " not in left and " " not in right, (
+                f"BPE learned a merge spanning a space: {(left, right)!r}"
+            )
+
+    def test_bpe_tokenizer_round_trip(self):
+        from trentorch.core.tokenization import BPETokenizer
+
+        tokenizer = BPETokenizer(vocab_size=40)
+        tokenizer.train(["the quick brown fox", "the lazy dog"])
+
+        text = "the quick dog"
+        encoded = tokenizer.encode(text)
+        decoded = tokenizer.decode(encoded)
+
+        assert decoded == text, f"Round trip failed: {text!r} -> {encoded} -> {decoded!r}"
