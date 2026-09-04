@@ -17,7 +17,7 @@
 # %% auto #0
 __all__ = ['rng', 'BYTES_PER_FLOAT32', 'KB_TO_BYTES', 'MB_TO_BYTES', 'Profiler', 'quick_profile', 'analyze_weight_distribution']
 
-# %% ../../solutions/14_profiling/profiling.ipynb #1b1f20ac
+# %% ../../solutions/14_profiling/profiling.ipynb #7aa8ac9f
 import sys
 import os
 import time
@@ -38,7 +38,7 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/14_profiling/profiling.ipynb #40c0b4b3
+# %% ../../solutions/14_profiling/profiling.ipynb #ff91d4d1
 # Solution
 
 class Profiler:
@@ -350,11 +350,12 @@ class Profiler:
         tracemalloc.stop()
 
         useful_memory = parameter_memory_mb + activation_memory_mb
+        reported_peak_memory_mb = max(peak_memory_mb, useful_memory)
         return {
             'parameter_memory_mb': parameter_memory_mb,
             'activation_memory_mb': activation_memory_mb,
-            'peak_memory_mb': max(peak_memory_mb, useful_memory),
-            'memory_efficiency': self._calculate_memory_efficiency(useful_memory, peak_memory_mb)
+            'peak_memory_mb': reported_peak_memory_mb,
+            'memory_efficiency': self._calculate_memory_efficiency(useful_memory, reported_peak_memory_mb)
         }
         ### END SOLUTION
 
@@ -576,10 +577,7 @@ class Profiler:
             dict with backward_flops and backward_latency_ms
         """
         ### BEGIN SOLUTION
-        return {
-            'backward_flops': forward_flops * 2,
-            'backward_latency_ms': forward_latency_ms * 2
-        }
+        return {'backward_flops': forward_flops * 2, 'backward_latency_ms': forward_latency_ms * 2}
         ### END SOLUTION
 
     def _estimate_optimizer_memory(self, gradient_memory_mb: float) -> Dict[str, float]:
@@ -604,11 +602,7 @@ class Profiler:
             dict mapping optimizer name to extra memory in MB
         """
         ### BEGIN SOLUTION
-        return {
-            'sgd': 0,
-            'adam': gradient_memory_mb * 2,
-            'adamw': gradient_memory_mb * 2,
-        }
+        return {'sgd': 0, 'adam': gradient_memory_mb * 2, 'adamw': gradient_memory_mb * 2}
         ### END SOLUTION
 
     def profile_backward_pass(self, model, input_tensor, _loss_fn=None) -> Dict[str, Any]:
@@ -651,14 +645,18 @@ class Profiler:
             'total_flops': total_flops,
             'total_latency_ms': total_latency_ms,
             'total_memory_mb': total_memory_mb,
-            'total_gflops_per_second': (total_flops / 1e9) / (total_latency_ms / 1000.0),
+            # total_latency_ms can legitimately measure as exactly 0.0 on
+            # a fast machine with a coarse timer (~15.6ms resolution on
+            # Windows) -- floored so this stays a large-but-finite number
+            # instead of raising ZeroDivisionError.
+            'total_gflops_per_second': (total_flops / 1e9) / (max(total_latency_ms, 1e-6) / 1000.0),
             'optimizer_memory_estimates': self._estimate_optimizer_memory(gradient_memory_mb),
             'memory_efficiency': fwd['memory_efficiency'],
             'bottleneck': fwd['bottleneck']
         }
         ### END SOLUTION
 
-# %% ../../solutions/14_profiling/profiling.ipynb #922a4847
+# %% ../../solutions/14_profiling/profiling.ipynb #fff42e89
 def quick_profile(model, input_tensor, profiler=None):
     """
     Quick profiling function for immediate insights.
@@ -696,7 +694,7 @@ def quick_profile(model, input_tensor, profiler=None):
 
     return profile
 
-# %% ../../solutions/14_profiling/profiling.ipynb #b8fb92b6
+# %% ../../solutions/14_profiling/profiling.ipynb #de4a9a39
 def analyze_weight_distribution(model, percentiles=[10, 25, 50, 75, 90]):
     """
     Analyze weight distribution across layers.

@@ -29,6 +29,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from platforms.cli import __version__
+from platforms.cli.core.atomic_io import read_json_or_warn
 from platforms.cli.core.config import CLIConfig
 from platforms.cli.core.modules import (
     get_all_module_metadata,
@@ -213,19 +214,18 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
     def _load_progress(self) -> dict[str, Any]:
         """Load user progress from progress.json."""
         p_file = self.config.project_root / "user_data" / "progress.json"
-        if p_file.exists():
-            try:
-                with open(p_file) as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        return {
+        default = {
             "started_modules": [],
             "completed_modules": [],
             "last_worked": None,
             "last_completed": None,
             "last_updated": None,
         }
+        # No Rich console here (this runs per-HTTP-request, not on a
+        # terminal); console=None makes read_json_or_warn print straight
+        # to stderr instead, which lands in the same place `tren serve`'s
+        # own request log already goes.
+        return read_json_or_warn(p_file, default, label="Your saved progress")
 
     def _send_json(self, data: Any, status: HTTPStatus = HTTPStatus.OK):
         """Helper to send JSON response."""
@@ -572,10 +572,7 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
         """Run pytest for a known module and stream output over SSE."""
         num = self._resolve_module(module_input)
         if num is None:
-            self._send_json(
-                {"error": f"Unknown module: {module_input!r}"},
-                status=HTTPStatus.NOT_FOUND,
-            )
+            self._send_json({"error": f"Unknown module: {module_input!r}"}, status=HTTPStatus.NOT_FOUND)
             return
 
         folder = get_module_mapping().get(num, f"{num}_module")
@@ -648,10 +645,7 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
         """Trigger module complete / export for a known module."""
         num = self._resolve_module(module_input)
         if num is None:
-            self._send_json(
-                {"error": f"Unknown module: {module_input!r}"},
-                status=HTTPStatus.NOT_FOUND,
-            )
+            self._send_json({"error": f"Unknown module: {module_input!r}"}, status=HTTPStatus.NOT_FOUND)
             return
 
         # argv is a fixed literal list; `num` is the canonical id from the
@@ -670,13 +664,6 @@ class TrenTorchRequestHandler(SimpleHTTPRequestHandler):
                 env=self._subprocess_env(),
             )
             success = res.returncode == 0
-            self._send_json(
-                {
-                    "module": num,
-                    "success": success,
-                    "stdout": res.stdout,
-                    "stderr": res.stderr,
-                }
-            )
+            self._send_json({"module": num, "success": success, "stdout": res.stdout, "stderr": res.stderr})
         except Exception as e:
             self._send_json({"error": str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)

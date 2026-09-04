@@ -267,19 +267,9 @@ def validate_notebook_integrity(notebook_path: Path) -> dict:
         }
 
     except json.JSONDecodeError as e:
-        return {
-            "valid": False,
-            "issues": [f"Invalid JSON: {str(e)}"],
-            "warnings": [],
-            "stats": {},
-        }
+        return {"valid": False, "issues": [f"Invalid JSON: {str(e)}"], "warnings": [], "stats": {}}
     except Exception as e:
-        return {
-            "valid": False,
-            "issues": [f"Validation error: {str(e)}"],
-            "warnings": [],
-            "stats": {},
-        }
+        return {"valid": False, "issues": [f"Validation error: {str(e)}"], "warnings": [], "stats": {}}
 
 
 def check_notebook_solved(notebook_path: Path) -> tuple[bool, list[str]]:
@@ -321,10 +311,24 @@ def check_notebook_solved(notebook_path: Path) -> tuple[bool, list[str]]:
 
 
 def _resolve_jupytext_path(venv_path: Path, console) -> str:
+    import sys
+
     from ..core.virtual_env_manager import get_venv_bin_dir
 
     jupytext_path = "jupytext"
-    venv_jupytext = get_venv_bin_dir(venv_path) / "jupytext"
+    # pip's console-script wrapper is jupytext.exe on Windows, a plain
+    # extensionless jupytext everywhere else -- checking only the bare
+    # name meant venv_jupytext.exists() was always False on Windows, so
+    # this always silently fell through to the PATH-dependent "system
+    # jupytext" branch below, even with a perfectly good venv install.
+    # Harmless when the venv happens to be on PATH too (a normal
+    # `source .venv/Scripts/activate` shell, or CI, which activates
+    # venvs onto PATH as part of its own setup), but a local shell that
+    # invokes the venv's python.exe directly without activating it (its
+    # PATH was never touched) got a wrong "Jupytext not found" instead
+    # of using the jupytext already sitting right next to that python.exe.
+    bin_dir = get_venv_bin_dir(venv_path)
+    venv_jupytext = bin_dir / ("jupytext.exe" if sys.platform == "win32" else "jupytext")
 
     if venv_jupytext.exists():
         test_result = subprocess.run(

@@ -23,7 +23,7 @@ name: 'Backfill CHANGELOG Reviewed-by / Merged-by on Merge'
 on:
   pull_request:
     types: [closed]
-    branches: [main]
+    branches: [main, dev]
 
 permissions:
   contents: read
@@ -47,11 +47,11 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Checkout main
+      - name: Checkout the PR's actual base branch
         if: steps.has-pat.outputs.configured == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.base.ref }}
           token: ${{ secrets.AUTOFIX_PAT }}
           fetch-depth: 0
 
@@ -105,5 +105,5 @@ jobs:
           gh pr create \
             --title "docs: backfill CHANGELOG reviewer/merger for #${SOURCE_PR}" \
             --body "Automated: fills in the Reviewed-by/Merged-by columns for the CHANGELOG row #${SOURCE_PR} added, now that it's actually merged (reviewer: \`${REVIEWER}\`, merger: \`${MERGER}\`)." \
-            --base main --head "$BRANCH"
+            --base "${{ github.event.pull_request.base.ref }}" --head "$BRANCH"
           gh pr merge "$BRANCH" --squash --admin

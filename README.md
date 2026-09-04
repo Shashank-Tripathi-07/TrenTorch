@@ -14,7 +14,7 @@
 
 **Most people learn ML frameworks by importing them. We built ours by hand, then made it hit harder.**
 
-[The Vision](#why-trentorch) · [20 Modules](#-20-progressive-modules) · [Milestones](#-historical-milestones)
+[Quick Start](#quick-start) · [The Vision](#why-trentorch) · [20 Modules](#-20-progressive-modules) · [Milestones](#-historical-milestones)
 
 </div>
 
@@ -22,6 +22,36 @@
 
 > [!NOTE]
 > **This is our implementation of [TinyTorch](https://mlsysbook.ai/tinytorch)** (Harvard CS249r), rebuilt in our own style and pushed further. Same bones, more muscle.
+
+---
+
+## Quick Start
+
+```bash
+# macOS / Linux
+git clone https://github.com/TrenTorch/TrenTorch.git
+cd TrenTorch
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install -e .
+tren setup
+tren
+```
+
+```powershell
+# Windows (PowerShell)
+git clone https://github.com/TrenTorch/TrenTorch.git
+cd TrenTorch
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pip install -e .
+tren setup
+tren
+```
+
+`tren setup` will ask to add `tren` to your PATH — say yes, and every terminal after that just needs `tren`, from any directory, with no activating first.
 
 ---
 
@@ -328,7 +358,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <br />
         <sub>Catches bugs, builds solutions and ships products</sub>
         <br />
-        <sub>Issues: 5 &middot; PRs: 5</sub>
+        <sub>Issues: 11 &middot; PRs: 12</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" width="80px;" alt="Rocky"/></a>
@@ -339,7 +369,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <br />
         <sub>IIT Guwahati, Debugs autograd for fun, ships before sunrise.</sub>
         <br />
-        <sub>Issues: 8 &middot; PRs: 37</sub>
+        <sub>Issues: 9 &middot; PRs: 73</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" width="80px;" alt="Shivtej Gaikwad"/></a>

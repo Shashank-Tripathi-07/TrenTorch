@@ -250,7 +250,14 @@ def test_optimizer_integration():
 
 
 def test_training_loop_integration():
-    """Test training loop integrates optimizer and autograd."""
+    """Test training loop integrates optimizer and autograd.
+
+    Previously only asserted `loss is not None`, without ever calling
+    backward() or step(), so a completely broken backward pass or
+    optimizer could not be caught here despite the docstring's claim.
+    Now exercises the real integration: backward() populates gradients,
+    and step() actually changes the model's weights.
+    """
     from trentorch.core.layers import Linear
     from trentorch.core.losses import MSELoss
     from trentorch.core.optimizers import SGD
@@ -259,44 +266,51 @@ def test_training_loop_integration():
     # Simple model
     model = Linear(10, 1)
     params = model.parameters()
-    SGD(params, lr=0.01)
+    optimizer = SGD(params, lr=0.01)
     loss_fn = MSELoss()
 
     # Dummy data
     X = Tensor(rng.standard_normal((32, 10)))
     y = Tensor(rng.standard_normal((32, 1)))
 
-    # One training step
+    weight_before = model.weight.data.copy()
+
+    # One full training step
+    optimizer.zero_grad()
     predictions = model(X)
     loss = loss_fn(predictions, y)
-
-    # Loss should be computed
     assert loss is not None, "Loss should be computed"
+
+    loss.backward()
+    assert model.weight.grad is not None, "backward() should populate gradients"
+
+    optimizer.step()
+    assert not np.allclose(model.weight.data, weight_before), (
+        "optimizer.step() should change model weights after a real gradient update"
+    )
 
 
 def test_loss_backward_integration():
     """Test loss functions integrate with autograd.
 
-    NOTE: This test requires autograd to be enabled (Module 06+).
-    It will skip if requires_grad is not available.
+    Previously only called backward() conditionally and asserted
+    nothing about the result afterward, so it could only fail via an
+    uncaught exception, never actually verifying gradients were
+    populated. Module 06+ (autograd) is a hard dependency of this repo's
+    test suite by this point, so the requires_grad TypeError skip and
+    hasattr(loss, "backward") guard are dead code paths that would only
+    ever mask a real regression; asserts unconditionally instead.
     """
-    import numpy as np
     from trentorch.core.losses import MSELoss
     from trentorch.core.tensor import Tensor
 
     loss_fn = MSELoss()
 
-    # Check if autograd is enabled (requires_grad parameter available)
-    try:
-        predictions = Tensor(np.array([1.0, 2.0, 3.0]), requires_grad=True)
-    except TypeError:
-        # requires_grad not available - autograd not enabled yet
-        return  # Skip test
-
+    predictions = Tensor(np.array([1.0, 2.0, 3.0]), requires_grad=True)
     targets = Tensor(np.array([1.5, 2.5, 3.5]))
 
     loss = loss_fn(predictions, targets)
+    loss.backward()
 
-    # Test backward pass
-    if hasattr(loss, "backward"):
-        loss.backward()
+    assert predictions.grad is not None, "backward() should populate gradients on predictions"
+    assert not np.allclose(predictions.grad.data, 0), "MSELoss gradient should be non-zero for a real error"

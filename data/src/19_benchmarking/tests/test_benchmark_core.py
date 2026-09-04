@@ -80,7 +80,10 @@ class TestBenchmarkBasics:
 
         assert len(results) > 0, "Benchmark should produce results"
         for model_name, result in results.items():
-            assert result.mean > 0, f"Latency should be positive, got {result.mean}"
+            # >= 0, not > 0: a raw timer measurement can legitimately be
+            # exactly 0.0 on a fast machine with a coarse timer
+            # resolution (~15.6ms on Windows).
+            assert result.mean >= 0, f"Latency should be non-negative, got {result.mean}"
 
 
 class TestMLPerf:
@@ -105,7 +108,10 @@ class TestBenchmarkMetrics:
     """Test that benchmark metrics are computed correctly."""
 
     def test_latency_is_positive(self):
-        """Latency must always be positive."""
+        """Latency must always be non-negative (a raw timer measurement
+        can legitimately be exactly 0.0 on a fast machine with a coarse
+        timer resolution -- see the matching comment on the other copy
+        of this check)."""
 
         class SimpleModel:
             def forward(self, x):
@@ -120,7 +126,7 @@ class TestBenchmarkMetrics:
 
         assert len(results) > 0, "Should produce results"
         for name, result in results.items():
-            assert result.mean > 0, "Latency must be positive"
+            assert result.mean >= 0, "Latency must be non-negative"
 
     def test_multiple_runs_are_consistent(self):
         """

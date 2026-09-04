@@ -17,6 +17,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from platforms.cli.main import TrenTorchCLI
+from platforms.cli.tui.command import TUICommand
 
 
 class TestCommandExecution:
@@ -27,8 +28,17 @@ class TestCommandExecution:
         self.cli = TrenTorchCLI()
         self.project_root = Path(__file__).parent.parent.parent.parent
 
-    def test_bare_tren_command(self):
-        """Test bare 'tren' command shows welcome screen."""
+    def test_bare_tren_command(self, force_first_run):
+        """Test bare 'tren' command shows the one-time welcome screen on a
+        student's first-ever run.
+
+        A bare `tren` on any run after the first now launches the TUI
+        directly instead (see test_bare_tren_routes_to_tui_after_first_run
+        below), which would hang this subprocess call waiting for terminal
+        input -- force_first_run deterministically avoids that regardless
+        of whatever user_data/ state is left over from other commands run
+        against this same checkout.
+        """
         result = subprocess.run(
             [sys.executable, "-m", "platforms.cli.main"],
             cwd=self.project_root,
@@ -36,6 +46,7 @@ class TestCommandExecution:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=30,
         )
 
         # Should exit successfully
@@ -44,6 +55,56 @@ class TestCommandExecution:
         # Should show welcome message
         assert "Welcome to Tren" in result.stdout or "TORCH" in result.stdout
         assert "Command Groups:" in result.stdout or "Quick Start:" in result.stdout
+
+    def test_bare_tren_routes_to_tui_after_first_run(self, monkeypatch):
+        """Bare `tren` (no command, no flags) should launch the TUI
+        directly once the student is past their first-ever run -- the
+        whole point of this feature is that `tren` alone genuinely starts
+        the app, not just prints a hint to run `tren tui`.
+
+        Subclasses the real TUICommand (rather than a bare stand-in) so it
+        still satisfies everything create_parser() needs from a registered
+        command (description, add_arguments), and only swaps out run() to
+        avoid actually entering the TUI's blocking event loop.
+        """
+        cli = TrenTorchCLI()
+        monkeypatch.setattr(cli, "_is_first_run", lambda: False)
+
+        launched = {}
+
+        class _RecordingTUICommand(TUICommand):
+            def run(self, args):
+                launched["ran"] = True
+                return 0
+
+        cli.commands["tui"] = _RecordingTUICommand
+
+        exit_code = cli.run([])
+
+        assert exit_code == 0
+        assert launched.get("ran") is True
+
+    def test_bare_tren_shows_welcome_not_tui_on_first_run(self, monkeypatch):
+        """A brand-new student's very first `tren` should show the
+        onboarding welcome panel, not drop them straight into the TUI with
+        no explanation of what TrenTorch is or how to use it."""
+        cli = TrenTorchCLI()
+        monkeypatch.setattr(cli, "_is_first_run", lambda: True)
+        monkeypatch.setattr(cli, "_mark_welcome_shown", lambda: None)
+
+        launched = {}
+
+        class _RecordingTUICommand(TUICommand):
+            def run(self, args):
+                launched["ran"] = True
+                return 0
+
+        cli.commands["tui"] = _RecordingTUICommand
+
+        exit_code = cli.run([])
+
+        assert exit_code == 0
+        assert "ran" not in launched
 
     def test_tren_help(self):
         """Test 'tren -h' shows help."""
@@ -145,8 +206,13 @@ class TestCommandGrouping:
         """Set up test fixtures."""
         self.project_root = Path(__file__).parent.parent.parent.parent
 
-    def test_student_facing_commands_discoverable(self):
-        """Test that main student-facing commands are easily discoverable."""
+    def test_student_facing_commands_discoverable(self, force_first_run):
+        """Test that main student-facing commands are easily discoverable.
+
+        force_first_run: bare `tren` after the first-ever run now launches
+        the TUI directly instead of showing this welcome screen, which
+        would hang this subprocess call waiting for terminal input.
+        """
         result = subprocess.run(
             [sys.executable, "-m", "platforms.cli.main"],
             cwd=self.project_root,
@@ -154,6 +220,7 @@ class TestCommandGrouping:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=30,
         )
 
         # Key student commands should be visible

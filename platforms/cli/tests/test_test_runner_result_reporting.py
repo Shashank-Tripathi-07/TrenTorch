@@ -80,6 +80,49 @@ def test_returncode_zero_with_no_output_at_all_reports_nothing():
 
 
 # ---------------------------------------------------------------------------
+# _parse_test_output: markers found, but the process still crashed
+#   `elif returncode != 0 and not any(not t["passed"] for t in tests):`
+# ---------------------------------------------------------------------------
+
+
+def test_marker_then_crash_is_reported_as_a_failure():
+    """Real bug, reproduced then fixed: a script that prints a passing
+    checkmark test and THEN crashes with an uncaught exception (e.g. a
+    later, unguarded demo block) used to be silently reported as 100%
+    passing -- `tests` was non-empty (so the no-marker fallback above
+    never ran), and nothing else in this function ever looked at
+    `returncode`. `run_inline_unit_tests`' caller only checks
+    `failed > 0`, never the `returncode` field also in its return dict,
+    so this was invisible all the way up to `tren module complete`."""
+    stdout = "✅ test_something_early: passed\n"
+    stderr = 'Traceback (most recent call last):\n  File "mod.py", line 1\nValueError: boom\n'
+    tests = _parse_test_output(stdout, stderr, returncode=1)
+    assert tests[0] == {"name": "test_something_early", "passed": True, "error": "passed"}
+    assert any(not t["passed"] for t in tests), "the crash after the passing marker must be reported"
+
+
+def test_marker_then_success_synthesizes_nothing_extra():
+    """Baseline for the same decision: returncode == 0 -> the crash-
+    synthesis branch never triggers, so a script that just prints one
+    passing marker and exits cleanly still reports only that one test.
+    Paired with the test above: only the returncode differs, isolating
+    that half of the `and`."""
+    tests = _parse_test_output("✅ test_something: passed", "", returncode=0)
+    assert tests == [{"name": "test_something", "passed": True, "error": "passed"}]
+
+
+def test_marker_reporting_its_own_failure_is_not_duplicated():
+    """Baseline for the other half: a marker that already reported ❌
+    itself means `any(not t["passed"] for t in tests)` is already True,
+    so the synthesis branch's `not any(...)` is False and nothing extra
+    is appended -- the real per-test failure isn't duplicated with a
+    generic "module_execution" one alongside it. Paired with the crash
+    test above: only whether an existing marker already failed differs."""
+    tests = _parse_test_output("❌ test_something: boom", "", returncode=1)
+    assert tests == [{"name": "test_something", "passed": False, "error": "boom"}]
+
+
+# ---------------------------------------------------------------------------
 # _extract_pytest_error: locating the failing test's line, then its error
 # ---------------------------------------------------------------------------
 

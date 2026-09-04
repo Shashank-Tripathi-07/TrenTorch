@@ -425,11 +425,7 @@ def test_post_module_complete_response_shape(running_server):
     student's module is implemented; we only assert the wire shape, not the
     outcome.
     """
-    req = urllib.request.Request(
-        f"{running_server}/api/modules/01/complete",
-        method="POST",
-        data=b"",
-    )
+    req = urllib.request.Request(f"{running_server}/api/modules/01/complete", method="POST", data=b"")
     with urllib.request.urlopen(req) as resp:
         assert resp.status == 200
         ct = resp.headers.get("Content-Type", "")

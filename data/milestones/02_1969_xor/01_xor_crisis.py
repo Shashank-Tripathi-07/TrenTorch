@@ -268,6 +268,7 @@ def demonstrate_crisis():
     results_table.add_column("b", justify="right")
     results_table.add_column("Accuracy", justify="center")
     results_table.add_column("Predictions", style="dim")
+    results_table.add_column("Decision Boundary", style="dim")
 
     best_accuracy = 0
 
@@ -277,6 +278,7 @@ def demonstrate_crisis():
 
         # Format predictions
         pred_str = " ".join([f"{int(p)}" for p in (preds > 0.5).astype(int)])
+        boundary_str = describe_decision_boundary(w1, w2, b)
 
         # Color accuracy based on value
         if accuracy == 1.0:
@@ -293,6 +295,7 @@ def demonstrate_crisis():
             f"{b:.1f}",
             acc_style.format(accuracy) if "{" in acc_style else acc_style,
             pred_str,
+            boundary_str,
         )
 
         if accuracy > best_accuracy:
@@ -305,6 +308,7 @@ def demonstrate_crisis():
     console.print("[bold cyan]Trying 100 Random Configurations...[/bold cyan]")
 
     random_best = 0
+    random_best_config = None
     for _ in range(100):
         w1 = rng.standard_normal() * 5
         w2 = rng.standard_normal() * 5
@@ -313,11 +317,14 @@ def demonstrate_crisis():
         accuracy, _ = evaluate_on_xor(model)
         if accuracy > random_best:
             random_best = accuracy
+            random_best_config = (w1, w2, b)
             if accuracy > best_accuracy:
                 best_accuracy = accuracy
-                (w1, w2, b, "Random")
 
     console.print(f"  Best from random search: [yellow]{random_best:.0%}[/yellow]")
+    if random_best_config is not None:
+        rw1, rw2, rb = random_best_config
+        console.print(f"  [dim](w1={rw1:.2f}, w2={rw2:.2f}, b={rb:.2f})[/dim]")
     press_enter_to_continue()
 
     # Show the conclusion

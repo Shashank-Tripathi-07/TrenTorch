@@ -17,9 +17,9 @@
 # %% auto #0
 __all__ = ['rng', 'DEFAULT_KERNEL_SIZE', 'DEFAULT_STRIDE', 'DEFAULT_PADDING', 'BYTES_PER_FLOAT32', 'KB_TO_BYTES', 'MB_TO_BYTES',
            'validate_4d_input', 'Conv2dBackward', 'Conv2d', 'MaxPool2dBackward', 'MaxPool2d', 'AvgPool2dBackward',
-           'AvgPool2d', 'BatchNorm2d', 'SimpleCNN']
+           'AvgPool2d', 'BatchNorm2dBackward', 'BatchNorm2d', 'SimpleCNN']
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #08e04b27
+# %% ../../solutions/09_convolutions/convolutions.ipynb #71a8960e
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -41,7 +41,7 @@ BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 KB_TO_BYTES = 1024  # Kilobytes to bytes conversion
 MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #a2d01f2d
+# %% ../../solutions/09_convolutions/convolutions.ipynb #83051384
 def validate_4d_input(x, layer_name):
     """
     Validate that input tensor is 4D (batch, channels, height, width).
@@ -81,7 +81,7 @@ def validate_4d_input(x, layer_name):
             f"  Reshape your input to 4D with the correct dimensions"
         )
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #d48ca67d
+# %% ../../solutions/09_convolutions/convolutions.ipynb #7c1ebb93
 # Solution
 
 class Conv2dBackward(Function):
@@ -436,7 +436,7 @@ class Conv2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #f56b49e4
+# %% ../../solutions/09_convolutions/convolutions.ipynb #ce88d667
 # Solution
 
 class MaxPool2dBackward(Function):
@@ -690,7 +690,7 @@ class MaxPool2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #2c0990e7
+# %% ../../solutions/09_convolutions/convolutions.ipynb #6d2e132e
 # Solution
 
 class AvgPool2dBackward(Function):
@@ -933,8 +933,75 @@ class AvgPool2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #a33a4dae
+# %% ../../solutions/09_convolutions/convolutions.ipynb #2b67a4ee
 # Solution
+
+class BatchNorm2dBackward(Function):
+    """
+    Gradient computation for 2D batch normalization.
+
+    Backprops through the normalize -> scale -> shift computation:
+        xhat = (x - mean) / sqrt(var + eps)
+        y = gamma * xhat + beta
+
+    In training mode, mean and var are themselves functions of x (computed over
+    the batch and spatial dimensions), so their contribution to grad_input must
+    be accounted for. In eval mode, running_mean/running_var are constants, so
+    only the direct normalize/scale term contributes to grad_input.
+    """
+
+    def __init__(self, x, gamma, beta, xhat, mean, var, eps, training):
+        super().__init__(x, gamma, beta)
+        self.x = x
+        self.gamma = gamma
+        self.beta = beta
+        self.xhat = xhat
+        self.mean = mean
+        self.var = var
+        self.eps = eps
+        self.training = training
+
+    def apply(self, grad_output):
+        """
+        Compute gradients for input, gamma, and beta.
+
+        Args:
+            grad_output: Gradient flowing back from next layer.
+                        Shape: (batch_size, channels, height, width)
+
+        Returns:
+            Tuple of (grad_input, grad_gamma, grad_beta)
+        """
+        batch_size, channels, height, width = grad_output.shape
+        m = batch_size * height * width  # elements reduced per channel
+
+        std = np.sqrt(self.var + self.eps)  # Shape: (C,)
+        std_reshaped = std.reshape(1, channels, 1, 1)
+        gamma_reshaped = self.gamma.data.reshape(1, channels, 1, 1)
+
+        # Gradients w.r.t. learnable parameters: sum over batch and spatial dims
+        grad_gamma = np.sum(grad_output * self.xhat, axis=(0, 2, 3))
+        grad_beta = np.sum(grad_output, axis=(0, 2, 3))
+
+        # Gradient w.r.t. normalized input
+        dxhat = grad_output * gamma_reshaped
+
+        if self.training:
+            # mean and var both depend on x, so their contributions must be
+            # folded into grad_input (standard batchnorm backward derivation).
+            sum_dxhat = np.sum(dxhat, axis=(0, 2, 3), keepdims=True)
+            sum_dxhat_xhat = np.sum(dxhat * self.xhat, axis=(0, 2, 3), keepdims=True)
+
+            grad_input = (1.0 / m) * (1.0 / std_reshaped) * (
+                m * dxhat - sum_dxhat - self.xhat * sum_dxhat_xhat
+            )
+        else:
+            # Eval mode: running_mean/running_var are constants w.r.t. x
+            grad_input = dxhat / std_reshaped
+
+        return grad_input, grad_gamma, grad_beta
+
+#| export
 
 class BatchNorm2d:
     """
@@ -1129,6 +1196,11 @@ class BatchNorm2d:
         # Return Tensor with gradient tracking
         result = Tensor(output, requires_grad=x.requires_grad or self.gamma.requires_grad)
 
+        if result.requires_grad:
+            result._grad_fn = BatchNorm2dBackward(
+                x, self.gamma, self.beta, x_normalized, mean, var, self.eps, self.training
+            )
+
         return result
         ### END SOLUTION
 
@@ -1140,7 +1212,7 @@ class BatchNorm2d:
         """Enable model(x) syntax."""
         return self.forward(x)
 
-# %% ../../solutions/09_convolutions/convolutions.ipynb #ed68e473
+# %% ../../solutions/09_convolutions/convolutions.ipynb #5de4a2e7
 # Solution
 
 class SimpleCNN:

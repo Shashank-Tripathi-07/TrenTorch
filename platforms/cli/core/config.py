@@ -73,7 +73,17 @@ class CLIConfig:
     def from_project_root(cls, project_root: Path | None = None) -> "CLIConfig":
         """Create config from project root directory."""
         if project_root is None:
-            # Auto-detect project root
+            # Auto-detect project root. Walk up from the current directory
+            # first, so cd'ing into a specific checkout (e.g. juggling
+            # multiple clones) resolves to that one. If that fails --
+            # cwd isn't inside any TrenTorch checkout at all -- fall back
+            # to modules.py's own installed location instead of quietly
+            # defaulting to cwd itself. `tren` is a console-script entry
+            # point, found via PATH regardless of cwd, so a bare `tren`
+            # from an unrelated directory (e.g. right after `cd ~`) would
+            # otherwise treat that directory as the project root and look
+            # for user_data/, data/src/, etc. in the wrong place instead
+            # of the checkout it was actually installed from.
             current = Path.cwd()
             while current != current.parent:
                 if (current / "pyproject.toml").exists():
@@ -81,7 +91,9 @@ class CLIConfig:
                     break
                 current = current.parent
             else:
-                project_root = Path.cwd()
+                from .modules import _find_project_root
+
+                project_root = _find_project_root()
 
         modules_path = project_root / "data" / "src"
         return cls(

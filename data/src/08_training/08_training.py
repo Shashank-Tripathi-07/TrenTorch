@@ -602,22 +602,24 @@ class Trainer:
                 param.data = state[i].copy()
 
     def _get_optimizer_state(self):
-        """Extract optimizer state for checkpointing."""
-        state = {}
-        state['lr'] = self.optimizer.lr
-        if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
-            momentum_state = self.optimizer.get_momentum_state()
-            if momentum_state is not None:
-                state['momentum_buffers'] = momentum_state
-        return state
+        """Extract optimizer state for checkpointing.
+
+        Uses the uniform get_state() interface every optimizer implements
+        (Module 07), so momentum buffers (SGD) and moment buffers/step
+        count (Adam, AdamW) are all captured without special-casing any
+        one optimizer type.
+        """
+        return self.optimizer.get_state()
 
     def _set_optimizer_state(self, state):
-        """Restore optimizer state from checkpoint."""
-        if 'lr' in state:
-            self.optimizer.lr = state['lr']
-        if 'momentum_buffers' in state:
-            if hasattr(self.optimizer, 'has_momentum') and self.optimizer.has_momentum():
-                self.optimizer.set_momentum_state(state['momentum_buffers'])
+        """Restore optimizer state from checkpoint.
+
+        Uses the uniform set_state() interface every optimizer implements
+        (Module 07), so this restores whatever get_state() captured (lr,
+        momentum buffers, moment buffers, step count, ...) regardless of
+        optimizer type.
+        """
+        self.optimizer.set_state(state)
 
     def _get_scheduler_state(self):
         """Extract scheduler state for checkpointing."""
@@ -758,11 +760,7 @@ def trainer_init(self, model, optimizer, loss_fn, scheduler=None, grad_clip_norm
     self.training_mode = True
 
     # History tracking
-    self.history = {
-        'train_loss': [],
-        'eval_loss': [],
-        'learning_rates': []
-    }
+    self.history = {'train_loss': [], 'eval_loss': [], 'learning_rates': []}
     ### END SOLUTION
 
 Trainer.__init__ = trainer_init
@@ -1062,23 +1060,35 @@ def trainer_train_epoch(self, dataloader, accumulation_steps=1):
     total_loss = 0.0
     num_batches = 0
     accumulated_loss = 0.0
+    accumulated_count = 0
 
     for batch_idx, (inputs, targets) in enumerate(dataloader):
         accumulated_loss += self._process_batch(inputs, targets, accumulation_steps)
+        accumulated_count += 1
 
         # Update parameters every accumulation_steps
         if (batch_idx + 1) % accumulation_steps == 0:
             self._optimizer_update()
             total_loss += accumulated_loss
             accumulated_loss = 0.0
+            accumulated_count = 0
             num_batches += 1
             self.step += 1
 
-    # Handle remaining accumulated gradients
-    if accumulated_loss > 0:
+    # Handle remaining accumulated gradients. Track whether there are
+    # unflushed batches with an explicit counter (not a loss-value
+    # comparison): each batch's loss was scaled by 1/accumulation_steps,
+    # so a leftover window that happens to have a true loss of exactly
+    # 0.0 must still trigger the optimizer update (it still zeros
+    # gradients), and its scaled loss must be rescaled by the actual
+    # number of batches in the leftover window, not the full
+    # accumulation_steps, or the average loss is understated.
+    if accumulated_count > 0:
+        accumulated_loss = accumulated_loss * accumulation_steps / accumulated_count
         self._optimizer_update()
         total_loss += accumulated_loss
         num_batches += 1
+        self.step += 1
 
     avg_loss = total_loss / max(num_batches, 1)
     self.history['train_loss'].append(avg_loss)
@@ -1210,10 +1220,7 @@ def test_unit_trainer_train_epoch():
 
     trainer = Trainer(model, optimizer, loss_fn)
 
-    dataloader = [
-        (Tensor([[1.0, 0.5]]), Tensor([[2.0]])),
-        (Tensor([[0.5, 1.0]]), Tensor([[1.5]]))
-    ]
+    dataloader = [(Tensor([[1.0, 0.5]]), Tensor([[2.0]])), (Tensor([[0.5, 1.0]]), Tensor([[1.5]]))]
 
     # Train one epoch
     loss = trainer.train_epoch(dataloader)
@@ -1420,10 +1427,7 @@ def test_unit_trainer_evaluate():
     reg_model = RegressionModel()
     reg_trainer = Trainer(reg_model, SGD(reg_model.parameters(), lr=0.01), MSELoss())
 
-    reg_dataloader = [
-        (Tensor([[1.0, 0.5]]), Tensor([[2.0]])),
-        (Tensor([[0.5, 1.0]]), Tensor([[1.5]]))
-    ]
+    reg_dataloader = [(Tensor([[1.0, 0.5]]), Tensor([[2.0]])), (Tensor([[0.5, 1.0]]), Tensor([[1.5]]))]
 
     eval_loss, accuracy = reg_trainer.evaluate(reg_dataloader)
 
@@ -2163,10 +2167,7 @@ def test_module():
     )
 
     # Test data using REAL Tensors
-    data = [
-        (Tensor([[1.0, 0.5]]), Tensor([[0.8]])),
-        (Tensor([[0.5, 1.0]]), Tensor([[0.2]]))
-    ]
+    data = [(Tensor([[1.0, 0.5]]), Tensor([[0.8]])), (Tensor([[0.5, 1.0]]), Tensor([[0.2]]))]
 
     # Test training
     initial_loss = trainer.train_epoch(data)

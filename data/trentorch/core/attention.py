@@ -17,11 +17,11 @@
 # %% auto #0
 __all__ = ['rng', 'MASK_VALUE', 'scaled_dot_product_attention', 'MultiHeadAttention']
 
-# %% ../../solutions/12_attention/attention.ipynb #31b4f4c7
+# %% ../../solutions/12_attention/attention.ipynb #3a9ffdce
 #| default_exp core.attention
 #| export
 
-# %% ../../solutions/12_attention/attention.ipynb #62087108
+# %% ../../solutions/12_attention/attention.ipynb #f636c1cf
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -37,7 +37,7 @@ from .activations import Softmax
 # Constants for attention computation
 MASK_VALUE = -1e9  # Large negative value used for attention masking (becomes ~0 after softmax)
 
-# %% ../../solutions/12_attention/attention.ipynb #971b096b
+# %% ../../solutions/12_attention/attention.ipynb #2f414130
 # Solution
 
 def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
@@ -62,7 +62,7 @@ def _compute_attention_scores(Q: Tensor, K: Tensor) -> Tensor:
     return Q.matmul(K_t)
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #4449b6ed
+# %% ../../solutions/12_attention/attention.ipynb #67a0698d
 # Solution
 
 def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
@@ -86,7 +86,7 @@ def _scale_scores(scores: Tensor, d_model: int) -> Tensor:
     return scores * scale_factor
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #0d88ce4e
+# %% ../../solutions/12_attention/attention.ipynb #8df678b4
 # Solution
 
 def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
@@ -111,7 +111,7 @@ def _apply_mask(scores: Tensor, mask: Tensor) -> Tensor:
     return scores + adder
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #936a741f
+# %% ../../solutions/12_attention/attention.ipynb #67da7e51
 # Solution
 
 def scaled_dot_product_attention(Q: Tensor, K: Tensor, V: Tensor, mask: Optional[Tensor] = None) -> Tuple[Tensor, Tensor]:
@@ -162,7 +162,7 @@ def scaled_dot_product_attention(Q: Tensor, K: Tensor, V: Tensor, mask: Optional
     return output, attention_weights
     ### END SOLUTION
 
-# %% ../../solutions/12_attention/attention.ipynb #7c8f3e04
+# %% ../../solutions/12_attention/attention.ipynb #2447fc8d
 # Solution
 
 class MultiHeadAttention:
@@ -202,11 +202,18 @@ class MultiHeadAttention:
         """
         ### BEGIN SOLUTION
         if embed_dim % num_heads != 0:
+            # Find the largest divisor of embed_dim that is <= num_heads (guaranteed
+            # to terminate at 1, and guaranteed to differ from the invalid num_heads
+            # since num_heads itself does not divide embed_dim).
+            suggested_num_heads = next(
+                candidate for candidate in range(min(num_heads, embed_dim), 0, -1)
+                if embed_dim % candidate == 0
+            )
             raise ValueError(
                 f"Multi-head attention dimension mismatch\n"
                 f"  ❌ embed_dim={embed_dim} is not divisible by num_heads={num_heads} (remainder={embed_dim % num_heads})\n"
                 f"  💡 Multi-head attention splits embed_dim equally among heads, so embed_dim must be a multiple of num_heads\n"
-                f"  🔧 Try: embed_dim={num_heads * (embed_dim // num_heads + 1)} (next valid size) or num_heads={embed_dim // (embed_dim // num_heads)} (fewer heads)"
+                f"  🔧 Try: embed_dim={num_heads * (embed_dim // num_heads + 1)} (next valid size) or num_heads={suggested_num_heads} (divides embed_dim={embed_dim} evenly)"
             )
 
         self.embed_dim = embed_dim

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trentorch"
-version = "0.0.1"
+version = "1.0.0"
 description = "TrenTorch - Machine Learning Systems Engineering Framework from Scratch"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -43,7 +43,7 @@ dev = [
     "jupyter>=1.1.1",
     "jupyterlab>=4.5.7",
     "ipykernel>=7.2.0",
-    "nbdev>=3.0.15,<3.3.14",
+    "nbdev>=3.0.15,<3.3.15",
 ]
 visualization = [
     "matplotlib>=3.10.9",  # For plotting in Modules 17, 19, 20

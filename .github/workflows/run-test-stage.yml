@@ -47,6 +47,11 @@ on:
         type: string
         default: 'true'
 
+# Empty at workflow level (matches codeql.yml / semantic-pr-title.yml's
+# pattern for the same OpenSSF Scorecard finding); the job below declares
+# the one permission it actually needs.
+permissions: {}
+
 env:
   TREN_ALLOW_SYSTEM: "1"
   TRENTORCH_QUIET: "1"
@@ -59,6 +64,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ inputs.timeout_minutes }}
     continue-on-error: ${{ inputs.advisory_windows == 'true' && contains(matrix.os, 'windows') }}
+    # Only checkout + artifact upload/download, neither of which needs
+    # anything past read access to repo contents (artifact steps use their
+    # own signed-URL storage API, not GITHUB_TOKEN's repo permissions).
+    # No explicit permissions here previously, so this job silently
+    # inherited whatever the repo/org default was rather than declaring
+    # what it actually needs -- OpenSSF Scorecard's Token-Permissions
+    # check flags that as unauditable even when the inherited default
+    # happens to already be safe.
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -105,9 +120,18 @@ jobs:
           key: py-deps-${{ runner.os }}-py3.11-${{ hashFiles('requirements.txt') }}
 
       - name: Install dependencies
+        # requirements.txt is a pip-compile-generated, hash-pinned lockfile
+        # (see its header, and requirements.in for the source policy);
+        # --require-hashes is what satisfies OpenSSF Scorecard's
+        # Pinned-Dependencies check. pip itself is pinned the same way ruff
+        # is pinned in lint.yml/autofix.yml: exact version + real PyPI
+        # sha256, one line, not a heredoc (a heredoc's closing marker has to
+        # sit at column 0, which doesn't survive an indented YAML block
+        # scalar).
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          printf '%s\n' 'pip==26.2.1 --hash=sha256:71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e --hash=sha256:f6ad667e89a1fe78046c8f13232b247200f5258d7828f3f7883d660878e0813f' > /tmp/pip-pin.txt
+          python -m pip install --require-hashes -r /tmp/pip-pin.txt
+          pip install --require-hashes -r requirements.txt
 
       # actions/upload-artifact strips the shared parent directory (data/)
       # from archived paths when given multiple search paths under it (its
@@ -115,27 +139,37 @@ jobs:
       # trentorch/... and modules/..., not data/trentorch/... and
       # data/modules/.... Extracting explicitly into data/ here undoes
       # that stripping so the files land back where they actually live.
+      #
+      # Unsuffixed name (not built-package-${{ matrix.os }}): the built
+      # package (data/trentorch/, data/modules/) is pure Python source with
+      # nothing OS-specific in it, so validate.yml's Stage 1 now produces
+      # exactly one canonical artifact from its Ubuntu leg -- the one every
+      # downstream OS leg downloads, Windows included. Stage 1's own
+      # Windows leg still builds and tests everything for coverage, it just
+      # doesn't upload an artifact anyone consumes (see upload step below).
       - name: Download built package from Stage 1
         if: inputs.download_package == 'true'
         continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: built-package-${{ matrix.os }}
+          name: built-package
           path: data
 
       - name: Run tests
         run: ./bin/tren dev test ${{ inputs.test_flag }} --ci
 
-      # Only Stage 1 sets this: Stages 2-5 each need the exported package
-      # present to skip their own redundant `tren dev export --all` (see
+      # Only Stage 1's Ubuntu leg sets upload_package: 'true' (see
+      # validate.yml): Stages 2-5 each need the exported package present to
+      # skip their own redundant `tren dev export --all` (see
       # platforms/cli/cli_platform/dev/test.py's _check_imports/_build_package). Sharing
-      # Stage 1's already-built output cuts that duplicated work to zero
-      # without skipping or altering any test.
+      # that one build's output cuts the duplicated work to zero without
+      # skipping or altering any test. Unsuffixed name -- see the matching
+      # comment on the download step above.
       - name: Upload built package
         if: inputs.upload_package == 'true' && success()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: built-package-${{ matrix.os }}
+          name: built-package
           path: |
             data/trentorch/
             data/modules/

@@ -63,8 +63,7 @@ from trentorch.perf.memoization import KVCache, enable_kv_cache
 import os
 import numpy as np
 rng = np.random.default_rng(7)
-import time
-from typing import Tuple, Optional, Dict, List
+from typing import Tuple, Dict
 
 # Import TrenTorch components from previous modules
 from trentorch.core.tensor import Tensor
@@ -1506,9 +1505,33 @@ def _cached_attention_forward(block, x, cache_obj, layer_idx, original_forward):
         return original_forward(x, None)
 
     # PATH 2: FIRST TOKEN (cache empty)
-    # Nothing to retrieve yet - use original attention
+    # Nothing to retrieve yet, so attention itself still uses the original
+    # (unpatched) forward. But we must still populate the cache with this
+    # token's real K,V, otherwise position 0 stays all-zeros forever and
+    # every later PATH 3 step silently attends to a fake first token.
     if cache_obj.seq_pos == 0:
-        return original_forward(x, None)
+        output = original_forward(x, None)
+
+        import numpy as np
+        from trentorch.core.tensor import Tensor
+
+        batch_size = x.shape[0]
+        num_heads = block.attention.num_heads
+        head_dim = block.attention.head_dim
+
+        K_new = block.attention.k_proj.forward(x)
+        V_new = block.attention.v_proj.forward(x)
+
+        K_heads = Tensor(np.transpose(
+            K_new.reshape(batch_size, seq_len, num_heads, head_dim).data, (0, 2, 1, 3)
+        ))
+        V_heads = Tensor(np.transpose(
+            V_new.reshape(batch_size, seq_len, num_heads, head_dim).data, (0, 2, 1, 3)
+        ))
+
+        cache_obj.update(layer_idx, K_heads, V_heads)
+
+        return output
 
     # PATH 3: CACHED GENERATION
     # Use helper function for the O(n) cached computation
@@ -1532,9 +1555,20 @@ def test_unit_cached_attention_forward():
     # Track which path was taken
     path_taken = []
 
+    class MockLinear:
+        def forward(self, x):
+            return x
+
     class MockBlock:
         def __init__(self):
             self.attention = self
+            # PATH 2 now writes K,V into the cache for the first token, so
+            # the mock attention needs real-enough k_proj/v_proj/num_heads/
+            # head_dim for that reshape+cache.update() to succeed.
+            self.num_heads = 4
+            self.head_dim = 32
+            self.k_proj = MockLinear()
+            self.v_proj = MockLinear()
 
     block = MockBlock()
 
@@ -1705,10 +1739,9 @@ def _cached_generate(model, prompt_tokens, max_new_tokens, temperature, cache):
     # Phase 1: PREFILL - process prompt tokens one at a time to populate cache
     # We feed each token individually so the patched attention dispatches
     # through PATH 3 (_cached_generation_step) for tokens after the first,
-    # which writes their K,V into the cache.  The first token (seq_pos==0)
-    # goes through PATH 2 (original forward) -- its K,V slot stays zero,
-    # but subsequent generation tokens still attend to the rest of the
-    # populated cache, which is far better than an entirely empty cache.
+    # which writes their K,V into the cache. The first token (seq_pos==0)
+    # goes through PATH 2 (original forward), which now also writes its
+    # real K,V into the cache, so no cache position is ever left as zeros.
     for i in range(len(prompt_tokens)):
         token_tensor = Tensor(np.array([[prompt_tokens[i]]]))  # (1, 1)
         logits = model.forward(token_tensor)
@@ -1864,7 +1897,7 @@ def enable_kv_cache(model):
 
     HINTS:
     - _create_cache_storage handles validation, KVCache creation, and model attachment
-    - Use a factory function (make_cached_forward) to capture layer_idx in closure
+    - Use a factory function (make_cached_forward) to capture block, layer_idx, etc. in closure -- everything the returned closure reads must be a factory parameter, not read from the enclosing loop directly
     - Save original forward as block._original_attention_forward before patching
     - _cached_attention_forward handles the three-path dispatch logic
     """
@@ -1952,7 +1985,7 @@ def enable_kv_cache(model):
 
     HINTS:
     - _create_cache_storage handles validation, KVCache creation, and model attachment
-    - Use a factory function (make_cached_forward) to capture layer_idx in closure
+    - Use a factory function (make_cached_forward) to capture block, layer_idx, etc. in closure -- everything the returned closure reads must be a factory parameter, not read from the enclosing loop directly
     - Save original forward as block._original_attention_forward before patching
     - _cached_attention_forward handles the three-path dispatch logic
     """
@@ -1967,9 +2000,16 @@ def enable_kv_cache(model):
         if not hasattr(block, '_original_attention_forward'):
             block._original_attention_forward = block.attention.forward
 
-        # Create cached version using factory for correct closure binding
-        def make_cached_forward(layer_idx, original_forward, cache_obj):
-            """Factory to create cached forward with correct layer_idx closure."""
+        # Create cached version using factory for correct closure binding.
+        # `block` itself must be threaded through the factory the same way
+        # layer_idx/original_forward/cache_obj are: a closure that instead
+        # reads `block` straight from this enclosing for-loop shares ONE
+        # binding across every layer's cached_forward, so by the time any
+        # of them actually runs (after the loop has finished), they'd all
+        # see whatever block the loop landed on last -- every layer's
+        # cached attention operating on the last layer's state.
+        def make_cached_forward(block, layer_idx, original_forward, cache_obj):
+            """Factory to create cached forward with correct layer_idx (and block) closure."""
             def cached_forward(x, mask=None):
                 return _cached_attention_forward(
                     block, x, cache_obj, layer_idx, original_forward
@@ -1977,7 +2017,7 @@ def enable_kv_cache(model):
             return cached_forward
 
         block.attention.forward = make_cached_forward(
-            layer_idx, block._original_attention_forward, cache
+            block, layer_idx, block._original_attention_forward, cache
         )
 
     # Step 3: Print confirmation
@@ -2049,7 +2089,8 @@ def test_unit_noninvasive_integration():
 
     # Create a mock transformer-like object for testing
     class MockTransformerBlock:
-        def __init__(self):
+        def __init__(self, block_id):
+            self.block_id = block_id
             self.attention = self
 
         def forward(self, x, mask=None):
@@ -2063,7 +2104,7 @@ def test_unit_noninvasive_integration():
             self.num_layers = 4
             self.num_heads = 4
             self.max_seq_len = 64
-            self.blocks = [MockTransformerBlock() for _ in range(self.num_layers)]
+            self.blocks = [MockTransformerBlock(i) for i in range(self.num_layers)]
 
     # Test 1: Enable caching
     model = MockGPT()
@@ -2080,6 +2121,39 @@ def test_unit_noninvasive_integration():
     for block in model.blocks:
         output = block.attention.forward(test_input)
         assert output.shape == test_input.shape, "Forward pass should preserve shape"
+
+    # Test 2b: Regression test -- each layer's patched forward must resolve
+    # to its OWN block, not whichever block the patching loop happened to
+    # end on. This is a real bug that shipped: make_cached_forward's inner
+    # closure read `block` from the enclosing for-loop instead of taking it
+    # as its own factory parameter (the way layer_idx/original_forward/
+    # cache_obj correctly do), so every layer's cached_forward ended up
+    # sharing ONE block binding -- whatever the loop landed on last. Test 2
+    # above can't catch this: the training path (seq_len > 1) never reaches
+    # code that reads `block` at all, and a trivial pass-through mock
+    # wouldn't reveal a wrong-block bug even if it did. This test instead
+    # spies on the module-level dispatch function each patched forward
+    # actually calls, and checks what `block` it was handed -- seq_len is
+    # irrelevant here, since we're not exercising the real three-path
+    # dispatch, just observing the closure's own captured value.
+    print("   Test 2b: Regression -- per-layer forward resolves to its own block")
+    module_globals = enable_kv_cache.__globals__
+    original_dispatch = module_globals["_cached_attention_forward"]
+    seen_blocks = []
+    module_globals["_cached_attention_forward"] = lambda block, x, cache_obj, layer_idx, original_forward: (
+        seen_blocks.append((layer_idx, block)) or x
+    )
+    try:
+        for expected_block in model.blocks:
+            expected_block.attention.forward(test_input)
+    finally:
+        module_globals["_cached_attention_forward"] = original_dispatch
+    for layer_idx, resolved_block in seen_blocks:
+        assert resolved_block is model.blocks[layer_idx], (
+            f"Layer {layer_idx}'s cached forward resolved to block "
+            f"{getattr(resolved_block, 'block_id', resolved_block)} instead of its own "
+            f"({layer_idx}) -- closure captured the wrong block"
+        )
 
     # Test 3: Disable caching
     print("   Test 3: Disable caching")
@@ -2154,7 +2228,7 @@ def analyze_kvcache_memory():
 
         # Model parameter memory (approximate)
         params_per_layer = embed_dim * embed_dim * _BYTES_PER_FLOAT32  # QKV projections
-        model_memory = params_per_layer * num_layers * _BYTES_PER_FLOAT32 / _MB_TO_BYTES
+        model_memory = params_per_layer * num_layers / _MB_TO_BYTES
 
         overhead_pct = (total_memory / model_memory) * 100 if model_memory > 0 else 0
 
@@ -2197,14 +2271,6 @@ def analyze_kvcache_speedup():
     """
     print("\n📊 Analyzing KV Cache Speedup...")
     print()
-
-    import time
-
-    # Create test configuration
-    batch_size = 1
-    embed_dim = 256
-    num_heads = 8
-    head_dim = embed_dim // num_heads
 
     print("Generation Length | Without Cache | With Cache | Speedup")
     print("-" * 55)

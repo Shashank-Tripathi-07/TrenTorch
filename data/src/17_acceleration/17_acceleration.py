@@ -768,9 +768,20 @@ def test_unit_fusion_speedup():
         "Fused and unfused implementations must be numerically equivalent"
 
     # Calculate performance metrics
+    # Either timing can legitimately measure as exactly 0.0 on a fast
+    # machine/small size if its whole timed loop completes within
+    # time.time()'s wall-clock resolution. `speedup` already guarded
+    # against fused_time == 0 for its own division; per-element and
+    # bandwidth below divide by both timings, so both need the same
+    # treatment. A tiny epsilon rather than a fixed fallback like
+    # speedup's `1.0`: these are rate/bandwidth numbers, so
+    # "immeasurably fast" should read as a very large number, not an
+    # arbitrary constant.
+    unfused_time_safe = unfused_time if unfused_time > 0 else 1e-9
+    fused_time_safe = fused_time if fused_time > 0 else 1e-9
     speedup = unfused_time / fused_time if fused_time > 0 else 1.0
-    unfused_per_elem = (unfused_time / timing_iterations) / (size * size) * 1e9  # ns per element
-    fused_per_elem = (fused_time / timing_iterations) / (size * size) * 1e9
+    unfused_per_elem = (unfused_time_safe / timing_iterations) / (size * size) * 1e9  # ns per element
+    fused_per_elem = (fused_time_safe / timing_iterations) / (size * size) * 1e9
 
     print(f"📊 Kernel Fusion Performance Analysis:")
     print(f"   Tensor size: {size}×{size} = {size*size:,} elements")
@@ -784,8 +795,12 @@ def test_unit_fusion_speedup():
     unfused_memory_ops = 7  # 7 intermediate arrays
     fused_memory_ops = 2   # read input, write output
 
-    unfused_bandwidth = (unfused_memory_ops * size * size * bytes_per_elem) / (unfused_time / timing_iterations) / 1e9
-    fused_bandwidth = (fused_memory_ops * size * size * bytes_per_elem) / (fused_time / timing_iterations) / 1e9
+    unfused_bandwidth = (
+        (unfused_memory_ops * size * size * bytes_per_elem) / (unfused_time_safe / timing_iterations) / 1e9
+    )
+    fused_bandwidth = (
+        (fused_memory_ops * size * size * bytes_per_elem) / (fused_time_safe / timing_iterations) / 1e9
+    )
 
     print(f"   Memory efficiency: {unfused_memory_ops}→{fused_memory_ops} memory ops")
     print(f"   Effective bandwidth: {unfused_bandwidth:.1f}→{fused_bandwidth:.1f} GB/s")
@@ -1349,6 +1364,7 @@ def analyze_acceleration_decision_framework():
     print(f"      • Moderate complexity")
     print(f"      • Significant wins on element-wise ops")
     print(f"   ")
+    print(f"   📊 Phase 3 (Cache-bound): Tiling / Cache Blocking")
     print(f"      • Essential for large model training")
     print(f"      • Requires careful validation")
     print(f"      • Hardware-dependent benefits")
@@ -1442,7 +1458,12 @@ def explore_acceleration_with_profiler():
 
     print(f"   Latency: {slow_latency:.2f} ms")
     print(f"   FLOPs: {slow_flops:,}")
-    print(f"   Throughput: {slow_flops / (slow_latency / 1000) / 1e9:.2f} GFLOP/s")
+    # These latencies can legitimately measure as exactly 0.0 on a fast
+    # machine with a coarse timer (~15.6ms resolution on Windows) --
+    # floored everywhere they're a divisor so results stay large-but-
+    # finite instead of raising ZeroDivisionError.
+    slow_latency_safe = slow_latency if slow_latency > 0 else 1e-9
+    print(f"   Throughput: {slow_flops / (slow_latency_safe / 1000) / 1e9:.2f} GFLOP/s")
 
     print("\n🚀 AFTER: Vectorized implementation")
     print("-" * 70)
@@ -1450,14 +1471,15 @@ def explore_acceleration_with_profiler():
     # Measure fast model
     fast_latency = profiler.measure_latency(fast_model, input_tensor, warmup=3, iterations=10)
     fast_flops = profiler.count_flops(fast_model, (batch_size, in_features))
+    fast_latency_safe = fast_latency if fast_latency > 0 else 1e-9
 
     print(f"   Latency: {fast_latency:.2f} ms")
     print(f"   FLOPs: {fast_flops:,}")
-    print(f"   Throughput: {fast_flops / (fast_latency / 1000) / 1e9:.2f} GFLOP/s")
+    print(f"   Throughput: {fast_flops / (fast_latency_safe / 1000) / 1e9:.2f} GFLOP/s")
 
     print("\n📈 ACCELERATION GAINS")
     print("=" * 70)
-    speedup = slow_latency / fast_latency
+    speedup = slow_latency / fast_latency_safe
     print(f"   Speedup: {speedup:.1f}x faster")
     print(f"   Time saved: {slow_latency - fast_latency:.2f} ms per inference")
     print(f"   Throughput improvement: {speedup:.1f}x more inferences/second")

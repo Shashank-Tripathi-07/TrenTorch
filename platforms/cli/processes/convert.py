@@ -50,12 +50,7 @@ class ConvertCommand(BaseCommand):
         )
 
     def run(self, args: Namespace) -> int:
-        from trentorch.export_sanitizer import (
-            to_ipynb,
-            to_platform_yaml,
-            to_qmd,
-            to_sandbox_code,
-        )
+        from trentorch.export_sanitizer import to_ipynb, to_platform_yaml, to_qmd, to_sandbox_code
 
         project_root = self.config.project_root
         src_dir = project_root / "data" / "src"

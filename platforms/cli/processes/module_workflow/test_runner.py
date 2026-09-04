@@ -234,13 +234,7 @@ def run_integration_tests(config, console, module_name: str, verbose: bool) -> d
             concise_error = (
                 "\n".join(error_msg.split("\n")[-5:]) if error_msg else "pytest exited with an error"
             )
-            tests_run = [
-                {
-                    "name": "pytest_collection",
-                    "passed": False,
-                    "error": concise_error,
-                }
-            ]
+            tests_run = [{"name": "pytest_collection", "passed": False, "error": concise_error}]
 
     if verbose:
         for test in tests_run:
@@ -312,6 +306,21 @@ def _parse_test_output(stdout: str, stderr: str, returncode: int) -> list:
             concise_error = "\n".join(error_lines[-5:]) if error_lines else "Test execution failed"
 
             tests.append({"name": "module_execution", "passed": False, "error": concise_error})
+    elif returncode != 0 and not any(not t["passed"] for t in tests):
+        # At least one marker was found (so the block above never runs),
+        # but the process still exited non-zero and none of the parsed
+        # markers themselves reported a failure -- a script that prints a
+        # few passing "checkmark" tests and then crashes with an uncaught
+        # exception later in the same run, for instance. Without this, the
+        # crash was completely invisible: `failed` stayed 0 because it's
+        # computed purely from `tests`, and the only place that reflects
+        # the crash (returncode, in run_inline_unit_tests' own return
+        # dict) is never checked by any caller -- `tren module complete`
+        # would report full success on a module that actually crashed.
+        error_msg = stderr.strip() if stderr.strip() else stdout.strip()
+        error_lines = error_msg.split("\n")
+        concise_error = "\n".join(error_lines[-5:]) if error_lines else "Script exited with an error"
+        tests.append({"name": "module_execution", "passed": False, "error": concise_error})
 
     return tests
 

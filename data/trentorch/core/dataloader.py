@@ -17,11 +17,11 @@
 # %% auto #0
 __all__ = ['rng', 'Dataset', 'TensorDataset', 'DataLoader', 'RandomHorizontalFlip', 'RandomCrop', 'Compose']
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #3fb5c2df
+# %% ../../solutions/05_dataloader/dataloader.ipynb #19026855
 #| default_exp core.dataloader
 #| export
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #36b3c993
+# %% ../../solutions/05_dataloader/dataloader.ipynb #8937610a
 # Essential imports for data loading
 import random
 import sys
@@ -35,7 +35,7 @@ rng = np.random.default_rng(7)
 # Import real Tensor class from trentorch package
 from .tensor import Tensor
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #b3b6dd1f
+# %% ../../solutions/05_dataloader/dataloader.ipynb #2f31066f
 # Solution
 
 class Dataset(ABC):
@@ -90,7 +90,7 @@ class Dataset(ABC):
         pass
     ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #293f9bc9
+# %% ../../solutions/05_dataloader/dataloader.ipynb #364477a5
 # Solution
 
 class TensorDataset(Dataset):
@@ -206,7 +206,7 @@ class TensorDataset(Dataset):
         return tuple(Tensor(tensor.data[idx]) for tensor in self.tensors)
         ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #7a1788bd
+# %% ../../solutions/05_dataloader/dataloader.ipynb #b245a167
 # Solution
 
 class DataLoader:
@@ -363,7 +363,7 @@ class DataLoader:
         return tuple(batched_tensors)
         ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #a6dcc3a1
+# %% ../../solutions/05_dataloader/dataloader.ipynb #0951877d
 # Solution
 
 class RandomHorizontalFlip:
@@ -461,7 +461,7 @@ class RandomHorizontalFlip:
         return x
         ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #6b203204
+# %% ../../solutions/05_dataloader/dataloader.ipynb #e819b14c
 # Solution
 
 def _pad_image(data, padding):
@@ -512,7 +512,7 @@ def _pad_image(data, padding):
         )
     ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #4dfe7e2c
+# %% ../../solutions/05_dataloader/dataloader.ipynb #df75b6b4
 # Solution
 
 def _random_crop_region(padded_h, padded_w, target_h, target_w):
@@ -538,7 +538,7 @@ def _random_crop_region(padded_h, padded_w, target_h, target_w):
     return top, left
     ### END SOLUTION
 
-# %% ../../solutions/05_dataloader/dataloader.ipynb #5342a3ba
+# %% ../../solutions/05_dataloader/dataloader.ipynb #265618d7
 # Solution
 
 class RandomCrop:

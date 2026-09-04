@@ -154,6 +154,7 @@ import numpy as np
 rng = np.random.default_rng(7)
 import time
 import json
+import tempfile
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import platform
@@ -1012,7 +1013,7 @@ def generate_submission(
             # See the matching guard in benchmark_model: time.time()'s coarse
             # resolution can measure a fast model's latency as exactly 0.0.
             'speedup': float(baseline_latency / max(optimized_latency, 1e-6)),
-            'compression_ratio': float(baseline_size / optimized_size),
+            'compression_ratio': float(baseline_size / max(optimized_size, 1e-6)),
             'accuracy_delta': float(
                 optimized_report.metrics['accuracy'] - baseline_report.metrics['accuracy']
             )
@@ -1206,10 +1207,7 @@ def run_example_benchmark():
 
     # Step 4: Generate submission
     print("\n📝 Step 4: Generating submission...")
-    submission = generate_submission(
-        baseline_report=baseline_report,
-        student_name="TrenTorch Student"
-    )
+    submission = generate_submission(baseline_report=baseline_report, student_name="TrenTorch Student")
 
     # Step 5: Save submission
     print("\n💾 Step 5: Saving submission...")
@@ -1699,7 +1697,13 @@ def test_unit_benchmark_report():
     assert metrics['parameter_count'] > 0, "Should have positive parameter count"
     assert metrics['model_size_mb'] > 0, "Model size should be positive"
     assert 0 <= metrics['accuracy'] <= 1, "Accuracy should be in [0, 1]"
-    assert metrics['latency_ms_mean'] > 0, "Latency should be positive"
+    # >= 0, not > 0: latency_ms_mean is a raw time.time() measurement (see
+    # BenchmarkReport.benchmark_model's own comment on this), and
+    # time.time()'s resolution is coarse enough (~15.6ms on Windows) that a
+    # fast forward pass can legitimately measure exactly 0.0ms elapsed --
+    # that's not a broken measurement, the same way latency_ms_std == 0
+    # below (all runs measuring identically) isn't either.
+    assert metrics['latency_ms_mean'] >= 0, "Latency should be non-negative"
     assert metrics['latency_ms_std'] >= 0, "Standard deviation should be non-negative"
     assert metrics['throughput_samples_per_sec'] > 0, "Throughput should be positive"
 
@@ -1814,7 +1818,10 @@ def validate_submission_schema(submission: Dict[str, Any]) -> bool:
     assert 0 <= metrics['accuracy'] <= 1, "Accuracy must be in [0, 1]"
     assert metrics['parameter_count'] > 0, "Parameter count must be positive"
     assert metrics['model_size_mb'] > 0, "Model size must be positive"
-    assert metrics['latency_ms_mean'] > 0, "Latency must be positive"
+    # >= 0, not > 0: see the matching comment on the other copy of this
+    # check -- a raw time.time() measurement can legitimately be exactly
+    # 0.0ms on a fast machine with a coarse timer resolution.
+    assert metrics['latency_ms_mean'] >= 0, "Latency must be non-negative"
 
     # Check system info
     system_info = submission['system_info']
@@ -1846,11 +1853,7 @@ def test_unit_submission_schema():
     optimized_report = BenchmarkReport(model_name="optimized_model")
     optimized_report.benchmark_model(optimized_model, X_test, y_test, num_runs=10)
 
-    submission_with_opt = generate_submission(
-        report,
-        optimized_report,
-        techniques_applied=["pruning"]
-    )
+    submission_with_opt = generate_submission(report, optimized_report, techniques_applied=["pruning"])
 
     # Validate optimized submission
     assert validate_submission_schema(submission_with_opt), "Optimized submission should pass validation"
@@ -1918,7 +1921,13 @@ def test_unit_submission_with_optimization():
     assert 'accuracy_delta' in improvements, "Should have accuracy delta"
 
     # Check improvement values are reasonable
-    assert improvements['speedup'] > 0, "Speedup should be positive"
+    # >= 0, not > 0: speedup is baseline_latency / optimized_latency, and
+    # baseline_latency (the numerator) is itself a raw time.time()
+    # measurement -- if IT measures as exactly 0.0 (coarse timer
+    # resolution, same reasoning as the latency_ms_mean checks above),
+    # speedup legitimately computes as 0.0 too, even though the division
+    # itself is already safely floored against a zero denominator.
+    assert improvements['speedup'] >= 0, "Speedup should be non-negative"
     assert improvements['compression_ratio'] > 0, "Compression ratio should be positive"
     assert -1 <= improvements['accuracy_delta'] <= 1, "Accuracy delta should be in [-1, 1]"
 
@@ -1993,6 +2002,65 @@ if __name__ == "__main__":
 
 # %% [markdown]
 """
+### 🧪 Unit Test: Zero-Size Optimized Model
+
+This test validates generate_submission() survives a degenerate optimized
+model reporting 0 MB (e.g. a model with 0 parameters).
+
+**What we're testing**: compression_ratio's denominator is floored the
+same way speedup's is, so a zero-size optimized model doesn't raise
+**Why it matters**: An unguarded division here would crash every
+submission for a maximally-compressed (e.g. pruned-to-nothing) model
+**Expected**: No ZeroDivisionError, compression_ratio is a large but
+finite positive number
+"""
+
+# %% nbgrader={"grade": true, "grade_id": "test-zero-optimized-size", "locked": true, "points": 10}
+def test_unit_submission_zero_optimized_size():
+    """🧪 Test generate_submission() doesn't crash when optimized_size is 0."""
+    print("🧪 Unit Test: Zero-Size Optimized Model...")
+
+    baseline_report = BenchmarkReport(model_name="baseline")
+    baseline_report.metrics = {
+        'parameter_count': 1000,
+        'model_size_mb': 4.0,
+        'accuracy': 0.80,
+        'latency_ms_mean': 10.0,
+        'latency_ms_std': 1.0,
+        'throughput_samples_per_sec': 100.0
+    }
+    baseline_report.timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+    baseline_report.system_info = {'platform': 'test', 'python_version': '3.9', 'numpy_version': '1.20'}
+
+    # Degenerate optimized model: reports 0 parameters, hence 0 MB size
+    # (e.g. a model whose count_parameters() legitimately returns 0)
+    optimized_report = BenchmarkReport(model_name="optimized")
+    optimized_report.metrics = {
+        'parameter_count': 0,
+        'model_size_mb': 0.0,
+        'accuracy': 0.75,
+        'latency_ms_mean': 5.0,
+        'latency_ms_std': 0.5,
+        'throughput_samples_per_sec': 200.0
+    }
+    optimized_report.timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+    optimized_report.system_info = baseline_report.system_info
+
+    # Should not raise ZeroDivisionError
+    submission = generate_submission(baseline_report, optimized_report)
+
+    compression_ratio = submission['improvements']['compression_ratio']
+    assert compression_ratio > 0, "Compression ratio should be a positive number"
+    assert compression_ratio < float('inf'), "Compression ratio should be finite, not inf"
+
+    print("✅ Zero-size optimized model handled correctly!")
+
+# Run test immediately when developing
+if __name__ == "__main__":
+    test_unit_submission_zero_optimized_size()
+
+# %% [markdown]
+"""
 ### 🧪 Unit Test: JSON Serialization
 
 This test validates save_submission() creates valid, round-trip compatible JSON.
@@ -2018,33 +2086,33 @@ def test_unit_json_serialization():
 
     submission = generate_submission(report, student_name="Test Student")
 
-    # Save to file
-    test_file = "/tmp/test_submission_unit.json"
-    filepath = save_submission(submission, test_file)
+    # Save to file in a fresh temp directory (portable across platforms:
+    # a hardcoded "/tmp/..." path resolves relative to the current drive's
+    # root on Windows and fails with FileNotFoundError/WinError 3)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        test_file = str(Path(tmp_dir) / "test_submission_unit.json")
+        filepath = save_submission(submission, test_file)
 
-    # Check file exists
-    assert Path(filepath).exists(), "Submission file should exist"
+        # Check file exists
+        assert Path(filepath).exists(), "Submission file should exist"
 
-    # Load and verify JSON is valid
-    loaded_json = json.loads(Path(test_file).read_text(encoding="utf-8"))
+        # Load and verify JSON is valid
+        loaded_json = json.loads(Path(test_file).read_text(encoding="utf-8"))
 
-    # Verify structure is preserved
-    assert loaded_json['trentorch_version'] == submission['trentorch_version'], "Version should match"
-    assert loaded_json['student_name'] == submission['student_name'], "Student name should match"
-    assert loaded_json['baseline']['model_name'] == submission['baseline']['model_name'], "Model name should match"
+        # Verify structure is preserved
+        assert loaded_json['trentorch_version'] == submission['trentorch_version'], "Version should match"
+        assert loaded_json['student_name'] == submission['student_name'], "Student name should match"
+        assert loaded_json['baseline']['model_name'] == submission['baseline']['model_name'], "Model name should match"
 
-    # Verify metrics are preserved
-    baseline_metrics = loaded_json['baseline']['metrics']
-    original_metrics = submission['baseline']['metrics']
-    assert baseline_metrics['accuracy'] == original_metrics['accuracy'], "Accuracy should match"
-    assert baseline_metrics['parameter_count'] == original_metrics['parameter_count'], "Parameter count should match"
+        # Verify metrics are preserved
+        baseline_metrics = loaded_json['baseline']['metrics']
+        original_metrics = submission['baseline']['metrics']
+        assert baseline_metrics['accuracy'] == original_metrics['accuracy'], "Accuracy should match"
+        assert baseline_metrics['parameter_count'] == original_metrics['parameter_count'], "Parameter count should match"
 
-    # Verify JSON can be dumped again (round-trip test)
-    round_trip = json.dumps(loaded_json, indent=2)
-    assert len(round_trip) > 0, "JSON should serialize again"
-
-    # Clean up
-    Path(test_file).unlink()
+        # Verify JSON can be dumped again (round-trip test)
+        round_trip = json.dumps(loaded_json, indent=2)
+        assert len(round_trip) > 0, "JSON should serialize again"
 
     print("✅ JSON serialization works correctly!")
 

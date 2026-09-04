@@ -54,32 +54,17 @@ class ModuleTestCommand(BaseCommand):
             help="Module number to test (01, 02, etc.)",
         )
         parser.add_argument("--all", action="store_true", help="Test all modules sequentially")
+        parser.add_argument("--verbose", "-v", action="store_true", help="Show detailed test output")
         parser.add_argument(
-            "--verbose",
-            "-v",
-            action="store_true",
-            help="Show detailed test output",
+            "--stop-on-fail", action="store_true", help="Stop testing if a module fails (only with --all)"
         )
-        parser.add_argument(
-            "--stop-on-fail",
-            action="store_true",
-            help="Stop testing if a module fails (only with --all)",
-        )
-        parser.add_argument(
-            "--summary",
-            action="store_true",
-            help="Show only summary without running tests",
-        )
+        parser.add_argument("--summary", action="store_true", help="Show only summary without running tests")
         parser.add_argument(
             "--unit-only",
             action="store_true",
             help="Run only inline unit tests (skip pytest and integration)",
         )
-        parser.add_argument(
-            "--no-integration",
-            action="store_true",
-            help="Skip integration tests",
-        )
+        parser.add_argument("--no-integration", action="store_true", help="Skip integration tests")
 
     # Module mapping and normalization now imported from core.modules
 

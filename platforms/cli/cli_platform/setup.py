@@ -23,7 +23,10 @@ from rich.text import Text
 
 from platforms.cli.commands.base import BaseCommand
 from platforms.cli.commands.jupyter import register_jupyter_magic
+from platforms.cli.core.atomic_io import atomic_write_json
 from platforms.cli.core.config import get_home_profile_dir
+from platforms.cli.core.path_manager import add_bin_dir_to_path, is_on_path
+from platforms.cli.core.virtual_env_manager import get_venv_bin_dir
 
 
 def _print_file_update(console, file_path: Path) -> None:
@@ -59,21 +62,22 @@ class SetupCommand(BaseCommand):
             "  1. Create virtual environment (.venv)\n"
             "  2. Install required packages (numpy, jupyter, etc.)\n"
             "  3. Create user profile (~/.trentorch/profile.json)\n"
-            "  4. Validate environment"
+            "  4. Validate environment\n"
+            "  5. Add tren to your PATH (optional, asks first)"
         )
         parser.add_argument("--skip-venv", action="store_true", help="Skip virtual environment creation")
         parser.add_argument("--skip-packages", action="store_true", help="Skip package installation")
         parser.add_argument("--skip-profile", action="store_true", help="Skip user profile creation")
+        parser.add_argument(
+            "--skip-path", action="store_true", help="Skip the prompt to add tren to your PATH"
+        )
         parser.add_argument(
             "--force", action="store_true", help="Prompt to recreate existing components (venv, profile)"
         )
 
     def get_existing_venv_path(self) -> Path | None:
         """Return the path to an existing venv, or None if not found."""
-        venv_paths = [
-            self.config.project_root / ".venv",
-            self.config.project_root / "venv",
-        ]
+        venv_paths = [self.config.project_root / ".venv", self.config.project_root / "venv"]
         for venv_path in venv_paths:
             if venv_path.exists():
                 return venv_path
@@ -309,7 +313,15 @@ class SetupCommand(BaseCommand):
         try:
             # Detect Apple Silicon and force arm64 if needed
             arch = platform.machine()
-            python_exe = sys.executable
+            # python_argv is a list of argv words, not a shell string --
+            # venv_path (or any arg) never needs quoting for a shell that
+            # never runs. A prior version built this as an
+            # f"arch -arm64 {python_exe}" string and ran it via
+            # subprocess.run(..., shell=True): a venv_path containing a
+            # space (a real-world path, e.g. under "OneDrive - Company")
+            # silently split into multiple shell tokens instead of one
+            # path, breaking venv creation.
+            python_argv = [sys.executable]
 
             if platform.system() == "Darwin" and arch == "x86_64":
                 # Check if we're on Apple Silicon but running Rosetta
@@ -332,28 +344,21 @@ class SetupCommand(BaseCommand):
                             "[cyan]🔧 Creating arm64 native environment for better performance...[/cyan]"
                         )
                         # Force arm64 Python
-                        python_exe = f"arch -arm64 {python_exe}"
+                        python_argv = ["arch", "-arm64", sys.executable]
                 except Exception:
                     pass
 
-            # Create virtual environment (potentially with arch prefix)
-            if "arch -arm64" in python_exe:
-                result = subprocess.run(
-                    f"{python_exe} -m venv {venv_path}",
-                    shell=True,
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                )
-            else:
-                result = subprocess.run(
-                    [python_exe, "-m", "venv", str(venv_path)],
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                )
+            # Create virtual environment (potentially with arch prefix).
+            # Always a real argv list, never shell=True: venv_path is
+            # passed as its own list element regardless of what
+            # characters it contains.
+            result = subprocess.run(
+                [*python_argv, "-m", "venv", str(venv_path)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
 
             if result.returncode != 0:
                 self.console.print(f"[red]Failed to create virtual environment: {result.stderr}[/red]")
@@ -434,10 +439,7 @@ class SetupCommand(BaseCommand):
         }
 
         # Save profile
-        import json
-
-        with open(profile_path, "w") as f:
-            json.dump(profile, f, indent=2)
+        atomic_write_json(profile_path, profile)
 
         _print_file_update(self.console, profile_path)
         self.console.print(f"✅ Profile created for {profile['name']}")
@@ -533,6 +535,57 @@ class SetupCommand(BaseCommand):
         except ImportError:
             return False
 
+    def add_tren_to_path(self, skip: bool = False) -> bool:
+        """Offer to persist the venv's bin directory onto the user's
+        PATH, so bare `tren` works from any terminal, in any directory,
+        without manually activating the venv first.
+
+        This is opt-in (asks first, never silent) since it edits real
+        system state -- the Windows registry's User PATH, or a shell rc
+        file on macOS/Linux. Only affects terminals opened after this
+        runs; the terminal running setup itself is unaffected until
+        reopened (or, on Unix, until the printed `source` command is
+        run manually). Returns True unless the user was asked and
+        explicitly declined or it failed -- never fatal to setup either
+        way, so the caller only logs the outcome.
+        """
+        venv_path = self.get_existing_venv_path()
+        if venv_path is None:
+            self.console.print("[dim]  ⏭️  Skipped (no virtual environment found)[/dim]")
+            return True
+
+        bin_dir = get_venv_bin_dir(venv_path)
+
+        if is_on_path(bin_dir):
+            self.console.print("[green]✅ tren is already on your PATH[/green]")
+            return True
+
+        if skip:
+            self.console.print("[dim]  ⏭️  Skipped (--skip-path)[/dim]")
+            return True
+
+        try:
+            add = Confirm.ask(
+                "[cyan]Add tren to your PATH, so it works from any terminal without "
+                "activating the venv first?[/cyan]",
+                default=True,
+            )
+        except EOFError:
+            self.console.print("[dim]  ⏭️  Skipped (no interactive input available)[/dim]")
+            return True
+
+        if not add:
+            self.console.print("[dim]  ⏭️  Skipped[/dim]")
+            return True
+
+        success, message = add_bin_dir_to_path(bin_dir)
+        if success:
+            self.console.print(f"[green]✅ {message}[/green]")
+        else:
+            self.console.print(f"[yellow]⚠️  Couldn't update PATH automatically: {message}[/yellow]")
+            self.console.print(f"[dim]   Add this to your PATH manually: {bin_dir}[/dim]")
+        return success
+
     def print_success_message(self, profile: dict[str, Any]) -> None:
         """Print success message with next steps."""
         success_text = Text()
@@ -585,7 +638,7 @@ class SetupCommand(BaseCommand):
 
         try:
             # Step 1: Virtual environment
-            self.console.print("[bold]Step 1/4:[/bold] Virtual Environment")
+            self.console.print("[bold]Step 1/5:[/bold] Virtual Environment")
             if not args.skip_venv:
                 if not self.create_virtual_environment(force=args.force):
                     self.console.print(
@@ -596,7 +649,7 @@ class SetupCommand(BaseCommand):
             self.console.print()
 
             # Step 2: Install packages
-            self.console.print("[bold]Step 2/4:[/bold] Package Installation")
+            self.console.print("[bold]Step 2/5:[/bold] Package Installation")
             if not args.skip_packages:
                 if not self.install_packages():
                     self.console.print("[red]❌ Package installation failed[/red]")
@@ -606,7 +659,7 @@ class SetupCommand(BaseCommand):
             self.console.print()
 
             # Step 3: Create user profile
-            self.console.print("[bold]Step 3/4:[/bold] User Profile")
+            self.console.print("[bold]Step 3/5:[/bold] User Profile")
             profile = {}
             if not args.skip_profile:
                 profile = self.create_user_profile(force=args.force)
@@ -615,9 +668,14 @@ class SetupCommand(BaseCommand):
             self.console.print()
 
             # Step 4: Validate environment
-            self.console.print("[bold]Step 4/4:[/bold] Environment Validation")
+            self.console.print("[bold]Step 4/5:[/bold] Environment Validation")
             if not self.validate_environment():
                 self.console.print("[yellow]⚠️  Some validation checks failed, but setup completed[/yellow]")
+            self.console.print()
+
+            # Step 5: Add tren to PATH
+            self.console.print("[bold]Step 5/5:[/bold] Add tren to PATH")
+            self.add_tren_to_path(skip=args.skip_path)
             self.console.print()
 
             # Success!

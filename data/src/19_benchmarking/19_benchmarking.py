@@ -3350,9 +3350,10 @@ def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
     # Generate standardized test inputs (as Tensors for TrenTorch model compatibility)
     input_shape = config['input_shape']
     test_inputs = []
+    # Seed once before the loop so each run draws a fresh sample from the
+    # same generator (reproducible across calls, but not identical across runs)
+    rng = np.random.default_rng(7)
     for i in range(num_runs):
-        # Use deterministic random generation for reproducibility
-        rng = np.random.default_rng(7)
         if len(input_shape) == 2:  # Audio/sequence data (keyword_spotting, anomaly_detection)
             arr = rng.standard_normal(input_shape).astype(np.float32)
         else:  # Image data (visual_wake_words, image_classification) - use CHW for Conv2d
@@ -3380,7 +3381,12 @@ def mlperf_run_standard_benchmark(self, model: Any, benchmark_name: str,
         'p90_latency_ms': float(np.percentile(latencies, 90)),
         'p99_latency_ms': float(np.percentile(latencies, 99)),
         'max_latency_ms': float(np.max(latencies)),
-        'throughput_fps': float(1000 / mean_latency),
+        # time.time()'s resolution is coarse enough (~15.6ms on Windows)
+        # that a fast forward pass can measure exactly 0.0ms mean latency;
+        # floor the denominator so throughput stays a large-but-finite
+        # positive number instead of raising ZeroDivisionError (same
+        # pattern as BenchmarkReport.benchmark_model in 20_capstone.py).
+        'throughput_fps': float(1000 / max(mean_latency, 1e-6)),
         'target_accuracy': float(config['target_accuracy']),
         'target_latency_ms': float(config['max_latency_ms']),
         'accuracy_met': accuracy_met,
@@ -3450,7 +3456,7 @@ def test_unit_mlperf_run():
                      'accuracy_met', 'latency_met', 'p50_latency_ms', 'p99_latency_ms']
     assert all(key in result for key in required_keys)
     assert 0 <= result['accuracy'] <= 1
-    assert result['mean_latency_ms'] > 0
+    assert result['mean_latency_ms'] >= 0  # a fast machine's coarse time.time() resolution can legitimately measure 0.0ms
     assert result['throughput_fps'] > 0
     assert isinstance(result['compliant'], bool)
 
@@ -3878,7 +3884,7 @@ def test_unit_mlperf():
     required_keys = ['accuracy', 'mean_latency_ms', 'throughput_fps', 'compliant']
     assert all(key in result for key in required_keys)
     assert 0 <= result['accuracy'] <= 1
-    assert result['mean_latency_ms'] > 0
+    assert result['mean_latency_ms'] >= 0  # a fast machine's coarse time.time() resolution can legitimately measure 0.0ms
     assert result['throughput_fps'] > 0
 
     # Test full benchmark suite (with fewer runs for speed)
@@ -4026,7 +4032,10 @@ def _collect_base_metrics(base_name: str, benchmark_results: Dict) -> Dict[str, 
     base_metrics = {}
     for metric_type, results in benchmark_results.items():
         for model_name, result in results.items():
-            if base_name in model_name:
+            # Exact match only: substring containment would let overlapping
+            # names (e.g. "model" vs "model_v2") cross-match depending on
+            # dict iteration order, silently corrupting downstream metrics.
+            if model_name == base_name:
                 base_metrics[metric_type] = result.mean
                 break
     return base_metrics
@@ -4046,10 +4055,14 @@ def test_unit_collect_base_metrics():
     """🧪 Test _collect_base_metrics helper."""
     print("🧪 Unit Test: _collect_base_metrics...")
 
-    # Simulate benchmark results
+    # Simulate benchmark results. Real callers key each metric-type dict by
+    # model_name (the same name across every metric type, e.g. "base"), not
+    # by a metric-specific string -- match that shape here, since
+    # _collect_base_metrics does an exact model_name == base_name match
+    # (a substring match would let overlapping names cross-match).
     mock_results = {
-        'latency': {'base_latency_ms': BenchmarkResult('base_latency_ms', [10.0, 11.0, 12.0])},
-        'accuracy': {'base_accuracy': BenchmarkResult('base_accuracy', [0.9, 0.91, 0.89])},
+        'latency': {'base': BenchmarkResult('base', [10.0, 11.0, 12.0])},
+        'accuracy': {'base': BenchmarkResult('base', [0.9, 0.91, 0.89])},
     }
 
     metrics = _collect_base_metrics('base', mock_results)
@@ -4442,7 +4455,9 @@ def analyze_optimization_techniques(base_model: Any, optimized_models: List[Any]
         opt_metrics = {}
         for metric_type, results in benchmark_results.items():
             for model_name, result in results.items():
-                if opt_name in model_name:
+                # Exact match only: see _collect_base_metrics for why substring
+                # containment is unsafe with overlapping model names.
+                if model_name == opt_name:
                     opt_metrics[metric_type] = result.mean
                     break
 
@@ -4841,7 +4856,7 @@ def test_module():
     required_keys = ['accuracy', 'mean_latency_ms', 'compliant', 'target_accuracy']
     assert all(key in perf_results for key in required_keys)
     assert 0 <= perf_results['accuracy'] <= 1
-    assert perf_results['mean_latency_ms'] > 0
+    assert perf_results['mean_latency_ms'] >= 0  # see the matching comment on the other copies of this check
 
     # Test 5: Optimization comparison
     print("  Testing optimization comparison...")
@@ -4942,12 +4957,7 @@ def demo_benchmarking():
     x = Tensor(rng.standard_normal((32, 512)))
 
     # Benchmark with proper methodology
-    benchmark = Benchmark(
-        models=[layer],
-        datasets=[(x, None)],
-        warmup_runs=3,
-        measurement_runs=10
-    )
+    benchmark = Benchmark(models=[layer], datasets=[(x, None)], warmup_runs=3, measurement_runs=10)
 
     results = benchmark.run_latency_benchmark(input_shape=(32, 512))
     result = list(results.values())[0]

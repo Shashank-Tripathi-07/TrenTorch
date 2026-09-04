@@ -87,10 +87,7 @@ class HealthCommand(BaseCommand):
                 issues.append(f"{display_name} not installed")
 
         # Workflow-critical dependencies (needed for module complete/export)
-        workflow_deps = [
-            ("nbdev (export)", "nbdev"),
-            ("ipykernel (Jupyter)", "ipykernel"),
-        ]
+        workflow_deps = [("nbdev (export)", "nbdev"), ("ipykernel (Jupyter)", "ipykernel")]
         for display_name, import_name in workflow_deps:
             try:
                 __import__(import_name)
@@ -100,10 +97,7 @@ class HealthCommand(BaseCommand):
                 issues.append(f"{display_name} not installed — run: pip install {import_name}")
 
         # Optional dependencies (nice to have, not required for core workflow)
-        optional_deps = [
-            ("JupyterLab", "jupyterlab"),
-            ("Matplotlib", "matplotlib"),
-        ]
+        optional_deps = [("JupyterLab", "jupyterlab"), ("Matplotlib", "matplotlib")]
         for display_name, import_name in optional_deps:
             try:
                 __import__(import_name)
@@ -177,11 +171,7 @@ class HealthCommand(BaseCommand):
         kernel_python = self._get_kernel_python()
         if kernel_python:
             if os.path.realpath(kernel_python) == os.path.realpath(sys.executable):
-                nb_table.add_row(
-                    "Kernel ↔ tren Python",
-                    "[green]✅ Match[/green]",
-                    "Same interpreter",
-                )
+                nb_table.add_row("Kernel ↔ tren Python", "[green]✅ Match[/green]", "Same interpreter")
             else:
                 nb_table.add_row(
                     "Kernel ↔ tren Python",
@@ -193,11 +183,7 @@ class HealthCommand(BaseCommand):
                     "run: python -m ipykernel install --user --name=trentorch --display-name 'Python (TrenTorch)'"
                 )
         else:
-            nb_table.add_row(
-                "Kernel ↔ tren Python",
-                "[dim]○ Skipped[/dim]",
-                "No kernel to check",
-            )
+            nb_table.add_row("Kernel ↔ tren Python", "[dim]○ Skipped[/dim]", "No kernel to check")
         console.print(nb_table)
         console.print()
 

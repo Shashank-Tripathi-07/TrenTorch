@@ -2,7 +2,7 @@ name: 'Open an Issue for New Code Scanning Alerts'
 
 # Alert #3 (the CORS header-injection finding, py/http-response-splitting)
 # sat in the Security tab until someone happened to go look. This opens a
-# tracking issue automatically for any open CodeQL alert on main that
+# tracking issue automatically for any open CodeQL alert on dev (the default branch) that
 # doesn't already have one. Dedups against existing open "security" issues
 # so a re-run doesn't spam duplicates for the same alert number.
 #
@@ -36,7 +36,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: "open",
-              ref: "refs/heads/main",
+              ref: "refs/heads/dev",
             });
 
             if (alerts.length === 0) {

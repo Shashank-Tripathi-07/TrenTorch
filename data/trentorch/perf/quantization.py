@@ -19,7 +19,7 @@ __all__ = ['rng', 'INT8_MIN_VALUE', 'INT8_MAX_VALUE', 'INT8_RANGE', 'EPSILON', '
            'MB_TO_BYTES', 'quantize_int8', 'dequantize_int8', 'QuantizedLinear', 'quantize_model', 'Quantizer',
            'verify_quantization_works']
 
-# %% ../../solutions/15_quantization/quantization.ipynb #61adedea
+# %% ../../solutions/15_quantization/quantization.ipynb #5b00c738
 import os
 import numpy as np
 rng = np.random.default_rng(7)
@@ -38,6 +38,30 @@ INT8_MAX_VALUE = 127
 INT8_RANGE = 256  # Number of possible INT8 values (from -128 to 127 inclusive)
 EPSILON = 1e-8  # Small value for numerical stability (constant tensor detection)
 
+
+def _affine_qparams(min_val: float, max_val: float) -> Tuple[float, int]:
+    """Compute (scale, zero_point) for standard (non-constant) affine INT8 quantization.
+
+    Zero must be exactly representable by an affine quantization scheme, or the
+    mapping breaks whenever zero_point ends up outside [-128, 127] and gets
+    clamped. Clamping a raw zero_point without adjusting scale to compensate
+    silently corrupts the mapping (values near max_val/min_val no longer
+    round-trip correctly).
+
+    The standard fix is to extend [min_val, max_val] to include 0 BEFORE
+    computing scale. That guarantees the zero_point this formula produces
+    already falls inside [-128, 127], so the mapping never needs a lossy
+    clamp to begin with.
+    """
+    min_val = min(min_val, 0.0)
+    max_val = max(max_val, 0.0)
+    scale = (max_val - min_val) / (INT8_RANGE - 1)
+    zero_point = int(np.round(INT8_MIN_VALUE - min_val / scale))
+    # By construction zero_point is already within range; clip only as a
+    # numerical-precision safety net, not as the primary correctness mechanism.
+    zero_point = int(np.clip(zero_point, INT8_MIN_VALUE, INT8_MAX_VALUE))
+    return scale, zero_point
+
 # Constants for memory calculations
 BYTES_PER_FLOAT32 = 4  # Standard float32 size in bytes
 BYTES_PER_INT8 = 1  # INT8 size in bytes
@@ -46,7 +70,7 @@ MB_TO_BYTES = 1024 * 1024  # Megabytes to bytes conversion
 if __name__ == "__main__":
     print("Quantization module imports complete")
 
-# %% ../../solutions/15_quantization/quantization.ipynb #d826c439
+# %% ../../solutions/15_quantization/quantization.ipynb #9d1c7e41
 # Solution
 
 def quantize_int8(tensor: Tensor) -> Tuple[Tensor, float, int]:
@@ -95,27 +119,27 @@ def quantize_int8(tensor: Tensor) -> Tuple[Tensor, float, int]:
     # the constant via (0 - zero_point) * scale = c.
     if abs(max_val - min_val) < EPSILON:
         c = min_val
-        if abs(c) <= INT8_MAX_VALUE:
-            # |c| fits the INT8 range: scale=1.0 and zero_point = -round(c).
+        if c == 0.0:
+            # True zero: any scale works, use 1.0 to avoid a zero scale elsewhere.
             scale = 1.0
-            zero_point = int(np.round(-c))
+            zero_point = 0
         else:
-            # |c| exceeds the INT8 range. Keeping scale=1.0 would force
-            # zero_point = -c, which np.clip would saturate to +-128 and
-            # silently corrupt the value. Use zero_point = +-1 and scale = |c|
-            # instead, so (0 - zero_point) * scale = c holds without clamping.
+            # scale = |c| with zero_point = -+1 gives EXACT recovery for any
+            # magnitude of c (integer or not), unlike hardcoding scale=1.0 and
+            # zero_point=round(-c), which can only encode the nearest integer
+            # to c and silently destroys precision for non-integer constants
+            # (e.g. c=0.1 would dequantize to 0.0). It also never needs the
+            # zero_point clamp, so it can't be corrupted for |c| > 127 either.
             zero_point = -1 if c > 0 else 1
             scale = abs(c)
         quantized_data = np.zeros_like(data, dtype=np.int8)
         return Tensor(quantized_data), scale, zero_point
 
-    # Step 3: Calculate scale and zero_point for standard quantization
-    # Map [min_val, max_val] to [INT8_MIN_VALUE, INT8_MAX_VALUE] (INT8 range)
-    scale = (max_val - min_val) / (INT8_RANGE - 1)
-    zero_point = int(np.round(INT8_MIN_VALUE - min_val / scale))
-
-    # Clamp zero_point to valid INT8 range
-    zero_point = int(np.clip(zero_point, INT8_MIN_VALUE, INT8_MAX_VALUE))
+    # Step 3: Calculate scale and zero_point for standard quantization.
+    # Map [min_val, max_val] to [INT8_MIN_VALUE, INT8_MAX_VALUE] (INT8 range).
+    # See _affine_qparams: extending the range to include 0 before computing
+    # scale keeps zero exactly representable without a lossy zero_point clamp.
+    scale, zero_point = _affine_qparams(min_val, max_val)
 
     # Step 4: Apply quantization formula: q = (x / scale) + zero_point
     quantized_data = np.round(data / scale + zero_point)
@@ -126,7 +150,7 @@ def quantize_int8(tensor: Tensor) -> Tuple[Tensor, float, int]:
     return Tensor(quantized_data), scale, zero_point
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #10e9b26c
+# %% ../../solutions/15_quantization/quantization.ipynb #d0168aa8
 # Solution
 
 def dequantize_int8(q_tensor: Tensor, scale: float, zero_point: int) -> Tensor:
@@ -165,7 +189,7 @@ def dequantize_int8(q_tensor: Tensor, scale: float, zero_point: int) -> Tensor:
     return Tensor(dequantized_data)
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #0c9146a0
+# %% ../../solutions/15_quantization/quantization.ipynb #cdb50490
 # Solution
 
 class QuantizedLinear:
@@ -254,9 +278,10 @@ class QuantizedLinear:
             self.input_scale = 1.0
             self.input_zero_point = 0
         else:
-            self.input_scale = (max_val - min_val) / (INT8_RANGE - 1)
-            self.input_zero_point = int(np.round(INT8_MIN_VALUE - min_val / self.input_scale))
-            self.input_zero_point = np.clip(self.input_zero_point, INT8_MIN_VALUE, INT8_MAX_VALUE)
+            # Same standard affine formula as quantize_int8(): extend the range
+            # to include 0 before computing scale so zero_point is guaranteed
+            # to land inside [-128, 127] without a lossy, unadjusted clamp.
+            self.input_scale, self.input_zero_point = _affine_qparams(min_val, max_val)
         ### END SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
@@ -343,7 +368,7 @@ class QuantizedLinear:
         }
         ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #f449da53
+# %% ../../solutions/15_quantization/quantization.ipynb #b9f97903
 # Solution
 
 def _collect_layer_inputs(model, layer_index: int, calibration_data: List[Tensor], max_samples: int = 10) -> List[Tensor]:
@@ -386,7 +411,7 @@ def _collect_layer_inputs(model, layer_index: int, calibration_data: List[Tensor
     return sample_inputs
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #a82b6097
+# %% ../../solutions/15_quantization/quantization.ipynb #c140aea6
 # Solution
 
 def _quantize_single_layer(layer: Linear, calibration_inputs: Optional[List[Tensor]] = None) -> QuantizedLinear:
@@ -426,7 +451,7 @@ def _quantize_single_layer(layer: Linear, calibration_inputs: Optional[List[Tens
     return quantized_layer
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #0000140d
+# %% ../../solutions/15_quantization/quantization.ipynb #e7d14652
 # Solution
 
 def quantize_model(model, calibration_data: Optional[List[Tensor]] = None) -> None:
@@ -489,7 +514,7 @@ def quantize_model(model, calibration_data: Optional[List[Tensor]] = None) -> No
         )
     ### END SOLUTION
 
-# %% ../../solutions/15_quantization/quantization.ipynb #b8d768f1
+# %% ../../solutions/15_quantization/quantization.ipynb #d6e67eb9
 class Quantizer:
     """
     Complete quantization system for milestone use.
@@ -571,7 +596,7 @@ class Quantizer:
 # Note: quantize_int8, dequantize_int8, and quantize_model are defined earlier in this module.
 # The Quantizer class above delegates to those functions, providing an OOP interface for milestones.
 
-# %% ../../solutions/15_quantization/quantization.ipynb #bc995a21
+# %% ../../solutions/15_quantization/quantization.ipynb #5aa08a3d
 def verify_quantization_works(original_model, quantized_model):
     """
     Verify quantization actually reduces memory using real .nbytes measurements.

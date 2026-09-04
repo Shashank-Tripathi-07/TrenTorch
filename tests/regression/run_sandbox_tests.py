@@ -12,10 +12,7 @@ import os
 import sys
 
 # Test modules to run
-TEST_MODULES = [
-    "test_conv_linear_dimensions",
-    "test_transformer_reshaping",
-]
+TEST_MODULES = ["test_conv_linear_dimensions", "test_transformer_reshaping"]
 
 
 def run_sandbox_tests():
@@ -34,19 +31,25 @@ def run_sandbox_tests():
             print(f"Running {test_module}...")
             module = importlib.import_module(test_module)
 
-            # Look for a main function or run tests directly
+            # Look for a main function or run tests directly.
+            #
+            # A prior "elif '__main__' in dir(module)" branch here was meant
+            # to skip re-running a module that already executes its own
+            # tests on import, but dir(module) lists attribute names, not
+            # execution state -- a module only gets a literal "__main__"
+            # entry in dir() if it defines a variable with that exact name,
+            # which none of these test modules do. The branch was always
+            # dead code and always fell through to the else below anyway,
+            # so removing it changes nothing about actual behavior, just
+            # removes the misleading dead branch.
             if hasattr(module, "main"):
                 module.main()
-            elif "__main__" in dir(module):
-                # Module runs tests when imported
-                pass
             else:
                 # Try to run all test functions
                 test_funcs = [f for f in dir(module) if f.startswith("test_")]
                 for func_name in test_funcs:
                     func = getattr(module, func_name)
                     func()
-                True
 
             results.append((test_module, True, "PASSED"))
             print(f"  ✅ {test_module}: PASSED\n")

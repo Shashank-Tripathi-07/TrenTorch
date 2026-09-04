@@ -66,7 +66,7 @@ jobs:
         if: steps.has-pat.outputs.configured == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
+          ref: dev
           token: ${{ secrets.AUTOFIX_PAT }}
 
       # Regression guard: this script's regex parser silently wiped every
@@ -110,6 +110,6 @@ jobs:
           git push origin "$BRANCH"
           gh pr create --title "Update Team Engineers table" \
             --body "Automated nightly update from real issue/PR activity. See .github/workflows/update-contributors.yml." \
-            --base main --head "$BRANCH"
+            --base dev --head "$BRANCH"
           gh pr merge "$BRANCH" --squash --admin --delete-branch || \
             echo "::warning::Could not auto-merge, left open for manual merge."

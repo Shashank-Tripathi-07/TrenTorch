@@ -1,10 +1,10 @@
 """
 Tren⚡️Torch Benchmark Commands
 
-Run baseline and capstone benchmarks, with automatic submission prompts.
+Run baseline and capstone benchmarks. Results save locally under
+user_data/benchmarks/.
 """
 
-import json
 import platform
 import time
 from argparse import ArgumentParser, Namespace
@@ -14,10 +14,10 @@ from typing import Any
 
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.prompt import Confirm
 from rich.table import Table
 
 from platforms.cli.commands.base import BaseCommand
+from platforms.cli.core.atomic_io import atomic_write_json, read_json_or_warn
 
 
 class BenchmarkCommand(BaseCommand):
@@ -38,12 +38,7 @@ class BenchmarkCommand(BaseCommand):
         )
 
         # Baseline benchmark
-        baseline_parser = subparsers.add_parser(
-            "baseline", help="Run baseline benchmark (quick setup validation)"
-        )
-        baseline_parser.add_argument(
-            "--skip-submit", action="store_true", help="Skip submission prompt after benchmark"
-        )
+        subparsers.add_parser("baseline", help="Run baseline benchmark (quick setup validation)")
 
         # Capstone benchmark
         capstone_parser = subparsers.add_parser(
@@ -54,9 +49,6 @@ class BenchmarkCommand(BaseCommand):
             choices=["speed", "compression", "accuracy", "efficiency", "all"],
             default="all",
             help="Which track to benchmark (default: all)",
-        )
-        capstone_parser.add_argument(
-            "--skip-submit", action="store_true", help="Skip submission prompt after benchmark"
         )
 
     def run(self, args: Namespace) -> int:
@@ -200,8 +192,7 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"baseline_{timestamp_str}.json"
 
-        with open(results_file, "w") as f:
-            json.dump(results, f, indent=2)
+        atomic_write_json(results_file, results)
 
         console.print(f"\n[green]✅ Results saved to: {results_file}[/green]")
 
@@ -216,10 +207,6 @@ class BenchmarkCommand(BaseCommand):
                 border_style="green",
             )
         )
-
-        # Prompt for submission
-        if not args.skip_submit:
-            self._prompt_submission(results, "baseline")
 
         return 0
 
@@ -259,16 +246,12 @@ class BenchmarkCommand(BaseCommand):
         # benchmark path below regardless of real progress.
         progress_file = Path("user_data") / "progress.json"
         completed_modules: set[int] = set()
-        if progress_file.exists():
+        progress_data = read_json_or_warn(progress_file, {}, console=console, label="Your saved progress")
+        for module_value in progress_data.get("completed_modules", []):
+            prefix = str(module_value).split("_", 1)[0]
             try:
-                with open(progress_file) as f:
-                    for module_value in json.load(f).get("completed_modules", []):
-                        prefix = str(module_value).split("_", 1)[0]
-                        try:
-                            completed_modules.add(int(prefix))
-                        except ValueError:
-                            pass
-            except (OSError, json.JSONDecodeError):
+                completed_modules.add(int(prefix))
+            except ValueError:
                 pass
 
         if 20 not in completed_modules:
@@ -320,17 +303,12 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_{timestamp_str}.json"
 
-        with open(results_file, "w") as f:
-            json.dump(results, f, indent=2)
+        atomic_write_json(results_file, results)
 
         # Display results
         self._display_capstone_results(results)
 
         console.print(f"\n[green]✅ Results saved to: {results_file}[/green]")
-
-        # Prompt for submission
-        if not args.skip_submit:
-            self._prompt_submission(results, "capstone")
 
         return 0
 
@@ -375,8 +353,7 @@ class BenchmarkCommand(BaseCommand):
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = benchmark_dir / f"capstone_simplified_{timestamp_str}.json"
 
-        with open(results_file, "w") as f:
-            json.dump(results, f, indent=2)
+        atomic_write_json(results_file, results)
 
         console.print(f"\n[green]✅ Results saved to: {results_file}[/green]")
         console.print("[yellow]💡 Complete Module 20 for full capstone benchmarks[/yellow]")
@@ -521,127 +498,3 @@ class BenchmarkCommand(BaseCommand):
                 border_style="green",
             )
         )
-
-    def _prompt_submission(self, results: dict[str, Any], benchmark_type: str) -> None:
-        """Prompt user to submit benchmark results."""
-        console = self.console
-
-        try:
-            console.print("\n")
-            submit = Confirm.ask(
-                f"[cyan]Would you like to submit your {benchmark_type} benchmark results to the community?[/cyan]",
-                default=True,
-            )
-
-            if submit:
-                # Collect submission configuration
-                console.print("\n[cyan]Submission Configuration:[/cyan]")
-
-                # Check if user is in community
-                community_data = self._get_community_data()
-                if not community_data:
-                    console.print("[yellow]⚠️  You're not in the community yet.[/yellow]")
-                    join = Confirm.ask("Would you like to join the community first?", default=True)
-                    if join:
-                        console.print("\n[cyan]Run: [bold]tren community login[/bold][/cyan]")
-                        return
-
-                # Additional submission options
-                include_system_info = Confirm.ask("Include system information in submission?", default=True)
-
-                anonymous = Confirm.ask("Submit anonymously?", default=False)
-
-                # Create submission data
-                submission = {
-                    "benchmark_type": benchmark_type,
-                    "timestamp": results["timestamp"],
-                    "metrics": results["metrics"],
-                    "include_system_info": include_system_info,
-                    "anonymous": anonymous,
-                }
-
-                if include_system_info:
-                    submission["system_info"] = results.get("system_info", {})
-
-                # Save submission
-                submission_dir = Path("user_data") / "submissions"
-                submission_dir.mkdir(parents=True, exist_ok=True)
-                timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-                submission_file = submission_dir / f"{benchmark_type}_submission_{timestamp_str}.json"
-
-                with open(submission_file, "w") as f:
-                    json.dump(submission, f, indent=2)
-
-                console.print(f"\n[green]✅ Submission prepared: {submission_file}[/green]")
-
-                # Stub: Try to submit to website
-                self._submit_to_website(submission)
-
-                config = self._get_config()
-                if not config.get("website", {}).get("enabled", False):
-                    console.print(
-                        "[cyan]💡 Submission saved locally. Community leaderboard coming soon![/cyan]"
-                    )
-        except EOFError:
-            console.print("\n[dim]Skipping submission (no interactive input available).[/dim]")
-        except KeyboardInterrupt:
-            console.print("\n[dim]Submission cancelled.[/dim]")
-
-    def _get_community_data(self) -> dict[str, Any] | None:
-        """Get user's community profile from ~/.trentorch (flat structure)."""
-        from platforms.cli.core.config import get_home_profile_dir
-
-        profile_file = get_home_profile_dir() / "profile.json"
-        if profile_file.exists():
-            try:
-                with open(profile_file) as f:
-                    return json.load(f)
-            except Exception:
-                return None
-        return None
-
-    def _get_config(self) -> dict[str, Any]:
-        """Get community configuration."""
-        config_file = self.config.project_root / ".trentorch" / "config.json"
-        default_config = {
-            "website": {
-                "base_url": "https://trentorch.ai",
-                "community_map_url": "https://trentorch.ai/map",
-                "api_url": None,  # Set when API is available
-                "enabled": False,  # Set to True when website integration is ready
-            },
-            "local": {
-                "enabled": True,  # Always use local storage
-                "auto_sync": False,  # Auto-sync to website when enabled
-            },
-        }
-
-        if config_file.exists():
-            try:
-                with open(config_file) as f:
-                    user_config = json.load(f)
-                    # Merge with defaults
-                    default_config.update(user_config)
-                    return default_config
-            except Exception:
-                pass
-
-        # Create default config if it doesn't exist
-        config_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(config_file, "w") as f:
-            json.dump(default_config, f, indent=2)
-
-        return default_config
-
-    def _submit_to_website(self, submission: dict[str, Any]) -> None:
-        """Stub: Submit benchmark results to website (local for now, website integration later)."""
-        config = self._get_config()
-
-        if not config.get("website", {}).get("enabled", False):
-            # Website integration not enabled, just store locally
-            return
-
-        api_url = config.get("website", {}).get("api_url")
-        if api_url:
-            # TODO: POST submission to {api_url}/api/benchmarks/submit once the website exists.
-            pass

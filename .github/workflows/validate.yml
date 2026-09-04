@@ -37,7 +37,7 @@ name: 'TrenTorch · Validate'
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
     paths-ignore:
       - 'docs/**'
       - 'platforms/dev_tools/etc/**'
@@ -242,17 +242,50 @@ jobs:
   # ===========================================================================
   # STAGE 1: INLINE BUILD - Build package from src/
   # ===========================================================================
-  stage-1-inline:
-    name: Stage 1 · Inline Build
+  # Split into two independent jobs (Ubuntu, Windows) instead of one job
+  # with a {ubuntu, windows} matrix. The built package (data/trentorch/,
+  # data/modules/) is pure Python with nothing OS-specific in it, and the
+  # Windows leg was already advisory (continue-on-error) -- nothing
+  # downstream actually depends on its outcome. Splitting means Stages 2-5
+  # only wait on the Ubuntu leg (consistently the faster of the two: same
+  # work, Windows' filesystem/IO overhead makes it run ~50% slower) instead
+  # of waiting on whichever leg finishes last for no benefit. The Windows
+  # leg still runs the full build-and-test-while-building pass end to end,
+  # same coverage as before -- it's just no longer on the critical path.
+  stage-1-inline-ubuntu:
+    name: Stage 1 · Inline Build (ubuntu-latest)
     needs: configure
+    # Runs whenever Stage 1 runs at all, regardless of the requested OS
+    # matrix: even an explicit Windows-only dispatch still needs one
+    # canonical build to hand to its Windows Stages 2-5 legs (see
+    # download_package's unsuffixed artifact name in run-test-stage.yml).
     if: needs.configure.outputs.run_inline == 'true'
     uses: ./.github/workflows/run-test-stage.yml
     with:
-      os_matrix: ${{ needs.configure.outputs.os_matrix }}
+      os_matrix: '["ubuntu-latest"]'
       test_flag: '--inline'
       step_label: 'Stage 1 · Inline Build'
       download_package: 'false'
       upload_package: 'true'
+      timeout_minutes: 30
+
+  stage-1-inline-windows:
+    name: Stage 1 · Inline Build (windows-2022)
+    needs: configure
+    # Coverage-only: runs the same build-and-test pass on Windows whenever
+    # Windows is in scope, but nothing downstream needs it to finish (or
+    # even succeed -- advisory_windows defaults to 'true') since Stages 2-5
+    # get their package from the Ubuntu leg above.
+    if: |
+      needs.configure.outputs.run_inline == 'true' &&
+      contains(needs.configure.outputs.os_matrix, 'windows-2022')
+    uses: ./.github/workflows/run-test-stage.yml
+    with:
+      os_matrix: '["windows-2022"]'
+      test_flag: '--inline'
+      step_label: 'Stage 1 · Inline Build'
+      download_package: 'false'
+      upload_package: 'false'
       timeout_minutes: 30
 
   # ===========================================================================
@@ -261,11 +294,11 @@ jobs:
   # ===========================================================================
   stage-2-unit:
     name: Stage 2 · Unit Tests
-    needs: [configure, stage-1-inline]
+    needs: [configure, stage-1-inline-ubuntu]
     if: |
       always() &&
       needs.configure.outputs.run_unit == 'true' &&
-      (needs.stage-1-inline.result == 'success' || needs.stage-1-inline.result == 'skipped')
+      (needs.stage-1-inline-ubuntu.result == 'success' || needs.stage-1-inline-ubuntu.result == 'skipped')
     uses: ./.github/workflows/run-test-stage.yml
     with:
       os_matrix: ${{ needs.configure.outputs.os_matrix }}
@@ -280,11 +313,11 @@ jobs:
   # ===========================================================================
   stage-3-integration:
     name: Stage 3 · Integration
-    needs: [configure, stage-1-inline]
+    needs: [configure, stage-1-inline-ubuntu]
     if: |
       always() &&
       needs.configure.outputs.run_integration == 'true' &&
-      (needs.stage-1-inline.result == 'success' || needs.stage-1-inline.result == 'skipped')
+      (needs.stage-1-inline-ubuntu.result == 'success' || needs.stage-1-inline-ubuntu.result == 'skipped')
     uses: ./.github/workflows/run-test-stage.yml
     with:
       os_matrix: ${{ needs.configure.outputs.os_matrix }}
@@ -299,11 +332,11 @@ jobs:
   # ===========================================================================
   stage-4-cli:
     name: Stage 4 · CLI Tests
-    needs: [configure, stage-1-inline]
+    needs: [configure, stage-1-inline-ubuntu]
     if: |
       always() &&
       needs.configure.outputs.run_cli == 'true' &&
-      (needs.stage-1-inline.result == 'success' || needs.stage-1-inline.result == 'skipped')
+      (needs.stage-1-inline-ubuntu.result == 'success' || needs.stage-1-inline-ubuntu.result == 'skipped')
     uses: ./.github/workflows/run-test-stage.yml
     with:
       os_matrix: ${{ needs.configure.outputs.os_matrix }}
@@ -326,11 +359,11 @@ jobs:
     # start, for no reason beyond "fail fast." E2E is cheap (well under a
     # minute per OS), so the odds of wasting that on a run 2-4 would have
     # failed anyway are low, and outweighed by not blocking on a straggler.
-    needs: [configure, stage-1-inline]
+    needs: [configure, stage-1-inline-ubuntu]
     if: |
       always() &&
       needs.configure.outputs.run_e2e == 'true' &&
-      (needs.stage-1-inline.result == 'success' || needs.stage-1-inline.result == 'skipped')
+      (needs.stage-1-inline-ubuntu.result == 'success' || needs.stage-1-inline-ubuntu.result == 'skipped')
     uses: ./.github/workflows/run-test-stage.yml
     with:
       os_matrix: ${{ needs.configure.outputs.os_matrix }}
@@ -393,11 +426,11 @@ jobs:
     # Since the Stage 7 restructure, this downloads Stage 1's built-package
     # artifact directly and doesn't touch Stages 2-5's output at all, so it
     # only needs Stage 1, same reasoning as Stage 5 above.
-    needs: [configure, stage-1-inline]
+    needs: [configure, stage-1-inline-ubuntu]
     if: |
       always() &&
       needs.configure.outputs.run_release == 'true' &&
-      (needs.stage-1-inline.result == 'success' || needs.stage-1-inline.result == 'skipped')
+      (needs.stage-1-inline-ubuntu.result == 'success' || needs.stage-1-inline-ubuntu.result == 'skipped')
     uses: ./.github/workflows/run-test-stage.yml
     with:
       os_matrix: '["ubuntu-latest"]'
@@ -415,7 +448,7 @@ jobs:
   summary:
     name: Summary
     runs-on: ubuntu-latest
-    needs: [configure, stage-1-inline, stage-2-unit, stage-3-integration, stage-4-cli, stage-5-e2e, stage-6-fresh-install, stage-7-user-journey]
+    needs: [configure, stage-1-inline-ubuntu, stage-1-inline-windows, stage-2-unit, stage-3-integration, stage-4-cli, stage-5-e2e, stage-6-fresh-install, stage-7-user-journey]
     if: always()
 
     steps:
@@ -441,7 +474,7 @@ jobs:
 
           # (job id, display number, label, configure-output flag that gates it)
           STAGES = [
-              ("stage-1-inline",        1, "📝 Inline Build",  "run_inline"),
+              ("stage-1-inline-ubuntu", 1, "📝 Inline Build",  "run_inline"),
               ("stage-2-unit",          2, "🧪 Unit Tests",    "run_unit"),
               ("stage-3-integration",   3, "🔗 Integration",   "run_integration"),
               ("stage-4-cli",           4, "💻 CLI Tests",     "run_cli"),
@@ -449,6 +482,11 @@ jobs:
               ("stage-6-fresh-install", 6, "📦 Fresh Install", "run_fresh_install"),
               ("stage-7-user-journey",  7, "🎓 User Journey",  "run_release"),
           ]
+
+          # Windows' Stage 1 leg runs in parallel with everything else,
+          # advisory only (see validate.yml's stage-1-inline-windows job
+          # comment) -- shown for visibility, never added to failed_stages
+          # since it was already advisory-only before the Stage 1 split too.
 
           def is_enabled(flag):
               return cfg.get(flag) == "true"
@@ -481,6 +519,14 @@ jobs:
               else:
                   status = f"⏭️ {result.capitalize()}"
               lines.append(f"| {num} | {label} | {status} |")
+
+          if is_enabled("run_inline"):
+              win_result = needs.get("stage-1-inline-windows", {}).get("result", "skipped")
+              win_status = {
+                  "success": "✅ Passed",
+                  "skipped": "⏭️ Skipped",
+              }.get(win_result, f"⚠️ {win_result.capitalize()}")
+              lines.append(f"| 1w | 🪟 Inline Build (Windows, advisory) | {win_status} |")
 
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
               f.write("\n".join(lines) + "\n")

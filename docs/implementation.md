@@ -22,7 +22,7 @@ TrenTorch/
     datasets/          # tinydigits, tinytalks -- actual training data
   platforms/
     cli/               # The `tren` CLI package (cli_platform/, processes/, core/, commands/, server/, tui/)
-    dev_tools/         # Dev-only support tooling: scripts/, tools/dev/, tools/maintenance/
+    dev_tools/         # Dev-only support tooling: scripts/, tools/dev/
   docs/                # Design docs, contributor docs (CONTRIBUTING.md, this file)
   tests/               # Cross-cutting only: e2e/, environment/, integration/, regression/
   maintainer_use/      # CHANGELOG.md, this fork's own maintainer notes
@@ -199,11 +199,11 @@ This fork inherited upstream's Quarto-based docs site and PDF guide, its student
 
 ### 6.1 `pyproject.toml` (repo root)
 
-Declares `name = "trentorch"`, current version `0.0.1`, `requires-python = ">=3.10"`, MIT license, and runtime dependencies limited to `numpy`, `rich`, `PyYAML`, and `pytest`. `[project.scripts]` registers `tren = "platforms.cli.main:main"` as the installed console command. Optional dependency groups: `dev` (pytest plus coverage, jupytext, nbformat, jupyter, jupyterlab, ipykernel, and a pinned nbdev range), plus a `tui` extra for the optional Textual dashboard. `[tool.setuptools.packages.find]` uses **two discovery roots**, `where = [".", "data"]`, specifically so `data/trentorch/`'s packages get discovered and reported under their real top-level import name (`trentorch`, `trentorch.core`, ...) rather than `data.trentorch` &mdash; the physical location under `data/` is invisible to every `import trentorch` call site because of this. `include`/`exclude` limit the discovered set and explicitly exclude `data*` itself (the curriculum content isn't meant to ship in the built package, only the `trentorch` package that discovery finds *inside* it).
+Declares `name = "trentorch"`, current version `1.0.0`, `requires-python = ">=3.10"`, MIT license, and runtime dependencies limited to `numpy`, `rich`, `PyYAML`, and `pytest`. `[project.scripts]` registers `tren = "platforms.cli.main:main"` as the installed console command. Optional dependency groups: `dev` (pytest plus coverage, jupytext, nbformat, jupyter, jupyterlab, ipykernel, and a pinned nbdev range), plus a `tui` extra for the optional Textual dashboard. `[tool.setuptools.packages.find]` uses **two discovery roots**, `where = [".", "data"]`, specifically so `data/trentorch/`'s packages get discovered and reported under their real top-level import name (`trentorch`, `trentorch.core`, ...) rather than `data.trentorch` &mdash; the physical location under `data/` is invisible to every `import trentorch` call site because of this. `include`/`exclude` limit the discovered set and explicitly exclude `data*` itself (the curriculum content isn't meant to ship in the built package, only the `trentorch` package that discovery finds *inside* it).
 
 ### 6.2 `settings.ini`
 
-The classic nbdev settings file (fastai-derived format), at the repo root. Repeats some of the same metadata as `pyproject.toml` (`lib_name = trentorch`, `version = 0.0.1`, `min_python = 3.10`) but with its own, looser `requirements` line (`numpy>=1.20.0` here versus `numpy>=2.2.6,<3.0.0` in `pyproject.toml`), a known drift risk between the two files since nothing currently keeps them mechanically in sync. Also configures the nbdev paths (`lib_path = trentorch`, `nbs_path = data/modules`, `doc_path = _docs`).
+The classic nbdev settings file (fastai-derived format), at the repo root. Repeats some of the same metadata as `pyproject.toml` (`lib_name = trentorch`, `version = 1.0.0`, `min_python = 3.10`) but with its own, looser `requirements` line (`numpy>=1.20.0` here versus `numpy>=2.2.6,<3.0.0` in `pyproject.toml`), a known drift risk between the two files since nothing currently keeps them mechanically in sync. Also configures the nbdev paths (`lib_path = trentorch`, `nbs_path = data/modules`, `doc_path = _docs`).
 
 ### 6.3 `MANIFEST.in`
 
@@ -237,8 +237,8 @@ The upstream TinyTorch project runs five GitHub Actions workflows (validate, pre
 - `MANIFEST.in` still targets a top-level `trentorch/` directory that moved to `data/trentorch/` during the `data/` restructuring (see section 6.3) &mdash; not yet verified whether this actually breaks a real sdist build.
 - `platforms/cli/cli_platform/system/update.py` still points at the upstream `harvard-edge/cs249r_book` repo's own tags/paths, not this fork's, and writes a downloaded package to `project_root/tinytorch` instead of `data/trentorch` &mdash; see [`cli_file_organization.md`](cli_file_organization.md) and PR #86.
 - `tests/integration/test_module_integration.py` is fully disabled (`pytest.mark.skip`) with a comment that it targets stale package paths.
-- `settings.ini` and `pyproject.toml` specify different dependency version floors for the same package; nothing currently enforces they stay consistent.
-- `platforms/dev_tools/scripts/build-docs.sh` references a defunct Jupyter Book pipeline that predates the (now also removed) Quarto site, and is not called from any current CI workflow.
+- ~~`settings.ini` and `pyproject.toml` specify different dependency version floors for the same package; nothing currently enforces they stay consistent.~~ Moot: `check-version-consistency.yml` now comments on any PR that lets the two drift apart.
+- ~~`platforms/dev_tools/scripts/build-docs.sh` references a defunct Jupyter Book pipeline.~~ Moot: `build-docs.sh` and `build-book.sh` have both been deleted, along with the one-time `platforms/dev_tools/tools/maintenance/` restructuring scripts.
 
 ---
 

@@ -9,9 +9,9 @@ name: 'Validate CLI Docs'
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   push:
-    branches: [main]
+    branches: [main, dev]
 
 concurrency:
   group: validate-docs-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
@@ -36,8 +36,13 @@ jobs:
 
       - name: Install runtime dependencies
         # The script imports platforms.cli.main to introspect the real
-        # parser, which needs the CLI's own runtime deps importable.
-        run: pip install rich PyYAML
+        # parser, which needs the CLI's own runtime deps importable. rich
+        # and PyYAML (plus rich's own dependency chain: markdown-it-py,
+        # pygments, mdurl) are both already in the project's pip-compile
+        # lockfile, so this installs from the same hash-pinned
+        # requirements.txt as setup.sh and run-test-stage.yml rather than
+        # maintaining a separate partial pin here.
+        run: pip install --require-hashes -r requirements.txt
 
       - name: Validate
         run: python3 platforms/dev_tools/tools/dev/validate_cli_docs.py --verbose
