@@ -1055,11 +1055,12 @@ class Profiler:
         tracemalloc.stop()
 
         useful_memory = parameter_memory_mb + activation_memory_mb
+        reported_peak_memory_mb = max(peak_memory_mb, useful_memory)
         return {
             'parameter_memory_mb': parameter_memory_mb,
             'activation_memory_mb': activation_memory_mb,
-            'peak_memory_mb': max(peak_memory_mb, useful_memory),
-            'memory_efficiency': self._calculate_memory_efficiency(useful_memory, peak_memory_mb)
+            'peak_memory_mb': reported_peak_memory_mb,
+            'memory_efficiency': self._calculate_memory_efficiency(useful_memory, reported_peak_memory_mb)
         }
         ### END SOLUTION
 
