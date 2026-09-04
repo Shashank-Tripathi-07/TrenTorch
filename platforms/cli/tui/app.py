@@ -538,6 +538,11 @@ class TrenTorchApp(App):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                # Decode the child's output as UTF-8, not the platform default
+                # (cp1252 on Windows), which crashes on the CLI's emoji banner
+                # with 'charmap' codec can't decode byte ... (issue #175).
+                encoding="utf-8",
+                errors="replace",
                 cwd=str(self.config.project_root),
                 env=env,
             )
