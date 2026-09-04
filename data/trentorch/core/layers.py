@@ -19,6 +19,7 @@ __all__ = ['rng', 'INIT_SCALE_FACTOR', 'HE_SCALE_FACTOR', 'DROPOUT_MIN_PROB', 'D
            'Sequential']
 
 # %% ../../solutions/03_layers/layers.ipynb #3b8ffb79
+import inspect
 import os
 import numpy as np
 # Module-level RNG is seeded so Linear weight init is deterministic by default.
@@ -419,9 +420,10 @@ class Sequential:
             output = model.forward(x, training=True)    # train: Dropout active
         """
         for layer in self.layers:
-            try:
+            params = inspect.signature(layer.forward).parameters
+            if "training" in params:
                 x = layer.forward(x, training=training)
-            except TypeError:
+            else:
                 x = layer.forward(x)
         return x
 
