@@ -322,8 +322,7 @@ def evaluate_and_celebrate(model, X, y, history):
     # Sanity check: recomputed accuracy on the full dataset should match the
     # last recorded training-history accuracy.
     assert abs(final_accuracy_check - final_acc) < 1e-6, (
-        f"Recomputed accuracy {final_accuracy_check:.4f} does not match "
-        f"history accuracy {final_acc:.4f}"
+        f"Recomputed accuracy {final_accuracy_check:.4f} does not match history accuracy {final_acc:.4f}"
     )
 
     console.print("[bold]📊 The Results:[/bold]\n")
