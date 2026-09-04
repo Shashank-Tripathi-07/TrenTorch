@@ -175,5 +175,40 @@ class TestQuantizedLinear:
         )
 
 
+class TestAffineQuantizationPrecision:
+    """Regression tests for two numerical bugs found during a full
+    pre-release bug sweep (#179), both in the affine quantization math.
+    """
+
+    def test_non_centered_range_round_trips_within_tolerance(self):
+        """A tensor whose range doesn't straddle zero used to get a
+        zero_point that fell outside [-128,127] and got silently clamped
+        without adjusting scale to compensate, breaking the mapping near
+        the tensor's extremes. Extending the range to include 0 before
+        computing scale (the standard affine-quantization fix) avoids the
+        clamp entirely."""
+        tensor = Tensor(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32))
+        quantized, scale, zero_point = quantize_int8(tensor)
+        dequantized = dequantize_int8(quantized, scale, zero_point)
+
+        max_error = np.abs(dequantized.data - tensor.data).max()
+        assert max_error < 0.05, (
+            f"Round-trip error too large ({max_error:.4f}); the zero_point "
+            "clamp is silently corrupting the mapping again."
+        )
+
+    def test_small_non_integer_constant_round_trips_exactly(self):
+        """A constant tensor's special case used to hardcode scale=1.0,
+        so zero_point = round(-c) could only encode the nearest INTEGER
+        to c: a constant of 0.1 dequantized to 0.0, total value loss."""
+        tensor = Tensor(np.full((3, 3), 0.1, dtype=np.float32))
+        quantized, scale, zero_point = quantize_int8(tensor)
+        dequantized = dequantize_int8(quantized, scale, zero_point)
+
+        assert np.allclose(dequantized.data, 0.1, atol=1e-6), (
+            f"Expected 0.1 to round-trip exactly, got {dequantized.data[0, 0]}"
+        )
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
