@@ -1364,6 +1364,7 @@ def analyze_acceleration_decision_framework():
     print(f"      • Moderate complexity")
     print(f"      • Significant wins on element-wise ops")
     print(f"   ")
+    print(f"   📊 Phase 3 (Cache-bound): Tiling / Cache Blocking")
     print(f"      • Essential for large model training")
     print(f"      • Requires careful validation")
     print(f"      • Hardware-dependent benefits")
