@@ -392,11 +392,17 @@ def trainer_train_epoch(self, dataloader, accumulation_steps=1):
     # checking accumulated_loss > 0: a trailing partial group whose average
     # scaled loss is exactly 0.0 (e.g. predictions matching targets exactly)
     # would otherwise skip the optimizer update and leave stale gradients for
-    # the next epoch.
+    # the next epoch. Each batch's loss was pre-scaled by 1/accumulation_steps
+    # (correct only for a full window), so a leftover window with fewer
+    # batches must be rescaled by the actual count, or the average loss is
+    # understated; the optimizer update it performs also counts as a real
+    # step, same as every full-window update above.
     if batches_since_update > 0:
+        accumulated_loss = accumulated_loss * accumulation_steps / batches_since_update
         self._optimizer_update()
         total_loss += accumulated_loss
         num_batches += 1
+        self.step += 1
 
     avg_loss = total_loss / max(num_batches, 1)
     self.history['train_loss'].append(avg_loss)
