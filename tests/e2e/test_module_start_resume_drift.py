@@ -16,9 +16,7 @@ Run with:
     pytest tests/e2e/test_module_start_resume_drift.py -v -m module_flow
 """
 
-import json
 import shutil
-import sys
 from pathlib import Path
 
 import pytest
