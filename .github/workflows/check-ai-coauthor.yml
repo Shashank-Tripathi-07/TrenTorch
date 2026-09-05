@@ -1,0 +1,114 @@
+name: 'Check for AI Co-Authorship'
+
+# Blocks any commit that credits an AI coding tool (Claude, Codex, Copilot,
+# ChatGPT, Gemini, Cursor, etc.) as a co-author or carries one of their
+# auto-generated "Generated with ..." footers. This repo's own commit
+# history has had to be scrubbed of "Co-Authored-By: Claude" trailers more
+# than once (see maintainer_use/CHANGELOG.md, 2026-09) -- this catches it
+# automatically instead of relying on a maintainer noticing during review.
+#
+# Scoped to attribution lines specifically (a "Co-authored-by:" trailer or
+# a "Generated with"/🤖 footer), not a blanket scan of the whole commit
+# message: several curriculum modules (10_tokenization, 13_transformers)
+# legitimately mention Claude/GPT/Gemini by name as real-world LLM
+# examples, and a body-wide scan would false-positive on those.
+#
+# Runs on both pull_request (every commit in the PR, so it catches history
+# rewritten in mid-review too) and push (direct pushes to main/dev, e.g. an
+# admin bypassing the PR requirement for a trivial change) -- pull_request
+# alone would miss the latter.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: check-ai-coauthor-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check:
+    name: AI co-author check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Scan commit messages for AI co-authorship
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            // Known AI coding assistants/services. Matched only against
+            // attribution lines (see below), so a bare product name inside
+            // normal prose elsewhere in a commit message never trips this.
+            const AI_SIGNATURE = new RegExp(
+              '\\b(claude|anthropic|codex|openai|chatgpt|gpt-?\\d|copilot|' +
+              'gemini|bard|cursor(\\.(sh|com|ai))?|windsurf|devin(\\.ai)?|' +
+              'tabnine|codewhisperer|amazon\\s*q|replit\\s*ai|sourcegraph\\s*cody)\\b',
+              'i'
+            );
+
+            // A real git trailer: "Co-authored-by: Name <email>" as its own
+            // line, not just the phrase appearing mid-sentence (a commit
+            // *describing* this check, like this workflow's own commit,
+            // would otherwise trip itself).
+            const COAUTHOR_TRAILER = /^co-authored-by:\s*.+<[^<>\s@]+@[^<>\s]+>\s*$/i;
+
+            // One of the auto-generated "Generated with <tool>" / 🤖 footers
+            // these tools append, anchored to the start of the line (how
+            // they actually render), not matched anywhere in prose.
+            const GENERATED_FOOTER = /^\s*(🤖\s*)?generated (with|by)\b/i;
+
+            function findViolation(message) {
+              const lines = message.split('\n');
+              for (const line of lines) {
+                const trimmed = line.trim();
+                const isAttributionLine =
+                  COAUTHOR_TRAILER.test(trimmed) || GENERATED_FOOTER.test(trimmed);
+                if (isAttributionLine && AI_SIGNATURE.test(trimmed)) {
+                  return trimmed;
+                }
+              }
+              return null;
+            }
+
+            let commits = [];
+            if (context.eventName === 'pull_request') {
+              commits = await github.paginate(github.rest.pulls.listCommits, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+              });
+              commits = commits.map((c) => ({
+                sha: c.sha,
+                message: c.commit.message,
+              }));
+            } else {
+              commits = (context.payload.commits || []).map((c) => ({
+                sha: c.id,
+                message: c.message,
+              }));
+            }
+
+            const violations = [];
+            for (const commit of commits) {
+              const hit = findViolation(commit.message);
+              if (hit) {
+                violations.push(`${commit.sha.slice(0, 7)}: ${hit}`);
+              }
+            }
+
+            if (violations.length > 0) {
+              core.setFailed(
+                'Found AI tool co-authorship/generation credit in commit message(s):\n' +
+                violations.map((v) => `  - ${v}`).join('\n') +
+                '\n\nThis repo does not attribute commits to AI coding tools. Please amend ' +
+                'the offending commit(s) to remove the "Co-authored-by:"/"Generated with" ' +
+                'line(s) and force-push.'
+              );
+            }
