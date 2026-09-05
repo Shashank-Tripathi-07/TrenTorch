@@ -96,12 +96,11 @@ class TestModuleStartResumeDrift:
 
         # Before the fix: resume accepted (started_modules still has "01"),
         # then failed inside open_jupyter() with a generic, unhelpful error.
-        # --no-jupyter isn't a resume flag, so this call will still attempt
-        # to open Jupyter; we only assert on the self-heal step (the
-        # notebook must exist again) and that it isn't the old dead-end
-        # message, rather than requiring a real Jupyter server in CI.
-        code, stdout, stderr = run_tren(["module", "resume", "01"], timeout=30)
+        # --no-jupyter self-heals the notebook without spawning a real
+        # Jupyter server, keeping this test fast and side-effect-free in CI.
+        code, stdout, stderr = run_tren(["module", "resume", "01", "--no-jupyter"])
         combined = stdout + stderr
+        assert code == 0, f"resume did not self-heal after drift: {combined}"
         assert "notebook is missing" in combined.lower() or "restored" in combined.lower(), (
             f"resume did not report self-healing the missing notebook: {combined}"
         )

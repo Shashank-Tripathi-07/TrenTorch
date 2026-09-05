@@ -119,6 +119,11 @@ class ModuleWorkflowCommand(BaseCommand):
             help="Module number to resume (01, 02, 03, etc.) - defaults to last worked",
         )
         resume_parser.add_argument(
+            "--no-jupyter",
+            action="store_true",
+            help="Self-heal the notebook if needed but skip opening Jupyter (for CI/testing)",
+        )
+        resume_parser.add_argument(
             "--notebook",
             action="store_true",
             help="Open in the classic Jupyter Notebook UI (skips the prompt)",
@@ -432,9 +437,18 @@ class ModuleWorkflowCommand(BaseCommand):
         return self.PRIMARY_EXPORT_LABELS.get(module_num, module_name.split("_", 1)[-1].title())
 
     def resume_module(
-        self, module_number: str | None = None, notebook: bool = False, lab: bool = False
+        self,
+        module_number: str | None = None,
+        no_jupyter: bool = False,
+        notebook: bool = False,
+        lab: bool = False,
     ) -> int:
-        """Resume working on a module (continue previous work)."""
+        """Resume working on a module (continue previous work).
+
+        Args:
+            no_jupyter: If True, self-heal the notebook if needed but don't
+                open Jupyter (for CI/testing).
+        """
         module_mapping = get_module_mapping()
 
         # If no module specified, resume last worked
@@ -492,6 +506,10 @@ class ModuleWorkflowCommand(BaseCommand):
         self.console.print(f"🔄 Resuming Module {normalized}: {module_name}")
         self.console.print("💡 Continue your work, then run:")
         self.console.print(f"   [bold cyan]tren module complete {normalized}[/bold cyan]")
+
+        if no_jupyter:
+            # CI/testing mode - notebook is (re)created/verified above, don't open Jupyter
+            return 0
 
         return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
 
@@ -1339,6 +1357,7 @@ class ModuleWorkflowCommand(BaseCommand):
             elif args.module_command == "resume":
                 return self.resume_module(
                     getattr(args, "module_number", None),
+                    no_jupyter=getattr(args, "no_jupyter", False),
                     notebook=getattr(args, "notebook", False),
                     lab=getattr(args, "lab", False),
                 )
