@@ -6,7 +6,7 @@
 
 
 [![Validate](https://github.com/TrenTorch/TrenTorch/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/TrenTorch/TrenTorch/actions/workflows/validate.yml)
-[![Contributors](https://img.shields.io/badge/contributors-4-orange.svg)](#team-engineers)
+[![Contributors](https://img.shields.io/badge/contributors-5-orange.svg)](#team-engineers)
 [![Python](https://img.shields.io/badge/python-3.10+-3776ab?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Built From Scratch](https://img.shields.io/badge/dependencies-just%20NumPy-D4740C?logo=numpy&logoColor=white)](#what-youll-build)
@@ -361,6 +361,15 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <sub>Issues: 11 &middot; PRs: 12</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
+        <a href="https://github.com/MahekPatel-2403"><img src="https://avatars.githubusercontent.com/MahekPatel-2403?v=4" class="contributor-avatar" width="80px;" alt="MahekPatel-2403"/></a>
+        <br />
+        <b>MahekPatel-2403</b>
+        <br />
+        <sub>New to TrenTorch — say hi and add a real intro!</sub>
+        <br />
+        <sub>Issues: 0 &middot; PRs: 1</sub>
+      </td>
+      <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/Shashank-Tripathi-07"><img src=".github/assets/rocky-avatar.png" class="contributor-avatar" width="80px;" alt="Rocky"/></a>
         <br />
         <b>Rocky</b>
@@ -369,7 +378,7 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
         <br />
         <sub>IIT Guwahati, Debugs autograd for fun, ships before sunrise.</sub>
         <br />
-        <sub>Issues: 10 &middot; PRs: 102</sub>
+        <sub>Issues: 10 &middot; PRs: 105</sub>
       </td>
       <td align="center" valign="top" width="20.0%">
         <a href="https://github.com/ShivtejG236"><img src="https://avatars.githubusercontent.com/ShivtejG236?v=4" class="contributor-avatar" width="80px;" alt="Shivtej Gaikwad"/></a>
