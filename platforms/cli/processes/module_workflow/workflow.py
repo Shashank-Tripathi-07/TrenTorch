@@ -220,9 +220,7 @@ class ModuleWorkflowCommand(BaseCommand):
         if self.is_module_started(normalized):
             if notebook_file.exists():
                 self.console.print(f"[yellow]⚠️  Module {normalized} already started[/yellow]")
-                self.console.print(
-                    f"💡 Did you mean: [bold cyan]tren module resume {normalized}[/bold cyan]"
-                )
+                self.console.print(f"💡 Did you mean: [bold cyan]tren module resume {normalized}[/bold cyan]")
                 return 1
             self.console.print(
                 f"[yellow]⚠️  Module {normalized} was marked as started, but its notebook is missing "
