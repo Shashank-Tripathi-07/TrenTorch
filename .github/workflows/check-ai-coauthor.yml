@@ -53,15 +53,25 @@ jobs:
               'i'
             );
 
-            // A "Co-authored-by:" trailer, or one of the auto-generated
-            // "Generated with <tool>" / 🤖 footers these tools append.
-            const ATTRIBUTION_LINE = /^(co-authored-by:.*|.*generated with.*|.*🤖.*)$/im;
+            // A real git trailer: "Co-authored-by: Name <email>" as its own
+            // line, not just the phrase appearing mid-sentence (a commit
+            // *describing* this check, like this workflow's own commit,
+            // would otherwise trip itself).
+            const COAUTHOR_TRAILER = /^co-authored-by:\s*.+<[^<>\s@]+@[^<>\s]+>\s*$/i;
+
+            // One of the auto-generated "Generated with <tool>" / 🤖 footers
+            // these tools append, anchored to the start of the line (how
+            // they actually render), not matched anywhere in prose.
+            const GENERATED_FOOTER = /^\s*(🤖\s*)?generated (with|by)\b/i;
 
             function findViolation(message) {
               const lines = message.split('\n');
               for (const line of lines) {
-                if (ATTRIBUTION_LINE.test(line) && AI_SIGNATURE.test(line)) {
-                  return line.trim();
+                const trimmed = line.trim();
+                const isAttributionLine =
+                  COAUTHOR_TRAILER.test(trimmed) || GENERATED_FOOTER.test(trimmed);
+                if (isAttributionLine && AI_SIGNATURE.test(trimmed)) {
+                  return trimmed;
                 }
               }
               return null;
