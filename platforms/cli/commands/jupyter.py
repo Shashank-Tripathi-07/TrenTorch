@@ -188,6 +188,11 @@ def open_jupyter(config, console, module_name: str, notebook: bool = False, lab:
         module_dir = config.project_root / "data" / "modules" / module_name
         if not module_dir.exists():
             console.print(f"[yellow]⚠️  Module directory not found: {module_name}[/yellow]")
+            module_number = module_name.split("_", 1)[0]
+            console.print(
+                f"💡 Try: [bold cyan]tren module reset {module_number} --force[/bold cyan] to reset it "
+                f"to a clean state"
+            )
             return 1
 
         short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name

@@ -119,6 +119,11 @@ class ModuleWorkflowCommand(BaseCommand):
             help="Module number to resume (01, 02, 03, etc.) - defaults to last worked",
         )
         resume_parser.add_argument(
+            "--no-jupyter",
+            action="store_true",
+            help="Self-heal the notebook if needed but skip opening Jupyter (for CI/testing)",
+        )
+        resume_parser.add_argument(
             "--notebook",
             action="store_true",
             help="Open in the classic Jupyter Notebook UI (skips the prompt)",
@@ -208,10 +213,19 @@ class ModuleWorkflowCommand(BaseCommand):
         module_num = int(normalized)
 
         # Check if already started
+        module_dir = self.config.project_root / "data" / "modules" / module_name
+        short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
+        notebook_file = module_dir / f"{short_name}.ipynb"
+
         if self.is_module_started(normalized):
-            self.console.print(f"[yellow]⚠️  Module {normalized} already started[/yellow]")
-            self.console.print(f"💡 Did you mean: [bold cyan]tren module resume {normalized}[/bold cyan]")
-            return 1
+            if notebook_file.exists():
+                self.console.print(f"[yellow]⚠️  Module {normalized} already started[/yellow]")
+                self.console.print(f"💡 Did you mean: [bold cyan]tren module resume {normalized}[/bold cyan]")
+                return 1
+            self.console.print(
+                f"[yellow]⚠️  Module {normalized} was marked as started, but its notebook is missing "
+                f"on disk.[/yellow]"
+            )
 
         # Check prerequisites - all previous modules must be completed
         progress = self.get_progress_data()
@@ -265,9 +279,6 @@ class ModuleWorkflowCommand(BaseCommand):
         # Check for the notebook file itself, not just the directory: a
         # directory can exist but be empty if a previous conversion failed
         # partway, which would otherwise skip regeneration silently.
-        module_dir = self.config.project_root / "data" / "modules" / module_name
-        short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
-        notebook_file = module_dir / f"{short_name}.ipynb"
         if not notebook_file.exists():
             # Create module from src/ using export
             src_dir = self.config.project_root / "data" / "src" / module_name
@@ -278,6 +289,10 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print("[cyan]📝 Creating module from source...[/cyan]")
             if not self._create_module_from_src(module_name):
                 self.console.print(f"[red]❌ Failed to create module {module_name}[/red]")
+                self.console.print(
+                    f"💡 Try: [bold cyan]tren module reset {normalized} --force[/bold cyan] to reset it "
+                    f"to a clean state"
+                )
                 return 1
             self.console.print(f"[green]✅ Module {normalized} ready![/green]")
             self.console.print()
@@ -420,9 +435,18 @@ class ModuleWorkflowCommand(BaseCommand):
         return self.PRIMARY_EXPORT_LABELS.get(module_num, module_name.split("_", 1)[-1].title())
 
     def resume_module(
-        self, module_number: str | None = None, notebook: bool = False, lab: bool = False
+        self,
+        module_number: str | None = None,
+        no_jupyter: bool = False,
+        notebook: bool = False,
+        lab: bool = False,
     ) -> int:
-        """Resume working on a module (continue previous work)."""
+        """Resume working on a module (continue previous work).
+
+        Args:
+            no_jupyter: If True, self-heal the notebook if needed but don't
+                open Jupyter (for CI/testing).
+        """
         module_mapping = get_module_mapping()
 
         # If no module specified, resume last worked
@@ -450,12 +474,40 @@ class ModuleWorkflowCommand(BaseCommand):
             self.console.print(f"💡 Start with: [bold cyan]tren module start {normalized}[/bold cyan]")
             return 1
 
+        # started_modules and the notebook on disk under data/modules/ can
+        # drift apart (see the matching comment in start_module, and
+        # docs/deep-dive.md Part 3, for why). Verify the notebook is still
+        # there before handing off to open_jupyter, which has no way to
+        # recover once inside; self-heal via the same _create_module_from_src()
+        # helper start_module() uses.
+        module_dir = self.config.project_root / "data" / "modules" / module_name
+        short_name = module_name.split("_", 1)[1] if "_" in module_name else module_name
+        notebook_file = module_dir / f"{short_name}.ipynb"
+        if not notebook_file.exists():
+            self.console.print(
+                f"[yellow]⚠️  Module {normalized} was marked as started, but its notebook is missing "
+                f"on disk.[/yellow]"
+            )
+            self.console.print("[cyan]📝 Recreating the notebook from source...[/cyan]")
+            if not self._create_module_from_src(module_name):
+                self.console.print(f"[red]❌ Couldn't recreate module {normalized} from source.[/red]")
+                self.console.print(
+                    f"💡 Try: [bold cyan]tren module reset {normalized} --force[/bold cyan] to reset it "
+                    f"to a clean state"
+                )
+                return 1
+            self.console.print(f"[green]✅ Module {normalized} notebook restored.[/green]")
+
         # Update last worked
         self.update_last_worked(normalized)
 
         self.console.print(f"🔄 Resuming Module {normalized}: {module_name}")
         self.console.print("💡 Continue your work, then run:")
         self.console.print(f"   [bold cyan]tren module complete {normalized}[/bold cyan]")
+
+        if no_jupyter:
+            # CI/testing mode - notebook is (re)created/verified above, don't open Jupyter
+            return 0
 
         return open_jupyter(self.config, self.console, module_name, notebook=notebook, lab=lab)
 
@@ -1303,6 +1355,7 @@ class ModuleWorkflowCommand(BaseCommand):
             elif args.module_command == "resume":
                 return self.resume_module(
                     getattr(args, "module_number", None),
+                    no_jupyter=getattr(args, "no_jupyter", False),
                     notebook=getattr(args, "notebook", False),
                     lab=getattr(args, "lab", False),
                 )
