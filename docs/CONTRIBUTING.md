@@ -1,6 +1,8 @@
 # Contributing to TrenTorch 🔥
 
-Thanks for your interest in contributing! TrenTorch is an educational ML framework, so every contribution should make things clearer for someone learning, not just more "correct" in the abstract:
+Thanks for your interest in contributing! By participating, you're expected to uphold the [Code of Conduct](../CODE_OF_CONDUCT.md).
+
+TrenTorch is an educational ML framework, so every contribution should make things clearer for someone learning, not just more "correct" in the abstract:
 
 - **Enhance learning** — make concepts clearer for students
 - **Preserve the learning progression** — don't skip ahead of what a module has taught by that point

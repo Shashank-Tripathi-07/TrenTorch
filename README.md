@@ -392,6 +392,10 @@ Recomputed nightly from real issue/PR activity via [`.github/workflows/update-co
 
 MIT License - see [LICENSE](LICENSE) for details.
 
+## Code of Conduct
+
+This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). Participation in issues, pull requests, and discussions is expected to stay within it.
+
 ---
 
 <div align="center">
